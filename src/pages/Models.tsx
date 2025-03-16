@@ -57,6 +57,7 @@ export function Models() {
               <Select.Content>
                 <Select.Item value="all">All Tasks</Select.Item>
                 <Select.Item value="text-generation">Text Generation</Select.Item>
+                <Select.Item value="text-classification">Text Classification</Select.Item>
                 <Select.Item value="image-classification">Image Classification</Select.Item>
                 <Select.Item value="object-detection">Object Detection</Select.Item>
                 <Select.Item value="text-to-image">Text-to-Image</Select.Item>
@@ -168,6 +169,7 @@ export function Models() {
 function getTaskName(taskId: string): string {
   const taskMap: Record<string, string> = {
     "text-generation": "Text Generation",
+    "text-classification": "Text Classification",
     "image-classification": "Image Classification",
     "object-detection": "Object Detection",
     "text-to-image": "Text-to-Image",
@@ -237,5 +239,15 @@ const allModels = [
     likes: 240,
     task: "translation",
     createdAt: "2023-03-25T13:10:00Z"
+  },
+  {
+    id: "7",
+    name: "DistilBERT Classifier",
+    creator: "Hugging Face",
+    description: "A lightweight text classification model for sentiment analysis and topic categorization.",
+    downloads: 850,
+    likes: 310,
+    task: "text-classification",
+    createdAt: "2023-05-30T08:20:00Z"
   }
 ]; 

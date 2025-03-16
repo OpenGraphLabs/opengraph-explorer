@@ -26,6 +26,7 @@ By combining the power of blockchain technology with machine learning, we're bui
 - **Model Discovery**: Browse, search, and filter models by various criteria
 - **User Profiles**: Track your uploaded models, favorites, and activity
 - **Wallet Integration**: Seamless connection with Sui wallets
+- **Flexible Model Formats**: Supporting .json, .bin, and .h5 file formats with automatic conversion for on-chain storage
 
 <!-- ## 🖼️ Screenshots
 
@@ -86,7 +87,7 @@ yarn build
 
 1. **Connect Wallet**: Connect your Sui wallet to the platform
 2. **Explore Models**: Browse through available models or search for specific ones
-3. **Upload Models**: Share your ML models with the community
+3. **Upload Models**: Share your ML models with the community (supporting .json, .bin, and .h5 formats with automatic conversion)
 4. **Execute Inference**: Run models directly on the blockchain
 5. **Track Activity**: Monitor your uploads, favorites, and interactions
 
@@ -97,7 +98,6 @@ huggingface-3.0/
 ├── public/              # Static assets
 ├── src/
 │   ├── components/      # Reusable UI components
-│   ├── pages/           # Page components
 │   │   ├── Home.tsx
 │   │   ├── Models.tsx
 │   │   ├── ModelDetail.tsx
@@ -112,6 +112,7 @@ huggingface-3.0/
 
 ## 🔮 Future Roadmap
 
+- **Support for More Model Formats**: Expanding beyond current formats to include more complex model formats
 - **Datasets**: Support for on-chain datasets
 - **Spaces**: Interactive environments for model demonstration
 - **Community Features**: Comments, ratings, and collaboration tools
@@ -124,7 +125,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is supported by OpenGraph Labs and is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgements
 
