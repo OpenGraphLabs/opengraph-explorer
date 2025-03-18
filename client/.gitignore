@@ -50,14 +50,3 @@ coverage
 # Cache
 .eslintcache
 .stylelintcache
-
-# Server
-server/node_modules
-server/dist
-server/uploads
-server/.env
-server/.env.*
-
-# General
-.DS_Store
-*.log

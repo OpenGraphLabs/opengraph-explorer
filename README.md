@@ -1,17 +1,94 @@
-# HuggingFace 3.0 - AI Models on the Sui Blockchain
+# HuggingFace 3.0
 
-<div align="center">
-  <img src="https://via.placeholder.com/200x200.png?text=HF3.0" alt="HuggingFace 3.0 Logo" width="200" height="200">
-  <h3>The AI Community Building the Future</h3>
-  <p>A fully on-chain machine learning model sharing and inference platform powered by Sui blockchain</p>
-  
-  <div>
-    <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-    <img src="https://img.shields.io/badge/Sui-5A67D8?style=for-the-badge&logo=sui&logoColor=white" alt="Sui" />
-    <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
-  </div>
-</div>
+Sui 블록체인 위에서 fully onchain AI 모델 업로드/추론을 위한 Web3 HuggingFace 프로젝트입니다.
+
+## 프로젝트 구조
+
+```
+huggingface_3.0/
+├── client/                  # React 클라이언트 (프론트엔드)
+│   ├── src/                 # 소스 코드
+│   │   ├── pages/           # 라우트 페이지
+│   │   └── ...
+│   ├── index.html
+│   ├── package.json
+│   └── ...
+│
+├── server/                  # Node.js 서버 (백엔드)
+│   ├── src/                 # 소스 코드
+│   │   ├── controllers/     # 컨트롤러 로직
+│   │   ├── routes/          # API 라우트
+│   │   ├── services/        # 비즈니스 로직 서비스
+│   │   ├── middleware/      # 미들웨어
+│   │   ├── models/          # 데이터 모델
+│   │   └── utils/           # 유틸리티 함수
+│   ├── package.json
+│   └── ...
+│
+├── package.json             # 루트 패키지 (워크스페이스 설정)
+└── ...
+```
+
+## 기술 스택
+
+- **프론트엔드**: React, TypeScript, Vite
+- **백엔드**: Node.js, Express, TypeScript
+- **AI**: TensorFlow.js
+- **블록체인**: Sui
+
+## 설치 및 실행
+
+### 전제 조건
+
+- Node.js 16 이상
+- Yarn 패키지 매니저
+
+### 설치
+
+1. 저장소 클론:
+
+```bash
+git clone https://github.com/yourusername/huggingface_3.0.git
+cd huggingface_3.0
+```
+
+2. 의존성 설치:
+
+```bash
+yarn install
+```
+
+### 개발 서버 실행
+
+동시에 클라이언트와 서버 모두 실행:
+
+```bash
+yarn dev
+```
+
+클라이언트만 실행:
+
+```bash
+yarn dev:client
+```
+
+서버만 실행:
+
+```bash
+yarn dev:server
+```
+
+### 빌드
+
+```bash
+yarn build
+```
+
+## 주요 기능
+
+- .h5 파일을 입력으로 받아 AI 모델 객체로 파싱
+- Sui 블록체인 위에 AI 모델 메타데이터 저장
+- 온체인 AI 모델 추론 (Inference)
 
 ## 🌟 Overview
 
