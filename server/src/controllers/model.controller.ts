@@ -24,6 +24,8 @@ export const convertModel = async (req: Request, res: Response) => {
     // 1. .h5 파일을 파싱 & Model 객체 생성
     let model: Model = await parseModelFile(req.file.path);
 
+    console.log(model);
+
     // 임시 응답
     model = {
       layerInDimensions: [1, 2, 3],
@@ -34,6 +36,8 @@ export const convertModel = async (req: Request, res: Response) => {
       biasesSigns: [[0, 1, 0], [1, 0, 1], [0, 1, 0]],
       scale: 2
     }
+
+    console.log('default model', model);
 
     // TODO: 2. Model 객체 응답으로 전달
     return res.json(model);

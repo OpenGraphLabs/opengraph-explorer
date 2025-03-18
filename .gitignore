@@ -61,3 +61,6 @@ server/.env.*
 # General
 .DS_Store
 *.log
+
+# Test Model Files
+*.h5
