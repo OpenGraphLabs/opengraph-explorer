@@ -51,10 +51,17 @@ coverage
 .eslintcache
 .stylelintcache
 
-# Server
-server/node_modules
-server/dist
-server/uploads
+# Server (Python)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+server/uploads/
+server/__pycache__/
+server/**/__pycache__/
 server/.env
 server/.env.*
 

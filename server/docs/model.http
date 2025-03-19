@@ -1,6 +1,6 @@
+### Convert Model
 
-### Convert Model .h5 file to HuggingFace3.0 Model
-POST {{http-host}}/api/models/convert
+POST {{http-host}}/api/v1/models/convert
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
