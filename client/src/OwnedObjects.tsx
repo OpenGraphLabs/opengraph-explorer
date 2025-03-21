@@ -10,7 +10,7 @@ export function OwnedObjects() {
     },
     {
       enabled: !!account,
-    },
+    }
   );
 
   if (!account) {
@@ -32,7 +32,7 @@ export function OwnedObjects() {
       ) : (
         <Heading size="4">Objects owned by the connected wallet</Heading>
       )}
-      {data.data.map((object) => (
+      {data.data.map(object => (
         <Flex key={object.data?.objectId}>
           <Text>Object ID: {object.data?.objectId}</Text>
         </Flex>

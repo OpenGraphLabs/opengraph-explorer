@@ -5,4 +5,4 @@ export interface Model {
   biasesMagnitudes: number[][];
   biasesSigns: number[][];
   scale: number;
-} 
+}

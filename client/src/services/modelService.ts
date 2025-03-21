@@ -1,6 +1,6 @@
-import { Model } from '../types/model';
+import { Model } from "../types/model";
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export interface ModelUploadResponse {
   model: Model;
@@ -10,7 +10,7 @@ export interface ModelUploadResponse {
 export class ModelConversionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'ModelConversionError';
+    this.name = "ModelConversionError";
   }
 }
 
@@ -20,17 +20,19 @@ export const modelService = {
    */
   async convertModel(file: File): Promise<Model> {
     const formData = new FormData();
-    formData.append('model', file);
+    formData.append("model", file);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/models/convert`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new ModelConversionError(errorData.detail || 'An error occurred while converting the model.');
+        throw new ModelConversionError(
+          errorData.detail || "An error occurred while converting the model."
+        );
       }
 
       const data = await response.json();
@@ -39,7 +41,7 @@ export const modelService = {
       if (error instanceof ModelConversionError) {
         throw error;
       }
-      throw new ModelConversionError('An error occurred while converting the model.');
+      throw new ModelConversionError("An error occurred while converting the model.");
     }
-  }
-}; 
+  },
+};

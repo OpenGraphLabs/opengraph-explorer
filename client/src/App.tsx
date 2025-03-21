@@ -13,54 +13,58 @@ export default function App() {
   const location = useLocation();
   const { isConnected, currentWallet } = useCurrentWallet();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   return (
     <Theme appearance="light" accentColor="orange">
-      <Box style={{ 
-        maxWidth: "1200px", 
-        margin: "0 auto", 
-        padding: "0 16px",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column"
-      }}>
+      <Box
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "0 16px",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {/* Header */}
-        <Flex 
-          justify="between" 
-          align="center" 
+        <Flex
+          justify="between"
+          align="center"
           py="4"
-          style={{ 
+          style={{
             borderBottom: "1px solid var(--gray-4)",
             position: "sticky",
             top: 0,
             background: "white",
-            zIndex: 100
+            zIndex: 100,
           }}
         >
           {/* Logo and Navigation */}
           <Flex align="center" gap="6">
             <Link to="/" style={{ textDecoration: "none" }}>
               <Flex align="center" gap="2">
-                <Box style={{ 
-                  width: "32px", 
-                  height: "32px", 
-                  borderRadius: "8px", 
-                  background: "#FF5733",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: "18px"
-                }}>
+                <Box
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "8px",
+                    background: "#FF5733",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: "18px",
+                  }}
+                >
                   H
                 </Box>
-                <Text 
-                  size="5" 
-                  weight="bold" 
-                  style={{ 
+                <Text
+                  size="5"
+                  weight="bold"
+                  style={{
                     color: "#333",
-                    display: "none"
+                    display: "none",
                   }}
                   className="sm:block"
                 >
@@ -68,7 +72,7 @@ export default function App() {
                 </Text>
               </Flex>
             </Link>
-            
+
             {/* Desktop Navigation */}
             <Flex gap="6" className="hidden md:flex">
               <NavLink to="/" current={location.pathname === "/"}>
@@ -82,132 +86,132 @@ export default function App() {
               </NavLink>
             </Flex>
           </Flex>
-          
+
           {/* Right Side - Connect Button and Profile */}
           <Flex align="center" gap="4">
             {/* Mobile Menu Button */}
             <Box className="block md:hidden">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 style={{ padding: "8px" }}
               >
                 <HamburgerMenuIcon width="20" height="20" />
               </Button>
             </Box>
-            
+
             {/* GitHub Link */}
-            <a 
-              href="https://github.com/yourusername/huggingface-3.0" 
-              target="_blank" 
+            <a
+              href="https://github.com/yourusername/huggingface-3.0"
+              target="_blank"
               rel="noopener noreferrer"
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
+              style={{
+                display: "flex",
+                alignItems: "center",
                 color: "#333",
-                textDecoration: "none"
+                textDecoration: "none",
               }}
             >
               <GitHubLogoIcon width="20" height="20" />
             </a>
-            
+
             {/* Connect Button */}
-            <ConnectButton 
+            <ConnectButton
               connectText="Connect Wallet"
-              style={{ 
+              style={{
                 borderRadius: "8px",
                 background: isConnected ? "white" : "#FF5733",
                 color: isConnected ? "#333" : "white",
                 border: isConnected ? "1px solid var(--gray-5)" : "none",
                 fontWeight: 500,
-                padding: "8px 16px"
+                padding: "8px 16px",
               }}
             />
-            
+
             {/* Profile Link (when connected) */}
             {isConnected && (
               <Link to="/profile" style={{ textDecoration: "none" }}>
-                <Avatar 
-                  size="2" 
-                  fallback={currentWallet?.accounts[0]?.address[0] || "U"} 
-                  style={{ 
+                <Avatar
+                  size="2"
+                  fallback={currentWallet?.accounts[0]?.address[0] || "U"}
+                  style={{
                     background: "#FF5733",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                 />
               </Link>
             )}
           </Flex>
         </Flex>
-        
+
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <Box 
-            style={{ 
-              position: "fixed", 
-              top: "64px", 
-              left: 0, 
-              right: 0, 
-              background: "white", 
+          <Box
+            style={{
+              position: "fixed",
+              top: "64px",
+              left: 0,
+              right: 0,
+              background: "white",
               borderBottom: "1px solid var(--gray-4)",
               zIndex: 99,
-              padding: "16px"
+              padding: "16px",
             }}
             className="block md:hidden"
           >
             <Flex direction="column" gap="3">
-              <Link 
-                to="/" 
-                style={{ 
-                  textDecoration: "none", 
-                  padding: "8px 16px", 
+              <Link
+                to="/"
+                style={{
+                  textDecoration: "none",
+                  padding: "8px 16px",
                   borderRadius: "8px",
                   color: location.pathname === "/" ? "#FF5733" : "#333",
                   fontWeight: location.pathname === "/" ? "bold" : "normal",
-                  background: location.pathname === "/" ? "#FFF4F0" : "transparent"
+                  background: location.pathname === "/" ? "#FFF4F0" : "transparent",
                 }}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Home
               </Link>
-              <Link 
-                to="/models" 
-                style={{ 
-                  textDecoration: "none", 
-                  padding: "8px 16px", 
+              <Link
+                to="/models"
+                style={{
+                  textDecoration: "none",
+                  padding: "8px 16px",
                   borderRadius: "8px",
                   color: location.pathname === "/models" ? "#FF5733" : "#333",
                   fontWeight: location.pathname === "/models" ? "bold" : "normal",
-                  background: location.pathname === "/models" ? "#FFF4F0" : "transparent"
+                  background: location.pathname === "/models" ? "#FFF4F0" : "transparent",
                 }}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Models
               </Link>
-              <Link 
-                to="/upload" 
-                style={{ 
-                  textDecoration: "none", 
-                  padding: "8px 16px", 
+              <Link
+                to="/upload"
+                style={{
+                  textDecoration: "none",
+                  padding: "8px 16px",
                   borderRadius: "8px",
                   color: location.pathname === "/upload" ? "#FF5733" : "#333",
                   fontWeight: location.pathname === "/upload" ? "bold" : "normal",
-                  background: location.pathname === "/upload" ? "#FFF4F0" : "transparent"
+                  background: location.pathname === "/upload" ? "#FFF4F0" : "transparent",
                 }}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Upload
               </Link>
               {isConnected && (
-                <Link 
-                  to="/profile" 
-                  style={{ 
-                    textDecoration: "none", 
-                    padding: "8px 16px", 
+                <Link
+                  to="/profile"
+                  style={{
+                    textDecoration: "none",
+                    padding: "8px 16px",
                     borderRadius: "8px",
                     color: location.pathname === "/profile" ? "#FF5733" : "#333",
                     fontWeight: location.pathname === "/profile" ? "bold" : "normal",
-                    background: location.pathname === "/profile" ? "#FFF4F0" : "transparent"
+                    background: location.pathname === "/profile" ? "#FFF4F0" : "transparent",
                   }}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -217,7 +221,7 @@ export default function App() {
             </Flex>
           </Box>
         )}
-        
+
         {/* Main Content */}
         <Box py="6" style={{ flex: 1 }}>
           <Routes>
@@ -228,15 +232,15 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
           </Routes>
         </Box>
-        
+
         {/* Footer */}
-        <Flex 
-          justify="between" 
-          align="center" 
+        <Flex
+          justify="between"
+          align="center"
           py="4"
-          style={{ 
+          style={{
             borderTop: "1px solid var(--gray-4)",
-            marginTop: "auto"
+            marginTop: "auto",
           }}
         >
           <Text size="2" style={{ color: "#777" }}>
@@ -260,30 +264,38 @@ export default function App() {
 }
 
 // Navigation Link Component
-function NavLink({ to, current, children }: { to: string; current: boolean; children: React.ReactNode }) {
+function NavLink({
+  to,
+  current,
+  children,
+}: {
+  to: string;
+  current: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <Link 
-      to={to} 
-      style={{ 
-        textDecoration: "none", 
+    <Link
+      to={to}
+      style={{
+        textDecoration: "none",
         color: current ? "#FF5733" : "#333",
         fontWeight: current ? "bold" : "normal",
         position: "relative",
-        padding: "4px 0"
+        padding: "4px 0",
       }}
     >
       {children}
       {current && (
-        <Box 
-          style={{ 
-            position: "absolute", 
-            bottom: "-4px", 
-            left: 0, 
-            right: 0, 
-            height: "2px", 
+        <Box
+          style={{
+            position: "absolute",
+            bottom: "-4px",
+            left: 0,
+            right: 0,
+            height: "2px",
             background: "#FF5733",
-            borderRadius: "2px"
-          }} 
+            borderRadius: "2px",
+          }}
         />
       )}
     </Link>
