@@ -1,6 +1,5 @@
 import { Box, Text, Card, Flex } from "@radix-ui/themes";
 import { UploadIcon, ReloadIcon, CheckCircledIcon, InfoCircledIcon } from "@radix-ui/react-icons";
-import { Model } from "../types/model";
 
 interface ModelUploaderProps {
   onFileSelect: (file: File) => void;
@@ -8,7 +7,6 @@ interface ModelUploaderProps {
   isConverting: boolean;
   conversionStatus: string;
   conversionProgress: number;
-  convertedModel: Model | null;
   error: string | null;
 }
 
@@ -18,7 +16,6 @@ export function ModelUploader({
   isConverting,
   conversionStatus,
   conversionProgress,
-  convertedModel,
   error
 }: ModelUploaderProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

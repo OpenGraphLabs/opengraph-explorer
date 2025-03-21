@@ -2,6 +2,7 @@ import { useState, ChangeEvent } from "react";
 import { Box, Flex, Text, TextArea, Select, Button, TextField } from "@radix-ui/themes";
 import { ModelUploader } from "../components/ModelUploader";
 import { useModelUpload } from "../hooks/useModelUpload";
+import { useUploadModelToSui } from "../services/modelSuiService";
 
 interface ModelInfo {
   name: string;
@@ -15,6 +16,9 @@ export function UploadModel() {
     description: "",
     task: "",
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const {
     selectedFile,
@@ -26,6 +30,9 @@ export function UploadModel() {
     convertModel,
     resetUploadState
   } = useModelUpload();
+
+  // Sui 블록체인에 모델 업로드를 위한 훅
+  const { uploadModel } = useUploadModelToSui();
 
   const handleFileSelect = async (file: File) => {
     try {
@@ -46,14 +53,27 @@ export function UploadModel() {
       return;
     }
 
-    // TODO: Implement blockchain upload logic
-    console.log("Uploading to blockchain:", {
-      ...modelInfo,
-      model: convertedModel,
-    });
+    setIsUploading(true);
+    setUploadError(null);
 
-    // Reset form after successful upload
-    resetForm();
+    try {
+      // 모델 데이터와 메타데이터를 함께 업로드
+      const result = await uploadModel(convertedModel, modelInfo);
+      
+      console.log("Model uploaded to blockchain:", result);
+      
+      setUploadSuccess(true);
+      
+      setTimeout(() => {
+        resetForm();
+        setUploadSuccess(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Error uploading model to blockchain:", error);
+      setUploadError(error instanceof Error ? error.message : "Error uploading model to blockchain");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const resetForm = () => {
@@ -63,6 +83,7 @@ export function UploadModel() {
       task: "",
     });
     resetUploadState();
+    setUploadError(null);
   };
 
   return (
@@ -77,7 +98,6 @@ export function UploadModel() {
         isConverting={isConverting}
         conversionStatus={conversionStatus}
         conversionProgress={conversionProgress}
-        convertedModel={convertedModel}
         error={error}
       />
 
@@ -144,18 +164,42 @@ export function UploadModel() {
             </Select.Root>
           </Box>
 
+          {uploadError && (
+            <Box style={{ 
+              marginTop: "16px", 
+              padding: "12px", 
+              backgroundColor: "#FFEBEE", 
+              borderRadius: "4px", 
+              color: "#D32F2F" 
+            }}>
+              <Text size="2">{uploadError}</Text>
+            </Box>
+          )}
+
+          {uploadSuccess && (
+            <Box style={{ 
+              marginTop: "16px", 
+              padding: "12px", 
+              backgroundColor: "#E8F5E9", 
+              borderRadius: "4px", 
+              color: "#2E7D32" 
+            }}>
+              <Text size="2">Model successfully uploaded to Sui blockchain!</Text>
+            </Box>
+          )}
+
           <Box style={{ marginTop: "16px" }}>
             <Button 
               onClick={handleUpload}
-              disabled={!convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task}
+              disabled={isUploading || !convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task}
               style={{ 
                 background: "#FF5733",
                 color: "white",
-                cursor: "pointer",
-                opacity: (!convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task) ? 0.5 : 1
+                cursor: isUploading ? "not-allowed" : "pointer",
+                opacity: (isUploading || !convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task) ? 0.5 : 1
               }}
             >
-              Upload to Blockchain
+              {isUploading ? "Uploading to Blockchain..." : "Upload to Blockchain"}
             </Button>
           </Box>
         </Flex>
