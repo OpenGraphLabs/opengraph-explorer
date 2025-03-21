@@ -1,8 +1,9 @@
 import { useState, ChangeEvent } from "react";
-import { Box, Flex, Text, TextArea, Select, Button, TextField } from "@radix-ui/themes";
+import { Box, Flex, Text, TextArea, Select, Button, TextField, Heading, Card } from "@radix-ui/themes";
 import { ModelUploader } from "../components/ModelUploader";
 import { useModelUpload } from "../hooks/useModelUpload";
 import { useUploadModelToSui } from "../services/modelSuiService";
+import { RocketIcon, ReloadIcon, CheckCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 interface ModelInfo {
   name: string;
@@ -87,123 +88,252 @@ export function UploadModel() {
   };
 
   return (
-    <Box style={{ maxWidth: "800px", margin: "0 auto", padding: "32px" }}>
-      <Text size="8" style={{ marginBottom: "32px", fontWeight: "bold" }}>
+    <Box style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px" }}>
+      <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
         Upload Model
-      </Text>
+      </Heading>
 
-      <ModelUploader
-        onFileSelect={handleFileSelect}
-        selectedFile={selectedFile}
-        isConverting={isConverting}
-        conversionStatus={conversionStatus}
-        conversionProgress={conversionProgress}
-        error={error}
-      />
-
-      <Box style={{ marginTop: "32px" }}>
-        <Text size="6" style={{ marginBottom: "24px", fontWeight: "500" }}>
-          Model Information
-        </Text>
-
-        <Flex direction="column" gap="4">
-          <Box>
-            <Text as="label" size="2" style={{ marginBottom: "8px", display: "block" }}>
-              Model Name
+      <Flex direction="column" gap="6">
+        {/* Step 1: Upload and Convert Model */}
+        <Card style={{ 
+          padding: "24px", 
+          borderRadius: "12px", 
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+          border: "1px solid var(--gray-4)"
+        }}>
+          <Flex direction="column" gap="4">
+            <Flex align="center" gap="2" mb="2">
+              <Box style={{ 
+                background: "linear-gradient(135deg, #FFE5DC 0%, #FFCEBF 100%)", 
+                borderRadius: "50%", 
+                width: "32px", 
+                height: "32px", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center" 
+              }}>
+                <Text size="4" style={{ fontWeight: "700" }}>1</Text>
+              </Box>
+              <Heading size="4" style={{ fontWeight: 600 }}>Upload and Convert Model</Heading>
+            </Flex>
+            
+            <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+              Select a .h5 model file to upload. The file will be automatically converted to a format compatible with on-chain deployment.
             </Text>
-            <TextField.Root>
-              <TextField.Slot>
-                <input
-                  type="text"
-                  placeholder="Enter model name"
-                  value={modelInfo.name}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setModelInfo({ ...modelInfo, name: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    border: "none",
-                    outline: "none",
-                    background: "transparent"
+            
+            <ModelUploader
+              onFileSelect={handleFileSelect}
+              selectedFile={selectedFile}
+              isConverting={isConverting}
+              conversionStatus={conversionStatus}
+              conversionProgress={conversionProgress}
+              error={error}
+            />
+          </Flex>
+        </Card>
+
+        {/* Step 2: Model Information */}
+        <Card style={{ 
+          padding: "24px", 
+          borderRadius: "12px", 
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+          border: "1px solid var(--gray-4)"
+        }}>
+          <Flex direction="column" gap="4">
+            <Flex align="center" gap="2" mb="2">
+              <Box style={{ 
+                background: "linear-gradient(135deg, #FFE5DC 0%, #FFCEBF 100%)", 
+                borderRadius: "50%", 
+                width: "32px", 
+                height: "32px", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center" 
+              }}>
+                <Text size="4" style={{ fontWeight: "700" }}>2</Text>
+              </Box>
+              <Heading size="4" style={{ fontWeight: 600 }}>Model Information</Heading>
+            </Flex>
+            
+            <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+              Provide details about your model. This information will be stored on-chain with your model.
+            </Text>
+
+            <Flex direction="column" gap="4">
+              <Box>
+                <Text as="label" size="2" style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  Model Name <span style={{ color: "#FF5733" }}>*</span>
+                </Text>
+                <TextField.Root style={{ 
+                  borderRadius: "8px", 
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)" 
+                }}>
+                  <input
+                    type="text"
+                    placeholder="Enter model name"
+                    value={modelInfo.name}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setModelInfo({ ...modelInfo, name: e.target.value })}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      fontSize: "15px",
+                      border: "none",
+                      outline: "none",
+                      background: "transparent"
+                    }}
+                  />
+                </TextField.Root>
+              </Box>
+
+              <Box>
+                <Text as="label" size="2" style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  Description <span style={{ color: "#FF5733" }}>*</span>
+                </Text>
+                <TextArea
+                  placeholder="Enter model description"
+                  value={modelInfo.description}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setModelInfo({ ...modelInfo, description: e.target.value })}
+                  style={{ 
+                    minHeight: "120px", 
+                    padding: "12px 16px", 
+                    fontSize: "15px",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)" 
                   }}
                 />
-              </TextField.Slot>
-            </TextField.Root>
-          </Box>
+              </Box>
 
-          <Box>
-            <Text as="label" size="2" style={{ marginBottom: "8px", display: "block" }}>
-              Description
+              <Box>
+                <Text as="label" size="2" style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  Task Type <span style={{ color: "#FF5733" }}>*</span>
+                </Text>
+                <Select.Root
+                  value={modelInfo.task}
+                  onValueChange={(value) => setModelInfo({ ...modelInfo, task: value })}
+                >
+                  <Select.Trigger style={{ 
+                    width: "100%", 
+                    borderRadius: "8px",
+                    padding: "12px 16px",
+                    fontSize: "15px",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)" 
+                  }} />
+                  <Select.Content>
+                    <Select.Group>
+                      <Select.Label>Common Tasks</Select.Label>
+                      <Select.Item value="text-classification">Text Classification</Select.Item>
+                      <Select.Item value="image-classification">Image Classification</Select.Item>
+                      <Select.Item value="object-detection">Object Detection</Select.Item>
+                      <Select.Item value="text-generation">Text Generation</Select.Item>
+                      <Select.Item value="translation">Translation</Select.Item>
+                      <Select.Item value="text-to-image">Text-to-Image</Select.Item>
+                    </Select.Group>
+                  </Select.Content>
+                </Select.Root>
+              </Box>
+            </Flex>
+          </Flex>
+        </Card>
+
+        {/* Step 3: Upload to Blockchain */}
+        <Card style={{ 
+          padding: "24px", 
+          borderRadius: "12px", 
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+          border: "1px solid var(--gray-4)",
+          marginBottom: "32px"
+        }}>
+          <Flex direction="column" gap="4">
+            <Flex align="center" gap="2" mb="2">
+              <Box style={{ 
+                background: "linear-gradient(135deg, #FFE5DC 0%, #FFCEBF 100%)", 
+                borderRadius: "50%", 
+                width: "32px", 
+                height: "32px", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center" 
+              }}>
+                <Text size="4" style={{ fontWeight: "700" }}>3</Text>
+              </Box>
+              <Heading size="4" style={{ fontWeight: 600 }}>Upload to Blockchain</Heading>
+            </Flex>
+            
+            <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+              Once you've prepared your model and provided all information, you can upload it to the Sui blockchain.
             </Text>
-            <TextArea
-              placeholder="Enter model description"
-              value={modelInfo.description}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setModelInfo({ ...modelInfo, description: e.target.value })}
-              style={{ minHeight: "120px" }}
-            />
-          </Box>
 
-          <Box>
-            <Text as="label" size="2" style={{ marginBottom: "8px", display: "block" }}>
-              Task Type
-            </Text>
-            <Select.Root
-              value={modelInfo.task}
-              onValueChange={(value) => setModelInfo({ ...modelInfo, task: value })}
-            >
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Group>
-                  <Select.Label>Common Tasks</Select.Label>
-                  <Select.Item value="text-classification">Text Classification</Select.Item>
-                  <Select.Item value="image-classification">Image Classification</Select.Item>
-                  <Select.Item value="object-detection">Object Detection</Select.Item>
-                  <Select.Item value="text-generation">Text Generation</Select.Item>
-                  <Select.Item value="translation">Translation</Select.Item>
-                </Select.Group>
-              </Select.Content>
-            </Select.Root>
-          </Box>
+            {uploadError && (
+              <Card style={{ 
+                marginTop: "8px", 
+                padding: "12px 16px", 
+                backgroundColor: "#FFEBEE", 
+                borderRadius: "8px", 
+                border: "none" 
+              }}>
+                <Flex align="center" gap="2">
+                  <ExclamationTriangleIcon style={{ color: "#D32F2F" }} />
+                  <Text size="2" style={{ color: "#D32F2F" }}>{uploadError}</Text>
+                </Flex>
+              </Card>
+            )}
 
-          {uploadError && (
-            <Box style={{ 
-              marginTop: "16px", 
-              padding: "12px", 
-              backgroundColor: "#FFEBEE", 
-              borderRadius: "4px", 
-              color: "#D32F2F" 
-            }}>
-              <Text size="2">{uploadError}</Text>
+            {uploadSuccess && (
+              <Card style={{ 
+                marginTop: "8px", 
+                padding: "12px 16px", 
+                backgroundColor: "#E8F5E9", 
+                borderRadius: "8px", 
+                border: "none" 
+              }}>
+                <Flex align="center" gap="2">
+                  <CheckCircledIcon style={{ color: "#2E7D32" }} />
+                  <Text size="2" style={{ color: "#2E7D32" }}>Model successfully uploaded to Sui blockchain!</Text>
+                </Flex>
+              </Card>
+            )}
+
+            <Box style={{ marginTop: "8px" }}>
+              <Button 
+                onClick={handleUpload}
+                disabled={isUploading || !convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task}
+                style={{ 
+                  background: "#FF5733",
+                  color: "white",
+                  cursor: isUploading || !convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task ? "not-allowed" : "pointer",
+                  opacity: (isUploading || !convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task) ? 0.5 : 1,
+                  padding: "0 24px",
+                  height: "48px",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: "600"
+                }}
+              >
+                {isUploading ? (
+                  <Flex align="center" gap="2">
+                    <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                    <span>Uploading to Blockchain...</span>
+                  </Flex>
+                ) : (
+                  <Flex align="center" gap="2">
+                    <RocketIcon />
+                    <span>Upload to Blockchain</span>
+                  </Flex>
+                )}
+              </Button>
             </Box>
-          )}
+          </Flex>
+        </Card>
+      </Flex>
 
-          {uploadSuccess && (
-            <Box style={{ 
-              marginTop: "16px", 
-              padding: "12px", 
-              backgroundColor: "#E8F5E9", 
-              borderRadius: "4px", 
-              color: "#2E7D32" 
-            }}>
-              <Text size="2">Model successfully uploaded to Sui blockchain!</Text>
-            </Box>
-          )}
-
-          <Box style={{ marginTop: "16px" }}>
-            <Button 
-              onClick={handleUpload}
-              disabled={isUploading || !convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task}
-              style={{ 
-                background: "#FF5733",
-                color: "white",
-                cursor: isUploading ? "not-allowed" : "pointer",
-                opacity: (isUploading || !convertedModel || !modelInfo.name || !modelInfo.description || !modelInfo.task) ? 0.5 : 1
-              }}
-            >
-              {isUploading ? "Uploading to Blockchain..." : "Upload to Blockchain"}
-            </Button>
-          </Box>
-        </Flex>
-      </Box>
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </Box>
   );
 } 

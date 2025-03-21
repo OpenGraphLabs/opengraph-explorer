@@ -1,22 +1,124 @@
 .hoverCard {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   cursor: pointer;
+  border: 1px solid var(--gray-4);
+  background: white;
 }
 
 .hoverCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--gray-6);
 }
 
 .modelCard {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.25s ease;
   cursor: pointer;
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  height: 100%;
   border: 1px solid var(--gray-4);
 }
 
 .modelCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  border-color: var(--gray-6);
+}
+
+/* Badge styling */
+.badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--gray-3);
+  color: var(--gray-11);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge.primary {
+  background: var(--accent-3);
+  color: var(--accent-11);
+}
+
+.badge.featured {
+  background: rgba(255, 87, 51, 0.1);
+  color: #FF5733;
+}
+
+/* Creator avatar styling */
+.creatorAvatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatarImage {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--gray-3);
+}
+
+.creatorName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-11);
+}
+
+/* Stats styling */
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--gray-9);
+}
+
+/* Card skeleton for loading state */
+.cardSkeleton {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--gray-4);
+  height: 100%;
+}
+
+.skeletonLine {
+  height: 16px;
+  background: linear-gradient(90deg, var(--gray-3) 0%, var(--gray-4) 50%, var(--gray-3) 100%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeletonCircle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, var(--gray-3) 0%, var(--gray-4) 50%, var(--gray-3) 100%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 } 
