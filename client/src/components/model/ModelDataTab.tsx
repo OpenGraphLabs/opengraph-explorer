@@ -195,7 +195,7 @@ export function ModelDataTab({ model }: ModelDataTabProps) {
                               ? layer.weight_tensor.shape
                                   .map((d: any) => d.toString())
                                   .join(" × ")
-                              : "없음"}
+                              : "None"}
                             <br />
                           </span>
                         ))
@@ -247,21 +247,21 @@ export function ModelDataTab({ model }: ModelDataTabProps) {
                               ? layer.bias_tensor.shape
                                   .map((d: any) => d.toString())
                                   .join(" × ")
-                              : "없음"}
+                              : "None"}
                           </Table.Cell>
                           <Table.Cell>
                             {Array.isArray(layer.weight_tensor.shape)
                               ? layer.weight_tensor.shape
                                   .map((d: any) => d.toString())
                                   .join(" × ")
-                              : "없음"}
+                              : "None"}
                           </Table.Cell>
                           <Table.Cell>
                             {Array.isArray(layer.weight_tensor.shape)
                               ? layer.weight_tensor.shape
                                   .map((d: any) => d.toString())
                                   .join(" × ")
-                              : "없음"}
+                              : "None"}
                           </Table.Cell>
                           <Table.Cell>
                             <Button

@@ -27,20 +27,20 @@ export function ModelDetail() {
   const { model, loading, error } = useModelById(id || "");
   const [activeTab, setActiveTab] = useState("overview");
 
-  // 데이터 로딩 중이면 로딩 상태 표시
+  // Show loading state while data is being fetched
   if (loading) {
     return (
       <Flex direction="column" align="center" gap="3" py="8">
-        <Text>모델 데이터를 불러오는 중입니다...</Text>
+        <Text>Loading model data...</Text>
       </Flex>
     );
   }
 
-  // 오류가 발생했거나 모델이 없는 경우
+  // Show error if model not found or error occurred
   if (error || !model) {
     return (
       <Flex direction="column" align="center" gap="3" py="8">
-        <Text>{error || "모델을 찾을 수 없습니다."}</Text>
+        <Text>{error || "Model not found."}</Text>
       </Flex>
     );
   }
@@ -137,7 +137,7 @@ export function ModelDetail() {
   );
 }
 
-// 모델 메타데이터 카드 컴포넌트
+// Model metadata cards component
 interface ModelMetadataCardsProps {
   model: {
     task_type: string;
