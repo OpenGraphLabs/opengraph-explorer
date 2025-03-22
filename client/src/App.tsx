@@ -248,7 +248,7 @@ export default function App() {
               }}
             />
             <Text size="2" style={{ color: "#777" }}>
-              © 2023 OpenGraph - Powered by Sui Blockchain
+              © {new Date().getFullYear()} OpenGraph - Powered by Sui Blockchain
             </Text>
           </Flex>
           <Flex gap="4">

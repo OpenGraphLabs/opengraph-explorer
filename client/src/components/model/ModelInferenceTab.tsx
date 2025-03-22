@@ -3,6 +3,7 @@ import { InfoCircledIcon, ReloadIcon, ArrowRightIcon } from "@radix-ui/react-ico
 import { useState } from "react";
 import { useModelInferenceState } from "../../hooks/useModelInference";
 import { getActivationTypeName, formatVector } from "../../utils/modelUtils";
+import { SUI_NETWORK } from "../../constants/suiConfig";
 
 interface ModelInferenceTabProps {
   model: {
@@ -37,6 +38,14 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     predictNextLayer
   } = useModelInferenceState(model.id, getLayerCount());
 
+  // Function to get Sui Scan URL
+  const getSuiScanUrl = (type: 'transaction' | 'object', id: string) => {
+    const baseUrl = `https://suiscan.xyz/${SUI_NETWORK.TYPE}`;
+    return type === 'transaction' 
+      ? `${baseUrl}/tx/${id}`
+      : `${baseUrl}/object/${id}`;
+  };
+
   // 간단한 텍스트 추론 기능 (현재 시뮬레이션)
   const runInference = async () => {
     if (!promptText.trim()) return;
@@ -64,9 +73,19 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   return (
     <Card style={{ border: "none", boxShadow: "none" }}>
       <Flex direction="column" gap="4">
-        <Heading size="4" style={{ color: "#FF5733", fontWeight: 700 }}>
-          On-chain Inference
-        </Heading>
+        <Flex justify="between" align="center">
+          <Heading size="4" style={{ color: "#FF5733", fontWeight: 700 }}>
+            On-chain Inference
+          </Heading>
+          <Button
+            variant="soft"
+            style={{ background: "#FFF4F2", color: "#FF5733" }}
+            onClick={() => window.open(getSuiScanUrl('object', model.id), '_blank')}
+          >
+            <Text size="2">View Model on Sui Scan</Text>
+          </Button>
+        </Flex>
+        
         <Text style={{ lineHeight: "1.6" }}>
           This model's inference runs directly on the Sui blockchain. Observe the results layer by layer.
         </Text>
@@ -170,9 +189,21 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               border: "none",
             }}
           >
-            <Text size="2">
-              {inferenceStatus}
-            </Text>
+            <Flex justify="between" align="center">
+              <Text size="2">
+                {inferenceStatus}
+              </Text>
+              {txDigest && (
+                <Button
+                  variant="soft"
+                  size="1"
+                  style={{ background: "#FFF4F2", color: "#FF5733" }}
+                  onClick={() => window.open(getSuiScanUrl('transaction', txDigest), '_blank')}
+                >
+                  <Text size="1">View on Sui Scan</Text>
+                </Button>
+              )}
+            </Flex>
             {txDigest && (
               <Text size="1" style={{ marginTop: "4px", fontFamily: "monospace" }}>
                 Transaction: {txDigest.substring(0, 10)}...
@@ -285,9 +316,21 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                     </Table.Cell>
                     <Table.Cell>
                       {result.argmaxIdx !== undefined ? (
-                        <Badge color="orange">
-                          Final Prediction Value: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
-                        </Badge>
+                        <Flex direction="column" gap="2">
+                          <Badge color="orange">
+                            Final Prediction Value: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
+                          </Badge>
+                          {result.txDigest && (
+                            <Button
+                              size="1"
+                              variant="soft"
+                              style={{ background: "#FFF4F2", color: "#FF5733" }}
+                              onClick={() => result.txDigest && window.open(getSuiScanUrl('transaction', result.txDigest), '_blank')}
+                            >
+                              View Transaction
+                            </Button>
+                          )}
+                        </Flex>
                       ) : (
                         <Badge color="orange">Completed</Badge>
                       )}

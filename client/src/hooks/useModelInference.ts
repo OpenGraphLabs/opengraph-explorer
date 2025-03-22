@@ -10,6 +10,7 @@ export interface PredictResult {
   outputSign: number[];
   activationType: number;
   argmaxIdx?: number;
+  txDigest?: string;
 }
 
 export function useModelInferenceState(modelId: string, totalLayers: number) {
@@ -119,6 +120,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
           outputSign: layerResult.outputSign,
           activationType: layerResult.activationType,
           argmaxIdx: predictionResult?.argmaxIdx,
+          txDigest: result.digest,
         };
         
         setPredictResults(prev => [...prev, newResult]);
