@@ -68,28 +68,28 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
           On-chain Inference
         </Heading>
         <Text style={{ lineHeight: "1.6" }}>
-          이 모델의 추론은 Sui 블록체인 위에서 직접 실행됩니다. 레이어별로 추론 결과를 확인하세요.
+          This model's inference runs directly on the Sui blockchain. Observe the results layer by layer.
         </Text>
 
         <Card style={{ padding: "16px", borderRadius: "8px", marginBottom: "16px" }}>
           <Flex gap="2" align="center" mb="3">
-            <InfoCircledIcon style={{ color: "#2196F3" }} />
+            <InfoCircledIcon style={{ color: "#FF5733" }} />
             <Text size="2" style={{ fontWeight: 500 }}>
-              입력 벡터를 제공하면 모델의 각 레이어를 순차적으로 통과하며 추론 결과를 실시간으로 확인할 수 있습니다.
-              각 레이어의 출력이 다음 레이어의 입력으로 자동 연결됩니다.
+              Provide an input vector to see results as the model processes each layer sequentially.
+              The output of each layer automatically becomes the input for the next layer.
             </Text>
           </Flex>
         </Card>
 
         <Box style={{ background: "#F5F5F5", padding: "16px", borderRadius: "8px" }}>
           <Heading size="3" mb="2">
-            모델 벡터 입력
+            Model Vector Input
           </Heading>
           <Text size="2" mb="2">
-            입력 벡터 값을 쉼표로 구분하여 입력하세요:
+            Enter input vector values separated by commas:
           </Text>
           <TextArea
-            placeholder="예: 1.0, 2.5, -3.0, 4.2, -1.5"
+            placeholder="Example: 1.0, 2.5, -3.0, 4.2, -1.5"
             value={inputVector}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInputVector(e.target.value)}
             style={{
@@ -106,12 +106,12 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
         <Flex justify="between" align="center" mt="3" mb="3">
           <Flex align="center" gap="2">
             <Text size="2" style={{ fontWeight: 600 }}>
-              모델 구조: {getLayerCount()}개 레이어
+              Model Structure: {getLayerCount()} Layers
             </Text>
           </Flex>
           <Flex align="center" gap="2">
             <Text size="2" style={{ fontWeight: 600 }}>
-              현재 레이어: {currentLayerIndex}/{getLayerCount()}
+              Current Layer: {currentLayerIndex}/{getLayerCount()}
             </Text>
           </Flex>
         </Flex>
@@ -130,10 +130,10 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             {isProcessing ? (
               <Flex align="center" gap="2">
                 <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
-                <span>처리 중...</span>
+                <span>Processing...</span>
               </Flex>
             ) : (
-              <span>추론 시작</span>
+              <span>Start Inference</span>
             )}
           </Button>
           
@@ -141,7 +141,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             onClick={predictNextLayer}
             disabled={isProcessing || predictResults.length === 0 || currentLayerIndex >= getLayerCount()}
             style={{
-              background: "#2196F3",
+              background: "#FF7A00",
               color: "white",
               borderRadius: "8px",
               opacity: isProcessing || predictResults.length === 0 || currentLayerIndex >= getLayerCount() ? 0.6 : 1,
@@ -150,11 +150,11 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             {isProcessing ? (
               <Flex align="center" gap="2">
                 <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
-                <span>처리 중...</span>
+                <span>Processing...</span>
               </Flex>
             ) : (
               <Flex align="center" gap="2">
-                <span>수동으로 다음 레이어</span>
+                <span>Next Layer Manually</span>
                 <ArrowRightIcon />
               </Flex>
             )}
@@ -166,7 +166,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             style={{
               padding: "12px 16px",
               borderRadius: "8px",
-              background: isProcessing ? "#E3F2FD" : inferenceStatus.includes("오류") ? "#FFEBEE" : "#E8F5E9",
+              background: isProcessing ? "#E3F2FD" : inferenceStatus.includes("error") ? "#FFEBEE" : "#E8F5E9",
               border: "none",
             }}
           >
@@ -175,7 +175,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             </Text>
             {txDigest && (
               <Text size="1" style={{ marginTop: "4px", fontFamily: "monospace" }}>
-                트랜잭션: {txDigest.substring(0, 10)}...
+                Transaction: {txDigest.substring(0, 10)}...
               </Text>
             )}
           </Card>
@@ -184,13 +184,13 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
         {predictResults.length > 0 && (
           <Box style={{ marginTop: "16px" }}>
             <Heading size="3" mb="2">
-              레이어별 추론 결과
+              Layer-by-Layer Inference Results
             </Heading>
             
             <Flex direction="column" gap="3" mb="4">
               <Box>
                 <Text size="2" mb="1" style={{ fontWeight: 600 }}>
-                  현재 진행 상황: {currentLayerIndex} / {getLayerCount()} 레이어
+                  Current Progress: {currentLayerIndex} / {getLayerCount()} Layers
                 </Text>
                 <div
                   style={{
@@ -215,21 +215,127 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               <Card style={{ padding: "10px", background: "#F5F5F5" }}>
                 <Flex align="center" justify="between">
                   <Text size="2" style={{ fontWeight: 600 }}>
-                    총 레이어 수: {getLayerCount()}
+                    Total Layers: {getLayerCount()}
                   </Text>
                   <Text size="2" style={{ fontWeight: 600 }}>
-                    예측 결과 수: {predictResults.length}
+                    Prediction Results: {predictResults.length}
                   </Text>
                 </Flex>
               </Card>
             </Flex>
             
-            <InferenceResultTable 
-              predictResults={predictResults}
-              currentLayerIndex={currentLayerIndex}
-              isProcessing={isProcessing}
-              layerCount={getLayerCount()}
-            />
+            <Table.Root>
+              <Table.Header>
+                <Table.Row>
+                  <Table.ColumnHeaderCell>Layer</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Activation Function</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Input Vector</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Output Vector</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {predictResults.map((result, index) => (
+                  <Table.Row key={index}>
+                    <Table.Cell>
+                      <Badge color="orange" mr="1">{result.layerIdx + 1}</Badge>
+                    </Table.Cell>
+                    <Table.Cell>
+                      {getActivationTypeName(result.activationType)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
+                        <Flex direction="column" gap="1">
+                          <Text size="1" style={{ color: "var(--gray-9)" }}>
+                            Size: {result.inputMagnitude.length}
+                          </Text>
+                          <Code
+                            style={{
+                              maxHeight: "60px",
+                              overflow: "auto",
+                              fontSize: "11px",
+                              padding: "4px",
+                              backgroundColor: "var(--gray-a2)",
+                            }}
+                          >
+                            [{formatVector(result.inputMagnitude, result.inputSign)}]
+                          </Code>
+                        </Flex>
+                      </Box>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
+                        <Flex direction="column" gap="1">
+                          <Text size="1" style={{ color: "var(--gray-9)" }}>
+                            Size: {result.outputMagnitude.length}
+                          </Text>
+                          <Code
+                            style={{
+                              maxHeight: "60px",
+                              overflow: "auto",
+                              fontSize: "11px",
+                              padding: "4px",
+                              backgroundColor: "var(--gray-a2)",
+                            }}
+                          >
+                            [{formatVector(result.outputMagnitude, result.outputSign)}]
+                          </Code>
+                        </Flex>
+                      </Box>
+                    </Table.Cell>
+                    <Table.Cell>
+                      {result.argmaxIdx !== undefined ? (
+                        <Badge color="orange">
+                          Final Prediction Value: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
+                        </Badge>
+                      ) : (
+                        <Badge color="orange">Completed</Badge>
+                      )}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+                
+                {/* Currently processing layer row */}
+                {isProcessing && (
+                  <Table.Row>
+                    <Table.Cell>
+                      <Badge color="orange" mr="1">{currentLayerIndex + 1}</Badge>
+                    </Table.Cell>
+                    <Table.Cell>In Progress...</Table.Cell>
+                    <Table.Cell>
+                      <Flex align="center" gap="2">
+                        <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                        <Text size="2">Processing...</Text>
+                      </Flex>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Flex align="center" gap="2">
+                        <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                        <Text size="2">Processing...</Text>
+                      </Flex>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge color="orange">Processing</Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                )}
+                
+                {/* Remaining layers rows */}
+                {Array.from({ length: Math.max(0, getLayerCount() - currentLayerIndex - (isProcessing ? 1 : 0)) }).map((_, idx) => (
+                  <Table.Row key={`pending-${idx}`} style={{ opacity: 0.5 }}>
+                    <Table.Cell>
+                      <Badge variant="outline" mr="1">{currentLayerIndex + idx + (isProcessing ? 1 : 0) + 1}</Badge>
+                    </Table.Cell>
+                    <Table.Cell>Pending</Table.Cell>
+                    <Table.Cell>-</Table.Cell>
+                    <Table.Cell>-</Table.Cell>
+                    <Table.Cell>
+                      <Badge variant="outline" color="gray">Pending</Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
           </Box>
         )}
       </Flex>
@@ -255,11 +361,11 @@ function InferenceResultTable({
     <Table.Root>
       <Table.Header>
         <Table.Row>
-          <Table.ColumnHeaderCell>레이어</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>활성화 함수</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>입력 벡터</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>출력 벡터</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>상태</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Layer</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Activation Function</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Input Vector</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Output Vector</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -275,7 +381,7 @@ function InferenceResultTable({
               <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
                 <Flex direction="column" gap="1">
                   <Text size="1" style={{ color: "var(--gray-9)" }}>
-                    크기: {result.inputMagnitude.length}
+                    Size: {result.inputMagnitude.length}
                   </Text>
                   <Code
                     style={{
@@ -295,7 +401,7 @@ function InferenceResultTable({
               <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
                 <Flex direction="column" gap="1">
                   <Text size="1" style={{ color: "var(--gray-9)" }}>
-                    크기: {result.outputMagnitude.length}
+                    Size: {result.outputMagnitude.length}
                   </Text>
                   <Code
                     style={{
@@ -313,52 +419,52 @@ function InferenceResultTable({
             </Table.Cell>
             <Table.Cell>
               {result.argmaxIdx !== undefined ? (
-                <Badge color="green">
-                  최종 예측 값: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
+                <Badge color="orange">
+                  Final Prediction Value: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
                 </Badge>
               ) : (
-                <Badge color="blue">완료</Badge>
+                <Badge color="orange">Completed</Badge>
               )}
             </Table.Cell>
           </Table.Row>
         ))}
         
-        {/* 현재 처리 중인 레이어 행 */}
+        {/* Currently processing layer row */}
         {isProcessing && (
           <Table.Row>
             <Table.Cell>
               <Badge color="orange" mr="1">{currentLayerIndex + 1}</Badge>
             </Table.Cell>
-            <Table.Cell>진행 중...</Table.Cell>
+            <Table.Cell>In Progress...</Table.Cell>
             <Table.Cell>
               <Flex align="center" gap="2">
                 <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
-                <Text size="2">처리 중...</Text>
+                <Text size="2">Processing...</Text>
               </Flex>
             </Table.Cell>
             <Table.Cell>
               <Flex align="center" gap="2">
                 <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
-                <Text size="2">처리 중...</Text>
+                <Text size="2">Processing...</Text>
               </Flex>
             </Table.Cell>
             <Table.Cell>
-              <Badge color="orange">처리 중</Badge>
+              <Badge color="orange">Processing</Badge>
             </Table.Cell>
           </Table.Row>
         )}
         
-        {/* 남은 레이어 행 */}
+        {/* Remaining layers rows */}
         {Array.from({ length: Math.max(0, layerCount - currentLayerIndex - (isProcessing ? 1 : 0)) }).map((_, idx) => (
           <Table.Row key={`pending-${idx}`} style={{ opacity: 0.5 }}>
             <Table.Cell>
               <Badge variant="outline" mr="1">{currentLayerIndex + idx + (isProcessing ? 1 : 0) + 1}</Badge>
             </Table.Cell>
-            <Table.Cell>대기 중</Table.Cell>
+            <Table.Cell>Pending</Table.Cell>
             <Table.Cell>-</Table.Cell>
             <Table.Cell>-</Table.Cell>
             <Table.Cell>
-              <Badge variant="outline" color="gray">대기 중</Badge>
+              <Badge variant="outline" color="gray">Pending</Badge>
             </Table.Cell>
           </Table.Row>
         ))}

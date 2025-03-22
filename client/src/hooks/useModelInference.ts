@@ -13,7 +13,7 @@ export interface PredictResult {
 }
 
 export function useModelInferenceState(modelId: string, totalLayers: number) {
-  // 추론 관련 상태
+  // Inference related state
   const [inputVector, setInputVector] = useState<string>("");
   const [inputValues, setInputValues] = useState<number[]>([]);
   const [inputSigns, setInputSigns] = useState<number[]>([]);
@@ -23,31 +23,31 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [txDigest, setTxDigest] = useState<string>("");
   
-  // SUI 추론 훅 가져오기
+  // Get SUI inference hook
   const { predictLayer, parseLayerComputedEvent, parsePredictionCompletedEvent } = useSuiModelInference();
 
-  // 입력 벡터 파싱
+  // Parse input vector
   const parseInputVector = () => {
     try {
       let values = inputVector.split(",").map(val => val.trim()).filter(val => val !== "");
       
       if (values.length === 0) {
-        throw new Error("입력 벡터가 비어 있습니다.");
+        throw new Error("Input vector is empty.");
       }
       
-      // 숫자로 변환하고 부호와 크기로 분리
+      // Convert to numbers and separate into signs and magnitudes
       const magnitudes: number[] = [];
       const signs: number[] = [];
       
       values.forEach(val => {
         const num = parseFloat(val);
         if (isNaN(num)) {
-          throw new Error(`유효하지 않은 숫자: ${val}`);
+          throw new Error(`Invalid number: ${val}`);
         }
         
-        // 부호 결정 (0=양수, 1=음수)
+        // Determine sign (0=positive, 1=negative)
         const sign = num >= 0 ? 0 : 1;
-        // 크기 (절대값)
+        // Magnitude (absolute value)
         const magnitude = Math.abs(num);
         
         magnitudes.push(magnitude);
@@ -58,21 +58,21 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
       setInputSigns(signs);
       return { magnitudes, signs };
     } catch (error) {
-      console.error("입력 벡터 파싱 오류:", error);
-      setInferenceStatus(`오류: ${error instanceof Error ? error.message : "입력 벡터 형식이 잘못되었습니다."}`);
+      console.error("Input vector parsing error:", error);
+      setInferenceStatus(`Error: ${error instanceof Error ? error.message : "Invalid input vector format."}`);
       return null;
     }
   };
 
-  // 레이어 예측 실행
+  // Execute layer prediction
   const runLayerPrediction = async (layerIdx: number, inputMagnitude: number[], inputSign: number[]) => {
     if (!modelId) return;
     
     setIsProcessing(true);
-    setInferenceStatus(`레이어 ${layerIdx} 예측 중...`);
+    setInferenceStatus(`Predicting layer ${layerIdx}...`);
     
     try {
-      // 레이어 예측 트랜잭션 호출
+      // Call layer prediction transaction
       const result = await predictLayer(modelId, layerIdx, inputMagnitude, inputSign, (res) => {
         console.log("--------------------------------");
         console.log(`Layer ${layerIdx} prediction result:`, res);
@@ -85,32 +85,32 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
         }
       });
     } catch (error) {
-      console.error(`레이어 ${layerIdx} 예측 오류:`, error);
-      setInferenceStatus(`오류: ${error instanceof Error ? error.message : "예측 실행 중 오류가 발생했습니다."}`);
+      console.error(`Layer ${layerIdx} prediction error:`, error);
+      setInferenceStatus(`Error: ${error instanceof Error ? error.message : "An error occurred during prediction execution."}`);
       setIsProcessing(false);
     }
   };
   
-  // 트랜잭션 결과 처리
+  // Process transaction result
   const processTransactionResult = async (result: any, layerIdx: number, inputMagnitude: number[], inputSign: number[]) => {
     try {
       console.log("Transaction result:", result);
 
-      // 1초 대기하여 트랜잭션이 완료될 시간을 줌
+      // Wait 1 second to allow transaction to complete
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // LayerComputed 이벤트 파싱
+      // Parse LayerComputed event
       const layerResult = parseLayerComputedEvent(result.events);
       console.log("xxxxxxxxxxxxxxxxx");
       console.log("Layer result:", layerResult);
       console.log("xxxxxxxxxxxxxxxxx");
       
-      // PredictionCompleted 이벤트 파싱 (마지막 레이어인 경우)
+      // Parse PredictionCompleted event (if last layer)
       const predictionResult = parsePredictionCompletedEvent(result.events);
       console.log("Prediction result:", predictionResult);
       
       if (layerResult) {
-        // 결과를 저장
+        // Save the result
         const newResult = {
           layerIdx,
           inputMagnitude,
@@ -123,26 +123,27 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
         
         setPredictResults(prev => [...prev, newResult]);
         
-        // 다음 레이어 인덱스 설정
+        // Set next layer index
         setCurrentLayerIndex(layerIdx + 1);
         
-        // 이벤트가 검색되었는지 여부에 따라 상태 업데이트
+        // Update status based on whether events were found
         if (predictionResult) {
-          // 마지막 레이어 (예측 완료)
+          // Last layer (prediction complete)
           const finalValue = formatVector(
             [predictionResult.outputMagnitude[predictionResult.argmaxIdx]], 
             [predictionResult.outputSign[predictionResult.argmaxIdx]]
           );
-          setInferenceStatus(`예측 완료! 최종 값: ${finalValue}`);
+          
+          setInferenceStatus(`Prediction complete! Final value: ${finalValue}`);
           setIsProcessing(false);
         } else {
-          // 다음 레이어 준비
-          setInferenceStatus(`레이어 ${layerIdx} 예측 완료. 다음 레이어 준비 중...`);
+          // Prepare for next layer
+          setInferenceStatus(`Layer ${layerIdx} prediction complete. Preparing next layer...`);
           setIsProcessing(false);
           
-          // 자동으로 다음 레이어 실행 (마지막 레이어가 아닌 경우)
+          // Automatically run next layer (if not last layer)
           if (layerIdx + 1 < totalLayers) {
-            // 0.5초 후 다음 레이어 실행
+            // Run next layer after 0.5 seconds
             setTimeout(() => {
               runLayerPrediction(
                 layerIdx + 1,
@@ -153,42 +154,42 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
           }
         }
       } else {
-        setInferenceStatus(`레이어 ${layerIdx} 예측 완료했지만 이벤트를 찾을 수 없습니다.`);
+        setInferenceStatus(`Layer ${layerIdx} prediction completed but no events found.`);
         setIsProcessing(false);
       }
     } catch (error) {
-      console.error("트랜잭션 결과 처리 오류:", error);
-      setInferenceStatus(`오류: ${error instanceof Error ? error.message : "트랜잭션 결과 처리 중 오류가 발생했습니다."}`);
+      console.error("Transaction result processing error:", error);
+      setInferenceStatus(`Error: ${error instanceof Error ? error.message : "An error occurred while processing transaction result."}`);
       setIsProcessing(false);
     }
   };
   
-  // 레이어 추론 시작
+  // Start layer inference
   const startInference = async () => {
-    // 입력 벡터 파싱
+    // Parse input vector
     const parsedInput = parseInputVector();
     if (!parsedInput) return;
     
-    // 기존 결과 초기화
+    // Reset existing results
     setPredictResults([]);
     setCurrentLayerIndex(0);
     setTxDigest("");
     
-    // 첫 번째 레이어 예측 실행
+    // Execute first layer prediction
     await runLayerPrediction(0, parsedInput.magnitudes, parsedInput.signs);
   };
   
-  // 다음 레이어 추론 (수동)
+  // Predict next layer (manual)
   const predictNextLayer = async () => {
     if (predictResults.length === 0) {
-      setInferenceStatus("먼저 첫 번째 레이어를 예측해야 합니다.");
+      setInferenceStatus("You must predict the first layer first.");
       return;
     }
     
-    // 마지막 예측 결과 가져오기
+    // Get last prediction result
     const lastResult = predictResults[predictResults.length - 1];
     
-    // 다음 레이어 예측 실행 (이전 레이어의 출력을 입력으로 사용)
+    // Execute next layer prediction (using previous layer's output as input)
     await runLayerPrediction(
       currentLayerIndex,
       lastResult.outputMagnitude,
@@ -197,7 +198,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
   };
 
   return {
-    // 상태
+    // State
     inputVector,
     inputValues,
     inputSigns,
@@ -206,7 +207,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
     inferenceStatus,
     isProcessing,
     txDigest,
-    // 액션
+    // Actions
     setInputVector,
     parseInputVector,
     startInference,

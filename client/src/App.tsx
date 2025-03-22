@@ -8,6 +8,7 @@ import { ModelDetail } from "./pages/ModelDetail";
 import { UploadModel } from "./pages/UploadModel";
 import { Profile } from "./pages/Profile";
 import { HamburgerMenuIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
+import logoImage from "./assets/logo/logo.png";
 
 export default function App() {
   const location = useLocation();
@@ -43,32 +44,24 @@ export default function App() {
           <Flex align="center" gap="6">
             <Link to="/" style={{ textDecoration: "none" }}>
               <Flex align="center" gap="2">
-                <Box
+                <img 
+                  src={logoImage} 
+                  alt="OpenGraph Logo" 
                   style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "8px",
-                    background: "#FF5733",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                    fontWeight: "bold",
-                    fontSize: "18px",
+                    width: "40px",
+                    height: "40px",
+                    objectFit: "contain",
                   }}
-                >
-                  H
-                </Box>
+                />
                 <Text
                   size="5"
                   weight="bold"
                   style={{
-                    color: "#333",
-                    display: "none",
+                    color: "#FF5500",
                   }}
                   className="sm:block"
                 >
-                  HuggingFace 3.0
+                  OpenGraph
                 </Text>
               </Flex>
             </Link>
@@ -241,11 +234,23 @@ export default function App() {
           style={{
             borderTop: "1px solid var(--gray-4)",
             marginTop: "auto",
+            padding: "20px 0",
           }}
         >
-          <Text size="2" style={{ color: "#777" }}>
-            © 2023 HuggingFace 3.0 - Powered by Sui Blockchain
-          </Text>
+          <Flex align="center" gap="2">
+            <img 
+              src={logoImage} 
+              alt="OpenGraph Logo" 
+              style={{
+                width: "24px",
+                height: "24px",
+                objectFit: "contain",
+              }}
+            />
+            <Text size="2" style={{ color: "#777" }}>
+              © 2023 OpenGraph - Powered by Sui Blockchain
+            </Text>
+          </Flex>
           <Flex gap="4">
             <a href="#" style={{ textDecoration: "none", color: "#777", fontSize: "14px" }}>
               Terms
