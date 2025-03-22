@@ -35,6 +35,8 @@ export function UploadModel() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [transactionInProgress, setTransactionInProgress] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
   const {
     selectedFile,
@@ -51,10 +53,16 @@ export function UploadModel() {
   const { uploadModel } = useUploadModelToSui();
 
   const handleFileSelect = async (file: File) => {
+    console.log("File selected:", file.name);
     try {
-      await convertModel(file);
+      setUploadError(null); // 이전 오류 초기화
+      const model = await convertModel(file);
+      console.log("Model converted successfully:", model);
     } catch (error) {
       console.error("Error during model conversion:", error);
+      setUploadError(
+        error instanceof Error ? error.message : "Failed to convert model file"
+      );
     }
   };
 
@@ -71,25 +79,40 @@ export function UploadModel() {
 
     setIsUploading(true);
     setUploadError(null);
+    setTransactionInProgress(true);
+    setTransactionHash(null);
 
     try {
       // 모델 데이터와 메타데이터를 함께 업로드
-      const result = await uploadModel(convertedModel, modelInfo);
-
-      console.log("Model uploaded to blockchain:", result);
-
-      setUploadSuccess(true);
-
-      setTimeout(() => {
-        resetForm();
-        setUploadSuccess(false);
-      }, 3000);
+      await uploadModel(
+        convertedModel, 
+        modelInfo,
+        (result) => {
+          console.log("Model uploaded to blockchain:", result);
+          
+          // 트랜잭션 해시 저장
+          if (result && typeof result === 'object' && 'digest' in result) {
+            setTransactionHash(result.digest);
+          }
+          
+          // 성공 상태로 설정
+          setUploadSuccess(true);
+          setTransactionInProgress(false);
+          setIsUploading(false);
+          
+          // 성공 메시지를 일정 시간 후에 초기화
+          setTimeout(() => {
+            resetForm();
+            setUploadSuccess(false);
+          }, 5000); // 5초로 연장
+        }
+      );
     } catch (error) {
       console.error("Error uploading model to blockchain:", error);
       setUploadError(
         error instanceof Error ? error.message : "Error uploading model to blockchain"
       );
-    } finally {
+      setTransactionInProgress(false);
       setIsUploading(false);
     }
   };
@@ -102,6 +125,7 @@ export function UploadModel() {
     });
     resetUploadState();
     setUploadError(null);
+    setTransactionHash(null);
   };
 
   return (
@@ -154,6 +178,7 @@ export function UploadModel() {
               conversionStatus={conversionStatus}
               conversionProgress={conversionProgress}
               error={error}
+              resetUploadState={resetUploadState}
             />
           </Flex>
         </Card>
@@ -360,6 +385,30 @@ export function UploadModel() {
                   <CheckCircledIcon style={{ color: "#2E7D32" }} />
                   <Text size="2" style={{ color: "#2E7D32" }}>
                     Model successfully uploaded to Sui blockchain!
+                    {transactionHash && (
+                      <Text as="div" size="1" style={{ marginTop: "4px" }}>
+                        Transaction hash: {transactionHash.substring(0, 10)}...
+                      </Text>
+                    )}
+                  </Text>
+                </Flex>
+              </Card>
+            )}
+
+            {transactionInProgress && (
+              <Card
+                style={{
+                  marginTop: "8px",
+                  padding: "12px 16px",
+                  backgroundColor: "#E3F2FD",
+                  borderRadius: "8px",
+                  border: "none",
+                }}
+              >
+                <Flex align="center" gap="2">
+                  <ReloadIcon style={{ color: "#1976D2", animation: "spin 1s linear infinite" }} />
+                  <Text size="2" style={{ color: "#1976D2" }}>
+                    Transaction in progress... Please wait for confirmation.
                   </Text>
                 </Flex>
               </Card>

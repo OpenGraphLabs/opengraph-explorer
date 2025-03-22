@@ -6,6 +6,7 @@ import {
   InfoCircledIcon,
   Cross2Icon,
 } from "@radix-ui/react-icons";
+import { useRef } from "react";
 
 interface ModelUploaderProps {
   onFileSelect: (file: File) => void;
@@ -14,6 +15,7 @@ interface ModelUploaderProps {
   conversionStatus: string;
   conversionProgress: number;
   error: string | null;
+  resetUploadState: () => void;
 }
 
 export function ModelUploader({
@@ -23,7 +25,11 @@ export function ModelUploader({
   conversionStatus,
   conversionProgress,
   error,
+  resetUploadState,
 }: ModelUploaderProps) {
+  // useRef를 사용하여 파일 input 요소를 참조합니다
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -38,13 +44,41 @@ export function ModelUploader({
     }
   };
 
-  const resetFile = () => {
-    // This function is just a placeholder - actual reset would be handled by the parent component
-    // The parent component should listen to this event and reset the file state
-    const fileInput = document.getElementById("file-upload") as HTMLInputElement;
-    if (fileInput) {
-      fileInput.value = "";
+  // 파일 브라우즈 버튼 클릭 시 파일 input을 클릭합니다
+  const handleBrowseClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
+  };
+
+  // 드래그 앤 드롭 이벤트 처리
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      
+      if (fileExtension === "h5") {
+        onFileSelect(file);
+      } else {
+        alert("Only .h5 files are supported.");
+      }
+    }
+  };
+
+  const resetFile = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    // 부모 컴포넌트의 resetUploadState 함수 호출
+    resetUploadState();
   };
 
   return (
@@ -60,6 +94,8 @@ export function ModelUploader({
           transition: "all 0.2s ease",
           marginBottom: "16px",
         }}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         <Flex direction="column" align="center" gap="3">
           <Box
@@ -90,24 +126,24 @@ export function ModelUploader({
               <Text size="2" style={{ color: "var(--gray-11)" }}>
                 or
               </Text>
-              <label htmlFor="file-upload">
-                <Button
-                  size="2"
-                  style={{
-                    cursor: "pointer",
-                    background: "#FF5733",
-                    color: "white",
-                    borderRadius: "8px",
-                    fontWeight: 500,
-                  }}
-                >
-                  Browse Files
-                </Button>
-              </label>
+              <Button
+                size="2"
+                onClick={handleBrowseClick}
+                style={{
+                  cursor: "pointer",
+                  background: "#FF5733",
+                  color: "white",
+                  borderRadius: "8px",
+                  fontWeight: 500,
+                }}
+              >
+                Browse Files
+              </Button>
             </>
           )}
 
           <input
+            ref={fileInputRef}
             id="file-upload"
             type="file"
             accept=".h5"

@@ -17,7 +17,8 @@ export function useUploadModelToSui() {
 
   const uploadModel = async (
     model: Model,
-    modelInfo: { name: string; description: string; task: string }
+    modelInfo: { name: string; description: string; task: string },
+    onSuccess?: (result: any) => void
   ) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
@@ -47,10 +48,21 @@ export function useUploadModelToSui() {
         ],
       });
 
-      return await signAndExecuteTransaction({
-        transaction: tx,
-        chain: `sui:${SUI_NETWORK.TYPE}`,
-      });
+      return await signAndExecuteTransaction(
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: (result) => {
+            console.log("Transaction successful:", result);
+            if (onSuccess) {
+              onSuccess(result);
+            }
+            return result;
+          }
+        }
+      );
     } catch (error) {
       console.error("Error uploading model to Sui blockchain:", error);
       throw error;

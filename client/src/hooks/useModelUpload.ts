@@ -22,6 +22,8 @@ export function useModelUpload() {
   });
 
   const convertModel = async (file: File) => {
+    console.log("Converting model file:", file.name);
+
     setState(prev => ({
       ...prev,
       selectedFile: file,
@@ -38,6 +40,18 @@ export function useModelUpload() {
         conversionProgress: 30,
       }));
 
+      // 진행 상태를 시각적으로 보여주기 위한 타임아웃
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setState(prev => ({
+        ...prev,
+        conversionStatus: "Optimizing for on-chain deployment...",
+        conversionProgress: 70,
+      }));
+
+      // 진행 상태를 시각적으로 보여주기 위한 타임아웃
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // TODO: 모델 변환 API 연동
       // const convertedModel = await modelService.convertModel(file);
 
@@ -50,38 +64,41 @@ export function useModelUpload() {
         ],
         weightsMagnitudes: [
           // 첫 번째 레이어 가중치 (10x5 = 50개 요소)
-          Array(50).fill(5),
+          Array(50).fill(2),
           // 두 번째 레이어 가중치 (5x3 = 15개 요소)
           Array(15).fill(3),
           // 세 번째 레이어 가중치 (3x2 = 6개 요소)
-          Array(6).fill(2),
+          Array(6).fill(5),
         ],
         weightsSigns: [
           // 첫 번째 레이어 가중치 부호
-          Array(50).fill(1),
+          Array(50).fill(0),
           // 두 번째 레이어 가중치 부호
           Array(15).fill(0),
           // 세 번째 레이어 가중치 부호
-          Array(6).fill(1),
+          Array(6).fill(0),
         ],
         biasesMagnitudes: [
           // 첫 번째 레이어 바이어스 (5개 뉴런)
-          Array(5).fill(2),
+          Array(5).fill(1),
           // 두 번째 레이어 바이어스 (3개 뉴런)
-          Array(3).fill(2),
+          Array(3).fill(1),
           // 세 번째 레이어 바이어스 (2개 뉴런)
-          Array(2).fill(2),
+          Array(2).fill(1),
         ],
         biasesSigns: [
           // 첫 번째 레이어 바이어스 부호
-          Array(5).fill(1),
+          Array(5).fill(0),
           // 두 번째 레이어 바이어스 부호
           Array(3).fill(0),
           // 세 번째 레이어 바이어스 부호
-          Array(2).fill(1),
+          Array(2).fill(0),
         ],
         scale: 2, // 정밀도 스케일
       };
+
+      // 진행 상태를 시각적으로 보여주기 위한 타임아웃
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       setState(prev => ({
         ...prev,
