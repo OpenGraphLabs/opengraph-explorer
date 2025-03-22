@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
   Box,
@@ -13,6 +13,8 @@ import {
   Avatar,
   Table,
   Badge,
+  TextField,
+  Grid,
 } from "@radix-ui/themes";
 import {
   HeartIcon,
@@ -21,8 +23,11 @@ import {
   GitHubLogoIcon,
   InfoCircledIcon,
   Cross2Icon,
+  ReloadIcon,
+  ArrowRightIcon,
 } from "@radix-ui/react-icons";
 import { useModelById } from "../hooks/useModels";
+import { useModelInference } from "../services/modelSuiService";
 
 export function ModelDetail() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +36,27 @@ export function ModelDetail() {
   const [promptText, setPromptText] = useState("");
   const [inferenceResult, setInferenceResult] = useState("");
   const [isInferenceLoading, setIsInferenceLoading] = useState(false);
+  
+  // 추론 관련 상태 추가
+  const [inputVector, setInputVector] = useState<string>("");
+  const [inputValues, setInputValues] = useState<number[]>([]);
+  const [inputSigns, setInputSigns] = useState<number[]>([]);
+  const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(0);
+  const [predictResults, setPredictResults] = useState<Array<{
+    layerIdx: number;
+    inputMagnitude: number[];
+    inputSign: number[];
+    outputMagnitude: number[];
+    outputSign: number[];
+    activationType: number;
+    argmaxIdx?: number;
+  }>>([]);
+  const [inferenceStatus, setInferenceStatus] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [txDigest, setTxDigest] = useState<string>("");
+  
+  // 추론 훅 가져오기
+  const { predictLayer, getTransactionEvents, parseLayerComputedEvent, parsePredictionCompletedEvent } = useModelInference();
 
   // 데이터 로딩 중이면 로딩 상태 표시
   if (loading) {
@@ -49,6 +75,175 @@ export function ModelDetail() {
       </Flex>
     );
   }
+
+  // 입력 벡터 파싱
+  const parseInputVector = () => {
+    try {
+      let values = inputVector.split(",").map(val => val.trim()).filter(val => val !== "");
+      
+      if (values.length === 0) {
+        throw new Error("입력 벡터가 비어 있습니다.");
+      }
+      
+      // 숫자로 변환하고 부호와 크기로 분리
+      const magnitudes: number[] = [];
+      const signs: number[] = [];
+      
+      values.forEach(val => {
+        const num = parseFloat(val);
+        if (isNaN(num)) {
+          throw new Error(`유효하지 않은 숫자: ${val}`);
+        }
+        
+        // 부호 결정 (1=양수, 0=음수)
+        const sign = num >= 0 ? 1 : 0;
+        // 크기 (절대값)
+        const magnitude = Math.abs(num);
+        
+        magnitudes.push(magnitude);
+        signs.push(sign);
+      });
+      
+      setInputValues(magnitudes);
+      setInputSigns(signs);
+      return { magnitudes, signs };
+    } catch (error) {
+      console.error("입력 벡터 파싱 오류:", error);
+      setInferenceStatus(`오류: ${error instanceof Error ? error.message : "입력 벡터 형식이 잘못되었습니다."}`);
+      return null;
+    }
+  };
+
+  // 레이어 예측 실행
+  const runLayerPrediction = async (layerIdx: number, inputMagnitude: number[], inputSign: number[]) => {
+    if (!id) return;
+    
+    setIsProcessing(true);
+    setInferenceStatus(`레이어 ${layerIdx} 예측 중...`);
+    
+    try {
+      // 레이어 예측 트랜잭션 호출
+      const result = await predictLayer(id, layerIdx, inputMagnitude, inputSign, (res) => {
+        console.log(`Layer ${layerIdx} prediction result:`, res);
+        if (res && res.digest) {
+          setTxDigest(res.digest);
+          processTransactionResult(res.digest, layerIdx, inputMagnitude, inputSign);
+        }
+      });
+    } catch (error) {
+      console.error(`레이어 ${layerIdx} 예측 오류:`, error);
+      setInferenceStatus(`오류: ${error instanceof Error ? error.message : "예측 실행 중 오류가 발생했습니다."}`);
+      setIsProcessing(false);
+    }
+  };
+  
+  // 트랜잭션 결과 처리
+  const processTransactionResult = async (digest: string, layerIdx: number, inputMagnitude: number[], inputSign: number[]) => {
+    try {
+      // 1초 대기하여 트랜잭션이 완료될 시간을 줌
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 트랜잭션 이벤트 조회
+      const events = await getTransactionEvents(digest);
+      console.log("Transaction events:", events);
+      
+      // LayerComputed 이벤트 파싱
+      const layerResult = parseLayerComputedEvent(events);
+      console.log("Layer result:", layerResult);
+      
+      // PredictionCompleted 이벤트 파싱 (마지막 레이어인 경우)
+      const predictionResult = parsePredictionCompletedEvent(events);
+      console.log("Prediction result:", predictionResult);
+      
+      if (layerResult) {
+        // 결과를 저장
+        const newResult = {
+          layerIdx,
+          inputMagnitude,
+          inputSign,
+          outputMagnitude: layerResult.outputMagnitude,
+          outputSign: layerResult.outputSign,
+          activationType: layerResult.activationType,
+          argmaxIdx: predictionResult?.argmaxIdx,
+        };
+        
+        setPredictResults(prev => [...prev, newResult]);
+        
+        // 다음 레이어 인덱스 설정
+        setCurrentLayerIndex(layerIdx + 1);
+        
+        // 이벤트가 검색되었는지 여부에 따라 상태 업데이트
+        if (predictionResult) {
+          // 마지막 레이어 (예측 완료)
+          setInferenceStatus(`예측 완료! 결과 인덱스: ${predictionResult.argmaxIdx}`);
+          setIsProcessing(false);
+        } else {
+          // 다음 레이어 준비
+          setInferenceStatus(`레이어 ${layerIdx} 예측 완료. 다음 레이어 준비 중...`);
+          setIsProcessing(false);
+          
+          // 자동으로 다음 레이어 실행 (마지막 레이어가 아닌 경우)
+          const totalLayers = getLayerCount();
+          if (layerIdx + 1 < totalLayers) {
+            // 0.5초 후 다음 레이어 실행
+            setTimeout(() => {
+              runLayerPrediction(
+                layerIdx + 1,
+                layerResult.outputMagnitude,
+                layerResult.outputSign
+              );
+            }, 500);
+          }
+        }
+      } else {
+        setInferenceStatus(`레이어 ${layerIdx} 예측 완료했지만 이벤트를 찾을 수 없습니다.`);
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error("트랜잭션 결과 처리 오류:", error);
+      setInferenceStatus(`오류: ${error instanceof Error ? error.message : "트랜잭션 결과 처리 중 오류가 발생했습니다."}`);
+      setIsProcessing(false);
+    }
+  };
+  
+  // 레이어 추론 시작
+  const startInference = async () => {
+    // 입력 벡터 파싱
+    const parsedInput = parseInputVector();
+    if (!parsedInput) return;
+    
+    // 기존 결과 초기화
+    setPredictResults([]);
+    setCurrentLayerIndex(0);
+    setTxDigest("");
+    
+    // 첫 번째 레이어 예측 실행
+    await runLayerPrediction(0, parsedInput.magnitudes, parsedInput.signs);
+  };
+  
+  // 다음 레이어 추론 (수동)
+  const predictNextLayer = async () => {
+    if (predictResults.length === 0) {
+      setInferenceStatus("먼저 첫 번째 레이어를 예측해야 합니다.");
+      return;
+    }
+    
+    // 마지막 예측 결과 가져오기
+    const lastResult = predictResults[predictResults.length - 1];
+    
+    // 다음 레이어 예측 실행 (이전 레이어의 출력을 입력으로 사용)
+    await runLayerPrediction(
+      currentLayerIndex,
+      lastResult.outputMagnitude,
+      lastResult.outputSign
+    );
+  };
+  
+  // 레이어 수 가져오기
+  const getLayerCount = () => {
+    if (!model.graphs || model.graphs.length === 0) return 0;
+    return model.graphs[0].layers.length;
+  };
 
   // Run inference function
   const runInference = async () => {
@@ -72,6 +267,19 @@ export function ModelDetail() {
       setInferenceResult(result);
       setIsInferenceLoading(false);
     }, 1500);
+  };
+
+  // 활성화 함수 이름 가져오기
+  const getActivationTypeName = (type: number): string => {
+    const activationTypes: Record<number, string> = {
+      0: "None",
+      1: "ReLU",
+      2: "Sigmoid",
+      3: "Tanh",
+      4: "Softmax",
+      5: "LeakyReLU",
+    };
+    return activationTypes[type] || `Unknown (${type})`;
   };
 
   return (
@@ -210,65 +418,274 @@ export function ModelDetail() {
                   On-chain Inference
                 </Heading>
                 <Text style={{ lineHeight: "1.6" }}>
-                  Provide input below to run inference for the {model.name} model directly on the
-                  Sui blockchain.
+                  이 모델의 추론은 Sui 블록체인 위에서 직접 실행됩니다. 레이어별로 추론 결과를 확인하세요.
                 </Text>
 
-                <Box>
-                  <Text size="2" mb="2" style={{ fontWeight: 500 }}>
-                    Input:
+                <Card style={{ padding: "16px", borderRadius: "8px", marginBottom: "16px" }}>
+                  <Flex gap="2" align="center" mb="3">
+                    <InfoCircledIcon style={{ color: "#2196F3" }} />
+                    <Text size="2" style={{ fontWeight: 500 }}>
+                      입력 벡터를 제공하면 모델의 각 레이어를 순차적으로 통과하며 추론 결과를 실시간으로 확인할 수 있습니다.
+                      각 레이어의 출력이 다음 레이어의 입력으로 자동 연결됩니다.
+                    </Text>
+                  </Flex>
+                </Card>
+
+                <Box style={{ background: "#F5F5F5", padding: "16px", borderRadius: "8px" }}>
+                  <Heading size="3" mb="2">
+                    모델 벡터 입력
+                  </Heading>
+                  <Text size="2" mb="2">
+                    입력 벡터 값을 쉼표로 구분하여 입력하세요:
                   </Text>
                   <TextArea
-                    placeholder={getPlaceholderByTask(model.task_type)}
-                    value={promptText}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setPromptText(e.target.value)
-                    }
+                    placeholder="예: 1.0, 2.5, -3.0, 4.2, -1.5"
+                    value={inputVector}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInputVector(e.target.value)}
                     style={{
-                      minHeight: "120px",
+                      minHeight: "80px",
                       borderRadius: "8px",
                       border: "1px solid var(--gray-5)",
                       padding: "12px",
                       fontSize: "14px",
+                      fontFamily: "monospace",
                     }}
                   />
                 </Box>
+                
+                <Flex justify="between" align="center" mt="3" mb="3">
+                  <Flex align="center" gap="2">
+                    <Text size="2" style={{ fontWeight: 600 }}>
+                      모델 구조: {getLayerCount()}개 레이어
+                    </Text>
+                  </Flex>
+                  <Flex align="center" gap="2">
+                    <Text size="2" style={{ fontWeight: 600 }}>
+                      현재 레이어: {currentLayerIndex}/{getLayerCount()}
+                    </Text>
+                  </Flex>
+                </Flex>
 
-                <Flex justify="end">
+                <Flex gap="2">
                   <Button
-                    onClick={runInference}
-                    disabled={isInferenceLoading || !promptText.trim()}
+                    onClick={startInference}
+                    disabled={isProcessing || !inputVector.trim()}
                     style={{
                       background: "#FF5733",
                       color: "white",
                       borderRadius: "8px",
-                      opacity: isInferenceLoading || !promptText.trim() ? 0.6 : 1,
+                      opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
                     }}
                   >
-                    {isInferenceLoading ? "처리 중..." : "추론 실행"}
+                    {isProcessing ? (
+                      <Flex align="center" gap="2">
+                        <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                        <span>처리 중...</span>
+                      </Flex>
+                    ) : (
+                      <span>추론 시작</span>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    onClick={predictNextLayer}
+                    disabled={isProcessing || predictResults.length === 0 || currentLayerIndex >= getLayerCount()}
+                    style={{
+                      background: "#2196F3",
+                      color: "white",
+                      borderRadius: "8px",
+                      opacity: isProcessing || predictResults.length === 0 || currentLayerIndex >= getLayerCount() ? 0.6 : 1,
+                    }}
+                  >
+                    {isProcessing ? (
+                      <Flex align="center" gap="2">
+                        <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                        <span>처리 중...</span>
+                      </Flex>
+                    ) : (
+                      <Flex align="center" gap="2">
+                        <span>수동으로 다음 레이어</span>
+                        <ArrowRightIcon />
+                      </Flex>
+                    )}
                   </Button>
                 </Flex>
 
-                {inferenceResult && (
-                  <Box>
-                    <Text size="2" mb="2" style={{ fontWeight: 500 }}>
-                      Result:
+                {inferenceStatus && (
+                  <Card
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: "8px",
+                      background: isProcessing ? "#E3F2FD" : inferenceStatus.includes("오류") ? "#FFEBEE" : "#E8F5E9",
+                      border: "none",
+                    }}
+                  >
+                    <Text size="2">
+                      {inferenceStatus}
                     </Text>
-                    <Code
-                      size="2"
-                      style={{
-                        display: "block",
-                        padding: "16px",
-                        whiteSpace: "pre-wrap",
-                        borderRadius: "8px",
-                        background: "#F5F5F5",
-                        border: "1px solid var(--gray-5)",
-                        fontSize: "14px",
-                        lineHeight: "1.6",
-                      }}
-                    >
-                      {inferenceResult}
-                    </Code>
+                    {txDigest && (
+                      <Text size="1" style={{ marginTop: "4px", fontFamily: "monospace" }}>
+                        트랜잭션: {txDigest.substring(0, 10)}...
+                      </Text>
+                    )}
+                  </Card>
+                )}
+
+                {predictResults.length > 0 && (
+                  <Box style={{ marginTop: "16px" }}>
+                    <Heading size="3" mb="2">
+                      레이어별 추론 결과
+                    </Heading>
+                    
+                    <Grid columns="2" gap="3" mb="4">
+                      <Box>
+                        <Text size="2" mb="1" style={{ fontWeight: 600 }}>
+                          현재 진행 상황: {currentLayerIndex} / {getLayerCount()} 레이어
+                        </Text>
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "8px",
+                            backgroundColor: "#E0E0E0",
+                            borderRadius: "4px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${(currentLayerIndex / Math.max(1, getLayerCount())) * 100}%`,
+                              height: "100%",
+                              backgroundColor: "#FF5733",
+                              transition: "width 0.3s ease-in-out",
+                            }}
+                          />
+                        </div>
+                      </Box>
+                      
+                      <Card style={{ padding: "10px", background: "#F5F5F5" }}>
+                        <Flex align="center" justify="between">
+                          <Text size="2" style={{ fontWeight: 600 }}>
+                            총 레이어 수: {getLayerCount()}
+                          </Text>
+                          <Text size="2" style={{ fontWeight: 600 }}>
+                            예측 결과 수: {predictResults.length}
+                          </Text>
+                        </Flex>
+                      </Card>
+                    </Grid>
+                    
+                    <Table.Root>
+                      <Table.Header>
+                        <Table.Row>
+                          <Table.ColumnHeaderCell>레이어</Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell>활성화 함수</Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell>입력 벡터</Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell>출력 벡터</Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell>상태</Table.ColumnHeaderCell>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        {predictResults.map((result, index) => (
+                          <Table.Row key={index}>
+                            <Table.Cell>
+                              <Badge color="orange" mr="1">{result.layerIdx + 1}</Badge>
+                            </Table.Cell>
+                            <Table.Cell>
+                              {getActivationTypeName(result.activationType)}
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
+                                <Flex direction="column" gap="1">
+                                  <Text size="1" style={{ color: "var(--gray-9)" }}>
+                                    크기: {result.inputMagnitude.length}
+                                  </Text>
+                                  <Code
+                                    style={{
+                                      maxHeight: "60px",
+                                      overflow: "auto",
+                                      fontSize: "11px",
+                                      padding: "4px",
+                                      backgroundColor: "var(--gray-a2)",
+                                    }}
+                                  >
+                                    [{formatVector(result.inputMagnitude, result.inputSign)}]
+                                  </Code>
+                                </Flex>
+                              </Box>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
+                                <Flex direction="column" gap="1">
+                                  <Text size="1" style={{ color: "var(--gray-9)" }}>
+                                    크기: {result.outputMagnitude.length}
+                                  </Text>
+                                  <Code
+                                    style={{
+                                      maxHeight: "60px",
+                                      overflow: "auto",
+                                      fontSize: "11px",
+                                      padding: "4px",
+                                      backgroundColor: "var(--gray-a2)",
+                                    }}
+                                  >
+                                    [{formatVector(result.outputMagnitude, result.outputSign)}]
+                                  </Code>
+                                </Flex>
+                              </Box>
+                            </Table.Cell>
+                            <Table.Cell>
+                              {result.argmaxIdx !== undefined ? (
+                                <Badge color="green">
+                                  최종 예측: {result.argmaxIdx}
+                                </Badge>
+                              ) : (
+                                <Badge color="blue">완료</Badge>
+                              )}
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                        
+                        {/* 현재 처리 중인 레이어 행 */}
+                        {isProcessing && (
+                          <Table.Row>
+                            <Table.Cell>
+                              <Badge color="orange" mr="1">{currentLayerIndex + 1}</Badge>
+                            </Table.Cell>
+                            <Table.Cell>진행 중...</Table.Cell>
+                            <Table.Cell>
+                              <Flex align="center" gap="2">
+                                <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                                <Text size="2">처리 중...</Text>
+                              </Flex>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Flex align="center" gap="2">
+                                <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                                <Text size="2">처리 중...</Text>
+                              </Flex>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Badge color="orange">처리 중</Badge>
+                            </Table.Cell>
+                          </Table.Row>
+                        )}
+                        
+                        {/* 남은 레이어 행 */}
+                        {Array.from({ length: Math.max(0, getLayerCount() - currentLayerIndex - (isProcessing ? 1 : 0)) }).map((_, idx) => (
+                          <Table.Row key={`pending-${idx}`} style={{ opacity: 0.5 }}>
+                            <Table.Cell>
+                              <Badge variant="outline" mr="1">{currentLayerIndex + idx + (isProcessing ? 1 : 0) + 1}</Badge>
+                            </Table.Cell>
+                            <Table.Cell>대기 중</Table.Cell>
+                            <Table.Cell>-</Table.Cell>
+                            <Table.Cell>-</Table.Cell>
+                            <Table.Cell>
+                              <Badge variant="outline" color="gray">대기 중</Badge>
+                            </Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table.Root>
                   </Box>
                 )}
               </Flex>
@@ -619,4 +1036,14 @@ function getLayerTypeName(layerType: string): string {
     "23": "Addition Layer",
   };
   return layerTypeMap[layerType] || `Unknown Layer (${layerType})`;
+}
+
+// 벡터 형식화 함수
+function formatVector(magnitudes: number[], signs: number[]): string {
+  if (magnitudes.length !== signs.length) return "";
+  
+  return magnitudes.map((mag, i) => {
+    const sign = signs[i] === 1 ? 1 : -1;
+    return (sign * mag).toFixed(2);
+  }).join(", ");
 }

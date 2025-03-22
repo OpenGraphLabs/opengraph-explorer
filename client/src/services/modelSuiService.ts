@@ -1,8 +1,8 @@
-import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { useCurrentAccount, useCurrentWallet, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { Model } from "../types/model";
-import { SUI_NETWORK, SUI_CONTRACT } from "../constants/suiConfig";
+import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
@@ -70,6 +70,178 @@ export function useUploadModelToSui() {
   };
 
   return { uploadModel };
+}
+
+/**
+ * 모델 inference를 수행하는 커스텀 훅
+ */
+export function useModelInference() {
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction({
+    execute: async ({ bytes, signature }) => {
+      // SuiClient를 통해 트랜잭션 실행, 이벤트 및 이펙트 정보 포함
+      const result = await suiClient.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          showEvents: true,     // 이벤트 정보 포함
+          showEffects: true,    // 이펙트 정보 포함
+          showRawEffects: true, // 트랜잭션 이펙트 보고용
+        },
+      });
+      
+      return result;
+    },
+  });
+  const account = useCurrentAccount();
+
+  /**
+   * 단일 레이어에 대해 inference를 수행하는 함수
+   * @param modelId 모델 객체 ID
+   * @param layerIdx 레이어 인덱스
+   * @param inputMagnitude 입력 벡터의 크기 값
+   * @param inputSign 입력 벡터의 부호 값
+   * @param onSuccess 성공 시 콜백 함수
+   */
+  const predictLayer = async (
+    modelId: string,
+    layerIdx: number,
+    inputMagnitude: number[],
+    inputSign: number[],
+    onSuccess?: (result: any) => void
+  ) => {
+    if (!account) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+
+    try {
+      const tx = new Transaction();
+
+      tx.setGasBudget(GAS_BUDGET);
+
+      tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
+        arguments: [
+          tx.object(modelId),
+          tx.pure.u64(BigInt(layerIdx)),
+          tx.pure.vector("u64", inputMagnitude),
+          tx.pure.vector("u64", inputSign),
+        ],
+      });
+
+      console.log(`Predicting layer ${layerIdx} for model ${modelId}`, {
+        inputMagnitude,
+        inputSign,
+      });
+
+      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
+      return await signAndExecuteTransaction(
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: (result) => {
+            console.log(`Layer ${layerIdx} prediction successful:`, result);
+            if (onSuccess) {
+              onSuccess(result);
+            }
+            return result;
+          }
+        }
+      );
+    } catch (error) {
+      console.error(`Error predicting layer ${layerIdx} for model ${modelId}:`, error);
+      throw error;
+    }
+  };
+
+  /**
+   * 특정 트랜잭션의 이벤트를 조회하는 함수
+   * @param digest 트랜잭션 다이제스트
+   */
+  const getTransactionEvents = async (digest: string) => {
+    try {
+      // 트랜잭션 결과 조회
+      const txResult = await suiClient.getTransactionBlock({
+        digest,
+        options: {
+          showEvents: true,
+          showEffects: true,
+        },
+      });
+
+      return txResult.events || [];
+    } catch (error) {
+      console.error("Error getting transaction events:", error);
+      throw error;
+    }
+  };
+
+  /**
+   * LayerComputed 이벤트 데이터를 파싱하는 함수
+   * @param events 이벤트 배열
+   */
+  const parseLayerComputedEvent = (events: any[]) => {
+    try {
+      // LayerComputed 이벤트 필터링
+      const layerEvents = events.filter((event: any) => {
+        return event.type && event.type.includes("LayerComputed");
+      });
+
+      if (layerEvents.length === 0) {
+        return null;
+      }
+
+      // 가장 최근 이벤트 데이터 파싱
+      const lastEvent = layerEvents[layerEvents.length - 1];
+      return {
+        modelId: lastEvent.parsedJson?.model_id,
+        layerIdx: Number(lastEvent.parsedJson?.layer_idx),
+        outputMagnitude: lastEvent.parsedJson?.output_magnitude?.map(Number) || [],
+        outputSign: lastEvent.parsedJson?.output_sign?.map(Number) || [],
+        activationType: Number(lastEvent.parsedJson?.activation_type),
+      };
+    } catch (error) {
+      console.error("Error parsing layer computed event:", error);
+      return null;
+    }
+  };
+
+  /**
+   * PredictionCompleted 이벤트 데이터를 파싱하는 함수
+   * @param events 이벤트 배열
+   */
+  const parsePredictionCompletedEvent = (events: any[]) => {
+    try {
+      // PredictionCompleted 이벤트 필터링
+      const predictionEvents = events.filter((event: any) => {
+        return event.type && event.type.includes("PredictionCompleted");
+      });
+
+      if (predictionEvents.length === 0) {
+        return null;
+      }
+
+      // 이벤트 데이터 파싱
+      const event = predictionEvents[0];
+      return {
+        modelId: event.parsedJson?.model_id,
+        outputMagnitude: event.parsedJson?.output_magnitude?.map(Number) || [],
+        outputSign: event.parsedJson?.output_sign?.map(Number) || [],
+        argmaxIdx: Number(event.parsedJson?.argmax_idx),
+      };
+    } catch (error) {
+      console.error("Error parsing prediction completed event:", error);
+      return null;
+    }
+  };
+
+  return {
+    predictLayer,
+    getTransactionEvents,
+    parseLayerComputedEvent,
+    parsePredictionCompletedEvent,
+  };
 }
 
 /**

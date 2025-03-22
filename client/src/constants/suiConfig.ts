@@ -15,6 +15,9 @@ export const SUI_CONTRACT = {
   MODULE_NAME: "model",
 };
 
+// 가스 비용
+export const GAS_BUDGET = 1000000000;
+
 // 태스크 유형 매핑
 export const TASK_TYPES = {
   TEXT_GENERATION: "text-generation",
