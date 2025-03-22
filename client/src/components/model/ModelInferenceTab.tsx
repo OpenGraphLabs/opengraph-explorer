@@ -1,5 +1,5 @@
 import { Box, Flex, Heading, Text, Card, TextArea, Badge, Table, Button, Code } from "@radix-ui/themes";
-import { InfoCircledIcon, ReloadIcon, ArrowRightIcon } from "@radix-ui/react-icons";
+import { InfoCircledIcon, ReloadIcon, ArrowRightIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { useModelInferenceState } from "../../hooks/useModelInference";
 import { getActivationTypeName, formatVector } from "../../utils/modelUtils";
@@ -79,10 +79,19 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
           </Heading>
           <Button
             variant="soft"
-            style={{ background: "#FFF4F2", color: "#FF5733" }}
+            style={{ 
+              background: "#FFF4F2", 
+              color: "#FF5733",
+              cursor: "pointer",
+              transition: "all 0.2s ease-in-out"
+            }}
+            className="hover-effect"
             onClick={() => window.open(getSuiScanUrl('object', model.id), '_blank')}
           >
-            <Text size="2">View Model on Sui Scan</Text>
+            <Flex align="center" gap="1">
+              <Text size="2">View Model on Sui Scan</Text>
+              <ExternalLinkIcon />
+            </Flex>
           </Button>
         </Flex>
         
@@ -197,10 +206,19 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 <Button
                   variant="soft"
                   size="1"
-                  style={{ background: "#FFF4F2", color: "#FF5733" }}
+                  style={{ 
+                    background: "#FFF4F2", 
+                    color: "#FF5733",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease-in-out"
+                  }}
+                  className="hover-effect"
                   onClick={() => window.open(getSuiScanUrl('transaction', txDigest), '_blank')}
                 >
-                  <Text size="1">View on Sui Scan</Text>
+                  <Flex align="center" gap="1">
+                    <Text size="1">View on Sui Scan</Text>
+                    <ExternalLinkIcon />
+                  </Flex>
                 </Button>
               )}
             </Flex>
@@ -324,10 +342,19 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                             <Button
                               size="1"
                               variant="soft"
-                              style={{ background: "#FFF4F2", color: "#FF5733" }}
+                              style={{ 
+                                background: "#FFF4F2", 
+                                color: "#FF5733",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease-in-out"
+                              }}
+                              className="hover-effect"
                               onClick={() => result.txDigest && window.open(getSuiScanUrl('transaction', result.txDigest), '_blank')}
                             >
-                              View Transaction
+                              <Flex align="center" gap="1">
+                                <Text size="1">View Transaction</Text>
+                                <ExternalLinkIcon />
+                              </Flex>
                             </Button>
                           )}
                         </Flex>

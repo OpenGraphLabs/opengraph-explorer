@@ -1,0 +1,4 @@
+.hover-effect:hover {
+  background-color: #FFE5E0 !important;
+  transform: translateY(-1px);
+} 
