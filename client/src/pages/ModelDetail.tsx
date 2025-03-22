@@ -56,7 +56,7 @@ export function ModelDetail() {
   const [txDigest, setTxDigest] = useState<string>("");
   
   // 추론 훅 가져오기
-  const { predictLayer, getTransactionEvents, parseLayerComputedEvent, parsePredictionCompletedEvent } = useModelInference();
+  const { predictLayer, parseLayerComputedEvent, parsePredictionCompletedEvent } = useModelInference();
 
   // 데이터 로딩 중이면 로딩 상태 표시
   if (loading) {
@@ -95,8 +95,8 @@ export function ModelDetail() {
           throw new Error(`유효하지 않은 숫자: ${val}`);
         }
         
-        // 부호 결정 (1=양수, 0=음수)
-        const sign = num >= 0 ? 1 : 0;
+        // 부호 결정 (0=양수, 1=음수)
+        const sign = num >= 0 ? 0 : 1;
         // 크기 (절대값)
         const magnitude = Math.abs(num);
         
@@ -124,10 +124,14 @@ export function ModelDetail() {
     try {
       // 레이어 예측 트랜잭션 호출
       const result = await predictLayer(id, layerIdx, inputMagnitude, inputSign, (res) => {
+        console.log("--------------------------------");
         console.log(`Layer ${layerIdx} prediction result:`, res);
+        console.log(`Layer ${layerIdx} prediction events:`, res.events);
+        console.log("--------------------------------");
+        
         if (res && res.digest) {
           setTxDigest(res.digest);
-          processTransactionResult(res.digest, layerIdx, inputMagnitude, inputSign);
+          processTransactionResult(res, layerIdx, inputMagnitude, inputSign);
         }
       });
     } catch (error) {
@@ -138,21 +142,21 @@ export function ModelDetail() {
   };
   
   // 트랜잭션 결과 처리
-  const processTransactionResult = async (digest: string, layerIdx: number, inputMagnitude: number[], inputSign: number[]) => {
+  const processTransactionResult = async (result: any, layerIdx: number, inputMagnitude: number[], inputSign: number[]) => {
     try {
+      console.log("Transaction result:", result);
+
       // 1초 대기하여 트랜잭션이 완료될 시간을 줌
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 트랜잭션 이벤트 조회
-      const events = await getTransactionEvents(digest);
-      console.log("Transaction events:", events);
-      
       // LayerComputed 이벤트 파싱
-      const layerResult = parseLayerComputedEvent(events);
+      const layerResult = parseLayerComputedEvent(result.events);
+      console.log("xxxxxxxxxxxxxxxxx");
       console.log("Layer result:", layerResult);
+      console.log("xxxxxxxxxxxxxxxxx");
       
       // PredictionCompleted 이벤트 파싱 (마지막 레이어인 경우)
-      const predictionResult = parsePredictionCompletedEvent(events);
+      const predictionResult = parsePredictionCompletedEvent(result.events);
       console.log("Prediction result:", predictionResult);
       
       if (layerResult) {
@@ -175,7 +179,11 @@ export function ModelDetail() {
         // 이벤트가 검색되었는지 여부에 따라 상태 업데이트
         if (predictionResult) {
           // 마지막 레이어 (예측 완료)
-          setInferenceStatus(`예측 완료! 결과 인덱스: ${predictionResult.argmaxIdx}`);
+          const finalValue = formatVector(
+            [predictionResult.outputMagnitude[predictionResult.argmaxIdx]], 
+            [predictionResult.outputSign[predictionResult.argmaxIdx]]
+          );
+          setInferenceStatus(`예측 완료! 최종 값: ${finalValue}`);
           setIsProcessing(false);
         } else {
           // 다음 레이어 준비
@@ -636,7 +644,7 @@ export function ModelDetail() {
                             <Table.Cell>
                               {result.argmaxIdx !== undefined ? (
                                 <Badge color="green">
-                                  최종 예측: {result.argmaxIdx}
+                                  최종 예측 값: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
                                 </Badge>
                               ) : (
                                 <Badge color="blue">완료</Badge>
@@ -1043,7 +1051,8 @@ function formatVector(magnitudes: number[], signs: number[]): string {
   if (magnitudes.length !== signs.length) return "";
   
   return magnitudes.map((mag, i) => {
-    const sign = signs[i] === 1 ? 1 : -1;
+    // 0이 양수, 1이 음수
+    const sign = signs[i] === 0 ? 1 : -1;
     return (sign * mag).toFixed(2);
   }).join(", ");
 }

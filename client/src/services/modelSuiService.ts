@@ -114,6 +114,10 @@ export function useModelInference() {
     }
 
     try {
+      console.log("Predicting layer", layerIdx, "for model", modelId);
+      console.log("inputMagnitude", inputMagnitude);
+      console.log("inputSign", inputSign);
+
       const tx = new Transaction();
 
       tx.setGasBudget(GAS_BUDGET);
@@ -142,6 +146,8 @@ export function useModelInference() {
         {
           onSuccess: (result) => {
             console.log(`Layer ${layerIdx} prediction successful:`, result);
+            console.log(`Layer ${layerIdx} prediction events:`, result.events);
+            
             if (onSuccess) {
               onSuccess(result);
             }
@@ -156,28 +162,6 @@ export function useModelInference() {
   };
 
   /**
-   * 특정 트랜잭션의 이벤트를 조회하는 함수
-   * @param digest 트랜잭션 다이제스트
-   */
-  const getTransactionEvents = async (digest: string) => {
-    try {
-      // 트랜잭션 결과 조회
-      const txResult = await suiClient.getTransactionBlock({
-        digest,
-        options: {
-          showEvents: true,
-          showEffects: true,
-        },
-      });
-
-      return txResult.events || [];
-    } catch (error) {
-      console.error("Error getting transaction events:", error);
-      throw error;
-    }
-  };
-
-  /**
    * LayerComputed 이벤트 데이터를 파싱하는 함수
    * @param events 이벤트 배열
    */
@@ -185,7 +169,7 @@ export function useModelInference() {
     try {
       // LayerComputed 이벤트 필터링
       const layerEvents = events.filter((event: any) => {
-        return event.type && event.type.includes("LayerComputed");
+        return event.type && event.type === `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::LayerComputed`
       });
 
       if (layerEvents.length === 0) {
@@ -215,7 +199,7 @@ export function useModelInference() {
     try {
       // PredictionCompleted 이벤트 필터링
       const predictionEvents = events.filter((event: any) => {
-        return event.type && event.type.includes("PredictionCompleted");
+        return event.type && event.type === `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::PredictionCompleted`
       });
 
       if (predictionEvents.length === 0) {
@@ -238,7 +222,6 @@ export function useModelInference() {
 
   return {
     predictLayer,
-    getTransactionEvents,
     parseLayerComputedEvent,
     parsePredictionCompletedEvent,
   };
