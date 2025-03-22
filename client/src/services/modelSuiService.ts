@@ -2,15 +2,10 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { Model } from "../types/model";
-
-// Sui 컨트랙트 정보
-const NETWORK = "testnet";
-const TENSORFLOW_SUI_PACKAGE_ADDRESS =
-  "0x9e91d5e190849806449a918ac3c6f8ae8254ce5e6149c3a877993d4183eb7a22";
-const MODULE_NAME = "model";
+import { SUI_NETWORK, SUI_CONTRACT } from "../constants/suiConfig";
 
 const suiClient = new SuiClient({
-  url: "https://fullnode.testnet.sui.io",
+  url: SUI_NETWORK.URL,
 });
 
 /**
@@ -35,7 +30,7 @@ export function useUploadModelToSui() {
       const tx = new Transaction();
 
       tx.moveCall({
-        target: `${TENSORFLOW_SUI_PACKAGE_ADDRESS}::${MODULE_NAME}::create_model`,
+        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
         arguments: [
           // model metadata
           tx.pure.string(modelInfo.name),
@@ -54,7 +49,7 @@ export function useUploadModelToSui() {
 
       return await signAndExecuteTransaction({
         transaction: tx,
-        chain: `sui:${NETWORK}`,
+        chain: `sui:${SUI_NETWORK.TYPE}`,
       });
     } catch (error) {
       console.error("Error uploading model to Sui blockchain:", error);
@@ -109,7 +104,7 @@ export async function getModels(ownerAddress: string) {
     const modelObjects = objects.filter(
       obj =>
         obj.data?.content?.dataType === "moveObject" &&
-        obj.data?.content?.type?.includes(`${MODULE_NAME}::Graph`)
+        obj.data?.content?.type?.includes(`${SUI_CONTRACT.MODULE_NAME}::Graph`)
     );
 
     // 모델 객체 파싱 (실제 구현은 컨트랙트 반환 구조에 따라 달라질 수 있음)

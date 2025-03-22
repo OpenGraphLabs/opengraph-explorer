@@ -11,21 +11,28 @@ import {
   Tabs,
   Avatar,
   Badge,
+  Spinner,
 } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, StarFilledIcon, DownloadIcon, CodeIcon } from "@radix-ui/react-icons";
 import { Link } from "react-router-dom";
 import styles from "../styles/Card.module.css";
+import { useModels } from "../hooks/useModels";
+import { TASK_COLORS, TASK_NAMES, TASK_TYPES } from "../constants/suiConfig";
 
 export function Models() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTask, setSelectedTask] = useState("all");
   const [selectedSort, setSelectedSort] = useState("downloads");
 
+  // 커스텀 훅을 사용하여 모델 데이터 가져오기
+  const { models, loading, error, refetch } = useModels();
+  console.log("models: \n", models);
+
   // Filtered model list
-  const filteredModels = allModels
+  const filteredModels = models
     .filter(
       model =>
-        (selectedTask === "all" || model.task === selectedTask) &&
+        (selectedTask === "all" || model.task_type === selectedTask) &&
         (searchQuery === "" ||
           model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           model.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -103,12 +110,16 @@ export function Models() {
                 />
                 <Select.Content>
                   <Select.Item value="all">All Tasks</Select.Item>
-                  <Select.Item value="text-generation">Text Generation</Select.Item>
-                  <Select.Item value="text-classification">Text Classification</Select.Item>
-                  <Select.Item value="image-classification">Image Classification</Select.Item>
-                  <Select.Item value="object-detection">Object Detection</Select.Item>
-                  <Select.Item value="text-to-image">Text-to-Image</Select.Item>
-                  <Select.Item value="translation">Translation</Select.Item>
+                  <Select.Item value={TASK_TYPES.TEXT_GENERATION}>Text Generation</Select.Item>
+                  <Select.Item value={TASK_TYPES.TEXT_CLASSIFICATION}>
+                    Text Classification
+                  </Select.Item>
+                  <Select.Item value={TASK_TYPES.IMAGE_CLASSIFICATION}>
+                    Image Classification
+                  </Select.Item>
+                  <Select.Item value={TASK_TYPES.OBJECT_DETECTION}>Object Detection</Select.Item>
+                  <Select.Item value={TASK_TYPES.TEXT_TO_IMAGE}>Text-to-Image</Select.Item>
+                  <Select.Item value={TASK_TYPES.TRANSLATION}>Translation</Select.Item>
                 </Select.Content>
               </Select.Root>
             </Box>
@@ -171,7 +182,48 @@ export function Models() {
 
         <Box py="6" px="4" style={{ background: "white" }}>
           <Tabs.Content value="models">
-            {filteredModels.length > 0 ? (
+            {loading ? (
+              <Flex direction="column" align="center" gap="3" py="8">
+                <Spinner size="3" />
+                <Text size="3" style={{ fontWeight: 500 }}>
+                  Loading models...
+                </Text>
+              </Flex>
+            ) : error ? (
+              <Flex direction="column" align="center" gap="3" py="8">
+                <Box
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "50%",
+                    background: "var(--gray-3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <CodeIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
+                </Box>
+                <Text size="4" style={{ fontWeight: 500 }}>
+                  Error Loading Models
+                </Text>
+                <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
+                  {error}
+                </Text>
+                <Button
+                  onClick={() => refetch()}
+                  style={{
+                    background: "#FF5733",
+                    color: "white",
+                    marginTop: "12px",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Retry
+                </Button>
+              </Flex>
+            ) : filteredModels.length > 0 ? (
               <>
                 <Flex mb="4" justify="between" align="center">
                   <Text size="3" style={{ fontWeight: 500 }}>
@@ -249,14 +301,14 @@ export function Models() {
                               size="1"
                               variant="soft"
                               style={{
-                                background: getTaskColor(model.task).bg,
-                                color: getTaskColor(model.task).text,
+                                background: TASK_COLORS[model.task_type]?.bg || "var(--accent-3)",
+                                color: TASK_COLORS[model.task_type]?.text || "var(--accent-11)",
                               }}
                             >
-                              {getTaskName(model.task)}
+                              {TASK_NAMES[model.task_type] || model.task_type}
                             </Badge>
                             {model.frameworks &&
-                              model.frameworks.map(framework => (
+                              model.frameworks.map((framework: string) => (
                                 <Badge key={framework} size="1" variant="soft">
                                   {framework}
                                 </Badge>
@@ -391,139 +443,3 @@ export function Models() {
     </Box>
   );
 }
-
-// Get task color for badge
-function getTaskColor(taskId: string): { bg: string; text: string } {
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    "text-generation": { bg: "#E0F2FE", text: "#0369A1" },
-    "text-classification": { bg: "#E0F7FA", text: "#00838F" },
-    "image-classification": { bg: "#E8F5E9", text: "#2E7D32" },
-    "object-detection": { bg: "#FFF3E0", text: "#E65100" },
-    "text-to-image": { bg: "#F3E8FD", text: "#7E22CE" },
-    translation: { bg: "#E8EAF6", text: "#3949AB" },
-  };
-  return colorMap[taskId] || { bg: "var(--accent-3)", text: "var(--accent-11)" };
-}
-
-// Task name conversion function
-function getTaskName(taskId: string): string {
-  const taskMap: Record<string, string> = {
-    "text-generation": "Text Generation",
-    "text-classification": "Text Classification",
-    "image-classification": "Image Classification",
-    "object-detection": "Object Detection",
-    "text-to-image": "Text-to-Image",
-    translation: "Translation",
-  };
-  return taskMap[taskId] || taskId;
-}
-
-// Sample data with added frameworks field
-const allModels = [
-  {
-    id: "1",
-    name: "GPT-3 Mini",
-    creator: "OpenAI",
-    description:
-      "A smaller version of GPT-3 suitable for text generation tasks. Optimized for on-chain deployment with reduced parameters.",
-    downloads: 1200,
-    likes: 450,
-    task: "text-generation",
-    createdAt: "2023-05-15T10:30:00Z",
-    frameworks: ["PyTorch", "SUI"],
-  },
-  {
-    id: "2",
-    name: "BERT-Base",
-    creator: "Google Research",
-    description:
-      "Bidirectional Encoder Representations from Transformers for natural language understanding.",
-    downloads: 980,
-    likes: 320,
-    task: "text-generation",
-    createdAt: "2023-06-20T14:45:00Z",
-    frameworks: ["TensorFlow", "SUI"],
-  },
-  {
-    id: "3",
-    name: "ResNet-50",
-    creator: "Microsoft",
-    description:
-      "A 50-layer residual neural network for image classification tasks. Adapted for on-chain inference.",
-    downloads: 750,
-    likes: 280,
-    task: "image-classification",
-    createdAt: "2023-04-10T09:15:00Z",
-    frameworks: ["PyTorch", "SUI"],
-  },
-  {
-    id: "4",
-    name: "YOLO v5",
-    creator: "Ultralytics",
-    description:
-      "Fast and accurate model for real-time object detection. Optimized for efficient on-chain execution.",
-    downloads: 1500,
-    likes: 620,
-    task: "object-detection",
-    createdAt: "2023-07-05T16:20:00Z",
-    frameworks: ["PyTorch", "SUI"],
-  },
-  {
-    id: "5",
-    name: "Stable Diffusion",
-    creator: "Stability AI",
-    description:
-      "A model that generates high-quality images from text prompts. Adapted for blockchain deployment.",
-    downloads: 2200,
-    likes: 890,
-    task: "text-to-image",
-    createdAt: "2023-08-12T11:40:00Z",
-    frameworks: ["PyTorch", "SUI"],
-  },
-  {
-    id: "6",
-    name: "T5-Base",
-    creator: "Google Research",
-    description: "Text-to-Text Transfer Transformer for various natural language processing tasks.",
-    downloads: 680,
-    likes: 240,
-    task: "translation",
-    createdAt: "2023-03-25T13:10:00Z",
-    frameworks: ["TensorFlow", "SUI"],
-  },
-  {
-    id: "7",
-    name: "DistilBERT",
-    creator: "Hugging Face",
-    description:
-      "A distilled version of BERT that retains 95% of performance with reduced size for efficient deployment.",
-    downloads: 850,
-    likes: 310,
-    task: "text-classification",
-    createdAt: "2023-05-01T11:20:00Z",
-    frameworks: ["PyTorch", "SUI"],
-  },
-  {
-    id: "8",
-    name: "MobileNet v3",
-    creator: "Google AI",
-    description: "Lightweight convolutional neural network optimized for mobile and edge devices.",
-    downloads: 620,
-    likes: 195,
-    task: "image-classification",
-    createdAt: "2023-06-10T09:30:00Z",
-    frameworks: ["TensorFlow", "SUI"],
-  },
-  {
-    id: "9",
-    name: "GPT-2 Small",
-    creator: "OpenAI",
-    description:
-      "A smaller version of GPT-2 for text generation that balances performance and resource usage.",
-    downloads: 980,
-    likes: 420,
-    task: "text-generation",
-    createdAt: "2023-04-20T14:15:00Z",
-    frameworks: ["PyTorch", "SUI"],
-  },
-];
