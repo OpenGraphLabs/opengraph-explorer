@@ -1,0 +1,1 @@
+paths = "/home/userpc/Github/opengraph/opengraph-explorer/server/utils/fp32_model_norm_7_7.h5"
