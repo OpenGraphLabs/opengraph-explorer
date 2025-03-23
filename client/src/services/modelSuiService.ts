@@ -24,11 +24,10 @@ export function useUploadModelToSui() {
       throw new Error("Wallet account not found. Please connect your wallet first.");
     }
 
-    console.log("Uploading model to Sui blockchain:", model);
-    console.log("Model info:", modelInfo);
-
     try {
       const tx = new Transaction();
+
+      tx.setGasBudget(GAS_BUDGET);
 
       tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
