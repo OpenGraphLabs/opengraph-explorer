@@ -1,10 +1,5 @@
 from tensorflow.keras.models import load_model
-import numpy as np
 import json
-from typing import List, Dict, Any
-import sys
-import os
-
 from pydantic import BaseModel
 from typing import List
 
@@ -45,13 +40,6 @@ class Model(BaseModel):
     biasesSigns: List[List[int]]
     scale: int
 
-# Path to the H5 model
-path = "/home/userpc/Github/opengraph/opengraph-explorer/server/utils/fp32_model_norm_7_7.h5"
-
-
-# Scale factor for fixed-point conversion
-SCALE = 2  # Same scale as in convert_mag_sign.py
-
 def float_to_fixed(x, scale):
     """ Convert float to (sign_bit, abs_val) for a given scale """
     sign_bit = 0
@@ -62,7 +50,7 @@ def float_to_fixed(x, scale):
     abs_val = int(round(x * factor))  # Round to nearest integer
     return sign_bit, abs_val
 
-def convert_model_to_schema(model, scale=SCALE):
+def convert_model_to_schema(model, scale=2):
     """Convert Keras model to Model schema format"""
     layer_dimensions = []
     weights_magnitudes = []
@@ -122,24 +110,19 @@ def convert_model_to_schema(model, scale=SCALE):
     
     return model_schema
 
+########################################################################################################################
 
-##
-
-
-
-# Load the model
+path = "/home/userpc/Github/opengraph/opengraph-explorer/server/utils/fp32_model_norm_7_7.h5"
+SCALE = 2
 model = load_model(path)
-
-# Convert model to schema
 model_schema = convert_model_to_schema(model)
 
-# Print the converted model
 print("\nConverted Model Schema:")
 print(model_schema)
 
 model_json = json.dumps(model_schema.dict())
 
-# Optionally save the model to a JSON file
 with open("converted_model.json", "w") as f:
     f.write(model_json)
     print("\nModel saved to converted_model.json")
+
