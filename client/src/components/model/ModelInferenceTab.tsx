@@ -5,6 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useModelInferenceState } from "../../hooks/useModelInference";
 import { getActivationTypeName, formatVector } from "../../utils/modelUtils";
 import { 
+  XAxis, 
+  YAxis, 
+  ResponsiveContainer, 
+  Tooltip as RechartsTooltip,
+  LineChart,
+  Line,
+  Legend
+} from "recharts";
+import { 
   Rocket, 
   CircleWavyCheck as CircuitBoard, 
   Brain as BrainCircuit,
@@ -62,21 +71,30 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
         block: 'start'
       });
       
-      // If we have an inference table, scroll to the processing or latest row
-      if (inferenceTableRef.current) {
-        const activeRow = inferenceTableRef.current.querySelector(
-          isProcessing ? "tr[data-processing='true']" : `tr[data-layer-idx='${currentLayerIndex - 1}']`
-        );
-        
-        if (activeRow) {
-          setTimeout(() => {
+      // Delay a bit to ensure the visualization components are rendered
+      setTimeout(() => {
+        // Find any processing layer cards
+        const processingCard = document.querySelector('[data-status="processing"]');
+        if (processingCard) {
+          processingCard.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+          });
+        } else if (inferenceTableRef.current) {
+          // If no processing elements, try to scroll to the latest layer in the table
+          const activeRow = inferenceTableRef.current.querySelector(
+            `tr[data-layer-idx='${currentLayerIndex - 1}']`
+          );
+          
+          if (activeRow) {
             activeRow.scrollIntoView({
               behavior: 'smooth',
               block: 'center'
             });
-          }, 100); // Small delay to ensure the DOM is updated
+          }
         }
-      }
+      }, 200); // Small delay to ensure the DOM is updated
     }
   }, [predictResults.length, currentLayerIndex, isProcessing]);
 
@@ -801,210 +819,187 @@ function LayerFlowVisualization({
   );
 
   return (
-    <Box style={{ marginTop: "28px" }}>
-      <Flex align="center" gap="3" mb="4">
-        <Box style={{ 
-          background: "#FFF4F2", 
-          borderRadius: "8px", 
-          width: "28px", 
-          height: "28px", 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "center", 
-          color: "#FF5733" 
-        }}>
-          <FlowArrow size={16} weight="bold" />
-        </Box>
-        <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
-          Inference Process Flow
-        </Heading>
-      </Flex>
-      
+    <Box style={{ marginTop: "24px" }}>
       <Card style={{ 
         padding: "28px", 
         borderRadius: "12px", 
         background: "#FFFFFF", 
         border: "1px solid #FFE8E2",
-        boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)",
-        overflow: "hidden"
+        boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)"
       }}>
+        <Flex align="center" gap="3" mb="4">
+          <Box style={{ 
+            background: "#FFF4F2", 
+            borderRadius: "8px", 
+            width: "28px", 
+            height: "28px", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            color: "#FF5733" 
+          }}>
+            <FlowArrow size={16} weight="bold" />
+          </Box>
+          <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
+            Layer-by-Layer Processing
+          </Heading>
+        </Flex>
+        
         <Text style={{ lineHeight: "1.7", fontSize: "15px", color: "#444", letterSpacing: "0.01em", marginBottom: "20px" }}>
-          This visualization shows how the model processes data through each layer during inference.
-          Watch the data flow between layers as each part of the model processes your input.
+          This visualization shows how data flows through each layer of the model during inference.
+          Follow the dimension changes as input transforms into the final prediction.
         </Text>
         
-        {/* Dimension Flow Visualization - Layer Boxes with Arrows */}
-        <Box style={{ 
-          padding: "20px", 
-          border: "1px solid #FFE8E2", 
-          borderRadius: "8px", 
-          overflowX: "auto",
-          marginTop: "10px"
-        }}>
-          <Flex align="center" style={{ minWidth: "max-content" }}>
+        {/* Status Legend */}
+        <Flex gap="4" mb="4" justify="center">
+          <Flex align="center" gap="2">
+            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#4CAF50" }}></Box>
+            <Text size="2">Completed</Text>
+          </Flex>
+          <Flex align="center" gap="2">
+            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#2196F3" }}></Box>
+            <Text size="2">Processing</Text>
+          </Flex>
+          <Flex align="center" gap="2">
+            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#F44336" }}></Box>
+            <Text size="2">Error</Text>
+          </Flex>
+          <Flex align="center" gap="2">
+            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#E0E0E0" }}></Box>
+            <Text size="2">Pending</Text>
+          </Flex>
+        </Flex>
+        
+        {/* Layer Flow Visualization */}
+        <Box style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
+          <Flex gap="4" wrap="wrap">
             {layerData.map((layer, index) => (
-              <Flex key={index} direction="column" align="center" style={{ position: "relative" }}>
-                <AnimatePresence>
-                  <motion.div
-                    style={{ 
-                      padding: "16px", 
-                      background: layer.status === 'processing' 
-                        ? "#E3F2FD" 
-                        : layer.status === 'error' 
-                          ? "#FFEBEE" 
-                          : layer.status === 'success' 
-                            ? "#E8F5E9" 
-                            : "#F5F5F5",
-                      borderRadius: "8px", 
-                      border: `1px solid ${
-                        layer.status === 'processing' 
-                          ? "#90CAF9" 
-                          : layer.status === 'error' 
-                            ? "#FFCDD2" 
-                            : layer.status === 'success' 
-                              ? "#C8E6C9" 
-                              : "#E0E0E0"
-                      }`,
-                      minWidth: "180px",
-                      margin: "0 45px 0 0"
-                    }}
-                    animate={{
-                      boxShadow: layer.status === 'processing' 
-                        ? [
-                            "0 0 0 rgba(255, 87, 51, 0)",
-                            "0 0 20px rgba(255, 87, 51, 0.5)",
-                            "0 0 0 rgba(255, 87, 51, 0)"
-                          ] 
-                        : "none"
-                    }}
-                    transition={{
-                      boxShadow: {
-                        repeat: Infinity,
-                        duration: 1.5
-                      }
-                    }}
-                  >
-                    <Flex align="center" justify="between" mb="2">
+              <Card 
+                key={index} 
+                style={{ 
+                  width: "calc(33.33% - 16px)",
+                  minWidth: "260px",
+                  background: layer.status === 'processing' 
+                    ? "#E3F2FD" 
+                    : layer.status === 'error' 
+                      ? "#FFEBEE" 
+                      : layer.status === 'success' 
+                        ? "#E8F5E9" 
+                        : "#F5F5F5",
+                  border: `1px solid ${
+                    layer.status === 'processing' 
+                      ? "#90CAF9" 
+                      : layer.status === 'error' 
+                        ? "#FFCDD2" 
+                        : layer.status === 'success' 
+                          ? "#C8E6C9" 
+                          : "#E0E0E0"
+                  }`,
+                  overflow: "hidden"
+                }}
+                data-status={layer.status}
+              >
+                <Box style={{ padding: "16px" }}>
+                  <Flex align="center" justify="between" mb="3">
+                    <Flex align="center" gap="2">
+                      <Badge color="orange" variant="soft">{index + 1}</Badge>
                       <Text style={{ fontWeight: 600, color: "#333" }}>
                         Layer {index + 1}
                       </Text>
-                      {layer.status === 'processing' && (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ 
-                            repeat: Infinity, 
-                            duration: 1.5, 
-                            ease: "linear" 
-                          }}
-                        >
-                          <ReloadIcon style={{ color: "#1565C0" }} />
-                        </motion.div>
-                      )}
-                      {layer.status === 'error' && (
-                        <CrossCircledIcon style={{ color: "#D32F2F" }} />
-                      )}
-                      {layer.status === 'success' && (
-                        <CheckCircle size={16} weight="fill" style={{ color: "#2E7D32" }} />
-                      )}
                     </Flex>
-                    
-                    <Flex direction="column" align="center" gap="2">
-                      {layer.status !== 'pending' ? (
-                        <>
-                          <Badge color={
-                            layer.status === 'processing' 
-                              ? "blue" 
-                              : layer.status === 'error' 
-                                ? "red" 
-                                : "green"
-                          } variant="soft">
-                            {layer.status === 'processing' 
-                              ? "Processing" 
-                              : layer.status === 'error' 
-                                ? "Error" 
-                                : "Completed"}
-                          </Badge>
-                          
-                          {layer.status !== 'error' && (
-                            <>
-                              <Flex align="center" gap="2">
-                                <Text size="1" style={{ color: "#666" }}>In:</Text>
-                                <Badge variant="soft" color="orange">{layer.inputSize}</Badge>
-                              </Flex>
-                              {layer.status === 'success' && (
-                                <Flex align="center" gap="2">
-                                  <Text size="1" style={{ color: "#666" }}>Out:</Text>
-                                  <Badge variant="soft" color="orange">{layer.outputSize}</Badge>
-                                </Flex>
-                              )}
-                              {layer.activation !== 'N/A' && (
-                                <Text size="1" style={{ marginTop: "4px", color: "#666", textAlign: "center" }}>
-                                  Activation: {layer.activation}
-                                </Text>
-                              )}
-                              {layer.isFinalLayer && layer.finalValue && (
-                                <Tooltip content="Final prediction value">
-                                  <Box style={{ 
-                                    marginTop: "8px", 
-                                    padding: "6px", 
-                                    background: "#E8F5E9",
-                                    borderRadius: "4px",
-                                    border: "1px solid #C8E6C9"
-                                  }}>
-                                    <Text size="1" style={{ color: "#2E7D32", fontWeight: 500 }}>
-                                      Final: {layer.finalValue}
-                                    </Text>
-                                  </Box>
-                                </Tooltip>
-                              )}
-                            </>
-                          )}
-                          
-                          {layer.status === 'error' && layer.errorMessage && (
-                            <Tooltip content={layer.errorMessage}>
-                              <Text size="1" style={{ color: "#B71C1C", cursor: "help", textAlign: "center" }}>
-                                {layer.errorMessage.substring(0, 20)}
-                                {layer.errorMessage.length > 20 ? '...' : ''}
-                              </Text>
-                            </Tooltip>
-                          )}
-                        </>
-                      ) : (
-                        <Text size="2" style={{ color: "#666", textAlign: "center" }}>
-                          Pending
-                        </Text>
-                      )}
-                    </Flex>
-                  </motion.div>
-                </AnimatePresence>
-                
-                {index < totalLayers - 1 && (
-                  <Box style={{ 
-                    position: "absolute", 
-                    right: "10px", 
-                    top: "50%", 
-                    transform: "translateY(-50%)",
-                    color: layer.status === 'success' ? "#2E7D32" : "#BDBDBD"
-                  }}>
-                    {layer.status === 'processing' ? (
-                      <motion.div 
-                        animate={{ 
-                          x: [0, 10, 0],
-                          opacity: [0.5, 1, 0.5]
-                        }}
+                    {layer.status === 'processing' && (
+                      <motion.div
+                        animate={{ rotate: 360 }}
                         transition={{ 
                           repeat: Infinity, 
-                          duration: 1.5 
+                          duration: 1.5, 
+                          ease: "linear" 
                         }}
                       >
-                        <ArrowRight size={24} weight="bold" color="#1565C0" />
+                        <ReloadIcon style={{ color: "#1565C0" }} />
                       </motion.div>
-                    ) : (
-                      <ArrowRight size={24} weight="bold" />
                     )}
-                  </Box>
-                )}
-              </Flex>
+                    {layer.status === 'error' && (
+                      <CrossCircledIcon style={{ color: "#D32F2F" }} />
+                    )}
+                    {layer.status === 'success' && (
+                      <CheckCircle size={16} weight="fill" style={{ color: "#2E7D32" }} />
+                    )}
+                  </Flex>
+                  
+                  <Badge color={
+                    layer.status === 'processing' 
+                      ? "blue" 
+                      : layer.status === 'error' 
+                        ? "red" 
+                        : "green"
+                  } variant="soft" style={{ marginBottom: "8px" }}>
+                    {layer.status === 'processing' 
+                      ? "Processing" 
+                      : layer.status === 'error' 
+                        ? "Error" 
+                        : "Completed"}
+                  </Badge>
+                  
+                  {layer.status !== 'pending' && layer.status !== 'error' && (
+                    <>
+                      <Flex align="center" gap="2" style={{ marginTop: "8px" }}>
+                        <Flex direction="column" style={{ flex: 1 }}>
+                          <Text size="1" style={{ color: "#666" }}>Input Dimension</Text>
+                          <Badge variant="soft" color="orange" style={{ width: "fit-content" }}>
+                            {layer.inputSize}
+                          </Badge>
+                        </Flex>
+                        <ArrowsHorizontal size={16} weight="bold" style={{ color: "#666" }} />
+                        <Flex direction="column" style={{ flex: 1, alignItems: "flex-end" }}>
+                          <Text size="1" style={{ color: "#666" }}>Output Dimension</Text>
+                          <Badge variant="soft" color="orange" style={{ width: "fit-content" }}>
+                            {layer.outputSize}
+                          </Badge>
+                        </Flex>
+                      </Flex>
+                      
+                      {layer.activation !== 'N/A' && (
+                        <Text size="1" style={{ color: "#666", marginTop: "8px" }}>
+                          Activation: {layer.activation}
+                        </Text>
+                      )}
+                    </>
+                  )}
+                  
+                  {layer.status === 'pending' && (
+                    <Text size="2" style={{ color: "#666", marginTop: "8px" }}>
+                      Waiting for previous layers to complete...
+                    </Text>
+                  )}
+                  
+                  {layer.status === 'error' && layer.errorMessage && (
+                    <Tooltip content={layer.errorMessage}>
+                      <Text size="1" style={{ color: "#B71C1C", cursor: "help", marginTop: "8px" }}>
+                        {layer.errorMessage.substring(0, 20)}
+                        {layer.errorMessage.length > 20 ? '...' : ''}
+                      </Text>
+                    </Tooltip>
+                  )}
+                  
+                  {layer.isFinalLayer && layer.finalValue && (
+                    <Box style={{ 
+                      marginTop: "8px", 
+                      padding: "8px", 
+                      background: "#E8F5E9",
+                      borderRadius: "4px",
+                      border: "1px solid #C8E6C9"
+                    }}>
+                      <Flex align="center" gap="2">
+                        <CheckCircle size={14} weight="fill" style={{ color: "#2E7D32" }} />
+                        <Text size="2" style={{ color: "#2E7D32", fontWeight: 500 }}>
+                          Final Prediction: {layer.finalValue}
+                        </Text>
+                      </Flex>
+                    </Box>
+                  )}
+                </Box>
+              </Card>
             ))}
           </Flex>
         </Box>
