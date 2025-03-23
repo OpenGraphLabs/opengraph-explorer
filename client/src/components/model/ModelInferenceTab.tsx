@@ -1,5 +1,5 @@
-import { Box, Flex, Heading, Text, Card, TextArea, Badge, Table, Button, Code } from "@radix-ui/themes";
-import { InfoCircledIcon, ReloadIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
+import { Box, Flex, Heading, Text, Card, TextArea, Badge, Table, Button, Code, Tooltip } from "@radix-ui/themes";
+import { InfoCircledIcon, ReloadIcon, ExternalLinkIcon, CheckIcon, CrossCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useModelInferenceState } from "../../hooks/useModelInference";
@@ -9,7 +9,8 @@ import {
   CircleWavyCheck as CircuitBoard, 
   Brain as BrainCircuit,
   ArrowRight,
-  Lightning
+  Lightning,
+  WarningCircle
 } from "phosphor-react";
 import { ModelObject } from "../../services/modelGraphQLService";
 import { getSuiScanUrl } from "../../utils/sui";
@@ -35,6 +36,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     currentLayerIndex,
     predictResults,
     inferenceStatus,
+    inferenceStatusType,
     isProcessing,
     txDigest,
     setInputVector,
@@ -250,16 +252,45 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               style={{
                 padding: "16px",
                 borderRadius: "12px",
-                background: isProcessing ? "#E3F2FD" : inferenceStatus.includes("error") ? "#FFEBEE" : "#E8F5E9",
-                border: "none",
+                background: inferenceStatusType === 'info' 
+                  ? "#E3F2FD" 
+                  : inferenceStatusType === 'error' 
+                  ? "#FFEBEE" 
+                  : inferenceStatusType === 'warning'
+                  ? "#FFF3E0"
+                  : "#E8F5E9",
+                border: inferenceStatusType === 'error' ? "1px solid #FFCDD2" : "none",
                 marginBottom: "20px",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.05)",
               }}
             >
               <Flex justify="between" align="center">
-                <Text size="2">
-                  {inferenceStatus}
-                </Text>
+                <Flex align="center" gap="2">
+                  {inferenceStatusType === 'info' && (
+                    <InfoCircledIcon style={{ color: "#2196F3", width: "18px", height: "18px" }} />
+                  )}
+                  {inferenceStatusType === 'error' && (
+                    <CrossCircledIcon style={{ color: "#F44336", width: "18px", height: "18px" }} />
+                  )}
+                  {inferenceStatusType === 'warning' && (
+                    <ExclamationTriangleIcon style={{ color: "#FF9800", width: "18px", height: "18px" }} />
+                  )}
+                  {inferenceStatusType === 'success' && (
+                    <CheckIcon style={{ color: "#4CAF50", width: "18px", height: "18px" }} />
+                  )}
+                  <Text size="2" style={{ 
+                    fontWeight: 500,
+                    color: inferenceStatusType === 'info' 
+                      ? "#0D47A1" 
+                      : inferenceStatusType === 'error' 
+                      ? "#B71C1C" 
+                      : inferenceStatusType === 'warning'
+                      ? "#E65100"
+                      : "#1B5E20"
+                  }}>
+                    {inferenceStatus}
+                  </Text>
+                </Flex>
                 {txDigest && (
                   <Button
                     variant="soft"
@@ -282,9 +313,19 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 )}
               </Flex>
               {txDigest && (
-                <Text size="1" style={{ marginTop: "6px", fontFamily: "monospace" }}>
-                  Transaction: {txDigest.substring(0, 10)}...{txDigest.substring(txDigest.length - 10)}
-                </Text>
+                <Tooltip content="Click to view this transaction on Sui Explorer">
+                  <Text 
+                    size="1" 
+                    style={{ 
+                      marginTop: "6px", 
+                      fontFamily: "monospace", 
+                      cursor: "pointer" 
+                    }}
+                    onClick={() => window.open(getSuiScanUrl('transaction', txDigest), '_blank')}
+                  >
+                    Transaction: {txDigest.substring(0, 10)}...{txDigest.substring(txDigest.length - 10)}
+                  </Text>
+                </Tooltip>
               )}
             </Card>
           </motion.div>
@@ -356,8 +397,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                       </Flex>
                       <Flex align="center" gap="3">
                         <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                          Prediction Results: {predictResults.length}
+                          Completed Layers: {currentLayerIndex}
                         </Badge>
+                        <StatusSummary results={predictResults} />
                       </Flex>
                     </Flex>
                   </Card>
@@ -391,6 +433,37 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   );
 }
 
+// Status summary component
+interface StatusSummaryProps {
+  results: any[];
+}
+
+function StatusSummary({ results }: StatusSummaryProps) {
+  if (!results.length) return null;
+  
+  const successCount = results.filter(r => r.status === 'success').length;
+  const errorCount = results.filter(r => r.status === 'error').length;
+  
+  return (
+    <Flex gap="2">
+      {successCount > 0 && (
+        <Tooltip content={`${successCount} successful layers`}>
+          <Badge color="green">
+            <CheckIcon /> {successCount}
+          </Badge>
+        </Tooltip>
+      )}
+      {errorCount > 0 && (
+        <Tooltip content={`${errorCount} layers with errors`}>
+          <Badge color="red">
+            <CrossCircledIcon /> {errorCount}
+          </Badge>
+        </Tooltip>
+      )}
+    </Flex>
+  );
+}
+
 // Inference results table component
 interface InferenceResultTableProps {
   predictResults: any[];
@@ -418,12 +491,21 @@ function InferenceResultTable({
       </Table.Header>
       <Table.Body>
         {predictResults.map((result, index) => (
-          <Table.Row key={index} style={{ background: index % 2 === 0 ? "#FFF" : "#FAFAFA" }}>
+          <Table.Row key={index} style={{ 
+            background: index % 2 === 0 ? "#FFF" : "#FAFAFA",
+            borderLeft: result.status === 'error' ? '2px solid #FFCDD2' : 'none'
+          }}>
             <Table.Cell>
-              <Badge color="orange" mr="1">{result.layerIdx + 1}</Badge>
+              <Badge color={result.status === 'error' ? "red" : "orange"} mr="1">
+                {result.layerIdx + 1}
+              </Badge>
             </Table.Cell>
             <Table.Cell>
-              {getActivationTypeName(result.activationType)}
+              {result.status === 'error' ? (
+                <Text size="2" style={{ color: "#B71C1C" }}>-</Text>
+              ) : (
+                getActivationTypeName(result.activationType)
+              )}
             </Table.Cell>
             <Table.Cell>
               <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
@@ -446,31 +528,74 @@ function InferenceResultTable({
               </Box>
             </Table.Cell>
             <Table.Cell>
-              <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
-                <Flex direction="column" gap="1">
-                  <Text size="1" style={{ color: "var(--gray-9)" }}>
-                    Size: {result.outputMagnitude.length}
+              {result.status === 'error' ? (
+                <Flex align="center" gap="2">
+                  <CrossCircledIcon style={{ color: "#F44336" }} />
+                  <Text size="2" style={{ color: "#B71C1C" }}>
+                    Failed
                   </Text>
-                  <Code
-                    style={{
-                      maxHeight: "60px",
-                      overflow: "auto",
-                      fontSize: "11px",
-                      padding: "4px",
-                      backgroundColor: "var(--gray-a2)",
-                    }}
-                  >
-                    [{formatVector(result.outputMagnitude, result.outputSign)}]
-                  </Code>
                 </Flex>
-              </Box>
+              ) : (
+                <Box style={{ maxWidth: "200px", overflow: "hidden" }}>
+                  <Flex direction="column" gap="1">
+                    <Text size="1" style={{ color: "var(--gray-9)" }}>
+                      Size: {result.outputMagnitude.length}
+                    </Text>
+                    <Code
+                      style={{
+                        maxHeight: "60px",
+                        overflow: "auto",
+                        fontSize: "11px",
+                        padding: "4px",
+                        backgroundColor: "var(--gray-a2)",
+                      }}
+                    >
+                      [{formatVector(result.outputMagnitude, result.outputSign)}]
+                    </Code>
+                  </Flex>
+                </Box>
+              )}
             </Table.Cell>
             <Table.Cell>
-              {result.argmaxIdx !== undefined ? (
+              {result.status === 'error' ? (
                 <Flex direction="column" gap="2">
-                  <Badge color="orange" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                    Final Prediction: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
+                  <Badge color="red" variant="soft">
+                    <CrossCircledIcon /> Error
                   </Badge>
+                  <Tooltip content={result.errorMessage}>
+                    <Text size="1" style={{ color: "#B71C1C", cursor: "help" }}>
+                      {result.errorMessage?.substring(0, 30)}
+                      {result.errorMessage?.length > 30 ? '...' : ''}
+                    </Text>
+                  </Tooltip>
+                  {result.txDigest && (
+                    <Button
+                      size="1"
+                      variant="soft"
+                      style={{ 
+                        background: "#FFEBEE", 
+                        color: "#D32F2F",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease-in-out",
+                        border: "1px solid #FFCDD2",
+                      }}
+                      onClick={() => result.txDigest && window.open(getSuiScanUrl('transaction', result.txDigest), '_blank')}
+                    >
+                      <Flex align="center" gap="2">
+                        <Text size="1">View Transaction</Text>
+                        <ExternalLinkIcon />
+                      </Flex>
+                    </Button>
+                  )}
+                </Flex>
+              ) : result.argmaxIdx !== undefined ? (
+                <Flex direction="column" gap="2">
+                  <Badge color="green" style={{ background: "#E8F5E9", color: "#2E7D32" }}>
+                    <CheckIcon /> Final Prediction
+                  </Badge>
+                  <Text size="2" style={{ fontWeight: 600, color: "#2E7D32" }}>
+                    Value: {formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])}
+                  </Text>
                   {result.txDigest && (
                     <Button
                       size="1"
@@ -493,7 +618,31 @@ function InferenceResultTable({
                   )}
                 </Flex>
               ) : (
-                <Badge color="orange" style={{ background: "#FFF4F2", color: "#FF5733" }}>Completed</Badge>
+                <Flex direction="column" gap="2">
+                  <Badge color="green" style={{ background: "#E8F5E9", color: "#2E7D32" }}>
+                    <CheckIcon /> Completed
+                  </Badge>
+                  {result.txDigest && (
+                    <Button
+                      size="1"
+                      variant="soft"
+                      style={{ 
+                        background: "#FFF4F2", 
+                        color: "#FF5733",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease-in-out",
+                        border: "1px solid #FFE8E2",
+                      }}
+                      className="hover-effect"
+                      onClick={() => result.txDigest && window.open(getSuiScanUrl('transaction', result.txDigest), '_blank')}
+                    >
+                      <Flex align="center" gap="2">
+                        <Text size="1">View Transaction</Text>
+                        <ExternalLinkIcon />
+                      </Flex>
+                    </Button>
+                  )}
+                </Flex>
               )}
             </Table.Cell>
           </Table.Row>
@@ -515,11 +664,13 @@ function InferenceResultTable({
             <Table.Cell>
               <Flex align="center" gap="2">
                 <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
-                <Text size="2">Processing...</Text>
+                <Text size="2">Pending...</Text>
               </Flex>
             </Table.Cell>
             <Table.Cell>
-              <Badge style={{ background: "#FFF4F2", color: "#FF5733" }}>Processing</Badge>
+              <Badge style={{ background: "#E3F2FD", color: "#1565C0" }}>
+                <ReloadIcon style={{ animation: "spin 1s linear infinite" }} /> Processing
+              </Badge>
             </Table.Cell>
           </Table.Row>
         )}

@@ -11,6 +11,8 @@ export interface PredictResult {
   activationType: number;
   argmaxIdx?: number;
   txDigest?: string;
+  status: 'success' | 'error' | 'processing';
+  errorMessage?: string;
 }
 
 export function useModelInferenceState(modelId: string, totalLayers: number) {
@@ -21,6 +23,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(0);
   const [predictResults, setPredictResults] = useState<PredictResult[]>([]);
   const [inferenceStatus, setInferenceStatus] = useState<string>("");
+  const [inferenceStatusType, setInferenceStatusType] = useState<'info' | 'success' | 'error' | 'warning'>('info');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [txDigest, setTxDigest] = useState<string>("");
   
@@ -33,7 +36,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
       let values = inputVector.split(",").map(val => val.trim()).filter(val => val !== "");
       
       if (values.length === 0) {
-        throw new Error("Input vector is empty.");
+        throw new Error("Input vector is empty. Please provide comma-separated numbers.");
       }
       
       // Convert to numbers and separate into signs and magnitudes
@@ -43,7 +46,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
       values.forEach(val => {
         const num = parseFloat(val);
         if (isNaN(num)) {
-          throw new Error(`Invalid number: ${val}`);
+          throw new Error(`Invalid number format: "${val}". Please provide valid numbers.`);
         }
         
         // Determine sign (0=positive, 1=negative)
@@ -57,20 +60,27 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
       
       setInputValues(magnitudes);
       setInputSigns(signs);
+      setInferenceStatusType('info');
       return { magnitudes, signs };
     } catch (error) {
       console.error("Input vector parsing error:", error);
       setInferenceStatus(`Error: ${error instanceof Error ? error.message : "Invalid input vector format."}`);
+      setInferenceStatusType('error');
       return null;
     }
   };
 
   // Execute layer prediction
   const runLayerPrediction = async (layerIdx: number, inputMagnitude: number[], inputSign: number[]) => {
-    if (!modelId) return;
+    if (!modelId) {
+      setInferenceStatus("Error: Model ID is missing. Please refresh the page and try again.");
+      setInferenceStatusType('error');
+      return;
+    }
     
     setIsProcessing(true);
-    setInferenceStatus(`Predicting layer ${layerIdx}...`);
+    setInferenceStatus(`Processing: Predicting layer ${layerIdx + 1} of ${totalLayers}...`);
+    setInferenceStatusType('info');
     
     try {
       // Call layer prediction transaction
@@ -83,12 +93,52 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
         if (res && res.digest) {
           setTxDigest(res.digest);
           processTransactionResult(res, layerIdx, inputMagnitude, inputSign);
+        } else {
+          setInferenceStatus(`Error: No transaction digest received for layer ${layerIdx + 1}. The transaction might have failed.`);
+          setInferenceStatusType('error');
+          setIsProcessing(false);
+          
+          // Add error result to show in UI
+          setPredictResults(prev => [
+            ...prev, 
+            {
+              layerIdx,
+              inputMagnitude,
+              inputSign,
+              outputMagnitude: [],
+              outputSign: [],
+              activationType: 0,
+              txDigest: res?.digest,
+              status: 'error',
+              errorMessage: 'Transaction failed to return proper results'
+            }
+          ]);
         }
       });
     } catch (error) {
       console.error(`Layer ${layerIdx} prediction error:`, error);
-      setInferenceStatus(`Error: ${error instanceof Error ? error.message : "An error occurred during prediction execution."}`);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "An error occurred during prediction execution. Please try again.";
+      
+      setInferenceStatus(`Error: ${errorMessage}`);
+      setInferenceStatusType('error');
       setIsProcessing(false);
+      
+      // Add error result to show in UI
+      setPredictResults(prev => [
+        ...prev, 
+        {
+          layerIdx,
+          inputMagnitude,
+          inputSign,
+          outputMagnitude: [],
+          outputSign: [],
+          activationType: 0,
+          status: 'error',
+          errorMessage
+        }
+      ]);
     }
   };
   
@@ -102,9 +152,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
       
       // Parse LayerComputed event
       const layerResult = parseLayerComputedEvent(result.events);
-      console.log("xxxxxxxxxxxxxxxxx");
       console.log("Layer result:", layerResult);
-      console.log("xxxxxxxxxxxxxxxxx");
       
       // Parse PredictionCompleted event (if last layer)
       const predictionResult = parsePredictionCompletedEvent(result.events);
@@ -112,7 +160,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
       
       if (layerResult) {
         // Save the result
-        const newResult = {
+        const newResult: PredictResult = {
           layerIdx,
           inputMagnitude,
           inputSign,
@@ -121,6 +169,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
           activationType: layerResult.activationType,
           argmaxIdx: predictionResult?.argmaxIdx,
           txDigest: result.digest,
+          status: 'success'
         };
         
         setPredictResults(prev => [...prev, newResult]);
@@ -136,11 +185,13 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
             [predictionResult.outputSign[predictionResult.argmaxIdx]]
           );
           
-          setInferenceStatus(`Prediction complete! Final value: ${finalValue}`);
+          setInferenceStatus(`Success: Prediction complete! Final output value: ${finalValue}`);
+          setInferenceStatusType('success');
           setIsProcessing(false);
         } else {
           // Prepare for next layer
-          setInferenceStatus(`Layer ${layerIdx} prediction complete. Preparing next layer...`);
+          setInferenceStatus(`Success: Layer ${layerIdx + 1} prediction complete. Preparing for layer ${layerIdx + 2}...`);
+          setInferenceStatusType('success');
           setIsProcessing(false);
           
           // Automatically run next layer (if not last layer)
@@ -156,13 +207,51 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
           }
         }
       } else {
-        setInferenceStatus(`Layer ${layerIdx} prediction completed but no events found.`);
+        setInferenceStatus(`Warning: Layer ${layerIdx + 1} transaction completed but no output data was found. Please check the transaction details.`);
+        setInferenceStatusType('warning');
         setIsProcessing(false);
+        
+        // Add warning result to show in UI
+        setPredictResults(prev => [
+          ...prev, 
+          {
+            layerIdx,
+            inputMagnitude,
+            inputSign,
+            outputMagnitude: [],
+            outputSign: [],
+            activationType: 0,
+            txDigest: result.digest,
+            status: 'error',
+            errorMessage: 'No layer computation events found in transaction'
+          }
+        ]);
       }
     } catch (error) {
       console.error("Transaction result processing error:", error);
-      setInferenceStatus(`Error: ${error instanceof Error ? error.message : "An error occurred while processing transaction result."}`);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "An error occurred while processing the transaction result.";
+      
+      setInferenceStatus(`Error: ${errorMessage}`);
+      setInferenceStatusType('error');
       setIsProcessing(false);
+      
+      // Add error result to show in UI
+      setPredictResults(prev => [
+        ...prev, 
+        {
+          layerIdx,
+          inputMagnitude,
+          inputSign,
+          outputMagnitude: [],
+          outputSign: [],
+          activationType: 0,
+          txDigest: result.digest,
+          status: 'error',
+          errorMessage
+        }
+      ]);
     }
   };
   
@@ -184,12 +273,20 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
   // Predict next layer (manual)
   const predictNextLayer = async () => {
     if (predictResults.length === 0) {
-      setInferenceStatus("You must predict the first layer first.");
+      setInferenceStatus("Error: You must predict the first layer before proceeding to the next layer.");
+      setInferenceStatusType('error');
       return;
     }
     
     // Get last prediction result
     const lastResult = predictResults[predictResults.length - 1];
+    
+    // Check if the last prediction was successful
+    if (lastResult.status === 'error') {
+      setInferenceStatus("Error: Cannot proceed to the next layer because the previous layer encountered an error.");
+      setInferenceStatusType('error');
+      return;
+    }
     
     // Execute next layer prediction (using previous layer's output as input)
     await runLayerPrediction(
@@ -207,6 +304,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
     currentLayerIndex,
     predictResults,
     inferenceStatus,
+    inferenceStatusType,
     isProcessing,
     txDigest,
     // Actions
