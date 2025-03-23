@@ -417,67 +417,8 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 currentLayerIndex={currentLayerIndex}
                 isProcessing={isProcessing}
                 totalLayers={getLayerCount()}
+                inferenceTableRef={inferenceTableRef}
               />
-              
-              <Card style={{ 
-                padding: "24px", 
-                borderRadius: "12px", 
-                marginTop: "28px",
-                background: "#FFFFFF", 
-                border: "1px solid #FFE8E2",
-                boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)" 
-              }}>
-                <Flex direction="column" gap="4" mb="5">
-                  <Box>
-                    <Text size="2" mb="2" style={{ fontWeight: 600 }}>
-                      Current Progress: {currentLayerIndex} / {getLayerCount()} Layers
-                    </Text>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "8px",
-                        backgroundColor: "#E0E0E0",
-                        borderRadius: "4px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${(currentLayerIndex / Math.max(1, getLayerCount())) * 100}%`,
-                          height: "100%",
-                          backgroundColor: "#FF5733",
-                          transition: "width 0.3s ease-in-out",
-                        }}
-                      />
-                    </div>
-                  </Box>
-                  
-                  <Card style={{ padding: "16px", background: "#F9F9F9", border: "1px solid #F0F0F0", borderRadius: "8px" }}>
-                    <Flex align="center" justify="between">
-                      <Flex align="center" gap="3">
-                        <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                          Total Layers: {getLayerCount()}
-                        </Badge>
-                      </Flex>
-                      <Flex align="center" gap="3">
-                        <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                          Completed Layers: {currentLayerIndex}
-                        </Badge>
-                        <StatusSummary results={predictResults} />
-                      </Flex>
-                    </Flex>
-                  </Card>
-                </Flex>
-                
-                <div ref={inferenceTableRef}>
-                  <InferenceResultTable
-                    predictResults={predictResults}
-                    currentLayerIndex={currentLayerIndex}
-                    isProcessing={isProcessing}
-                    layerCount={getLayerCount()}
-                  />
-                </div>
-              </Card>
             </Box>
           </motion.div>
         )}
@@ -781,13 +722,15 @@ interface LayerFlowVisualizationProps {
   currentLayerIndex: number;
   isProcessing: boolean;
   totalLayers: number;
+  inferenceTableRef: React.RefObject<HTMLDivElement>;
 }
 
 function LayerFlowVisualization({ 
   predictResults, 
   currentLayerIndex, 
   isProcessing, 
-  totalLayers 
+  totalLayers,
+  inferenceTableRef
 }: LayerFlowVisualizationProps) {
   // Prepare data for visualization
   const generateLayerData = (layerIndex: number) => {
@@ -827,6 +770,49 @@ function LayerFlowVisualization({
         border: "1px solid #FFE8E2",
         boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)"
       }}>
+        {/* Progress Bar 및 요약 정보를 상단으로 이동 */}
+        <Flex direction="column" gap="4" mb="5">
+          <Box>
+            <Text size="2" mb="2" style={{ fontWeight: 600 }}>
+              Current Progress: {currentLayerIndex} / {totalLayers} Layers
+            </Text>
+            <div
+              style={{
+                width: "100%",
+                height: "8px",
+                backgroundColor: "#E0E0E0",
+                borderRadius: "4px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${(currentLayerIndex / Math.max(1, totalLayers)) * 100}%`,
+                  height: "100%",
+                  backgroundColor: "#FF5733",
+                  transition: "width 0.3s ease-in-out",
+                }}
+              />
+            </div>
+          </Box>
+          
+          <Card style={{ padding: "16px", background: "#F9F9F9", border: "1px solid #F0F0F0", borderRadius: "8px" }}>
+            <Flex align="center" justify="between">
+              <Flex align="center" gap="3">
+                <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
+                  Total Layers: {totalLayers}
+                </Badge>
+              </Flex>
+              <Flex align="center" gap="3">
+                <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
+                  Completed Layers: {currentLayerIndex}
+                </Badge>
+                <StatusSummary results={predictResults} />
+              </Flex>
+            </Flex>
+          </Card>
+        </Flex>
+
         <Flex align="center" gap="3" mb="4">
           <Box style={{ 
             background: "#FFF4F2", 
@@ -850,28 +836,8 @@ function LayerFlowVisualization({
           Follow the dimension changes as input transforms into the final prediction.
         </Text>
         
-        {/* Status Legend */}
-        <Flex gap="4" mb="4" justify="center">
-          <Flex align="center" gap="2">
-            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#4CAF50" }}></Box>
-            <Text size="2">Completed</Text>
-          </Flex>
-          <Flex align="center" gap="2">
-            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#2196F3" }}></Box>
-            <Text size="2">Processing</Text>
-          </Flex>
-          <Flex align="center" gap="2">
-            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#F44336" }}></Box>
-            <Text size="2">Error</Text>
-          </Flex>
-          <Flex align="center" gap="2">
-            <Box style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#E0E0E0" }}></Box>
-            <Text size="2">Pending</Text>
-          </Flex>
-        </Flex>
-        
         {/* Layer Flow Visualization */}
-        <Box style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
+        <Box style={{ marginBottom: "20px" }}>
           <Flex gap="4" wrap="wrap">
             {layerData.map((layer, index) => (
               <Card 
@@ -895,7 +861,8 @@ function LayerFlowVisualization({
                           ? "#C8E6C9" 
                           : "#E0E0E0"
                   }`,
-                  overflow: "hidden"
+                  overflow: "hidden",
+                  marginBottom: "16px"
                 }}
                 data-status={layer.status}
               >
@@ -1002,6 +969,36 @@ function LayerFlowVisualization({
               </Card>
             ))}
           </Flex>
+        </Box>
+        
+        {/* 테이블 인터페이스 통합 */}
+        <Box style={{ marginTop: "28px" }}>
+          <Flex align="center" gap="3" mb="4">
+            <Box style={{ 
+              background: "#FFF4F2", 
+              borderRadius: "8px", 
+              width: "28px", 
+              height: "28px", 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center", 
+              color: "#FF5733" 
+            }}>
+              <CircuitBoard size={16} weight="bold" />
+            </Box>
+            <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
+              Detailed Layer Data
+            </Heading>
+          </Flex>
+          
+          <div ref={inferenceTableRef}>
+            <InferenceResultTable
+              predictResults={predictResults}
+              currentLayerIndex={currentLayerIndex}
+              isProcessing={isProcessing}
+              layerCount={totalLayers}
+            />
+          </div>
         </Box>
       </Card>
     </Box>
