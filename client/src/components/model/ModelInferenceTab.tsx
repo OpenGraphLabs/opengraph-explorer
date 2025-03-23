@@ -65,7 +65,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   useEffect(() => {
     // Only scroll when we have results and not the first time
     if (predictResults.length > 0 && resultsContainerRef.current) {
-      // Scroll to the results container
+      // Scroll to the results container first
       resultsContainerRef.current.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'start'
@@ -73,24 +73,40 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
       
       // Delay a bit to ensure the visualization components are rendered
       setTimeout(() => {
-        // Find any processing layer cards
-        const processingCard = document.querySelector('[data-status="processing"]');
-        if (processingCard) {
-          processingCard.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-            inline: 'nearest'
-          });
-        } else if (inferenceTableRef.current) {
-          // If no processing elements, try to scroll to the latest layer in the table
+        // 테이블 뷰에 우선적으로 스크롤 포커스
+        if (inferenceTableRef.current) {
+          const tableHeader = inferenceTableRef.current.querySelector('thead');
+          
+          // 현재 활성화된 레이어나 처리 중인 레이어에 해당하는 테이블 행으로 스크롤
           const activeRow = inferenceTableRef.current.querySelector(
             `tr[data-layer-idx='${currentLayerIndex - 1}']`
+          ) || inferenceTableRef.current.querySelector(
+            `tr[data-processing="true"]`
           );
           
-          if (activeRow) {
-            activeRow.scrollIntoView({
+          if (activeRow && tableHeader) {
+            // 테이블 헤더가 보이도록 약간 위로 스크롤
+            const tableContainer = inferenceTableRef.current.closest('.table-container');
+            if (tableContainer) {
+              // HTMLElement로 타입 캐스팅하여 offsetTop 접근 가능하게 함
+              const rowElement = activeRow as HTMLElement;
+              const headerElement = tableHeader as HTMLElement;
+              tableContainer.scrollTop = rowElement.offsetTop - headerElement.clientHeight - 20;
+            } else {
+              activeRow.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+              });
+            }
+          }
+        } else {
+          // 처리 중인 카드가 있으면 해당 카드로 스크롤
+          const processingCard = document.querySelector('[data-status="processing"]');
+          if (processingCard) {
+            processingCard.scrollIntoView({
               behavior: 'smooth',
-              block: 'center'
+              block: 'center',
+              inline: 'nearest'
             });
           }
         }
@@ -764,14 +780,14 @@ function LayerFlowVisualization({
   return (
     <Box style={{ marginTop: "24px" }}>
       <Card style={{ 
-        padding: "28px", 
+        padding: "24px", 
         borderRadius: "12px", 
         background: "#FFFFFF", 
         border: "1px solid #FFE8E2",
         boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)"
       }}>
         {/* Progress Bar 및 요약 정보를 상단으로 이동 */}
-        <Flex direction="column" gap="4" mb="5">
+        <Flex direction="column" gap="4" mb="4">
           <Box>
             <Text size="2" mb="2" style={{ fontWeight: 600 }}>
               Current Progress: {currentLayerIndex} / {totalLayers} Layers
@@ -796,7 +812,7 @@ function LayerFlowVisualization({
             </div>
           </Box>
           
-          <Card style={{ padding: "16px", background: "#F9F9F9", border: "1px solid #F0F0F0", borderRadius: "8px" }}>
+          <Card style={{ padding: "12px", background: "#F9F9F9", border: "1px solid #F0F0F0", borderRadius: "8px" }}>
             <Flex align="center" justify="between">
               <Flex align="center" gap="3">
                 <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
@@ -813,38 +829,38 @@ function LayerFlowVisualization({
           </Card>
         </Flex>
 
-        <Flex align="center" gap="3" mb="4">
+        {/* 카드 시각화 영역 - 더 압축된 형태로 표시 */}
+        <Flex align="center" gap="3" mb="2">
           <Box style={{ 
             background: "#FFF4F2", 
             borderRadius: "8px", 
-            width: "28px", 
-            height: "28px", 
+            width: "24px", 
+            height: "24px", 
             display: "flex", 
             alignItems: "center", 
             justifyContent: "center", 
             color: "#FF5733" 
           }}>
-            <FlowArrow size={16} weight="bold" />
+            <FlowArrow size={14} weight="bold" />
           </Box>
           <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
-            Layer-by-Layer Processing
+            Layer Cards
           </Heading>
         </Flex>
         
-        <Text style={{ lineHeight: "1.7", fontSize: "15px", color: "#444", letterSpacing: "0.01em", marginBottom: "20px" }}>
-          This visualization shows how data flows through each layer of the model during inference.
-          Follow the dimension changes as input transforms into the final prediction.
+        <Text size="2" style={{ lineHeight: "1.6", color: "#666", letterSpacing: "0.01em", marginBottom: "12px" }}>
+          Visual overview of each layer's processing status
         </Text>
         
-        {/* Layer Flow Visualization */}
-        <Box style={{ marginBottom: "20px" }}>
-          <Flex gap="4" wrap="wrap">
+        {/* Layer Flow Visualization - 카드 크기 축소 */}
+        <Box style={{ marginBottom: "24px", maxHeight: "250px", overflowY: "auto", overflowX: "hidden" }}>
+          <Flex gap="2" wrap="wrap" style={{ justifyContent: "flex-start" }}>
             {layerData.map((layer, index) => (
               <Card 
                 key={index} 
                 style={{ 
-                  width: "calc(33.33% - 16px)",
-                  minWidth: "260px",
+                  width: "calc(20% - 8px)",
+                  minWidth: "180px",
                   background: layer.status === 'processing' 
                     ? "#E3F2FD" 
                     : layer.status === 'error' 
@@ -862,15 +878,15 @@ function LayerFlowVisualization({
                           : "#E0E0E0"
                   }`,
                   overflow: "hidden",
-                  marginBottom: "16px"
+                  marginBottom: "8px"
                 }}
                 data-status={layer.status}
               >
-                <Box style={{ padding: "16px" }}>
-                  <Flex align="center" justify="between" mb="3">
-                    <Flex align="center" gap="2">
-                      <Badge color="orange" variant="soft">{index + 1}</Badge>
-                      <Text style={{ fontWeight: 600, color: "#333" }}>
+                <Box style={{ padding: "10px" }}>
+                  <Flex align="center" justify="between" mb="1">
+                    <Flex align="center" gap="1">
+                      <Badge color="orange" variant="soft" size="1">{index + 1}</Badge>
+                      <Text size="2" style={{ fontWeight: 600, color: "#333" }}>
                         Layer {index + 1}
                       </Text>
                     </Flex>
@@ -882,25 +898,26 @@ function LayerFlowVisualization({
                           duration: 1.5, 
                           ease: "linear" 
                         }}
+                        style={{ width: "14px", height: "14px" }}
                       >
-                        <ReloadIcon style={{ color: "#1565C0" }} />
+                        <ReloadIcon style={{ color: "#1565C0", width: "14px", height: "14px" }} />
                       </motion.div>
                     )}
                     {layer.status === 'error' && (
-                      <CrossCircledIcon style={{ color: "#D32F2F" }} />
+                      <CrossCircledIcon style={{ color: "#D32F2F", width: "14px", height: "14px" }} />
                     )}
                     {layer.status === 'success' && (
-                      <CheckCircle size={16} weight="fill" style={{ color: "#2E7D32" }} />
+                      <CheckCircle size={14} weight="fill" style={{ color: "#2E7D32" }} />
                     )}
                   </Flex>
                   
-                  <Badge color={
+                  <Badge size="1" color={
                     layer.status === 'processing' 
                       ? "blue" 
                       : layer.status === 'error' 
                         ? "red" 
                         : "green"
-                  } variant="soft" style={{ marginBottom: "8px" }}>
+                  } variant="soft" style={{ marginBottom: "4px" }}>
                     {layer.status === 'processing' 
                       ? "Processing" 
                       : layer.status === 'error' 
@@ -910,57 +927,57 @@ function LayerFlowVisualization({
                   
                   {layer.status !== 'pending' && layer.status !== 'error' && (
                     <>
-                      <Flex align="center" gap="2" style={{ marginTop: "8px" }}>
+                      <Flex align="center" gap="1" style={{ marginTop: "4px" }}>
                         <Flex direction="column" style={{ flex: 1 }}>
-                          <Text size="1" style={{ color: "#666" }}>Input Dimension</Text>
-                          <Badge variant="soft" color="orange" style={{ width: "fit-content" }}>
+                          <Text size="1" style={{ color: "#666", fontSize: "10px" }}>In</Text>
+                          <Badge variant="soft" color="orange" size="1" style={{ width: "fit-content", fontSize: "10px", padding: "0 6px" }}>
                             {layer.inputSize}
                           </Badge>
                         </Flex>
-                        <ArrowsHorizontal size={16} weight="bold" style={{ color: "#666" }} />
+                        <ArrowsHorizontal size={10} weight="bold" style={{ color: "#666" }} />
                         <Flex direction="column" style={{ flex: 1, alignItems: "flex-end" }}>
-                          <Text size="1" style={{ color: "#666" }}>Output Dimension</Text>
-                          <Badge variant="soft" color="orange" style={{ width: "fit-content" }}>
+                          <Text size="1" style={{ color: "#666", fontSize: "10px" }}>Out</Text>
+                          <Badge variant="soft" color="orange" size="1" style={{ width: "fit-content", fontSize: "10px", padding: "0 6px" }}>
                             {layer.outputSize}
                           </Badge>
                         </Flex>
                       </Flex>
                       
                       {layer.activation !== 'N/A' && (
-                        <Text size="1" style={{ color: "#666", marginTop: "8px" }}>
-                          Activation: {layer.activation}
+                        <Text size="1" style={{ color: "#666", marginTop: "4px", fontSize: "10px" }}>
+                          {layer.activation}
                         </Text>
                       )}
                     </>
                   )}
                   
                   {layer.status === 'pending' && (
-                    <Text size="2" style={{ color: "#666", marginTop: "8px" }}>
-                      Waiting for previous layers to complete...
+                    <Text size="1" style={{ color: "#666", marginTop: "4px", fontSize: "10px" }}>
+                      Waiting...
                     </Text>
                   )}
                   
                   {layer.status === 'error' && layer.errorMessage && (
                     <Tooltip content={layer.errorMessage}>
-                      <Text size="1" style={{ color: "#B71C1C", cursor: "help", marginTop: "8px" }}>
-                        {layer.errorMessage.substring(0, 20)}
-                        {layer.errorMessage.length > 20 ? '...' : ''}
+                      <Text size="1" style={{ color: "#B71C1C", cursor: "help", marginTop: "4px", fontSize: "10px" }}>
+                        {layer.errorMessage.substring(0, 15)}
+                        {layer.errorMessage.length > 15 ? '...' : ''}
                       </Text>
                     </Tooltip>
                   )}
                   
                   {layer.isFinalLayer && layer.finalValue && (
                     <Box style={{ 
-                      marginTop: "8px", 
-                      padding: "8px", 
+                      marginTop: "4px", 
+                      padding: "4px", 
                       background: "#E8F5E9",
                       borderRadius: "4px",
                       border: "1px solid #C8E6C9"
                     }}>
-                      <Flex align="center" gap="2">
-                        <CheckCircle size={14} weight="fill" style={{ color: "#2E7D32" }} />
-                        <Text size="2" style={{ color: "#2E7D32", fontWeight: 500 }}>
-                          Final Prediction: {layer.finalValue}
+                      <Flex align="center" gap="1">
+                        <CheckCircle size={10} weight="fill" style={{ color: "#2E7D32" }} />
+                        <Text size="1" style={{ color: "#2E7D32", fontWeight: 500, fontSize: "10px" }}>
+                          Final: {layer.finalValue}
                         </Text>
                       </Flex>
                     </Box>
@@ -971,34 +988,46 @@ function LayerFlowVisualization({
           </Flex>
         </Box>
         
-        {/* 테이블 인터페이스 통합 */}
-        <Box style={{ marginTop: "28px" }}>
-          <Flex align="center" gap="3" mb="4">
+        {/* 테이블 인터페이스 - 더 강조된 형태로 표시 */}
+        <Box style={{ marginTop: "8px" }}>
+          <Flex align="center" gap="3" mb="2">
             <Box style={{ 
               background: "#FFF4F2", 
               borderRadius: "8px", 
-              width: "28px", 
-              height: "28px", 
+              width: "24px", 
+              height: "24px", 
               display: "flex", 
               alignItems: "center", 
               justifyContent: "center", 
               color: "#FF5733" 
             }}>
-              <CircuitBoard size={16} weight="bold" />
+              <CircuitBoard size={14} weight="bold" />
             </Box>
             <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
               Detailed Layer Data
             </Heading>
           </Flex>
           
-          <div ref={inferenceTableRef}>
-            <InferenceResultTable
-              predictResults={predictResults}
-              currentLayerIndex={currentLayerIndex}
-              isProcessing={isProcessing}
-              layerCount={totalLayers}
-            />
-          </div>
+          <Text size="2" style={{ lineHeight: "1.6", color: "#666", letterSpacing: "0.01em", marginBottom: "12px" }}>
+            Complete information about each layer's inputs, outputs, and processing status
+          </Text>
+          
+          <Card style={{ 
+            padding: "0", 
+            border: "1px solid #FFE8E2", 
+            borderRadius: "8px", 
+            overflow: "hidden",
+            boxShadow: "0 2px 8px rgba(255, 87, 51, 0.05)"
+          }}>
+            <div className="table-container" ref={inferenceTableRef} style={{ maxHeight: "450px", overflowY: "auto", overflowX: "auto" }}>
+              <InferenceResultTable
+                predictResults={predictResults}
+                currentLayerIndex={currentLayerIndex}
+                isProcessing={isProcessing}
+                layerCount={totalLayers}
+              />
+            </div>
+          </Card>
         </Box>
       </Card>
     </Box>
