@@ -18,9 +18,15 @@
     "@radix-ui/themes": "^3.2.1",
     "@tanstack/react-query": "^5.50.1",
     "@tensorflow/tfjs": "^4.22.0",
+    "@visx/visx": "^3.12.0",
+    "d3-shape": "^3.2.0",
+    "framer-motion": "^12.5.0",
+    "phosphor-react": "^1.4.1",
     "react": "^18.3.1",
+    "react-d3-tree": "^3.6.6",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.3.0"
+    "react-router-dom": "^7.3.0",
+    "recharts": "^2.15.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

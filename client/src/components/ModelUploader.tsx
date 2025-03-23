@@ -27,7 +27,7 @@ export function ModelUploader({
   error,
   resetUploadState,
 }: ModelUploaderProps) {
-  // useRef를 사용하여 파일 input 요소를 참조합니다
+  // Use useRef to reference the file input element
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,14 +44,14 @@ export function ModelUploader({
     }
   };
 
-  // 파일 브라우즈 버튼 클릭 시 파일 input을 클릭합니다
+  // Click the file input when the browse button is clicked
   const handleBrowseClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  // 드래그 앤 드롭 이벤트 처리
+  // Handle drag and drop events
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -77,7 +77,7 @@ export function ModelUploader({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    // 부모 컴포넌트의 resetUploadState 함수 호출
+    // Call the parent component's resetUploadState function
     resetUploadState();
   };
 
@@ -89,19 +89,19 @@ export function ModelUploader({
           borderWidth: "2px",
           borderColor: selectedFile ? "var(--accent-6)" : "var(--gray-6)",
           background: selectedFile ? "var(--accent-1)" : "var(--gray-1)",
-          padding: "32px",
+          padding: "36px",
           borderRadius: "12px",
           transition: "all 0.2s ease",
-          marginBottom: "16px",
+          marginBottom: "20px",
         }}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        <Flex direction="column" align="center" gap="3">
+        <Flex direction="column" align="center" gap="4">
           <Box
             style={{
-              width: "64px",
-              height: "64px",
+              width: "72px",
+              height: "72px",
               borderRadius: "50%",
               background: selectedFile ? "var(--accent-2)" : "var(--gray-3)",
               display: "flex",
@@ -111,13 +111,13 @@ export function ModelUploader({
             }}
           >
             <UploadIcon
-              width={28}
-              height={28}
+              width={32}
+              height={32}
               style={{ color: selectedFile ? "#FF5733" : "var(--gray-11)" }}
             />
           </Box>
 
-          <Text style={{ fontWeight: 600, fontSize: "16px" }}>
+          <Text style={{ fontWeight: 600, fontSize: "18px", letterSpacing: "0.01em" }}>
             {selectedFile ? "Model file selected" : "Drag and drop your model file here"}
           </Text>
 
@@ -135,6 +135,7 @@ export function ModelUploader({
                   color: "white",
                   borderRadius: "8px",
                   fontWeight: 500,
+                  padding: "10px 16px",
                 }}
               >
                 Browse Files
@@ -152,21 +153,21 @@ export function ModelUploader({
           />
 
           {selectedFile && (
-            <Flex direction="column" style={{ width: "100%" }} gap="3">
+            <Flex direction="column" style={{ width: "100%" }} gap="4">
               <Card
                 style={{
-                  padding: "12px 16px",
+                  padding: "14px 18px",
                   borderRadius: "8px",
                   border: "1px solid var(--accent-6)",
                   background: "var(--accent-2)",
                 }}
               >
                 <Flex align="center" justify="between">
-                  <Flex align="center" gap="2">
+                  <Flex align="center" gap="3">
                     <Box
                       style={{
-                        width: "36px",
-                        height: "36px",
+                        width: "40px",
+                        height: "40px",
                         borderRadius: "6px",
                         background: "var(--accent-3)",
                         display: "flex",
@@ -174,9 +175,9 @@ export function ModelUploader({
                         justifyContent: "center",
                       }}
                     >
-                      <InfoCircledIcon style={{ color: "#FF5733" }} />
+                      <InfoCircledIcon style={{ color: "#FF5733" }} width={20} height={20} />
                     </Box>
-                    <Flex direction="column" gap="0">
+                    <Flex direction="column" gap="1">
                       <Text size="2" style={{ fontWeight: 600 }}>
                         {selectedFile.name}
                       </Text>
@@ -191,7 +192,7 @@ export function ModelUploader({
                     onClick={resetFile}
                     style={{
                       borderRadius: "50%",
-                      padding: "6px",
+                      padding: "8px",
                       color: "var(--gray-11)",
                     }}
                   >
@@ -212,6 +213,7 @@ export function ModelUploader({
                   cursor: isConverting ? "not-allowed" : "pointer",
                   alignSelf: "center",
                   opacity: isConverting ? 0.7 : 1,
+                  padding: "10px 16px",
                 }}
               >
                 {isConverting ? "Converting..." : "Convert Model"}
@@ -223,15 +225,15 @@ export function ModelUploader({
             <Card
               style={{
                 background: "#FFEBEE",
-                padding: "12px 16px",
+                padding: "14px 18px",
                 borderRadius: "8px",
-                marginTop: "8px",
+                marginTop: "12px",
                 width: "100%",
                 border: "1px solid #FFCDD2",
               }}
             >
-              <Flex align="center" gap="2">
-                <InfoCircledIcon style={{ color: "#D32F2F" }} />
+              <Flex align="center" gap="3">
+                <InfoCircledIcon style={{ color: "#D32F2F" }} width={18} height={18} />
                 <Text size="2" style={{ color: "#D32F2F" }}>
                   {error}
                 </Text>
@@ -243,21 +245,23 @@ export function ModelUploader({
             <Card
               style={{
                 background: "#E8F5E9",
-                padding: "12px 16px",
+                padding: "14px 18px",
                 borderRadius: "8px",
-                marginTop: "8px",
+                marginTop: "12px",
                 width: "100%",
                 border: "1px solid #C8E6C9",
               }}
             >
-              <Flex direction="column" gap="2">
-                <Flex align="center" gap="2">
+              <Flex direction="column" gap="3">
+                <Flex align="center" gap="3">
                   {isConverting ? (
                     <ReloadIcon
                       style={{ color: "#4CAF50", animation: "spin 1s linear infinite" }}
+                      width={18}
+                      height={18}
                     />
                   ) : (
-                    <CheckCircledIcon style={{ color: "#4CAF50" }} />
+                    <CheckCircledIcon style={{ color: "#4CAF50" }} width={18} height={18} />
                   )}
                   <Text size="2" style={{ color: "#2E7D32", fontWeight: 500 }}>
                     {conversionStatus}
@@ -269,9 +273,9 @@ export function ModelUploader({
                     <Box
                       style={{
                         width: "100%",
-                        height: "8px",
+                        height: "10px",
                         background: "#C8E6C9",
-                        borderRadius: "4px",
+                        borderRadius: "5px",
                         overflow: "hidden",
                       }}
                     >
@@ -281,11 +285,11 @@ export function ModelUploader({
                           height: "100%",
                           background: "#4CAF50",
                           transition: "width 0.3s ease-in-out",
-                          borderRadius: "4px",
+                          borderRadius: "5px",
                         }}
                       />
                     </Box>
-                    <Flex justify="between" mt="1">
+                    <Flex justify="between" mt="2">
                       <Text size="1" style={{ color: "#2E7D32" }}>
                         Progress
                       </Text>
@@ -304,14 +308,14 @@ export function ModelUploader({
       <Card
         style={{
           background: "var(--gray-2)",
-          padding: "12px 16px",
+          padding: "14px 18px",
           borderRadius: "8px",
           border: "none",
         }}
       >
-        <Flex align="center" gap="2">
-          <InfoCircledIcon style={{ color: "#2196F3" }} />
-          <Text size="2" style={{ color: "var(--gray-11)" }}>
+        <Flex align="center" gap="3">
+          <InfoCircledIcon style={{ color: "#2196F3" }} width={18} height={18} />
+          <Text size="2" style={{ color: "var(--gray-11)", lineHeight: 1.5, letterSpacing: "0.01em" }}>
             Only .h5 model files are supported. Uploaded models will be automatically converted to
             HuggingFace3.0 format.
           </Text>

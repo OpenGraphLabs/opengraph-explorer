@@ -24,7 +24,7 @@ export function Models() {
   const [selectedTask, setSelectedTask] = useState("all");
   const [selectedSort, setSelectedSort] = useState("downloads");
 
-  // 커스텀 훅을 사용하여 모델 데이터 가져오기
+  // Use custom hook to fetch model data
   const { models, loading, error, refetch } = useModels();
   console.log("models: \n", models);
 
@@ -46,32 +46,32 @@ export function Models() {
     });
 
   return (
-    <Box style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-      <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
+    <Box style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 28px" }}>
+      <Heading size={{ initial: "7", md: "8" }} mb="6" style={{ fontWeight: 700 }}>
         Explore Models
       </Heading>
 
       {/* Search and Filter Section */}
       <Card
         style={{
-          padding: "24px",
+          padding: "28px",
           borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-          marginBottom: "32px",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
+          marginBottom: "36px",
           border: "1px solid var(--gray-4)",
         }}
       >
-        <Flex direction="column" gap="4">
+        <Flex direction="column" gap="5">
           <div
             className="rt-TextFieldRoot"
             style={{
               borderRadius: "8px",
               border: "1px solid var(--gray-5)",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
               overflow: "hidden",
             }}
           >
-            <div className="rt-TextFieldSlot" style={{ padding: "0 12px" }}>
+            <div className="rt-TextFieldSlot" style={{ padding: "0 14px" }}>
               <MagnifyingGlassIcon height="18" width="18" style={{ color: "var(--gray-9)" }} />
             </div>
             <input
@@ -80,7 +80,7 @@ export function Models() {
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
               style={{
-                padding: "14px 16px",
+                padding: "16px 18px",
                 fontSize: "16px",
                 width: "100%",
                 border: "none",
@@ -90,12 +90,12 @@ export function Models() {
             />
           </div>
 
-          <Flex gap="4" wrap="wrap">
+          <Flex gap="5" wrap="wrap">
             <Box style={{ minWidth: "200px", flex: 1 }}>
               <Text
                 as="label"
                 size="2"
-                style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}
+                style={{ display: "block", marginBottom: "10px", fontWeight: 500 }}
               >
                 Task Type
               </Text>
@@ -104,7 +104,7 @@ export function Models() {
                   style={{
                     width: "100%",
                     borderRadius: "8px",
-                    padding: "10px 16px",
+                    padding: "12px 18px",
                     border: "1px solid var(--gray-5)",
                   }}
                 />
@@ -128,7 +128,7 @@ export function Models() {
               <Text
                 as="label"
                 size="2"
-                style={{ display: "block", marginBottom: "8px", fontWeight: 500 }}
+                style={{ display: "block", marginBottom: "10px", fontWeight: 500 }}
               >
                 Sort By
               </Text>
@@ -137,7 +137,7 @@ export function Models() {
                   style={{
                     width: "100%",
                     borderRadius: "8px",
-                    padding: "10px 16px",
+                    padding: "12px 18px",
                     border: "1px solid var(--gray-5)",
                   }}
                 />
@@ -158,39 +158,39 @@ export function Models() {
         style={{
           borderRadius: "12px",
           overflow: "hidden",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
           border: "1px solid var(--gray-4)",
         }}
       >
         <Tabs.List
           style={{
             background: "var(--gray-2)",
-            padding: "12px 16px",
+            padding: "14px 18px",
             borderBottom: "1px solid var(--gray-4)",
           }}
         >
-          <Tabs.Trigger value="models" style={{ fontWeight: 600, fontSize: "15px" }}>
+          <Tabs.Trigger value="models" style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}>
             Models
           </Tabs.Trigger>
-          <Tabs.Trigger value="datasets" style={{ fontWeight: 600, fontSize: "15px" }}>
+          <Tabs.Trigger value="datasets" style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}>
             Datasets
           </Tabs.Trigger>
-          <Tabs.Trigger value="spaces" style={{ fontWeight: 600, fontSize: "15px" }}>
+          <Tabs.Trigger value="spaces" style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}>
             Spaces
           </Tabs.Trigger>
         </Tabs.List>
 
-        <Box py="6" px="4" style={{ background: "white" }}>
+        <Box py="6" px="5" style={{ background: "white" }}>
           <Tabs.Content value="models">
             {loading ? (
-              <Flex direction="column" align="center" gap="3" py="8">
+              <Flex direction="column" align="center" gap="4" py="9">
                 <Spinner size="3" />
                 <Text size="3" style={{ fontWeight: 500 }}>
                   Loading models...
                 </Text>
               </Flex>
             ) : error ? (
-              <Flex direction="column" align="center" gap="3" py="8">
+              <Flex direction="column" align="center" gap="4" py="9">
                 <Box
                   style={{
                     width: "80px",
@@ -215,9 +215,10 @@ export function Models() {
                   style={{
                     background: "#FF5733",
                     color: "white",
-                    marginTop: "12px",
+                    marginTop: "14px",
                     borderRadius: "8px",
                     fontWeight: 500,
+                    padding: "10px 16px",
                   }}
                 >
                   Retry
@@ -225,7 +226,7 @@ export function Models() {
               </Flex>
             ) : filteredModels.length > 0 ? (
               <>
-                <Flex mb="4" justify="between" align="center">
+                <Flex mb="5" justify="between" align="center">
                   <Text size="3" style={{ fontWeight: 500 }}>
                     Showing {filteredModels.length}{" "}
                     {filteredModels.length === 1 ? "model" : "models"}
@@ -238,6 +239,7 @@ export function Models() {
                         color: "white",
                         borderRadius: "8px",
                         fontWeight: 500,
+                        padding: "10px 16px",
                       }}
                     >
                       Upload Model
@@ -245,7 +247,7 @@ export function Models() {
                   </Link>
                 </Flex>
 
-                <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+                <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="5">
                   {filteredModels.map(model => (
                     <Link
                       key={model.id}
@@ -256,16 +258,17 @@ export function Models() {
                         className={styles.modelCard}
                         style={{
                           borderRadius: "12px",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+                          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
                           border: "1px solid var(--gray-4)",
                           overflow: "hidden",
                           height: "100%",
                           display: "flex",
                           flexDirection: "column",
+                          transition: "transform 0.2s ease, box-shadow 0.2s ease",
                         }}
                       >
-                        <Flex direction="column" gap="3" style={{ height: "100%" }}>
-                          <Flex align="center" gap="2" mb="1">
+                        <Flex direction="column" gap="4" style={{ height: "100%", padding: "18px" }}>
+                          <Flex align="center" gap="3" mb="1">
                             <Avatar
                               size="2"
                               src={`https://api.dicebear.com/7.x/initials/svg?seed=${model.creator}`}
@@ -277,7 +280,7 @@ export function Models() {
                             </Text>
                           </Flex>
 
-                          <Heading size="4" style={{ fontWeight: 600, lineHeight: 1.3 }}>
+                          <Heading size="4" style={{ fontWeight: 600, lineHeight: 1.4 }}>
                             {model.name}
                           </Heading>
 
@@ -291,33 +294,36 @@ export function Models() {
                               WebkitBoxOrient: "vertical",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              lineHeight: 1.5,
+                              letterSpacing: "0.01em",
                             }}
                           >
                             {model.description}
                           </Text>
 
-                          <Flex gap="2" mt="2" wrap="wrap">
+                          <Flex gap="3" mt="2" wrap="wrap">
                             <Badge
                               size="1"
                               variant="soft"
                               style={{
                                 background: TASK_COLORS[model.task_type]?.bg || "var(--accent-3)",
                                 color: TASK_COLORS[model.task_type]?.text || "var(--accent-11)",
+                                padding: "4px 8px",
                               }}
                             >
                               {TASK_NAMES[model.task_type] || model.task_type}
                             </Badge>
                             {model.frameworks &&
                               model.frameworks.map((framework: string) => (
-                                <Badge key={framework} size="1" variant="soft">
+                                <Badge key={framework} size="1" variant="soft" style={{ padding: "4px 8px" }}>
                                   {framework}
                                 </Badge>
                               ))}
                           </Flex>
 
-                          <Flex justify="between" align="center" mt="2">
-                            <Flex gap="3" align="center">
-                              <Flex gap="1" align="center">
+                          <Flex justify="between" align="center" mt="3">
+                            <Flex gap="4" align="center">
+                              <Flex gap="2" align="center">
                                 <StarFilledIcon
                                   width="14"
                                   height="14"
@@ -327,7 +333,7 @@ export function Models() {
                                   {model.likes}
                                 </Text>
                               </Flex>
-                              <Flex gap="1" align="center">
+                              <Flex gap="2" align="center">
                                 <DownloadIcon
                                   width="14"
                                   height="14"
@@ -338,7 +344,7 @@ export function Models() {
                                 </Text>
                               </Flex>
                             </Flex>
-                            <Flex align="center" gap="1">
+                            <Flex align="center" gap="2">
                               <CodeIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
                               <Text size="1" style={{ fontWeight: 500 }}>
                                 SUI
@@ -352,7 +358,7 @@ export function Models() {
                 </Grid>
               </>
             ) : (
-              <Flex direction="column" align="center" gap="3" py="8">
+              <Flex direction="column" align="center" gap="4" py="9">
                 <Box
                   style={{
                     width: "80px",
@@ -369,7 +375,7 @@ export function Models() {
                 <Text size="4" style={{ fontWeight: 500 }}>
                   No results found
                 </Text>
-                <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
+                <Text size="2" color="gray" align="center" style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}>
                   Try adjusting your search or filter settings to find what you're looking for.
                 </Text>
                 <Button
@@ -380,9 +386,10 @@ export function Models() {
                   style={{
                     background: "#FF5733",
                     color: "white",
-                    marginTop: "12px",
+                    marginTop: "14px",
                     borderRadius: "8px",
                     fontWeight: 500,
+                    padding: "10px 16px",
                   }}
                 >
                   Reset Filters
@@ -392,7 +399,7 @@ export function Models() {
           </Tabs.Content>
 
           <Tabs.Content value="datasets">
-            <Flex direction="column" align="center" gap="3" py="8">
+            <Flex direction="column" align="center" gap="4" py="9">
               <Box
                 style={{
                   width: "80px",
@@ -409,14 +416,14 @@ export function Models() {
               <Text size="4" style={{ fontWeight: 500 }}>
                 Coming Soon
               </Text>
-              <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
+              <Text size="2" color="gray" align="center" style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}>
                 Dataset support is currently under development. Stay tuned for updates!
               </Text>
             </Flex>
           </Tabs.Content>
 
           <Tabs.Content value="spaces">
-            <Flex direction="column" align="center" gap="3" py="8">
+            <Flex direction="column" align="center" gap="4" py="9">
               <Box
                 style={{
                   width: "80px",
@@ -433,7 +440,7 @@ export function Models() {
               <Text size="4" style={{ fontWeight: 500 }}>
                 Coming Soon
               </Text>
-              <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
+              <Text size="2" color="gray" align="center" style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}>
                 Spaces functionality is currently under development. Stay tuned for updates!
               </Text>
             </Flex>
