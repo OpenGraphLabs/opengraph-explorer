@@ -1,185 +1,160 @@
-# HuggingFace 3.0
+# OpenGraph Explorer
 
-이 프로젝트는 Sui 블록체인 위에 AI 모델을 배포하는 HuggingFace 3.0 플랫폼입니다. Web3 시대의 HuggingFace를 목표로 합니다.
+<div align="center">
+  <img src="./client/src/assets/logo/logo_name.png" alt="OpenGraph Explorer Logo" width="300" style="margin-bottom: 20px" />
+  <h3>Bringing Transparency to AI through On-Chain Machine Learning</h3>
+</div>
 
-## 프로젝트 구조
+## 🌟 Vision
 
-- `client/`: React + TypeScript + Vite 기반의 프론트엔드 애플리케이션
-- `server/`: Python + FastAPI 기반의 백엔드 서버
+OpenGraph Explorer is pioneering a new era of transparent and decentralized AI by bringing machine learning models fully on-chain. We're transforming the traditional "black box" nature of AI into a transparent, auditable, and community-owned ecosystem powered by the Sui blockchain.
 
-## 설치 및 실행
-
-### 클라이언트 설치 및 실행
-
-```bash
-# 클라이언트 디렉토리로 이동
-cd client
-
-# 의존성 설치
-npm install
-# 또는
-yarn install
-
-# 개발 서버 실행
-npm run dev
-# 또는
-yarn dev
-```
-
-### 서버 설치 및 실행 (Python 버전)
-
-```bash
-# 서버 디렉토리로 이동
-cd server
-
-# 가상 환경 생성 (선택 사항)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# 또는
-.\venv\Scripts\activate  # Windows
-
-# 의존성 설치
-pip install -r requirements.txt
-
-# 서버 실행
-python main.py
-```
-
-## API 문서
-
-FastAPI 서버가 실행되면 다음 URL에서 API 문서를 확인할 수 있습니다:
-
-- Swagger UI: http://localhost:3000/docs
-- ReDoc: http://localhost:3000/redoc
-
-## 주요 기능
-
-- AI 모델 파일(.h5)을 업로드하고 Sui 블록체인에 배포할 수 있는 형식으로 변환
-- 변환된 모델을 Sui 블록체인에 배포
-
-## 기술 스택
-
-- **프론트엔드**: React, TypeScript, Vite, TensorFlow.js
-- **백엔드**: Python, FastAPI, TensorFlow
-- **블록체인**: Sui
-
-## 🌟 Overview
-
-HuggingFace 3.0 is a decentralized platform that brings machine learning models to the Sui blockchain. Our platform enables users to upload, share, and execute ML models in a fully on-chain environment, creating a decentralized ecosystem for AI development and deployment.
-
-By combining the power of blockchain technology with machine learning, we're building a future where AI models are transparent, accessible, and owned by the community.
+Our platform allows developers to deploy ML models on-chain and execute inference operations with complete visibility - tracking every layer, every calculation, and every transformation directly on the blockchain. This creates an unprecedented level of transparency and trust in AI systems.
 
 ## ✨ Key Features
 
-- **On-chain Model Repository**: Upload and store ML models directly on the Sui blockchain
-- **Decentralized Inference**: Execute model inference through Sui smart contracts
-- **Model Discovery**: Browse, search, and filter models by various criteria
-- **User Profiles**: Track your uploaded models, favorites, and activity
-- **Wallet Integration**: Seamless connection with Sui wallets
-- **Flexible Model Formats**: Supporting .json, .bin, and .h5 file formats with automatic conversion for on-chain storage
+- **On-Chain Model Repository**: Deploy your ML models directly to the Sui blockchain
+- **Transparent Layer-by-Layer Inference**: Witness and verify every step of the inference process
+- **Real-Time Execution Tracking**: Monitor each layer's processing status as inference occurs
+- **Blockchain Verification**: Every operation is recorded on-chain with transaction receipts
+- **Visual Model Exploration**: Interactive UI for exploring model architecture and inference results
+- **Multi-Format Support**: Compatible with various model formats with automatic conversion for on-chain deployment
 
-<!-- ## 🖼️ Screenshots
+## 🔍 Why On-Chain Machine Learning?
 
-<div align="center">
-  <img src="https://via.placeholder.com/800x450.png?text=Home+Page" alt="Home Page" width="800">
-  <p><em>Home Page</em></p>
-  
-  <img src="https://via.placeholder.com/800x450.png?text=Models+Page" alt="Models Page" width="800">
-  <p><em>Models Page</em></p>
-  
-  <img src="https://via.placeholder.com/800x450.png?text=Model+Detail" alt="Model Detail" width="800">
-  <p><em>Model Detail Page</em></p>
-</div> -->
+Traditional ML/AI systems suffer from opacity - users must trust black-box models without visibility into their operations. OpenGraph Explorer solves this by:
 
-## 🛠️ Technology Stack
+- **Complete Transparency**: Every model parameter and inference calculation is visible and verifiable on-chain
+- **Auditability**: The entire model execution path can be audited by following on-chain transactions
+- **Immutability**: Model architectures and parameters are immutably recorded on the blockchain
+- **Decentralization**: No central authority controls model access or execution
+- **Community Ownership**: Models become public goods that anyone can access, verify, and build upon
+
+## 🖥️ Technology Stack
 
 - **Frontend**: React, TypeScript, Vite, Radix UI
 - **Blockchain**: Sui Network
 - **Wallet Connection**: @mysten/dapp-kit
-- **Styling**: CSS Modules
-- **Package Management**: Yarn
+- **Visualization**: Custom layer-by-layer inference visualization
+- **Styling**: CSS Modules, Framer Motion
+- **Package Management**: Yarn/npm
+
+## 🏗️ Architecture
+
+OpenGraph Explorer breaks down complex ML models into layers and executes them sequentially on the Sui blockchain:
+
+1. **Model Upload & Decomposition**: Models are decomposed into their constituent layers
+2. **On-Chain Deployment**: Each layer is stored as an immutable object on the Sui blockchain
+3. **Layer-by-Layer Execution**: Input vectors propagate through each layer with full transparency
+4. **Transaction Verification**: Each layer execution generates a verifiable transaction record
+5. **Real-Time Visualization**: The UI provides a visual representation of the entire process
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js (v16 or later)
-- Yarn package manager
+- Yarn/npm package manager
 - A Sui wallet (like Sui Wallet browser extension)
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/OpenGraphLabs/huggingface-3.0.git
-   cd huggingface-3.0
+   git clone https://github.com/OpenGraphLabs/opengraph-explorer.git
+   cd opengraph-explorer
    ```
 
 2. Install dependencies:
    ```bash
    yarn install
+   # or
+   npm install
    ```
 
 3. Start the development server:
    ```bash
    yarn dev
+   # or
+   npm run dev
    ```
 
 4. Open your browser and navigate to `http://localhost:5173`
 
-### Building for Production
-
-```bash
-yarn build
-```
-
 ## 🔄 Workflow
 
-1. **Connect Wallet**: Connect your Sui wallet to the platform
-2. **Explore Models**: Browse through available models or search for specific ones
-3. **Upload Models**: Share your ML models with the community (supporting .json, .bin, and .h5 formats with automatic conversion)
-4. **Execute Inference**: Run models directly on the blockchain
-5. **Track Activity**: Monitor your uploads, favorites, and interactions
+1. **Connect Wallet**: Connect your Sui wallet to access the platform
+2. **Explore Models**: Browse through available on-chain models
+3. **Upload Models**: Deploy your ML models to the Sui blockchain
+4. **Execute Inference**: Run transparent, layer-by-layer inference with any input
+5. **Verify Results**: Follow each step of the execution with on-chain verification
+6. **Analyze Outputs**: Examine final outputs and the entire execution path
 
-## 🧩 Project Structure
+## 🌐 Global Impact
 
-```
-huggingface-3.0/
-├── public/              # Static assets
-├── src/
-│   ├── components/      # Reusable UI components
-│   │   ├── Home.tsx
-│   │   ├── Models.tsx
-│   │   ├── ModelDetail.tsx
-│   │   ├── UploadModel.tsx
-│   │   └── Profile.tsx
-│   ├── styles/          # CSS modules and global styles
-│   ├── App.tsx          # Main application component
-│   └── main.tsx         # Application entry point
-├── package.json         # Dependencies and scripts
-└── README.md            # Project documentation
-```
+OpenGraph Explorer is designed for the global AI community, enabling:
+
+- **Researchers**: Verify model behaviors and compare execution patterns across models
+- **Developers**: Build applications on top of trusted, transparent AI models
+- **Auditors**: Analyze models for bias, security vulnerabilities, or unexpected behaviors
+- **End Users**: Gain confidence in AI systems through unprecedented transparency
 
 ## 🔮 Future Roadmap
 
-- **Support for More Model Formats**: Expanding beyond current formats to include more complex model formats
-- **Datasets**: Support for on-chain datasets
-- **Spaces**: Interactive environments for model demonstration
-- **Community Features**: Comments, ratings, and collaboration tools
-- **Enhanced Inference**: Support for more model types and optimized performance
-- **Governance**: Community-driven decision making for platform development
+- **Model Composition**: Combine multiple on-chain models to create new architectures
+- **Federated Training**: Distribute model training across the network
+- **Governance Mechanisms**: Community-driven decision making for platform development
+- **Performance Optimization**: Enhance on-chain execution efficiency
+- **Expanded Model Support**: Additional model architectures and layer types
+- **Cross-Chain Integration**: Extend to other blockchain networks
+
+## 🛠️ Project Structure
+
+```
+opengraph-explorer/
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── model/
+│   │   │   │   ├── ModelInferenceTab.tsx
+│   │   │   │   ├── ModelOverviewTab.tsx
+│   │   │   │   └── ...
+│   │   ├── pages/
+│   │   │   ├── Home.tsx
+│   │   │   ├── Models.tsx
+│   │   │   ├── ModelDetail.tsx
+│   │   │   └── ...
+│   │   ├── utils/
+│   │   │   ├── modelUtils.ts
+│   │   │   ├── sui.ts
+│   │   │   └── ...
+│   │   ├── App.tsx
+│   │   └── main.tsx
+├── server/ (Optional backend services)
+└── README.md
+```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request or open an Issue for discussion.
 
 ## 📄 License
 
-This project is supported by OpenGraph Labs and is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgements
 
-- [Sui Network](https://sui.io/) for the blockchain infrastructure
-- [HuggingFace](https://huggingface.co/) for inspiration
-- [Radix UI](https://www.radix-ui.com/) for UI components
+- [Sui Network](https://sui.io/) for blockchain infrastructure
+- [Mysten Labs](https://mystenlabs.com/) for Sui ecosystem tools
 - All contributors and community members
+
+---
+
+<div align="center">
+  <p>Built with ❤️ by OpenGraph Labs</p>
+  <p>
+    <a href="https://twitter.com/opengraphlabs">Twitter</a> •
+    <a href="https://discord.gg/opengraphlabs">Discord</a> •
+    <a href="https://github.com/opengraphlabs">GitHub</a>
+  </p>
+</div>
