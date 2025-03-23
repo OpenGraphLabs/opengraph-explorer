@@ -16,7 +16,7 @@ export const SUI_CONTRACT = {
 };
 
 // 가스 비용
-export const GAS_BUDGET = 100000000;
+export const GAS_BUDGET = 1_200_000_000; // 1200000000 = 1.2 SUI
 
 // SUI 주소 표시 길이 제한 (UI에서 주소를 표시할 때 사용)
 export const SUI_ADDRESS_DISPLAY_LENGTH = 16;

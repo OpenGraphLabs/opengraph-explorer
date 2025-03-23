@@ -353,6 +353,7 @@ export function ModelDetail() {
               <Tabs.Trigger 
                 value="overview" 
                 style={{ 
+                  cursor: "pointer",
                   fontWeight: activeTab === "overview" ? 700 : 500,
                   color: activeTab === "overview" ? "#FF5733" : "#666",
                   transition: "all 0.3s ease",
@@ -364,6 +365,7 @@ export function ModelDetail() {
               <Tabs.Trigger 
                 value="inference"
                 style={{ 
+                  cursor: "pointer",
                   fontWeight: activeTab === "inference" ? 700 : 500,
                   color: activeTab === "inference" ? "#FF5733" : "#666",
                   transition: "all 0.3s ease",
@@ -375,6 +377,7 @@ export function ModelDetail() {
               <Tabs.Trigger 
                 value="files"
                 style={{ 
+                  cursor: "pointer",
                   fontWeight: activeTab === "files" ? 700 : 500,
                   color: activeTab === "files" ? "#FF5733" : "#666",
                   transition: "all 0.3s ease",
@@ -386,6 +389,7 @@ export function ModelDetail() {
               <Tabs.Trigger 
                 value="model-data"
                 style={{ 
+                  cursor: "pointer",
                   fontWeight: activeTab === "model-data" ? 700 : 500,
                   color: activeTab === "model-data" ? "#FF5733" : "#666",
                   transition: "all 0.3s ease",

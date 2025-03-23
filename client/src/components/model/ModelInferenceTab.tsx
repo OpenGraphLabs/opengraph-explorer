@@ -253,6 +253,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   onClick={startInference}
                   disabled={isProcessing || !inputVector.trim()}
                   style={{
+                    cursor: "pointer",
                     background: "#FF5733",
                     color: "white",
                     borderRadius: "8px",
@@ -277,6 +278,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   onClick={predictNextLayer}
                   disabled={isProcessing || predictResults.length === 0 || currentLayerIndex >= getLayerCount()}
                   style={{
+                    cursor: "pointer",
                     background: "#FF7A00",
                     color: "white",
                     borderRadius: "8px",
