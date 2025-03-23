@@ -105,20 +105,6 @@ export function ModelDataTab({ model }: ModelDataTabProps) {
       };
     });
   };
-  
-  // Prepare weight/bias data for visualization
-  const getWeightBiasData = () => {
-    return layers.map((layer: any, idx: number) => {
-      const weightSize = layer.weight_tensor?.shape?.reduce((a: number, b: number) => a * b, 0) || 0;
-      const biasSize = layer.bias_tensor?.shape?.reduce((a: number, b: number) => a * b, 0) || 0;
-      
-      return {
-        name: `Layer ${idx + 1}`,
-        weights: weightSize,
-        bias: biasSize,
-      };
-    });
-  };
 
   // Search functionality
   const filteredLayers = layers.filter((layer: any, idx: number) => {

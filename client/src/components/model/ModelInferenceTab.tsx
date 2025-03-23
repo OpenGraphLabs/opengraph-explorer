@@ -911,21 +911,41 @@ function LayerFlowVisualization({
                     )}
                   </Flex>
                   
-                  <Badge size="1" color={
-                    layer.status === 'processing' 
-                      ? "blue" 
-                      : layer.status === 'error' 
-                        ? "red" 
-                        : "green"
-                  } variant="soft" style={{ marginBottom: "4px" }}>
-                    {layer.status === 'processing' 
-                      ? "Processing" 
-                      : layer.status === 'error' 
-                        ? "Error" 
-                        : "Completed"}
-                  </Badge>
+                  {/* 상태 배지(칩) - 상태에 따라 다르게 표시 */}
+                  {layer.status === 'processing' && (
+                    <Badge size="1" color="blue" variant="soft" style={{ marginBottom: "4px" }}>
+                      Processing
+                    </Badge>
+                  )}
                   
-                  {layer.status !== 'pending' && layer.status !== 'error' && (
+                  {layer.status === 'error' && (
+                    <Badge size="1" color="red" variant="soft" style={{ marginBottom: "4px" }}>
+                      Error
+                    </Badge>
+                  )}
+                  
+                  {layer.status === 'success' && (
+                    <Badge size="1" color="green" variant="soft" style={{ marginBottom: "4px" }}>
+                      Completed
+                    </Badge>
+                  )}
+                  
+                  {layer.status === 'pending' && (
+                    <Badge size="1" color="gray" variant="soft" style={{ marginBottom: "4px" }}>
+                      Pending
+                    </Badge>
+                  )}
+                  
+                  {layer.status === 'error' && layer.errorMessage && (
+                    <Tooltip content={layer.errorMessage}>
+                      <Text size="1" style={{ color: "#B71C1C", cursor: "help", marginTop: "4px", fontSize: "10px" }}>
+                        {layer.errorMessage.substring(0, 15)}
+                        {layer.errorMessage.length > 15 ? '...' : ''}
+                      </Text>
+                    </Tooltip>
+                  )}
+                  
+                  {layer.status === 'success' && (
                     <>
                       <Flex align="center" gap="1" style={{ marginTop: "4px" }}>
                         <Flex direction="column" style={{ flex: 1 }}>
@@ -951,22 +971,7 @@ function LayerFlowVisualization({
                     </>
                   )}
                   
-                  {layer.status === 'pending' && (
-                    <Text size="1" style={{ color: "#666", marginTop: "4px", fontSize: "10px" }}>
-                      Waiting...
-                    </Text>
-                  )}
-                  
-                  {layer.status === 'error' && layer.errorMessage && (
-                    <Tooltip content={layer.errorMessage}>
-                      <Text size="1" style={{ color: "#B71C1C", cursor: "help", marginTop: "4px", fontSize: "10px" }}>
-                        {layer.errorMessage.substring(0, 15)}
-                        {layer.errorMessage.length > 15 ? '...' : ''}
-                      </Text>
-                    </Tooltip>
-                  )}
-                  
-                  {layer.isFinalLayer && layer.finalValue && (
+                  {layer.isFinalLayer && layer.finalValue && layer.status === 'success' && (
                     <Box style={{ 
                       marginTop: "4px", 
                       padding: "4px", 
