@@ -229,28 +229,22 @@ export function UploadModel() {
                   Model Name <span style={{ color: "#FF5733" }}>*</span>
                 </Text>
                 <TextField.Root
+                  size="3"
+                  placeholder="Enter model name"
+                  value={modelInfo.name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setModelInfo({ ...modelInfo, name: e.target.value })
+                  }
                   style={{
+                    width: "100%",
+                    padding: "12px 10px",
+                    fontSize: "15px",
                     borderRadius: "8px",
+                    border: "1px solid var(--gray-5)",
+                    background: "var(--gray-1)",
                     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
                   }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Enter model name"
-                    value={modelInfo.name}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setModelInfo({ ...modelInfo, name: e.target.value })
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "12px 16px",
-                      fontSize: "15px",
-                      border: "none",
-                      outline: "none",
-                      background: "transparent",
-                    }}
-                  />
-                </TextField.Root>
+                />
               </Box>
 
               <Box>
@@ -262,6 +256,7 @@ export function UploadModel() {
                   Description <span style={{ color: "#FF5733" }}>*</span>
                 </Text>
                 <TextArea
+                  size="3"
                   placeholder="Enter model description"
                   value={modelInfo.description}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
@@ -269,7 +264,7 @@ export function UploadModel() {
                   }
                   style={{
                     minHeight: "120px",
-                    padding: "12px 16px",
+                    padding: "12px 10px",
                     fontSize: "15px",
                     borderRadius: "8px",
                     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
