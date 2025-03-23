@@ -23,6 +23,7 @@ import {
 
 import { ModelObject } from "../../services/modelGraphQLService";
 import { getSuiScanUrl } from "../../utils/sui";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "../../constants/suiConfig";
 
 interface ModelOverviewTabProps {
   model: ModelObject
@@ -94,7 +95,9 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                   </Box>
                   <Box style={{ width: "100%" }}>
                     <Text size="1" style={{ color: "#666", marginBottom: "8px", marginRight: "6px" }}>Developer</Text>
-                    <Text size="2" style={{ fontWeight: 600 }}>{model.creator}</Text>
+                    <Text size="2" style={{ fontWeight: 600 }}>
+                    {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..." : model.creator}
+                    </Text>
                   </Box>
                 </Flex>
               </Box>
@@ -151,7 +154,7 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                       }}
                       onClick={() => window.open(getSuiScanUrl('object', model.id), '_blank')}
                     >
-                      {model.id.substring(0, 24)}...
+                      {model.id.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...
                     </Text>
                   </Box>
                 </Flex>

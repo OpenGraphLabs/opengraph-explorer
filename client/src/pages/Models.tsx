@@ -17,7 +17,7 @@ import { MagnifyingGlassIcon, StarFilledIcon, DownloadIcon, CodeIcon } from "@ra
 import { Link } from "react-router-dom";
 import styles from "../styles/Card.module.css";
 import { useModels } from "../hooks/useModels";
-import { TASK_COLORS, TASK_NAMES, TASK_TYPES } from "../constants/suiConfig";
+import { SUI_ADDRESS_DISPLAY_LENGTH, TASK_COLORS, TASK_NAMES, TASK_TYPES } from "../constants/suiConfig";
 
 export function Models() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,7 +26,6 @@ export function Models() {
 
   // Use custom hook to fetch model data
   const { models, loading, error, refetch } = useModels();
-  console.log("models: \n", models);
 
   // Filtered model list
   const filteredModels = models
@@ -276,7 +275,7 @@ export function Models() {
                               radius="full"
                             />
                             <Text size="2" style={{ fontWeight: 500 }}>
-                              {model.creator}
+                            {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..." : model.creator}
                             </Text>
                           </Flex>
 

@@ -79,6 +79,13 @@ export class ModelGraphQLService {
             nodes {
               address
               version
+              owner{
+                ... on AddressOwner {
+                  owner {
+                    address
+                  }
+                }
+              }
               asMoveObject {
                 contents {
                   json
@@ -117,6 +124,13 @@ export class ModelGraphQLService {
           object(address: "${modelId}") {
             address
             version
+            owner{
+              ... on AddressOwner {
+                owner {
+                  address
+                }
+              }
+            }
             asMoveObject {
               contents {
                 json
@@ -164,8 +178,8 @@ export class ModelGraphQLService {
 
       // 소유자 주소 처리
       let ownerAddress = "Unknown";
-      if (node.owner && node.owner.__typename === "AddressOwner" && node.owner.address) {
-        ownerAddress = node.owner.address.toString();
+      if (node.owner && node.owner.owner && node.owner.owner.address) {
+        ownerAddress = node.owner.owner.address.toString();
       }
 
       if (!jsonData) {
@@ -181,11 +195,11 @@ export class ModelGraphQLService {
         graphs: [],
         partial_denses: [],
         scale: 0,
-        creator: ownerAddress.length > 10 ? ownerAddress.slice(0, 10) + "..." : ownerAddress,
+        creator: ownerAddress,
         downloads: Math.floor(Math.random() * 1000), // 임시 데이터
         likes: Math.floor(Math.random() * 500), // 임시 데이터
         createdAt: createdDate.toISOString(),
-        frameworks: ["SUI", "HuggingFace3.0"],
+        frameworks: ["SUI", "OpenGraph"],
       };
 
       // JSON 데이터가 있으면 해당 데이터 사용

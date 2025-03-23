@@ -466,16 +466,16 @@ export function ModelDataTab({ model }: ModelDataTabProps) {
                         <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Weight Shape</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Bias Shape</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Input → Output</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Parameters</Table.ColumnHeaderCell>
+                        {/* <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Parameters</Table.ColumnHeaderCell> */}
                         <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Actions</Table.ColumnHeaderCell>
                       </Table.Row>
                     </Table.Header>
 
                     <Table.Body>
                       {filteredLayers.map((layer: any, layerIdx: number) => {
-                        const params = layer.weight_tensor?.shape?.reduce((a: number, b: number) => a * b, 0) || 0;
-                        const biasParams = layer.bias_tensor?.shape?.reduce((a: number, b: number) => a * b, 0) || 0;
-                        const totalParams = params + biasParams;
+                        // const params = layer.weight_tensor?.shape?.reduce((a: number, b: number) => a * b, 0) || 0;
+                        // const biasParams = layer.bias_tensor?.shape?.reduce((a: number, b: number) => a * b, 0) || 0;
+                        // const totalParams = params + biasParams;
                         
                         return (
                           <Table.Row key={layerIdx} style={{ 
@@ -487,7 +487,7 @@ export function ModelDataTab({ model }: ModelDataTabProps) {
                                   {layerIdx + 1}
                                 </Badge>
                                 <Text style={{ fontWeight: 500 }}>
-                                  {getLayerTypeName(String(layer.layer_type))}
+                                  {/* {getLayerTypeName(String(layer.layer_type))} */}
                                 </Text>
                               </Flex>
                             </Table.Cell>
@@ -508,11 +508,11 @@ export function ModelDataTab({ model }: ModelDataTabProps) {
                                 <Text style={{ fontFamily: "monospace" }}>{layer.out_dimension}</Text>
                               </Flex>
                             </Table.Cell>
-                            <Table.Cell>
+                            {/* <Table.Cell>
                               <Text style={{ fontFamily: "monospace" }}>
                                 {totalParams.toLocaleString()}
                               </Text>
-                            </Table.Cell>
+                            </Table.Cell> */}
                             <Table.Cell>
                               <Button
                                 size="1"

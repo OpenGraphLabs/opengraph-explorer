@@ -216,7 +216,7 @@ export function ModelUploader({
                   padding: "10px 16px",
                 }}
               >
-                {isConverting ? "Converting..." : "Convert Model"}
+                {isConverting ? "Converting..." : conversionStatus ? "Convert Again" : "Convert Model"}
               </Button>
             </Flex>
           )}
@@ -317,7 +317,7 @@ export function ModelUploader({
           <InfoCircledIcon style={{ color: "#2196F3" }} width={18} height={18} />
           <Text size="2" style={{ color: "var(--gray-11)", lineHeight: 1.5, letterSpacing: "0.01em" }}>
             Only .h5 model files are supported. Uploaded models will be automatically converted to
-            HuggingFace3.0 format.
+            OpenGraph format.
           </Text>
         </Flex>
       </Card>

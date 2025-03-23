@@ -10,6 +10,7 @@ import {
   Avatar,
   Badge,
   Card,
+  Tooltip,
 } from "@radix-ui/themes";
 import {
   HeartIcon,
@@ -25,20 +26,29 @@ import {
   ModelDataTab, 
   ModelInferenceTab 
 } from "../components/model";
-import { SUI_NETWORK } from "../constants/suiConfig";
+import { getSuiScanUrl } from "../utils/sui";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 
-// Get Sui Explorer URL
-const getSuiScanUrl = (type: 'transaction' | 'object', id: string) => {
-  const baseUrl = `https://suiscan.xyz/${SUI_NETWORK.TYPE}`;
-  return type === 'transaction' 
-    ? `${baseUrl}/tx/${id}`
-    : `${baseUrl}/object/${id}`;
+// Style for creator link hover effect
+const creatorLinkStyle = {
+  fontWeight: 500,
+  cursor: 'pointer',
+  transition: 'color 0.2s',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+};
+
+const creatorLinkHoverStyle = {
+  ...creatorLinkStyle,
+  color: '#FF5733',
 };
 
 export function ModelDetail() {
   const { id } = useParams<{ id: string }>();
   const { model, loading, error } = useModelById(id || "");
   const [activeTab, setActiveTab] = useState("overview");
+  const [isCreatorHovered, setIsCreatorHovered] = useState(false);
 
   // Set page title
   useEffect(() => {
@@ -165,7 +175,18 @@ export function ModelDetail() {
                       boxShadow: "0 3px 8px rgba(255, 87, 51, 0.2)" 
                     }} 
                   />
-                  <Text size="2" style={{ fontWeight: 500 }}>{model.creator}</Text>
+                  <Tooltip content="View creator on Sui Explorer">
+                    <Text 
+                      size="2" 
+                      style={isCreatorHovered ? creatorLinkHoverStyle : creatorLinkStyle}
+                      onClick={() => window.open(getSuiScanUrl('account', model.creator), '_blank')}
+                      onMouseEnter={() => setIsCreatorHovered(true)}
+                      onMouseLeave={() => setIsCreatorHovered(false)}
+                    >
+                      {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..." : model.creator}
+                      <ExternalLinkIcon style={{ width: '12px', height: '12px', opacity: 0.7 }} />
+                    </Text>
+                  </Tooltip>
                   <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
                     On-Chain Model
                   </Badge>

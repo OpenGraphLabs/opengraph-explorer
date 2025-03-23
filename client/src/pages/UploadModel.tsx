@@ -100,10 +100,9 @@ export function UploadModel() {
           setTransactionInProgress(false);
           setIsUploading(false);
           
-          // 성공 메시지를 보여주고 3초 후에 /models 페이지로 이동
           setTimeout(() => {
             navigate('/models');
-          }, 3000);
+          }, 1000);
         }
       );
     } catch (error) {
@@ -114,17 +113,6 @@ export function UploadModel() {
       setTransactionInProgress(false);
       setIsUploading(false);
     }
-  };
-
-  const resetForm = () => {
-    setModelInfo({
-      name: "",
-      description: "",
-      task: "",
-    });
-    resetUploadState();
-    setUploadError(null);
-    setTransactionHash(null);
   };
 
   return (

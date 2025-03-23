@@ -1,27 +1,16 @@
 import { Box, Flex, Heading, Text, Card, TextArea, Badge, Table, Button, Code, Tooltip } from "@radix-ui/themes";
 import { InfoCircledIcon, ReloadIcon, ExternalLinkIcon, CheckIcon, CrossCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useModelInferenceState } from "../../hooks/useModelInference";
 import { getActivationTypeName, formatVector } from "../../utils/modelUtils";
-import { 
-  XAxis, 
-  YAxis, 
-  ResponsiveContainer, 
-  Tooltip as RechartsTooltip,
-  LineChart,
-  Line,
-  Legend
-} from "recharts";
 import { 
   Rocket, 
   CircleWavyCheck as CircuitBoard, 
   Brain as BrainCircuit,
   ArrowRight,
   Lightning,
-  WarningCircle,
   FlowArrow,
-  Swap,
   ArrowsHorizontal,
   CheckCircle
 } from "phosphor-react";

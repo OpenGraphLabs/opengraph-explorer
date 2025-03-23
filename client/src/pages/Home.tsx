@@ -42,6 +42,7 @@ export function Home() {
             <Button
               size="3"
               style={{
+                cursor: "pointer",
                 background: "#FF5733",
                 color: "white",
                 fontSize: "16px",
@@ -59,6 +60,7 @@ export function Home() {
               size="3"
               variant="soft"
               style={{
+                cursor: "pointer",
                 fontSize: "16px",
                 fontWeight: "600",
                 padding: "0 24px",
