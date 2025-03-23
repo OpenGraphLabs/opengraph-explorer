@@ -1,7 +1,7 @@
 import { Box, Flex, Heading, Text, Card, TextArea, Badge, Table, Button, Code, Tooltip } from "@radix-ui/themes";
 import { InfoCircledIcon, ReloadIcon, ExternalLinkIcon, CheckIcon, CrossCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useModelInferenceState } from "../../hooks/useModelInference";
 import { getActivationTypeName, formatVector } from "../../utils/modelUtils";
 import { 
@@ -10,7 +10,11 @@ import {
   Brain as BrainCircuit,
   ArrowRight,
   Lightning,
-  WarningCircle
+  WarningCircle,
+  FlowArrow,
+  Swap,
+  ArrowsHorizontal,
+  CheckCircle
 } from "phosphor-react";
 import { ModelObject } from "../../services/modelGraphQLService";
 import { getSuiScanUrl } from "../../utils/sui";
@@ -23,6 +27,10 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   const [promptText, setPromptText] = useState("");
   const [inferenceResult, setInferenceResult] = useState("");
   const [isInferenceLoading, setIsInferenceLoading] = useState(false);
+  
+  // Refs for scrolling
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const inferenceTableRef = useRef<HTMLDivElement>(null);
 
   // Get layer count
   const getLayerCount = () => {
@@ -43,6 +51,34 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     startInference,
     predictNextLayer
   } = useModelInferenceState(model.id, getLayerCount());
+
+  // Auto-scroll effect when new results come in or processing state changes
+  useEffect(() => {
+    // Only scroll when we have results and not the first time
+    if (predictResults.length > 0 && resultsContainerRef.current) {
+      // Scroll to the results container
+      resultsContainerRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start'
+      });
+      
+      // If we have an inference table, scroll to the processing or latest row
+      if (inferenceTableRef.current) {
+        const activeRow = inferenceTableRef.current.querySelector(
+          isProcessing ? "tr[data-processing='true']" : `tr[data-layer-idx='${currentLayerIndex - 1}']`
+        );
+        
+        if (activeRow) {
+          setTimeout(() => {
+            activeRow.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+          }, 100); // Small delay to ensure the DOM is updated
+        }
+      }
+    }
+  }, [predictResults.length, currentLayerIndex, isProcessing]);
 
   // Simple text inference (simulation only)
   const runInference = async () => {
@@ -336,6 +372,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
+            ref={resultsContainerRef}
           >
             <Box style={{ marginTop: "16px" }}>
               <Flex align="center" gap="3" mb="4">
@@ -356,9 +393,18 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 </Heading>
               </Flex>
               
+              {/* Add Layer Flow Visualization */}
+              <LayerFlowVisualization
+                predictResults={predictResults}
+                currentLayerIndex={currentLayerIndex}
+                isProcessing={isProcessing}
+                totalLayers={getLayerCount()}
+              />
+              
               <Card style={{ 
                 padding: "24px", 
                 borderRadius: "12px", 
+                marginTop: "28px",
                 background: "#FFFFFF", 
                 border: "1px solid #FFE8E2",
                 boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)" 
@@ -405,12 +451,14 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   </Card>
                 </Flex>
                 
-                <InferenceResultTable
-                  predictResults={predictResults}
-                  currentLayerIndex={currentLayerIndex}
-                  isProcessing={isProcessing}
-                  layerCount={getLayerCount()}
-                />
+                <div ref={inferenceTableRef}>
+                  <InferenceResultTable
+                    predictResults={predictResults}
+                    currentLayerIndex={currentLayerIndex}
+                    isProcessing={isProcessing}
+                    layerCount={getLayerCount()}
+                  />
+                </div>
               </Card>
             </Box>
           </motion.div>
@@ -491,10 +539,14 @@ function InferenceResultTable({
       </Table.Header>
       <Table.Body>
         {predictResults.map((result, index) => (
-          <Table.Row key={index} style={{ 
-            background: index % 2 === 0 ? "#FFF" : "#FAFAFA",
-            borderLeft: result.status === 'error' ? '2px solid #FFCDD2' : 'none'
-          }}>
+          <Table.Row 
+            key={index} 
+            style={{ 
+              background: index % 2 === 0 ? "#FFF" : "#FAFAFA",
+              borderLeft: result.status === 'error' ? '2px solid #FFCDD2' : 'none'
+            }}
+            data-layer-idx={result.layerIdx}
+          >
             <Table.Cell>
               <Badge color={result.status === 'error' ? "red" : "orange"} mr="1">
                 {result.layerIdx + 1}
@@ -650,7 +702,13 @@ function InferenceResultTable({
         
         {/* Current processing layer row */}
         {isProcessing && (
-          <Table.Row style={{ background: "#FFF4F2", opacity: 0.8 }}>
+          <Table.Row 
+            style={{ 
+              background: "#FFF4F2", 
+              opacity: 0.8 
+            }}
+            data-processing="true"
+          >
             <Table.Cell>
               <Badge color="orange" mr="1">{currentLayerIndex + 1}</Badge>
             </Table.Cell>
@@ -677,7 +735,12 @@ function InferenceResultTable({
         
         {/* Remaining layers rows */}
         {Array.from({ length: Math.max(0, layerCount - currentLayerIndex - (isProcessing ? 1 : 0)) }).map((_, idx) => (
-          <Table.Row key={`pending-${idx}`} style={{ opacity: 0.5 }}>
+          <Table.Row 
+            key={`pending-${idx}`} 
+            style={{ opacity: 0.5 }}
+            data-pending="true"
+            data-layer-idx={currentLayerIndex + idx + (isProcessing ? 1 : 0)}
+          >
             <Table.Cell>
               <Badge variant="outline" mr="1">{currentLayerIndex + idx + (isProcessing ? 1 : 0) + 1}</Badge>
             </Table.Cell>
@@ -691,5 +754,261 @@ function InferenceResultTable({
         ))}
       </Table.Body>
     </Table.Root>
+  );
+}
+
+// Dynamic visualization of layer inference flow
+interface LayerFlowVisualizationProps {
+  predictResults: any[];
+  currentLayerIndex: number;
+  isProcessing: boolean;
+  totalLayers: number;
+}
+
+function LayerFlowVisualization({ 
+  predictResults, 
+  currentLayerIndex, 
+  isProcessing, 
+  totalLayers 
+}: LayerFlowVisualizationProps) {
+  // Prepare data for visualization
+  const generateLayerData = (layerIndex: number) => {
+    const result = predictResults.find(r => r.layerIdx === layerIndex);
+    
+    return {
+      layerIndex,
+      status: isProcessing && layerIndex === currentLayerIndex 
+        ? 'processing' 
+        : result 
+          ? result.status 
+          : layerIndex < currentLayerIndex 
+            ? 'success' 
+            : 'pending',
+      inputSize: result?.inputMagnitude?.length || 0,
+      outputSize: result?.outputMagnitude?.length || 0,
+      activation: result ? getActivationTypeName(result.activationType) : 'N/A',
+      errorMessage: result?.errorMessage,
+      isFinalLayer: result?.argmaxIdx !== undefined,
+      finalValue: result?.argmaxIdx !== undefined 
+        ? formatVector([result.outputMagnitude[result.argmaxIdx]], [result.outputSign[result.argmaxIdx]])
+        : null
+    };
+  };
+
+  // Create layer data for all layers (including pending ones)
+  const layerData = Array.from({ length: totalLayers }).map((_, idx) => 
+    generateLayerData(idx)
+  );
+
+  return (
+    <Box style={{ marginTop: "28px" }}>
+      <Flex align="center" gap="3" mb="4">
+        <Box style={{ 
+          background: "#FFF4F2", 
+          borderRadius: "8px", 
+          width: "28px", 
+          height: "28px", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          color: "#FF5733" 
+        }}>
+          <FlowArrow size={16} weight="bold" />
+        </Box>
+        <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
+          Inference Process Flow
+        </Heading>
+      </Flex>
+      
+      <Card style={{ 
+        padding: "28px", 
+        borderRadius: "12px", 
+        background: "#FFFFFF", 
+        border: "1px solid #FFE8E2",
+        boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)",
+        overflow: "hidden"
+      }}>
+        <Text style={{ lineHeight: "1.7", fontSize: "15px", color: "#444", letterSpacing: "0.01em", marginBottom: "20px" }}>
+          This visualization shows how the model processes data through each layer during inference.
+          Watch the data flow between layers as each part of the model processes your input.
+        </Text>
+        
+        {/* Dimension Flow Visualization - Layer Boxes with Arrows */}
+        <Box style={{ 
+          padding: "20px", 
+          border: "1px solid #FFE8E2", 
+          borderRadius: "8px", 
+          overflowX: "auto",
+          marginTop: "10px"
+        }}>
+          <Flex align="center" style={{ minWidth: "max-content" }}>
+            {layerData.map((layer, index) => (
+              <Flex key={index} direction="column" align="center" style={{ position: "relative" }}>
+                <AnimatePresence>
+                  <motion.div
+                    style={{ 
+                      padding: "16px", 
+                      background: layer.status === 'processing' 
+                        ? "#E3F2FD" 
+                        : layer.status === 'error' 
+                          ? "#FFEBEE" 
+                          : layer.status === 'success' 
+                            ? "#E8F5E9" 
+                            : "#F5F5F5",
+                      borderRadius: "8px", 
+                      border: `1px solid ${
+                        layer.status === 'processing' 
+                          ? "#90CAF9" 
+                          : layer.status === 'error' 
+                            ? "#FFCDD2" 
+                            : layer.status === 'success' 
+                              ? "#C8E6C9" 
+                              : "#E0E0E0"
+                      }`,
+                      minWidth: "180px",
+                      margin: "0 45px 0 0"
+                    }}
+                    animate={{
+                      boxShadow: layer.status === 'processing' 
+                        ? [
+                            "0 0 0 rgba(255, 87, 51, 0)",
+                            "0 0 20px rgba(255, 87, 51, 0.5)",
+                            "0 0 0 rgba(255, 87, 51, 0)"
+                          ] 
+                        : "none"
+                    }}
+                    transition={{
+                      boxShadow: {
+                        repeat: Infinity,
+                        duration: 1.5
+                      }
+                    }}
+                  >
+                    <Flex align="center" justify="between" mb="2">
+                      <Text style={{ fontWeight: 600, color: "#333" }}>
+                        Layer {index + 1}
+                      </Text>
+                      {layer.status === 'processing' && (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            duration: 1.5, 
+                            ease: "linear" 
+                          }}
+                        >
+                          <ReloadIcon style={{ color: "#1565C0" }} />
+                        </motion.div>
+                      )}
+                      {layer.status === 'error' && (
+                        <CrossCircledIcon style={{ color: "#D32F2F" }} />
+                      )}
+                      {layer.status === 'success' && (
+                        <CheckCircle size={16} weight="fill" style={{ color: "#2E7D32" }} />
+                      )}
+                    </Flex>
+                    
+                    <Flex direction="column" align="center" gap="2">
+                      {layer.status !== 'pending' ? (
+                        <>
+                          <Badge color={
+                            layer.status === 'processing' 
+                              ? "blue" 
+                              : layer.status === 'error' 
+                                ? "red" 
+                                : "green"
+                          } variant="soft">
+                            {layer.status === 'processing' 
+                              ? "Processing" 
+                              : layer.status === 'error' 
+                                ? "Error" 
+                                : "Completed"}
+                          </Badge>
+                          
+                          {layer.status !== 'error' && (
+                            <>
+                              <Flex align="center" gap="2">
+                                <Text size="1" style={{ color: "#666" }}>In:</Text>
+                                <Badge variant="soft" color="orange">{layer.inputSize}</Badge>
+                              </Flex>
+                              {layer.status === 'success' && (
+                                <Flex align="center" gap="2">
+                                  <Text size="1" style={{ color: "#666" }}>Out:</Text>
+                                  <Badge variant="soft" color="orange">{layer.outputSize}</Badge>
+                                </Flex>
+                              )}
+                              {layer.activation !== 'N/A' && (
+                                <Text size="1" style={{ marginTop: "4px", color: "#666", textAlign: "center" }}>
+                                  Activation: {layer.activation}
+                                </Text>
+                              )}
+                              {layer.isFinalLayer && layer.finalValue && (
+                                <Tooltip content="Final prediction value">
+                                  <Box style={{ 
+                                    marginTop: "8px", 
+                                    padding: "6px", 
+                                    background: "#E8F5E9",
+                                    borderRadius: "4px",
+                                    border: "1px solid #C8E6C9"
+                                  }}>
+                                    <Text size="1" style={{ color: "#2E7D32", fontWeight: 500 }}>
+                                      Final: {layer.finalValue}
+                                    </Text>
+                                  </Box>
+                                </Tooltip>
+                              )}
+                            </>
+                          )}
+                          
+                          {layer.status === 'error' && layer.errorMessage && (
+                            <Tooltip content={layer.errorMessage}>
+                              <Text size="1" style={{ color: "#B71C1C", cursor: "help", textAlign: "center" }}>
+                                {layer.errorMessage.substring(0, 20)}
+                                {layer.errorMessage.length > 20 ? '...' : ''}
+                              </Text>
+                            </Tooltip>
+                          )}
+                        </>
+                      ) : (
+                        <Text size="2" style={{ color: "#666", textAlign: "center" }}>
+                          Pending
+                        </Text>
+                      )}
+                    </Flex>
+                  </motion.div>
+                </AnimatePresence>
+                
+                {index < totalLayers - 1 && (
+                  <Box style={{ 
+                    position: "absolute", 
+                    right: "10px", 
+                    top: "50%", 
+                    transform: "translateY(-50%)",
+                    color: layer.status === 'success' ? "#2E7D32" : "#BDBDBD"
+                  }}>
+                    {layer.status === 'processing' ? (
+                      <motion.div 
+                        animate={{ 
+                          x: [0, 10, 0],
+                          opacity: [0.5, 1, 0.5]
+                        }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: 1.5 
+                        }}
+                      >
+                        <ArrowRight size={24} weight="bold" color="#1565C0" />
+                      </motion.div>
+                    ) : (
+                      <ArrowRight size={24} weight="bold" />
+                    )}
+                  </Box>
+                )}
+              </Flex>
+            ))}
+          </Flex>
+        </Box>
+      </Card>
+    </Box>
   );
 } 

@@ -5,7 +5,6 @@ import {
   Text,
   Card,
   Grid,
-  Badge,
   Table,
 } from "@radix-ui/themes";
 import { motion } from "framer-motion";
@@ -17,7 +16,6 @@ import {
   GithubLogo,
   ChartLine,
   Barcode,
-  LinkSimple,
   Stack,
   Database,
   ArrowRight
@@ -31,35 +29,6 @@ interface ModelOverviewTabProps {
 }
 
 export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
-  // TreeView data generation
-  const getTreeData = () => {
-    if (!model.graphs || model.graphs.length === 0) {
-      return {
-        name: "Empty Model",
-        children: []
-      };
-    }
-
-    const graph = model.graphs[0];
-    const layers = graph.layers || [];
-
-    return {
-      name: model.name,
-      attributes: {
-        type: getTaskName(model.task_type),
-      },
-      children: layers.map((layer: any, idx: number) => ({
-        name: `Layer ${idx + 1}`,
-        attributes: {
-          type: getLayerTypeName(layer.layer_type),
-          input: layer.in_dimension,
-          output: layer.out_dimension,
-        },
-      }))
-    };
-  };
-
-
   return (
     <Card style={{ border: "none", boxShadow: "none" }}>
       <Flex direction="column" gap="4">
@@ -328,7 +297,7 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
             )}
           </Card>
         </motion.div>
-        
+
       </Flex>
     </Card>
   );

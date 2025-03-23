@@ -16,8 +16,6 @@ import {
 } from "@radix-ui/themes";
 import { Cross2Icon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   ResponsiveContainer, 
@@ -30,7 +28,6 @@ import { motion } from "framer-motion";
 import { 
   Database, 
   Cube, 
-  CircleHalf,
   Table as TableIcon,
   Gauge,
   CodeSimple,
@@ -204,50 +201,50 @@ export function ModelDataTab({ model }: ModelDataTabProps) {
                 }}>
                   <Grid columns="2" gap="5">
                     <Box>
-                      <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "6px" }}>
+                      <Text size="1" style={{ color: "var(--gray-11)", marginBottom: "6px", marginRight: "6px" }}>
                         Model Name
                       </Text>
-                      <Text size="3" style={{ fontWeight: 600 }}>
+                      <Text size="2" style={{ fontWeight: 600 }}>
                         {model.name}
                       </Text>
                     </Box>
                     <Box>
-                      <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "6px" }}>
+                      <Text size="1" style={{ color: "var(--gray-11)", marginBottom: "6px", marginRight: "6px" }}>
                         Model Type
                       </Text>
-                      <Text size="3" style={{ fontWeight: 600 }}>
+                      <Text size="2" style={{ fontWeight: 600 }}>
                         {model.task_type}
                       </Text>
                     </Box>
                     <Box>
-                      <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "6px" }}>
+                      <Text size="1" style={{ color: "var(--gray-11)", marginBottom: "6px", marginRight: "6px" }}>
                         Input Size
                       </Text>
-                      <Text size="3" style={{ fontWeight: 600 }}>
+                      <Text size="2" style={{ fontWeight: 600 }}>
                         {model.scale.toString()}
                       </Text>
                     </Box>
                     <Box>
-                      <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "6px" }}>
+                      <Text size="1" style={{ color: "var(--gray-11)", marginBottom: "6px", marginRight: "6px" }}>
                         Layer Count
                       </Text>
-                      <Text size="3" style={{ fontWeight: 600 }}>
+                      <Text size="2" style={{ fontWeight: 600 }}>
                         {layers.length}
                       </Text>
                     </Box>
                     <Box>
-                      <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "6px" }}>
+                      <Text size="1" style={{ color: "var(--gray-11)", marginBottom: "6px", marginRight: "6px" }}>
                         Total Parameters
                       </Text>
-                      <Text size="3" style={{ fontWeight: 600 }}>
+                      <Text size="2" style={{ fontWeight: 600 }}>
                         {getTotalParameters().toLocaleString()}
                       </Text>
                     </Box>
                     <Box>
-                      <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "6px" }}>
+                      <Text size="1" style={{ color: "var(--gray-11)", marginBottom: "6px", marginRight: "6px" }}>
                         On-Chain Storage
                       </Text>
-                      <Text size="3" style={{ fontWeight: 600 }}>
+                      <Text size="2" style={{ fontWeight: 600 }}>
                         {formatMemorySize(getTotalParameters() * 4)}
                       </Text>
                     </Box>
