@@ -70,4 +70,4 @@ server/.env.*
 *.log
 
 # Test Model Files
-*.h5
+# *.h5
