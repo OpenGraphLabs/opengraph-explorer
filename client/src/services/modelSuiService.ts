@@ -3,10 +3,18 @@ import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { Model } from "../types/model";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
+import { WalrusStorageInfo } from "./walrusService";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
 });
+
+/**
+ * 문자열을 바이트 배열로 변환하는 유틸리티 함수
+ */
+function stringToBytes(str: string): number[] {
+  return Array.from(str).map(char => char.charCodeAt(0));
+}
 
 /**
  * Model 객체를 Sui 블록체인에 업로드하는 커스텀 훅
@@ -18,6 +26,7 @@ export function useUploadModelToSui() {
   const uploadModel = async (
     model: Model,
     modelInfo: { name: string; description: string; task: string },
+    trainingData: WalrusStorageInfo[] = [],
     onSuccess?: (result: any) => void
   ) => {
     if (!account) {
@@ -28,6 +37,10 @@ export function useUploadModelToSui() {
       const tx = new Transaction();
 
       tx.setGasBudget(GAS_BUDGET);
+
+      // 학습 데이터 blob ID와 Sui 참조를 바이트 배열로 변환
+      const trainingDataBlobIds = trainingData.map(data => stringToBytes(data.blobId));
+      const trainingDataSuiRefs = trainingData.map(data => stringToBytes(data.suiRef));
 
       tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
@@ -44,6 +57,10 @@ export function useUploadModelToSui() {
           tx.pure.vector("vector<u64>", model.biasesMagnitudes),
           tx.pure.vector("vector<u64>", model.biasesSigns),
           tx.pure.u64(BigInt(model.scale)),
+
+          // training data
+          tx.pure.vector("vector<u8>", trainingDataBlobIds),
+          tx.pure.vector("vector<u8>", trainingDataSuiRefs),
         ],
       });
 

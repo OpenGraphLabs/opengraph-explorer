@@ -9,13 +9,15 @@ import {
 import { useRef } from "react";
 
 interface ModelUploaderProps {
-  onFileSelect: (file: File) => void;
+  onFileSelect: (files: File[]) => void;
   selectedFile: File | null;
   isConverting: boolean;
   conversionStatus: string;
   conversionProgress: number;
   error: string | null;
   resetUploadState: () => void;
+  multiple?: boolean;
+  accept?: string;
 }
 
 export function ModelUploader({
@@ -26,20 +28,28 @@ export function ModelUploader({
   conversionProgress,
   error,
   resetUploadState,
+  multiple = false,
+  accept = ".h5",
 }: ModelUploaderProps) {
   // Use useRef to reference the file input element
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const fileExtension = file.name.split(".").pop()?.toLowerCase();
-
-      if (fileExtension === "h5") {
-        onFileSelect(file);
+      const files = Array.from(e.target.files);
+      
+      if (multiple) {
+        onFileSelect(files);
       } else {
-        // Error handling is managed by the parent component
-        throw new Error("Only .h5 files are supported.");
+        const file = files[0];
+        const fileExtension = file.name.split(".").pop()?.toLowerCase();
+
+        if (fileExtension === "h5") {
+          onFileSelect([file]);
+        } else {
+          // Error handling is managed by the parent component
+          throw new Error("Only .h5 files are supported.");
+        }
       }
     }
   };
@@ -62,13 +72,19 @@ export function ModelUploader({
     e.stopPropagation();
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      const files = Array.from(e.dataTransfer.files);
       
-      if (fileExtension === "h5") {
-        onFileSelect(file);
+      if (multiple) {
+        onFileSelect(files);
       } else {
-        alert("Only .h5 files are supported.");
+        const file = files[0];
+        const fileExtension = file.name.split(".").pop()?.toLowerCase();
+        
+        if (fileExtension === "h5") {
+          onFileSelect([file]);
+        } else {
+          alert("Only .h5 files are supported.");
+        }
       }
     }
   };
@@ -118,7 +134,7 @@ export function ModelUploader({
           </Box>
 
           <Text style={{ fontWeight: 600, fontSize: "18px", letterSpacing: "0.01em" }}>
-            {selectedFile ? "Model file selected" : "Drag and drop your model file here"}
+            {selectedFile ? "File selected" : "Drag and drop your file(s) here"}
           </Text>
 
           {!selectedFile && (
@@ -147,7 +163,8 @@ export function ModelUploader({
             ref={fileInputRef}
             id="file-upload"
             type="file"
-            accept=".h5"
+            accept={accept}
+            multiple={multiple}
             onChange={handleFileChange}
             style={{ display: "none" }}
           />
@@ -202,7 +219,7 @@ export function ModelUploader({
               </Card>
 
               <Button
-                onClick={() => onFileSelect(selectedFile)}
+                onClick={() => onFileSelect([selectedFile])}
                 size="2"
                 disabled={isConverting}
                 style={{
@@ -316,8 +333,9 @@ export function ModelUploader({
         <Flex align="center" gap="3">
           <InfoCircledIcon style={{ color: "#2196F3" }} width={18} height={18} />
           <Text size="2" style={{ color: "var(--gray-11)", lineHeight: 1.5, letterSpacing: "0.01em" }}>
-            Only .h5 model files are supported. Uploaded models will be automatically converted to
-            OpenGraph format.
+            {multiple 
+              ? "You can upload various file formats including images, text, and CSV files."
+              : "Only .h5 model files are supported. Uploaded models will be automatically converted to OpenGraph format."}
           </Text>
         </Flex>
       </Card>

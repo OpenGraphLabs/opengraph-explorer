@@ -14,17 +14,26 @@ import { useNavigate } from "react-router-dom";
 import { ModelUploader } from "../components/ModelUploader";
 import { useModelUpload } from "../hooks/useModelUpload";
 import { useUploadModelToSui } from "../services/modelSuiService";
+import { uploadTrainingData } from "../services/walrusService";
 import {
   RocketIcon,
   ReloadIcon,
   CheckCircledIcon,
   ExclamationTriangleIcon,
+  UploadIcon,
 } from "@radix-ui/react-icons";
 
 interface ModelInfo {
   name: string;
   description: string;
   task: string;
+}
+
+interface TrainingDataInfo {
+  files: File[];
+  uploadedData: any[];
+  isUploading: boolean;
+  error: string | null;
 }
 
 export function UploadModel() {
@@ -38,6 +47,12 @@ export function UploadModel() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [transactionInProgress, setTransactionInProgress] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [trainingData, setTrainingData] = useState<TrainingDataInfo>({
+    files: [],
+    uploadedData: [],
+    isUploading: false,
+    error: null,
+  });
 
   const {
     selectedFile,
@@ -55,11 +70,13 @@ export function UploadModel() {
 
   const navigate = useNavigate();
 
-  const handleFileSelect = async (file: File) => {
-    console.log("File selected:", file.name);
+  const handleFileSelect = async (files: File[]) => {
+    if (files.length === 0) return;
+    
+    console.log("Files selected:", files.map(f => f.name));
     try {
       setUploadError(null); // 이전 오류 초기화
-      const model = await convertModel(file);
+      const model = await convertModel(files[0]);
       console.log("Model converted successfully:", model);
     } catch (error) {
       console.error("Error during model conversion:", error);
@@ -69,14 +86,59 @@ export function UploadModel() {
     }
   };
 
+  const handleTrainingDataSelect = (files: File[]) => {
+    console.log("Training data files selected:", files.map(f => f.name));
+    setTrainingData(prev => ({
+      ...prev,
+      files: [...prev.files, ...files],
+      error: null
+    }));
+  };
+
+  const handleTrainingDataUpload = async () => {
+    if (trainingData.files.length === 0) {
+      setTrainingData(prev => ({
+        ...prev,
+        error: "Please select training data."
+      }));
+      return;
+    }
+
+    setTrainingData(prev => ({
+      ...prev,
+      isUploading: true,
+      error: null
+    }));
+
+    try {
+      const results = await uploadTrainingData(trainingData.files);
+      setTrainingData(prev => ({
+        ...prev,
+        uploadedData: results,
+        isUploading: false
+      }));
+    } catch (error) {
+      setTrainingData(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : "Failed to upload training data",
+        isUploading: false
+      }));
+    }
+  };
+
   const handleUpload = async () => {
     if (!modelInfo.name || !modelInfo.description || !modelInfo.task) {
-      alert("Please fill in all required fields.");
+      alert("모든 필수 항목을 입력해주세요.");
       return;
     }
 
     if (!convertedModel) {
-      alert("Please convert a model file first.");
+      alert("모델 파일을 먼저 변환해주세요.");
+      return;
+    }
+
+    if (trainingData.files.length > 0 && trainingData.uploadedData.length === 0) {
+      alert("학습 데이터를 먼저 업로드해주세요.");
       return;
     }
 
@@ -87,10 +149,11 @@ export function UploadModel() {
 
     try {
       await uploadModel(
-        convertedModel, 
+        convertedModel,
         modelInfo,
+        trainingData.uploadedData,
         (result) => {
-          console.log("Model uploaded to blockchain:", result);
+          console.log("모델이 블록체인에 업로드됨:", result);
           
           if (result && typeof result === 'object' && 'digest' in result) {
             setTransactionHash(result.digest);
@@ -106,9 +169,9 @@ export function UploadModel() {
         }
       );
     } catch (error) {
-      console.error("Error uploading model to blockchain:", error);
+      console.error("블록체인 업로드 오류:", error);
       setUploadError(
-        error instanceof Error ? error.message : "Error uploading model to blockchain"
+        error instanceof Error ? error.message : "블록체인 업로드 실패"
       );
       setTransactionInProgress(false);
       setIsUploading(false);
@@ -119,7 +182,7 @@ export function UploadModel() {
     <>
       <Box style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px" }}>
         <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
-          Upload Model
+          모델 업로드
         </Heading>
 
         <Flex direction="column" gap="6">
@@ -171,7 +234,7 @@ export function UploadModel() {
             </Flex>
           </Card>
 
-          {/* Step 2: Model Information */}
+          {/* Step 2: Upload Training Data */}
           <Card
             style={{
               padding: "24px",
@@ -195,6 +258,149 @@ export function UploadModel() {
                 >
                   <Text size="4" style={{ fontWeight: "700" }}>
                     2
+                  </Text>
+                </Box>
+                <Heading size="4" style={{ fontWeight: 600 }}>
+                  Upload Training Data
+                </Heading>
+              </Flex>
+
+              <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+                Upload training data files. Supports various formats including images, text, and CSV files.
+              </Text>
+
+              <ModelUploader
+                onFileSelect={handleTrainingDataSelect}
+                selectedFile={null}
+                isConverting={trainingData.isUploading}
+                conversionStatus={trainingData.isUploading ? "Uploading..." : "Ready"}
+                conversionProgress={0}
+                error={trainingData.error}
+                resetUploadState={() => setTrainingData(prev => ({ ...prev, error: null }))}
+                multiple={true}
+                accept="image/*,.txt,.csv"
+              />
+
+              {trainingData.files.length > 0 && (
+                <Card style={{ 
+                  padding: "16px", 
+                  marginTop: "16px",
+                  background: "var(--gray-2)",
+                  border: "1px solid var(--gray-4)"
+                }}>
+                  <Flex direction="column" gap="3">
+                    <Flex align="center" justify="between">
+                      <Text size="2" style={{ fontWeight: 500 }}>
+                        Selected Files ({trainingData.files.length})
+                      </Text>
+                      <Button 
+                        size="1" 
+                        variant="soft" 
+                        onClick={() => setTrainingData(prev => ({ ...prev, files: [] }))}
+                        style={{ color: "var(--red-11)" }}
+                      >
+                        Clear All
+                      </Button>
+                    </Flex>
+                    
+                    <Flex direction="column" gap="2">
+                      {trainingData.files.map((file, index) => (
+                        <Flex 
+                          key={index} 
+                          align="center" 
+                          justify="between"
+                          style={{
+                            padding: "8px 12px",
+                            background: "var(--gray-1)",
+                            borderRadius: "6px",
+                            border: "1px solid var(--gray-3)"
+                          }}
+                        >
+                          <Flex align="center" gap="2">
+                            <UploadIcon style={{ color: "var(--gray-8)" }} />
+                            <Text size="2" style={{ color: "var(--gray-11)" }}>
+                              {file.name}
+                            </Text>
+                          </Flex>
+                          <Flex align="center" gap="2">
+                            <Text size="2" style={{ color: "var(--gray-9)" }}>
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </Text>
+                            <Button 
+                              size="1" 
+                              variant="ghost" 
+                              onClick={() => {
+                                setTrainingData(prev => ({
+                                  ...prev,
+                                  files: prev.files.filter((_, i) => i !== index)
+                                }));
+                              }}
+                              style={{ color: "var(--red-11)" }}
+                            >
+                              Remove
+                            </Button>
+                          </Flex>
+                        </Flex>
+                      ))}
+                    </Flex>
+                  </Flex>
+                </Card>
+              )}
+
+              <Button
+                onClick={handleTrainingDataUpload}
+                disabled={trainingData.isUploading || trainingData.files.length === 0}
+                style={{
+                  background: "#FF5733",
+                  color: "white",
+                  cursor: trainingData.isUploading || trainingData.files.length === 0 ? "not-allowed" : "pointer",
+                  opacity: trainingData.isUploading || trainingData.files.length === 0 ? 0.5 : 1,
+                  padding: "0 24px",
+                  height: "48px",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                }}
+              >
+                {trainingData.isUploading ? (
+                  <Flex align="center" gap="2">
+                    <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                    <span>Uploading...</span>
+                  </Flex>
+                ) : (
+                  <Flex align="center" gap="2">
+                    <UploadIcon />
+                    <span>Upload Training Data</span>
+                  </Flex>
+                )}
+              </Button>
+            </Flex>
+          </Card>
+
+          {/* Step 3: Model Information */}
+          <Card
+            style={{
+              padding: "24px",
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+              border: "1px solid var(--gray-4)",
+            }}
+          >
+            <Flex direction="column" gap="4">
+              <Flex align="center" gap="2" mb="2">
+                <Box
+                  style={{
+                    background: "linear-gradient(135deg, #FFE5DC 0%, #FFCEBF 100%)",
+                    borderRadius: "50%",
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text size="4" style={{ fontWeight: "700" }}>
+                    3
                   </Text>
                 </Box>
                 <Heading size="4" style={{ fontWeight: 600 }}>
@@ -298,7 +504,7 @@ export function UploadModel() {
             </Flex>
           </Card>
 
-          {/* Step 3: Upload to Blockchain */}
+          {/* Step 4: Upload to Blockchain */}
           <Card
             style={{
               padding: "24px",
@@ -322,7 +528,7 @@ export function UploadModel() {
                   }}
                 >
                   <Text size="4" style={{ fontWeight: "700" }}>
-                    3
+                    4
                   </Text>
                 </Box>
                 <Heading size="4" style={{ fontWeight: 600 }}>
