@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { ModelUploader } from "../components/ModelUploader";
 import { useModelUpload } from "../hooks/useModelUpload";
 import { useUploadModelToSui } from "../services/modelSuiService";
-import { WalrusStorageInfo, WalrusStorageStatus } from "../services/walrusService";
+import { WalrusStorageStatus } from "../services/walrusService";
 import { modelGraphQLService, BlobObject } from "../services/modelGraphQLService";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import { SUI_NETWORK } from "../constants/suiConfig";
@@ -35,6 +35,7 @@ interface TrainingDataInfo {
 export function UploadModel() {
   const navigate = useNavigate();
   const { currentWallet } = useCurrentWallet();
+  const { uploadModel } = useUploadModelToSui();
   const [modelInfo, setModelInfo] = useState({
     name: "",
     description: "",
@@ -94,7 +95,7 @@ export function UploadModel() {
     
     try {
       setUploadError(null);
-      const model = await convertModel(files[0]);
+      await convertModel(files[0]);
     } catch (error) {
       setUploadError(
         error instanceof Error ? error.message : "Failed to convert model file"
@@ -145,38 +146,49 @@ export function UploadModel() {
       return;
     }
 
+    setIsUploading(true);
+    setUploadError(null);
+    setTransactionInProgress(true);
+    setTransactionHash(null);
+    setUploadSuccess(false);
+
     try {
-      setIsUploading(true);
-      setUploadError(null);
-      setTransactionInProgress(true);
-      setTransactionHash(null);
-
-      const { uploadModel } = useUploadModelToSui();
-      await uploadModel({
-        name: modelInfo.name,
-        description: modelInfo.description,
-        modelType: modelInfo.modelType,
-        license: modelInfo.license,
-        trainingData: trainingData.selectedDatasets.map(dataset => ({
-          blobId: dataset.id,
-          endEpoch: 0, // This will be set by the contract
-          status: WalrusStorageStatus.NEWLY_CREATED,
-          suiRef: dataset.id,
-          suiRefType: "Associated Sui Object",
-          mediaUrl: dataset.mediaUrl,
-          suiScanUrl: `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
-          suiRefId: dataset.id
-        })),
-      });
-
-      setUploadSuccess(true);
-      setTransactionInProgress(false);
-      setIsUploading(false);
-
-      setTimeout(() => {
-        navigate('/models');
-      }, 1000);
+      await uploadModel(
+        convertedModel, 
+        {
+          name: modelInfo.name,
+          description: modelInfo.description,
+          modelType: modelInfo.modelType,
+          license: modelInfo.license,
+          trainingData: trainingData.selectedDatasets.map(dataset => ({
+            blobId: dataset.id,
+            endEpoch: 0, // This will be set by the contract
+            status: WalrusStorageStatus.NEWLY_CREATED,
+            suiRef: dataset.id,
+            suiRefType: "Associated Sui Object",
+            mediaUrl: dataset.mediaUrl,
+            suiScanUrl: `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
+            suiRefId: dataset.id
+          })),
+        },
+        (result) => {
+          console.log("Model uploaded to blockchain:", result);
+          
+          if (result && typeof result === 'object' && 'digest' in result) {
+            setTransactionHash(result.digest);
+          }
+          
+          setUploadSuccess(true);
+          setTransactionInProgress(false);
+          setIsUploading(false);
+          
+          setTimeout(() => {
+            navigate('/models');
+          }, 1000);
+        }
+      );
     } catch (error) {
+      console.error("Error uploading model to blockchain:", error);
       setUploadError(error instanceof Error ? error.message : "Failed to upload model");
       setTransactionInProgress(false);
       setIsUploading(false);
