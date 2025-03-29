@@ -16,6 +16,8 @@ import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
   UploadIcon,
+  Cross2Icon,
+  FileIcon,
 } from "@radix-ui/react-icons";
 
 export function UploadDataset() {
@@ -25,6 +27,8 @@ export function UploadDataset() {
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadInProgress, setUploadInProgress] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewStep, setPreviewStep] = useState<'select' | 'preview' | 'upload'>('select');
 
   useEffect(() => {
     if (currentWallet?.accounts[0]?.address) {
@@ -45,17 +49,34 @@ export function UploadDataset() {
     }
   };
 
-  const handleFileUpload = async (files: File[]) => {
-    if (!currentWallet?.accounts[0]?.address || files.length === 0) return;
+  const handleFileSelect = (files: File[]) => {
+    if (files.length === 0) return;
+    setSelectedFile(files[0]);
+    setError(null);
+    setPreviewStep('preview');
+  };
+
+  const handleFileRemove = () => {
+    setSelectedFile(null);
+    setError(null);
+    setPreviewStep('select');
+  };
+
+  const handleUpload = async () => {
+    if (!currentWallet?.accounts[0]?.address || !selectedFile) return;
 
     try {
+      setPreviewStep('upload');
       setUploadInProgress(true);
       setError(null);
-      await uploadTrainingData(files[0], currentWallet.accounts[0].address);
+      await uploadTrainingData(selectedFile, currentWallet.accounts[0].address);
       setUploadSuccess(true);
+      setSelectedFile(null);
+      setPreviewStep('select');
       await fetchUserDatasets();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to upload dataset");
+      setPreviewStep('preview');
     } finally {
       setUploadInProgress(false);
     }
@@ -103,48 +124,144 @@ export function UploadDataset() {
               Upload your training data file to create a new dataset. The file will be stored on-chain and can be used for model training.
             </Text>
 
-            <Box
-              style={{
-                border: "2px dashed var(--gray-5)",
-                borderRadius: "8px",
-                padding: "24px",
-                textAlign: "center",
-                background: "var(--gray-1)",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-            >
-              <input
-                type="file"
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files && files.length > 0) {
-                    handleFileUpload(Array.from(files));
-                  }
-                }}
-                disabled={isLoading || !currentWallet?.accounts[0]?.address}
-                style={{ display: "none" }}
-                id="dataset-upload"
-              />
-              <label
-                htmlFor="dataset-upload"
+            {previewStep === 'select' && (
+              <Box
                 style={{
-                  cursor: isLoading || !currentWallet?.accounts[0]?.address ? "not-allowed" : "pointer",
-                  opacity: isLoading || !currentWallet?.accounts[0]?.address ? 0.5 : 1,
+                  border: "2px dashed var(--gray-5)",
+                  borderRadius: "8px",
+                  padding: "24px",
+                  textAlign: "center",
+                  background: "var(--gray-1)",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
                 }}
               >
-                <Flex direction="column" align="center" gap="2">
-                  <UploadIcon width={24} height={24} style={{ color: "var(--gray-9)" }} />
-                  <Text size="2" style={{ color: "var(--gray-11)" }}>
-                    {!currentWallet?.accounts[0]?.address
-                      ? "Please connect your wallet first"
-                      : isLoading
-                      ? "Uploading..."
-                      : "Click to upload dataset"}
-                  </Text>
+                <input
+                  type="file"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                      handleFileSelect(Array.from(files));
+                    }
+                  }}
+                  disabled={!currentWallet?.accounts[0]?.address}
+                  style={{ display: "none" }}
+                  id="dataset-upload"
+                />
+                <label
+                  htmlFor="dataset-upload"
+                  style={{
+                    cursor: !currentWallet?.accounts[0]?.address ? "not-allowed" : "pointer",
+                    opacity: !currentWallet?.accounts[0]?.address ? 0.5 : 1,
+                  }}
+                >
+                  <Flex direction="column" align="center" gap="2">
+                    <UploadIcon width={24} height={24} style={{ color: "var(--gray-9)" }} />
+                    <Text size="2" style={{ color: "var(--gray-11)" }}>
+                      {!currentWallet?.accounts[0]?.address
+                        ? "Please connect your wallet first"
+                        : "Click to select dataset"}
+                    </Text>
+                  </Flex>
+                </label>
+              </Box>
+            )}
+
+            {previewStep === 'preview' && selectedFile && (
+              <Card
+                style={{
+                  padding: "16px",
+                  borderRadius: "8px",
+                  border: "1px solid var(--gray-4)",
+                  background: "var(--gray-1)",
+                }}
+              >
+                <Flex direction="column" gap="3">
+                  <Flex align="center" justify="between">
+                    <Flex align="center" gap="2">
+                      <FileIcon width={16} height={16} style={{ color: "var(--gray-9)" }} />
+                      <Text size="2" style={{ fontWeight: 500 }}>
+                        {selectedFile.name}
+                      </Text>
+                    </Flex>
+                    <Button
+                      size="1"
+                      variant="soft"
+                      onClick={handleFileRemove}
+                      style={{
+                        background: "var(--red-3)",
+                        color: "var(--red-11)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Cross2Icon width={14} height={14} />
+                    </Button>
+                  </Flex>
+                  <Flex direction="column" gap="1">
+                    <Text size="1" style={{ color: "var(--gray-9)" }}>
+                      Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </Text>
+                    <Text size="1" style={{ color: "var(--gray-9)" }}>
+                      Type: {selectedFile.type || "Unknown"}
+                    </Text>
+                  </Flex>
+                  <Button
+                    onClick={handleUpload}
+                    disabled={!currentWallet?.accounts[0]?.address}
+                    style={{
+                      background: "#FF5733",
+                      color: "white",
+                      cursor: !currentWallet?.accounts[0]?.address ? "not-allowed" : "pointer",
+                      opacity: !currentWallet?.accounts[0]?.address ? 0.5 : 1,
+                      padding: "0 24px",
+                      height: "40px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <Flex align="center" gap="2">
+                      <UploadIcon />
+                      <span>Upload to Walrus</span>
+                    </Flex>
+                  </Button>
                 </Flex>
-              </label>
-            </Box>
+              </Card>
+            )}
+
+            {previewStep === 'upload' && (
+              <Card
+                style={{
+                  padding: "16px",
+                  borderRadius: "8px",
+                  border: "1px solid var(--gray-4)",
+                  background: "var(--gray-1)",
+                }}
+              >
+                <Flex direction="column" gap="3">
+                  <Flex align="center" justify="between">
+                    <Flex align="center" gap="2">
+                      <FileIcon width={16} height={16} style={{ color: "var(--gray-9)" }} />
+                      <Text size="2" style={{ fontWeight: 500 }}>
+                        {selectedFile?.name}
+                      </Text>
+                    </Flex>
+                  </Flex>
+                  <Flex direction="column" gap="1">
+                    <Text size="1" style={{ color: "var(--gray-9)" }}>
+                      Size: {selectedFile && (selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </Text>
+                    <Text size="1" style={{ color: "var(--gray-9)" }}>
+                      Type: {selectedFile?.type || "Unknown"}
+                    </Text>
+                  </Flex>
+                  <Flex align="center" gap="2" justify="center" py="2">
+                    <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                    <Text>Uploading to Walrus...</Text>
+                  </Flex>
+                </Flex>
+              </Card>
+            )}
 
             {uploadSuccess && (
               <Card
