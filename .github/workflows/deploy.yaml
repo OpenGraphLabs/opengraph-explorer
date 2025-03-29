@@ -1,7 +1,10 @@
-name: Deploy to Walrus
+name: Build
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -25,15 +28,3 @@ jobs:
       - name: Build React app
         working-directory: ./client
         run: yarn build
-
-      - name: Deploy site to Walrus
-        uses: zktx-io/walrus-sites-ga@v0.3.4
-        with:
-          site-path: './client/dist'
-          network: 'testnet'
-          epochs: 100
-          object-id: '0x0b87dc72e319f802862cdc1161e25d80ef771f973a36faff556c78bd84496c4e'
-          wal-exchange-enabled: false
-        env:
-          SUI_ADDRESS: ${{ vars.SUI_ADDRESS }}
-          SUI_KEYSTORE: ${{ secrets.SUI_KEYSTORE }}
