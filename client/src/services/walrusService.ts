@@ -5,7 +5,7 @@ import { getSuiScanUrl } from "../utils/sui";
 // Walrus 네트워크 설정
 const WALRUS_NETWORK = "testnet"; // 또는 "devnet", "mainnet" 등
 const WALRUS_PUBLISHER_URL = "https://publisher.walrus-testnet.walrus.space";
-const WALRUS_AGGREGATOR_URL = "https://aggregator.walrus-testnet.walrus.space";
+export const WALRUS_AGGREGATOR_URL = "https://aggregator.walrus-testnet.walrus.space";
 const SUI_VIEW_TX_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/tx`;
 const SUI_VIEW_OBJECT_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/object`;
 
@@ -140,82 +140,57 @@ export function getSuiExplorerUrl(suiRef: string, type: 'object' | 'tx'): string
   return `${baseUrl}/${suiRef}`;
 }
 
+function transformResponse(data: any): WalrusStorageInfo {
+  if ("alreadyCertified" in data) {
+    return {
+      status: WalrusStorageStatus.ALREADY_CERTIFIED,
+      blobId: data.alreadyCertified.blobId,
+      endEpoch: data.alreadyCertified.endEpoch,
+      suiRefType: "Previous Sui Certified Event",
+      suiRef: data.alreadyCertified.event.txDigest,
+      mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/${data.alreadyCertified.blobId}`,
+      suiScanUrl: getSuiScanUrl('transaction', data.alreadyCertified.event.txDigest),
+      suiRefId: data.alreadyCertified.event.txDigest
+    };
+  } else if ("newlyCreated" in data) {
+    return {
+      status: WalrusStorageStatus.NEWLY_CREATED,
+      blobId: data.newlyCreated.blobObject.blobId,
+      endEpoch: data.newlyCreated.blobObject.storage.endEpoch,
+      suiRefType: "Associated Sui Object",
+      suiRef: data.newlyCreated.blobObject.id,
+      mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/${data.newlyCreated.blobObject.blobId}`,
+      suiScanUrl: getSuiScanUrl('object', data.newlyCreated.blobObject.id),
+      suiRefId: data.newlyCreated.blobObject.id
+    };
+  } else {
+    throw new Error("Unknown response format");
+  }
+}
+
 /**
  * 학습 데이터 업로드 함수
- * @param files 업로드할 파일 배열
- * @param sendTo 소유권을 가질 주소 
- * @param epochs 저장할 에포크 수 (선택적)
- * @returns 저장 정보 배열
+ * @param file 업로드할 파일
+ * @param address 소유권을 가질 주소
+ * @returns 저장 정보
  */
 export async function uploadTrainingData(
-  files: File[],
-  sendTo: string,
-  epochs?: number,
-): Promise<WalrusStorageInfo[]> {
-  const results: WalrusStorageInfo[] = [];
+  file: File,
+  address: string
+): Promise<WalrusStorageInfo> {
+  const response = await fetch(`${WALRUS_PUBLISHER_URL}/v1/blobs?send_object_to=${address}`, {
+    method: "PUT",
+    body: file,
+  });
 
-  for (const file of files) {
-    try {
-      const url = `${WALRUS_PUBLISHER_URL}/v1/blobs?send_object_to=${sendTo}${epochs ? `&epochs=${epochs}` : ""}`;
-      console.log("Uploading to URL:", url);
-
-      const response = await fetch(url, {
-        method: "PUT",
-        body: file,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Upload failed with status:", response.status);
-        console.error("Error response:", errorText);
-        throw new Error(`Failed to upload file: ${response.status} ${response.statusText}\n${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log("Upload response:", data);
-      
-      // Handle response data similar to uploadMedia function
-      let storageInfo: WalrusStorageInfo;
-      
-      if ("alreadyCertified" in data) {
-        storageInfo = {
-          status: WalrusStorageStatus.ALREADY_CERTIFIED,
-          blobId: data.alreadyCertified.blobId,
-          endEpoch: data.alreadyCertified.endEpoch,
-          suiRefType: "Previous Sui Certified Event",
-          suiRef: data.alreadyCertified.event.txDigest,
-          mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/${data.alreadyCertified.blobId}`,
-          suiScanUrl: getSuiScanUrl('transaction', data.alreadyCertified.event.txDigest),
-          suiRefId: data.alreadyCertified.event.txDigest
-        };
-        console.log("[기존 BLOB 객체 업데이트] 관련 Tx digest:", data.alreadyCertified.event.txDigest);
-      } else if ("newlyCreated" in data) {
-        storageInfo = {
-          status: WalrusStorageStatus.NEWLY_CREATED,
-          blobId: data.newlyCreated.blobObject.blobId,
-          endEpoch: data.newlyCreated.blobObject.storage.endEpoch,
-          suiRefType: "Associated Sui Object",
-          suiRef: data.newlyCreated.blobObject.id,
-          mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/${data.newlyCreated.blobObject.blobId}`,
-          suiScanUrl: getSuiScanUrl('object', data.newlyCreated.blobObject.id),
-          suiRefId: data.newlyCreated.blobObject.id
-        };
-        console.log("[신규 BLOB 객체 생성] BLOB 객체 ID:", data.newlyCreated.blobObject.id);
-      } else {
-        throw new Error("알 수 없는 응답 형식");
-      }
-      
-      results.push(storageInfo);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      if (error instanceof TypeError && error.message === "Failed to fetch") {
-        throw new Error("Failed to connect to Walrus API. Please check your internet connection and try again.");
-      }
-      throw error;
-    }
+  if (!response.ok) {
+    throw new Error(`Failed to upload file: ${response.statusText}`);
   }
 
-  return results;
+  const data = await response.json();
+
+  console.log("Walrus 업로드 응답:", data);
+  return transformResponse(data);
 }
 
 /**

@@ -6,6 +6,7 @@ import { Home } from "./pages/Home";
 import { Models } from "./pages/Models";
 import { ModelDetail } from "./pages/ModelDetail";
 import { UploadModel } from "./pages/UploadModel";
+import { UploadDataset } from "./pages/UploadDataset";
 import { Profile } from "./pages/Profile";
 import { HamburgerMenuIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import logoImage from "./assets/logo/logo.png";
@@ -74,8 +75,11 @@ export default function App() {
               <NavLink to="/models" current={location.pathname === "/models"}>
                 Models
               </NavLink>
+              <NavLink to="/datasets" current={location.pathname === "/datasets"}>
+                Datasets
+              </NavLink>
               <NavLink to="/upload" current={location.pathname === "/upload"}>
-                Upload
+                Upload Model
               </NavLink>
             </Flex>
           </Flex>
@@ -182,6 +186,20 @@ export default function App() {
                 Models
               </Link>
               <Link
+                to="/datasets"
+                style={{
+                  textDecoration: "none",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  color: location.pathname === "/datasets" ? "#FF5733" : "#333",
+                  fontWeight: location.pathname === "/datasets" ? "bold" : "normal",
+                  background: location.pathname === "/datasets" ? "#FFF4F0" : "transparent",
+                }}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Datasets
+              </Link>
+              <Link
                 to="/upload"
                 style={{
                   textDecoration: "none",
@@ -193,7 +211,7 @@ export default function App() {
                 }}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Upload
+                Upload Model
               </Link>
               {isConnected && (
                 <Link
@@ -222,6 +240,7 @@ export default function App() {
             <Route path="/models" element={<Models />} />
             <Route path="/models/:id" element={<ModelDetail />} />
             <Route path="/upload" element={<UploadModel />} />
+            <Route path="/datasets" element={<UploadDataset />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
         </Box>
