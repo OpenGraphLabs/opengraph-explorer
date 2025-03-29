@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { ModelUploader } from "../components/ModelUploader";
 import { useModelUpload } from "../hooks/useModelUpload";
 import { useUploadModelToSui } from "../services/modelSuiService";
-import { uploadTrainingData } from "../services/walrusService";
+import { uploadTrainingData, WalrusStorageInfo, WalrusStorageStatus } from "../services/walrusService";
 import {
   RocketIcon,
   ReloadIcon,
@@ -22,6 +22,8 @@ import {
   ExclamationTriangleIcon,
   UploadIcon,
 } from "@radix-ui/react-icons";
+import { useAccounts } from "@mysten/dapp-kit";
+import { SUI_NETWORK } from "../constants/suiConfig";
 
 interface ModelInfo {
   name: string;
@@ -31,7 +33,10 @@ interface ModelInfo {
 
 interface TrainingDataInfo {
   files: File[];
-  uploadedData: any[];
+  uploadedData: {
+    file: File;
+    storageInfo: WalrusStorageInfo;
+  }[];
   isUploading: boolean;
   error: string | null;
 }
@@ -69,6 +74,7 @@ export function UploadModel() {
   const { uploadModel } = useUploadModelToSui();
 
   const navigate = useNavigate();
+  const account = useAccounts();
 
   const handleFileSelect = async (files: File[]) => {
     if (files.length === 0) return;
@@ -111,10 +117,26 @@ export function UploadModel() {
     }));
 
     try {
-      const results = await uploadTrainingData(trainingData.files);
+      let address: string;
+      if (account[0]) {
+        address = account[0].address;
+      } else {
+        throw new Error("No account address found");
+      }
+
+      const results = await uploadTrainingData(trainingData.files, address);
+      
+      // Update uploaded data and remove uploaded files from the list
       setTrainingData(prev => ({
         ...prev,
-        uploadedData: results,
+        uploadedData: [
+          ...prev.uploadedData,
+          ...results.map((storageInfo, index) => ({
+            file: prev.files[index],
+            storageInfo
+          }))
+        ],
+        files: [], // Clear the files list after successful upload
         isUploading: false
       }));
     } catch (error) {
@@ -128,17 +150,17 @@ export function UploadModel() {
 
   const handleUpload = async () => {
     if (!modelInfo.name || !modelInfo.description || !modelInfo.task) {
-      alert("모든 필수 항목을 입력해주세요.");
+      alert("Please fill in all required fields.");
       return;
     }
 
     if (!convertedModel) {
-      alert("모델 파일을 먼저 변환해주세요.");
+      alert("Please convert the model file first.");
       return;
     }
 
     if (trainingData.files.length > 0 && trainingData.uploadedData.length === 0) {
-      alert("학습 데이터를 먼저 업로드해주세요.");
+      alert("Please upload training data first.");
       return;
     }
 
@@ -151,9 +173,9 @@ export function UploadModel() {
       await uploadModel(
         convertedModel,
         modelInfo,
-        trainingData.uploadedData,
+        trainingData.uploadedData.map(data => data.storageInfo),
         (result) => {
-          console.log("모델이 블록체인에 업로드됨:", result);
+          console.log("Model uploaded to blockchain:", result);
           
           if (result && typeof result === 'object' && 'digest' in result) {
             setTransactionHash(result.digest);
@@ -169,9 +191,9 @@ export function UploadModel() {
         }
       );
     } catch (error) {
-      console.error("블록체인 업로드 오류:", error);
+      console.error("Blockchain upload error:", error);
       setUploadError(
-        error instanceof Error ? error.message : "블록체인 업로드 실패"
+        error instanceof Error ? error.message : "Failed to upload to blockchain"
       );
       setTransactionInProgress(false);
       setIsUploading(false);
@@ -182,7 +204,7 @@ export function UploadModel() {
     <>
       <Box style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px" }}>
         <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
-          모델 업로드
+          Upload Model
         </Heading>
 
         <Flex direction="column" gap="6">
@@ -339,6 +361,111 @@ export function UploadModel() {
                             >
                               Remove
                             </Button>
+                          </Flex>
+                        </Flex>
+                      ))}
+                    </Flex>
+                  </Flex>
+                </Card>
+              )}
+
+              {trainingData.uploadedData.length > 0 && (
+                <Card style={{ 
+                  padding: "16px", 
+                  marginTop: "16px",
+                  background: "var(--gray-2)",
+                  border: "1px solid var(--gray-4)"
+                }}>
+                  <Flex direction="column" gap="3">
+                    <Flex align="center" justify="between">
+                      <Text size="2" style={{ fontWeight: 500 }}>
+                        Uploaded Training Data ({trainingData.uploadedData.length})
+                      </Text>
+                    </Flex>
+                    
+                    <Flex direction="column" gap="2">
+                      {trainingData.uploadedData.map((data, index) => (
+                        <Flex 
+                          key={index} 
+                          align="center" 
+                          justify="between"
+                          style={{
+                            padding: "8px 12px",
+                            background: "var(--gray-1)",
+                            borderRadius: "6px",
+                            border: "1px solid var(--gray-3)"
+                          }}
+                        >
+                          <Flex align="center" gap="2">
+                            <CheckCircledIcon style={{ color: "var(--green-9)" }} />
+                            <Flex direction="column" gap="1">
+                              <Text size="2" style={{ color: "var(--gray-11)" }}>
+                                {data.file.name}
+                              </Text>
+                              <Flex direction="column" gap="1">
+                                <Text size="1" style={{ color: "var(--gray-9)" }}>
+                                  Blob ID: {data.storageInfo.blobId}
+                                </Text>
+                                <Text size="1" style={{ color: "var(--gray-9)" }}>
+                                  Sui Reference: {data.storageInfo.suiRefId} ({data.storageInfo.suiRefType})
+                                </Text>
+                                <Text size="1" style={{ color: "var(--gray-9)" }}>
+                                  Status: {data.storageInfo.status === WalrusStorageStatus.ALREADY_CERTIFIED ? "Already Certified" : "Newly Created"}
+                                </Text>
+                                <Flex gap="2">
+                                  <Button 
+                                    size="1" 
+                                    variant="soft"
+                                    onClick={() => window.open(data.storageInfo.mediaUrl, '_blank')}
+                                    style={{ 
+                                      background: "var(--blue-3)",
+                                      color: "var(--blue-11)",
+                                      cursor: "pointer",
+                                      padding: "2px 8px",
+                                      height: "20px",
+                                      fontSize: "12px"
+                                    }}
+                                  >
+                                    View Data
+                                  </Button>
+                                  <Button 
+                                    size="1" 
+                                    variant="soft"
+                                    onClick={() => window.open(`https://walruscan.com/${SUI_NETWORK.TYPE}/blob/${data.storageInfo.blobId}`, '_blank')}
+                                    style={{ 
+                                      background: "var(--purple-3)",
+                                      color: "var(--purple-11)",
+                                      cursor: "pointer",
+                                      padding: "2px 8px",
+                                      height: "20px",
+                                      fontSize: "12px"
+                                    }}
+                                  >
+                                    View on Walrus Scan
+                                  </Button>
+                                  <Button 
+                                    size="1" 
+                                    variant="soft"
+                                    onClick={() => window.open(data.storageInfo.suiScanUrl, '_blank')}
+                                    style={{ 
+                                      background: "var(--blue-3)",
+                                      color: "var(--blue-11)",
+                                      cursor: "pointer",
+                                      padding: "2px 8px",
+                                      height: "20px",
+                                      fontSize: "12px"
+                                    }}
+                                  >
+                                    View on SuiScan
+                                  </Button>
+                                </Flex>
+                              </Flex>
+                            </Flex>
+                          </Flex>
+                          <Flex align="center" gap="2">
+                            <Text size="2" style={{ color: "var(--gray-9)" }}>
+                              {(data.file.size / 1024 / 1024).toFixed(2)} MB
+                            </Text>
                           </Flex>
                         </Flex>
                       ))}
