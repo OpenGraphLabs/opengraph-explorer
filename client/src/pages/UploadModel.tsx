@@ -26,6 +26,7 @@ import {
 } from "@radix-ui/react-icons";
 
 interface TrainingDataInfo {
+  availableDatasets: BlobObject[];
   selectedDatasets: BlobObject[];
   isLoading: boolean;
   error: string | null;
@@ -46,6 +47,7 @@ export function UploadModel() {
   const [transactionInProgress, setTransactionInProgress] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [trainingData, setTrainingData] = useState<TrainingDataInfo>({
+    availableDatasets: [],
     selectedDatasets: [],
     isLoading: false,
     error: null,
@@ -72,7 +74,12 @@ export function UploadModel() {
     try {
       setTrainingData(prev => ({ ...prev, isLoading: true, error: null }));
       const datasets = await modelGraphQLService.getUserBlobs(currentWallet!.accounts[0].address);
-      setTrainingData(prev => ({ ...prev, selectedDatasets: datasets, isLoading: false }));
+      setTrainingData(prev => ({ 
+        ...prev, 
+        availableDatasets: datasets,
+        selectedDatasets: [], // Start with no datasets selected
+        isLoading: false 
+      }));
     } catch (error) {
       setTrainingData(prev => ({
         ...prev,
@@ -289,89 +296,213 @@ export function UploadModel() {
                   </Text>
                 </Flex>
               </Card>
-            ) : trainingData.selectedDatasets.length === 0 ? (
+            ) : trainingData.availableDatasets.length === 0 ? (
               <Text size="2" style={{ color: "var(--gray-11)", textAlign: "center", padding: "24px 0" }}>
                 No datasets available. Please upload datasets in the Datasets section first.
               </Text>
             ) : (
               <Flex direction="column" gap="4">
-                {trainingData.selectedDatasets.map((dataset) => (
-                  <Card
-                    key={dataset.id}
-                    style={{
-                      padding: "16px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--gray-4)",
-                      background: "var(--gray-1)",
-                    }}
-                  >
-                    <Flex direction="column" gap="3">
-                      <Flex align="center" justify="between">
-                        <Text size="2" style={{ fontWeight: 500 }}>
-                          Dataset {dataset.id.substring(0, 8)}
-                        </Text>
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => handleDatasetRemove(dataset)}
-                          style={{
-                            background: "var(--red-3)",
-                            color: "var(--red-11)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Remove
-                        </Button>
-                      </Flex>
-                      <Flex direction="column" gap="1">
-                        <Text size="1" style={{ color: "var(--gray-9)" }}>
-                          Created: {new Date(dataset.createdAt).toLocaleDateString()}
-                        </Text>
-                        <Text size="1" style={{ color: "var(--gray-9)" }}>
-                          Size: {(dataset.size / 1024 / 1024).toFixed(2)} MB
-                        </Text>
-                      </Flex>
-                      <Flex gap="2">
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => window.open(dataset.mediaUrl, '_blank')}
-                          style={{
-                            background: "var(--blue-3)",
-                            color: "var(--blue-11)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          View Data
-                        </Button>
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => window.open(`https://walruscan.com/${SUI_NETWORK.TYPE}/blob/${dataset.id}`, '_blank')}
-                          style={{
-                            background: "var(--purple-3)",
-                            color: "var(--purple-11)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          View on Walrus Scan
-                        </Button>
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => window.open(`https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`, '_blank')}
-                          style={{
-                            background: "var(--blue-3)",
-                            color: "var(--blue-11)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          View on SuiScan
-                        </Button>
-                      </Flex>
+                {/* Selected Datasets Section */}
+                {trainingData.selectedDatasets.length > 0 && (
+                  <Box>
+                    <Flex align="center" justify="between" mb="3">
+                      <Text size="2" style={{ fontWeight: 500 }}>
+                        Selected Datasets ({trainingData.selectedDatasets.length})
+                      </Text>
+                      <Button
+                        size="1"
+                        variant="soft"
+                        onClick={() => setTrainingData(prev => ({ ...prev, selectedDatasets: [] }))}
+                        style={{
+                          background: "var(--red-3)",
+                          color: "var(--red-11)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Clear All
+                      </Button>
                     </Flex>
-                  </Card>
-                ))}
+                    <Flex wrap="wrap" gap="2">
+                      {trainingData.selectedDatasets.map((dataset) => (
+                        <Card
+                          key={dataset.id}
+                          style={{
+                            padding: "12px",
+                            borderRadius: "8px",
+                            border: "1px solid var(--gray-4)",
+                            background: "var(--gray-1)",
+                            width: "calc(50% - 8px)",
+                            minWidth: "200px",
+                          }}
+                        >
+                          <Flex direction="column" gap="2">
+                            <Flex align="center" justify="between">
+                              <Flex align="center" gap="2">
+                                <Box
+                                  style={{
+                                    width: "8px",
+                                    height: "8px",
+                                    borderRadius: "50%",
+                                    background: "var(--green-9)",
+                                  }}
+                                />
+                                <Text size="2" style={{ fontWeight: 500 }}>
+                                  Dataset {dataset.id.substring(0, 8)}
+                                </Text>
+                              </Flex>
+                              <Button
+                                size="1"
+                                variant="soft"
+                                onClick={() => handleDatasetRemove(dataset)}
+                                style={{
+                                  background: "var(--red-3)",
+                                  color: "var(--red-11)",
+                                  cursor: "pointer",
+                                  padding: "0 8px",
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </Flex>
+                            <Flex align="center" gap="2" style={{ fontSize: "12px", color: "var(--gray-9)" }}>
+                              <Text size="1">
+                                {(dataset.size / 1024 / 1024).toFixed(2)} MB
+                              </Text>
+                              <Text size="1">•</Text>
+                              <Text size="1">
+                                {new Date(dataset.createdAt).toLocaleDateString()}
+                              </Text>
+                            </Flex>
+                            <Flex gap="1">
+                              <Button
+                                size="1"
+                                variant="soft"
+                                onClick={() => window.open(dataset.mediaUrl, '_blank')}
+                                style={{
+                                  background: "var(--blue-3)",
+                                  color: "var(--blue-11)",
+                                  cursor: "pointer",
+                                  padding: "0 8px",
+                                }}
+                              >
+                                View Data
+                              </Button>
+                              <Button
+                                size="1"
+                                variant="soft"
+                                onClick={() => window.open(`https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`, '_blank')}
+                                style={{
+                                  background: "var(--blue-3)",
+                                  color: "var(--blue-11)",
+                                  cursor: "pointer",
+                                  padding: "0 8px",
+                                }}
+                              >
+                                Sui Scan
+                              </Button>
+                            </Flex>
+                          </Flex>
+                        </Card>
+                      ))}
+                    </Flex>
+                  </Box>
+                )}
+
+                {/* Available Datasets Section */}
+                <Box>
+                  <Flex align="center" justify="between" mb="3">
+                    <Text size="2" style={{ fontWeight: 500 }}>
+                      Available Datasets ({trainingData.availableDatasets.filter(dataset => 
+                        !trainingData.selectedDatasets.some(d => d.id === dataset.id)
+                      ).length})
+                    </Text>
+                  </Flex>
+                  <Flex wrap="wrap" gap="2">
+                    {trainingData.availableDatasets
+                      .filter(dataset => !trainingData.selectedDatasets.some(d => d.id === dataset.id))
+                      .map((dataset) => (
+                        <Card
+                          key={dataset.id}
+                          style={{
+                            padding: "12px",
+                            borderRadius: "8px",
+                            border: "1px solid var(--gray-4)",
+                            background: "var(--gray-1)",
+                            width: "calc(50% - 8px)",
+                            minWidth: "200px",
+                          }}
+                        >
+                          <Flex direction="column" gap="2">
+                            <Flex align="center" justify="between">
+                              <Flex align="center" gap="2">
+                                <Box
+                                  style={{
+                                    width: "8px",
+                                    height: "8px",
+                                    borderRadius: "50%",
+                                    background: "var(--gray-9)",
+                                  }}
+                                />
+                                <Text size="2" style={{ fontWeight: 500 }}>
+                                  Dataset {dataset.id.substring(0, 8)}
+                                </Text>
+                              </Flex>
+                              <Button
+                                size="1"
+                                variant="soft"
+                                onClick={() => handleDatasetSelect(dataset)}
+                                style={{
+                                  background: "var(--green-3)",
+                                  color: "var(--green-11)",
+                                  cursor: "pointer",
+                                  padding: "0 8px",
+                                }}
+                              >
+                                Select
+                              </Button>
+                            </Flex>
+                            <Flex align="center" gap="2" style={{ fontSize: "12px", color: "var(--gray-9)" }}>
+                              <Text size="1">
+                                {(dataset.size / 1024 / 1024).toFixed(2)} MB
+                              </Text>
+                              <Text size="1">•</Text>
+                              <Text size="1">
+                                {new Date(dataset.createdAt).toLocaleDateString()}
+                              </Text>
+                            </Flex>
+                            <Flex gap="1">
+                              <Button
+                                size="1"
+                                variant="soft"
+                                onClick={() => window.open(dataset.mediaUrl, '_blank')}
+                                style={{
+                                  background: "var(--blue-3)",
+                                  color: "var(--blue-11)",
+                                  cursor: "pointer",
+                                  padding: "0 8px",
+                                }}
+                              >
+                                View Data
+                              </Button>
+                              <Button
+                                size="1"
+                                variant="soft"
+                                onClick={() => window.open(`https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`, '_blank')}
+                                style={{
+                                  background: "var(--blue-3)",
+                                  color: "var(--blue-11)",
+                                  cursor: "pointer",
+                                  padding: "0 8px",
+                                }}
+                              >
+                                Sui Scan
+                              </Button>
+                            </Flex>
+                          </Flex>
+                        </Card>
+                      ))}
+                  </Flex>
+                </Box>
               </Flex>
             )}
           </Flex>
