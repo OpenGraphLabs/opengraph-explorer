@@ -40,7 +40,6 @@ export function UploadModel() {
     name: "",
     description: "",
     modelType: "text-generation",
-    license: "apache-2.0",
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -107,10 +106,6 @@ export function UploadModel() {
     setModelInfo((prev) => ({ ...prev, modelType: value }));
   };
 
-  const handleLicenseChange = (value: string) => {
-    setModelInfo((prev) => ({ ...prev, license: value }));
-  };
-
   const handleDatasetSelect = (dataset: BlobObject) => {
     setTrainingData(prev => ({
       ...prev,
@@ -141,11 +136,6 @@ export function UploadModel() {
       return;
     }
 
-    if (trainingData.selectedDatasets.length === 0) {
-      setUploadError("Please select at least one training dataset.");
-      return;
-    }
-
     setIsUploading(true);
     setUploadError(null);
     setTransactionInProgress(true);
@@ -159,8 +149,7 @@ export function UploadModel() {
           name: modelInfo.name,
           description: modelInfo.description,
           modelType: modelInfo.modelType,
-          license: modelInfo.license,
-          trainingData: trainingData.selectedDatasets.map(dataset => ({
+          trainingData: trainingData.selectedDatasets.length > 0 ? trainingData.selectedDatasets.map(dataset => ({
             blobId: dataset.id,
             endEpoch: 0, // This will be set by the contract
             status: WalrusStorageStatus.NEWLY_CREATED,
@@ -169,7 +158,7 @@ export function UploadModel() {
             mediaUrl: dataset.mediaUrl,
             suiScanUrl: `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
             suiRefId: dataset.id
-          })),
+          })) : undefined,
         },
         (result) => {
           console.log("Model uploaded to blockchain:", result);
@@ -638,34 +627,6 @@ export function UploadModel() {
                   </Select.Content>
                 </Select.Root>
               </Box>
-
-              <Box>
-                <Text
-                  as="label"
-                  size="2"
-                  style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}
-                >
-                  License <span style={{ color: "#FF5733" }}>*</span>
-                </Text>
-                <Select.Root
-                  value={modelInfo.license}
-                  onValueChange={handleLicenseChange}
-                >
-                  <Select.Trigger
-                    style={{
-                      width: "100%",
-                      borderRadius: "8px",
-                      padding: "12px 16px",
-                      fontSize: "15px",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
-                    }}
-                  />
-                  <Select.Content>
-                    <Select.Item value="apache-2.0">Apache 2.0</Select.Item>
-                    <Select.Item value="mit">MIT</Select.Item>
-                  </Select.Content>
-                </Select.Root>
-              </Box>
             </Flex>
           </Flex>
         </Card>
@@ -833,8 +794,7 @@ export function UploadModel() {
                   !convertedModel ||
                   !modelInfo.name ||
                   !modelInfo.description ||
-                  !modelInfo.modelType ||
-                  trainingData.selectedDatasets.length === 0
+                  !modelInfo.modelType
                 }
                 style={{
                   background: "#FF5733",
@@ -844,8 +804,7 @@ export function UploadModel() {
                     !convertedModel ||
                     !modelInfo.name ||
                     !modelInfo.description ||
-                    !modelInfo.modelType ||
-                    trainingData.selectedDatasets.length === 0
+                    !modelInfo.modelType
                       ? "not-allowed"
                       : "pointer",
                   opacity:
@@ -853,8 +812,7 @@ export function UploadModel() {
                     !convertedModel ||
                     !modelInfo.name ||
                     !modelInfo.description ||
-                    !modelInfo.modelType ||
-                    trainingData.selectedDatasets.length === 0
+                    !modelInfo.modelType
                       ? 0.5
                       : 1,
                   padding: "0 24px",

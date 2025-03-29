@@ -20,8 +20,7 @@ interface UploadModelParams {
   name: string;
   description: string;
   modelType: string;
-  license: string;
-  trainingData: WalrusStorageInfo[];
+  trainingData?: WalrusStorageInfo[];
 }
 
 interface TransactionResult {
@@ -52,8 +51,8 @@ export function useUploadModelToSui() {
       tx.setGasBudget(GAS_BUDGET);
 
       // 학습 데이터 blob ID와 Sui 참조를 바이트 배열로 변환
-      const trainingDataBlobIds = params.trainingData.map(data => stringToBytes(data.blobId));
-      const trainingDataSuiRefs = params.trainingData.map(data => stringToBytes(data.suiRef));
+      const trainingDataBlobIds = params.trainingData?.map(data => stringToBytes(data.blobId)) || [];
+      const trainingDataSuiRefs = params.trainingData?.map(data => stringToBytes(data.suiRef)) || [];
 
       tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
