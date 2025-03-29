@@ -11,7 +11,7 @@ export const SUI_NETWORK = {
 
 // 컨트랙트 정보
 export const SUI_CONTRACT = {
-  PACKAGE_ID: "0x24d90f4967e65e7ba6dfeb2356555f1668d4cfd093485a0cf74849d90fc2434a",
+  PACKAGE_ID: "0x42585e49a708088e479268864d4eda3219b8170367673af5ceee89c86a9665a7",
   MODULE_NAME: "model",
 };
 

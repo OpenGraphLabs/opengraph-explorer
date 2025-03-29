@@ -1,12 +1,33 @@
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
-import { Model } from "../types/model";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
+import { WalrusStorageInfo } from "./walrusService";
+import { Model } from "../types/model";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
 });
+
+/**
+ * 문자열을 바이트 배열로 변환하는 유틸리티 함수
+ */
+function stringToBytes(str: string): number[] {
+  return Array.from(str).map(char => char.charCodeAt(0));
+}
+
+interface UploadModelParams {
+  name: string;
+  description: string;
+  modelType: string;
+  trainingData?: WalrusStorageInfo[];
+}
+
+interface TransactionResult {
+  digest: string;
+  events?: any[];
+  [key: string]: any;
+}
 
 /**
  * Model 객체를 Sui 블록체인에 업로드하는 커스텀 훅
@@ -16,10 +37,10 @@ export function useUploadModelToSui() {
   const account = useCurrentAccount();
 
   const uploadModel = async (
-    model: Model,
-    modelInfo: { name: string; description: string; task: string },
+    model: Model, 
+    params: UploadModelParams,
     onSuccess?: (result: any) => void
-  ) => {
+) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
     }
@@ -29,13 +50,17 @@ export function useUploadModelToSui() {
 
       tx.setGasBudget(GAS_BUDGET);
 
+      // 학습 데이터 blob ID와 Sui 참조를 바이트 배열로 변환
+      const trainingDataBlobIds = params.trainingData?.map(data => stringToBytes(data.blobId)) || [];
+      const trainingDataSuiRefs = params.trainingData?.map(data => stringToBytes(data.suiRef)) || [];
+
       tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
         arguments: [
           // model metadata
-          tx.pure.string(modelInfo.name),
-          tx.pure.string(modelInfo.description),
-          tx.pure.string(modelInfo.task),
+          tx.pure.string(params.name),
+          tx.pure.string(params.description),
+          tx.pure.string(params.modelType),
 
           // model data
           tx.pure.vector("vector<u64>", model.layerDimensions),
