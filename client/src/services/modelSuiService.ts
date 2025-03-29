@@ -9,24 +9,11 @@ const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
 });
 
-/**
- * 문자열을 바이트 배열로 변환하는 유틸리티 함수
- */
-function stringToBytes(str: string): number[] {
-  return Array.from(str).map(char => char.charCodeAt(0));
-}
-
 interface UploadModelParams {
   name: string;
   description: string;
   modelType: string;
   trainingData?: WalrusStorageInfo[];
-}
-
-interface TransactionResult {
-  digest: string;
-  events?: any[];
-  [key: string]: any;
 }
 
 /**
@@ -51,8 +38,8 @@ export function useUploadModelToSui() {
       tx.setGasBudget(GAS_BUDGET);
 
       // 학습 데이터 blob ID와 Sui 참조를 바이트 배열로 변환
-      const trainingDataBlobIds = params.trainingData?.map(data => stringToBytes(data.blobId)) || [];
-      const trainingDataSuiRefs = params.trainingData?.map(data => stringToBytes(data.suiRef)) || [];
+      // const trainingDataBlobIds = params.trainingData?.map(data => stringToBytes(data.blobId)) || [];
+      // const trainingDataSuiRefs = params.trainingData?.map(data => stringToBytes(data.suiRef)) || [];
 
       tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,

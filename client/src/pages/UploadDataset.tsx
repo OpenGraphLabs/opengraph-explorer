@@ -26,7 +26,6 @@ export function UploadDataset() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [uploadInProgress, setUploadInProgress] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewStep, setPreviewStep] = useState<'select' | 'preview' | 'upload'>('select');
 
@@ -67,7 +66,6 @@ export function UploadDataset() {
 
     try {
       setPreviewStep('upload');
-      setUploadInProgress(true);
       setError(null);
       await uploadTrainingData(selectedFile, currentWallet.accounts[0].address);
       setUploadSuccess(true);
@@ -77,8 +75,6 @@ export function UploadDataset() {
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to upload dataset");
       setPreviewStep('preview');
-    } finally {
-      setUploadInProgress(false);
     }
   };
 
