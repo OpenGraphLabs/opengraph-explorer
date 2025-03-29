@@ -84,7 +84,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number) {
     
     try {
       // Call layer prediction transaction
-      const result = await predictLayer(modelId, layerIdx, inputMagnitude, inputSign, (res) => {
+      await predictLayer(modelId, layerIdx, inputMagnitude, inputSign, (res) => {
         console.log("--------------------------------");
         console.log(`Layer ${layerIdx} prediction result:`, res);
         console.log(`Layer ${layerIdx} prediction events:`, res.events);

@@ -317,21 +317,3 @@ function getTaskName(taskId: string): string {
   };
   return taskMap[taskId] || taskId;
 }
-
-// Layer type conversion function
-function getLayerTypeName(layerType: string): string {
-  const layerMap: Record<string, string> = {
-    "linear": "Linear Layer",
-    "relu": "ReLU Activation",
-    "sigmoid": "Sigmoid Activation",
-    "tanh": "Hyperbolic Tangent",
-    "softmax": "Softmax",
-    "conv2d": "2D Convolution",
-    "maxpool": "Max Pooling",
-    "lstm": "LSTM",
-    "gru": "GRU",
-    "transformer": "Transformer",
-    "attention": "Attention Mechanism",
-  };
-  return layerMap[layerType] || layerType;
-} 
