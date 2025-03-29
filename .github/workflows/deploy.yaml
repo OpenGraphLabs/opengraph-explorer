@@ -22,9 +22,11 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
+        working-directory: ./client
         run: yarn install --frozen-lockfile
 
       - name: Build React app
+        working-directory: ./client
         run: yarn build
 
       - name: Deploy site to Walrus
