@@ -32,7 +32,7 @@ jobs:
           site-path: './client/dist'
           network: 'testnet'
           epochs: 100
-          wal-exchange-enabled: true
+          wal-exchange-enabled: false
         env:
           SUI_ADDRESS: ${{ vars.SUI_ADDRESS }}
           SUI_KEYSTORE: ${{ secrets.SUI_KEYSTORE }}
