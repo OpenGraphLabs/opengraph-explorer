@@ -32,7 +32,7 @@ jobs:
           site-path: './client/dist'
           network: 'testnet'
           epochs: 100
-          # object-id: '0x3ed5d70cdbc085b561df5d1eb1c270e37fcbbc1d134f4e7373c51a61bdb119c2'
+          object-id: '0x0b87dc72e319f802862cdc1161e25d80ef771f973a36faff556c78bd84496c4e'
           wal-exchange-enabled: false
         env:
           SUI_ADDRESS: ${{ vars.SUI_ADDRESS }}
