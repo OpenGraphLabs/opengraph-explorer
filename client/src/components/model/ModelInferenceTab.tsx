@@ -8,7 +8,6 @@ import {
   Rocket, 
   CircleWavyCheck as CircuitBoard, 
   Brain as BrainCircuit,
-  ArrowRight,
   Lightning,
   FlowArrow,
   ArrowsHorizontal,
@@ -44,7 +43,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     txDigest,
     setInputVector,
     startInference,
-    predictNextLayer,
+    // predictNextLayer,
     runAllLayersWithPTB
   } = useModelInferenceState(model.id, getLayerCount());
 
