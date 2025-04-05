@@ -31,7 +31,7 @@ jobs:
         with:
           site-path: './client/dist'
           network: 'testnet'
-          epochs: 100
+          epochs: 50
           # object-id: '0x0b87dc72e319f802862cdc1161e25d80ef771f973a36faff556c78bd84496c4e'
           wal-exchange-enabled: false
         env:
