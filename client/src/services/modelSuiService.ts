@@ -173,6 +173,101 @@ export function useModelInference() {
   };
 
   /**
+   * 모델 전체에 대해 PTB inference를 수행하는 함수
+   * 모든 레이어를 한 번의 트랜잭션으로 처리
+   * @param modelId 모델 객체 ID
+   * @param layerCount 모델 레이어 수 
+   * @param inputMagnitude 입력 벡터의 크기 값
+   * @param inputSign 입력 벡터의 부호 값
+   * @param onSuccess 성공 시 콜백 함수
+   * @returns 트랜잭션 실행 결과
+   */
+  const predictModelWithPTB = async (
+    modelId: string,
+    layerCount: number,
+    inputMagnitude: number[],
+    inputSign: number[],
+    onSuccess?: (result: any) => void
+  ) => {
+    if (!account) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+
+    try {
+      console.log("Predicting full model with PTB chaining", modelId);
+      console.log("Input magnitude:", inputMagnitude);
+      console.log("Input sign:", inputSign);
+
+      const tx = new Transaction();
+      tx.setGasBudget(GAS_BUDGET);
+
+      // predict_layer는 (vector<u64>, vector<u64>, Option<u64>)를 반환
+      // 첫 번째 레이어 실행
+      let layerOutput = tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
+        arguments: [
+          tx.object(modelId),
+          tx.pure.u64(0n), // 첫 번째 레이어(인덱스 0)
+          tx.pure.vector("u64", inputMagnitude),
+          tx.pure.vector("u64", inputSign),
+        ],
+      });
+
+      // 나머지 레이어들을 연속해서 실행
+      // 각 레이어의 출력을 다음 레이어의 입력으로 사용
+      for (let i = 1; i < layerCount; i++) {
+        // layerOutput은 (magnitude, sign, argmax_option) 튜플
+        // 다음 레이어의 입력으로 이전 레이어의 magnitude와 sign만 사용
+        layerOutput = tx.moveCall({
+          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
+          arguments: [
+            tx.object(modelId),
+            tx.pure.u64(BigInt(i)),
+            // result[0]은 output_magnitude, result[1]은 output_sign
+            layerOutput[0], // magnitude vector
+            layerOutput[1], // sign vector
+          ],
+        });
+      }
+
+      // 최종 출력은 layerOutput에 저장됨
+      // layerOutput[0]: 최종 magnitude
+      // layerOutput[1]: 최종 sign
+      // layerOutput[2]: 마지막 레이어의 argmax_option (Option<u64> 타입)
+
+      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
+      return await signAndExecuteTransaction(
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: (result) => {
+            console.log(`Full model prediction successful:`, result);
+            console.log(`Events:`, result.events);
+            
+            // 마지막 레이어의 이벤트를 파싱
+            const events = result.events || [];
+            const finalLayerEvent = parseLayerComputedEvent(events);
+            const predictionCompletedEvent = parsePredictionCompletedEvent(events);
+            
+            console.log(`Final layer output:`, finalLayerEvent);
+            console.log(`Prediction completed:`, predictionCompletedEvent);
+            
+            if (onSuccess) {
+              onSuccess(result);
+            }
+            return result;
+          }
+        }
+      );
+    } catch (error) {
+      console.error(`Error predicting model ${modelId} with PTB:`, error);
+      throw error;
+    }
+  };
+
+  /**
    * LayerComputed 이벤트 데이터를 파싱하는 함수
    * @param events 이벤트 배열
    */
@@ -233,6 +328,7 @@ export function useModelInference() {
 
   return {
     predictLayer,
+    predictModelWithPTB,
     parseLayerComputedEvent,
     parsePredictionCompletedEvent,
   };
