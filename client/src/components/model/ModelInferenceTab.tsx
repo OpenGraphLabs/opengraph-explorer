@@ -12,7 +12,8 @@ import {
   Lightning,
   FlowArrow,
   ArrowsHorizontal,
-  CheckCircle
+  CheckCircle,
+  Gauge
 } from "phosphor-react";
 import { ModelObject } from "../../services/modelGraphQLService";
 import { getSuiScanUrl } from "../../utils/sui";
@@ -43,7 +44,8 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     txDigest,
     setInputVector,
     startInference,
-    predictNextLayer
+    predictNextLayer,
+    runAllLayersWithPTB
   } = useModelInferenceState(model.id, getLayerCount());
 
   // Auto-scroll effect when new results come in or processing state changes
@@ -220,7 +222,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 </Badge>
               </Flex>
               
-              <Flex gap="3" mt="4">
+              <Flex gap="3" mt="4" wrap="wrap">
                 <Button
                   onClick={startInference}
                   disabled={isProcessing || !inputVector.trim()}
@@ -245,8 +247,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                     </Flex>
                   )}
                 </Button>
-                
-                <Button
+
+                {/* NOTE(Jarry): Manual Layer-by-Layer Inference is not available yet */}
+                {/* <Button
                   onClick={predictNextLayer}
                   disabled={isProcessing || predictResults.length === 0 || currentLayerIndex >= getLayerCount()}
                   style={{
@@ -265,11 +268,43 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                     </Flex>
                   ) : (
                     <Flex align="center" gap="2">
-                      <span>Run Next Layer Manually</span>
+                      <span>Run Next Layer</span>
                       <ArrowRight size={16} weight="bold" />
                     </Flex>
                   )}
+                </Button> */}
+
+                <Button
+                  onClick={runAllLayersWithPTB}
+                  disabled={isProcessing || !inputVector.trim()}
+                  style={{
+                    cursor: "pointer",
+                    background: "#8B5CF6",
+                    color: "white",
+                    borderRadius: "8px",
+                    opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {isProcessing ? (
+                    <Flex align="center" gap="2">
+                      <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                      <span>Processing...</span>
+                    </Flex>
+                  ) : (
+                    <Flex align="center" gap="2">
+                      <Gauge size={16} weight="bold" />
+                      <span>Run All Layers (PTB)</span>
+                    </Flex>
+                  )}
                 </Button>
+              </Flex>
+
+              <Flex mt="2">
+                <Text size="1" style={{ color: "#666" }}>
+                  <InfoCircledIcon style={{ width: "12px", height: "12px", marginRight: "4px" }} />
+                  PTB allows running all layers in a single transaction, requiring only one wallet signature.
+                </Text>
               </Flex>
             </Flex>
           </Card>
