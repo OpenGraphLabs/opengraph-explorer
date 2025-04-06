@@ -45,9 +45,9 @@ export default function App() {
           <Flex align="center" gap="6">
             <Link to="/" style={{ textDecoration: "none" }}>
               <Flex align="center" gap="2">
-                <img 
-                  src={logoImage} 
-                  alt="OpenGraph Logo" 
+                <img
+                  src={logoImage}
+                  alt="OpenGraph Logo"
                   style={{
                     width: "40px",
                     height: "40px",
@@ -257,9 +257,9 @@ export default function App() {
           }}
         >
           <Flex align="center" gap="2">
-            <img 
-              src={logoImage} 
-              alt="OpenGraph Logo" 
+            <img
+              src={logoImage}
+              alt="OpenGraph Logo"
               style={{
                 width: "24px",
                 height: "24px",

@@ -74,11 +74,11 @@ export function UploadModel() {
     try {
       setTrainingData(prev => ({ ...prev, isLoading: true, error: null }));
       const datasets = await modelGraphQLService.getUserBlobs(currentWallet!.accounts[0].address);
-      setTrainingData(prev => ({ 
-        ...prev, 
+      setTrainingData(prev => ({
+        ...prev,
         availableDatasets: datasets,
         selectedDatasets: [], // Start with no datasets selected
-        isLoading: false 
+        isLoading: false,
       }));
     } catch (error) {
       setTrainingData(prev => ({
@@ -91,19 +91,17 @@ export function UploadModel() {
 
   const handleFileSelect = async (files: File[]) => {
     if (files.length === 0) return;
-    
+
     try {
       setUploadError(null);
       await convertModel(files[0]);
     } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : "Failed to convert model file"
-      );
+      setUploadError(error instanceof Error ? error.message : "Failed to convert model file");
     }
   };
 
   const handleModelTypeChange = (value: string) => {
-    setModelInfo((prev) => ({ ...prev, modelType: value }));
+    setModelInfo(prev => ({ ...prev, modelType: value }));
   };
 
   const handleDatasetSelect = (dataset: BlobObject) => {
@@ -144,35 +142,38 @@ export function UploadModel() {
 
     try {
       await uploadModel(
-        convertedModel, 
+        convertedModel,
         {
           name: modelInfo.name,
           description: modelInfo.description,
           modelType: modelInfo.modelType,
-          trainingData: trainingData.selectedDatasets.length > 0 ? trainingData.selectedDatasets.map(dataset => ({
-            blobId: dataset.id,
-            endEpoch: 0, // This will be set by the contract
-            status: WalrusStorageStatus.NEWLY_CREATED,
-            suiRef: dataset.id,
-            suiRefType: "Associated Sui Object",
-            mediaUrl: dataset.mediaUrl,
-            suiScanUrl: `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
-            suiRefId: dataset.id
-          })) : undefined,
+          trainingData:
+            trainingData.selectedDatasets.length > 0
+              ? trainingData.selectedDatasets.map(dataset => ({
+                  blobId: dataset.id,
+                  endEpoch: 0, // This will be set by the contract
+                  status: WalrusStorageStatus.NEWLY_CREATED,
+                  suiRef: dataset.id,
+                  suiRefType: "Associated Sui Object",
+                  mediaUrl: dataset.mediaUrl,
+                  suiScanUrl: `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
+                  suiRefId: dataset.id,
+                }))
+              : undefined,
         },
-        (result) => {
+        result => {
           console.log("Model uploaded to blockchain:", result);
-          
-          if (result && typeof result === 'object' && 'digest' in result) {
+
+          if (result && typeof result === "object" && "digest" in result) {
             setTransactionHash(result.digest);
           }
-          
+
           setUploadSuccess(true);
           setTransactionInProgress(false);
           setIsUploading(false);
-          
+
           setTimeout(() => {
-            navigate('/models');
+            navigate("/models");
           }, 1000);
         }
       );
@@ -271,7 +272,8 @@ export function UploadModel() {
             </Flex>
 
             <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
-              Choose from your existing training datasets or upload new ones in the Datasets section.
+              Choose from your existing training datasets or upload new ones in the Datasets
+              section.
             </Text>
 
             {trainingData.isLoading ? (
@@ -298,7 +300,10 @@ export function UploadModel() {
                 </Flex>
               </Card>
             ) : trainingData.availableDatasets.length === 0 ? (
-              <Text size="2" style={{ color: "var(--gray-11)", textAlign: "center", padding: "24px 0" }}>
+              <Text
+                size="2"
+                style={{ color: "var(--gray-11)", textAlign: "center", padding: "24px 0" }}
+              >
                 No datasets available. Please upload datasets in the Datasets section first.
               </Text>
             ) : (
@@ -324,7 +329,7 @@ export function UploadModel() {
                       </Button>
                     </Flex>
                     <Flex wrap="wrap" gap="2">
-                      {trainingData.selectedDatasets.map((dataset) => (
+                      {trainingData.selectedDatasets.map(dataset => (
                         <Card
                           key={dataset.id}
                           style={{
@@ -365,10 +370,12 @@ export function UploadModel() {
                                 Remove
                               </Button>
                             </Flex>
-                            <Flex align="center" gap="2" style={{ fontSize: "12px", color: "var(--gray-9)" }}>
-                              <Text size="1">
-                                {(dataset.size / 1024 / 1024).toFixed(2)} MB
-                              </Text>
+                            <Flex
+                              align="center"
+                              gap="2"
+                              style={{ fontSize: "12px", color: "var(--gray-9)" }}
+                            >
+                              <Text size="1">{(dataset.size / 1024 / 1024).toFixed(2)} MB</Text>
                               <Text size="1">•</Text>
                               <Text size="1">
                                 {new Date(dataset.createdAt).toLocaleDateString()}
@@ -378,7 +385,7 @@ export function UploadModel() {
                               <Button
                                 size="1"
                                 variant="soft"
-                                onClick={() => window.open(dataset.mediaUrl, '_blank')}
+                                onClick={() => window.open(dataset.mediaUrl, "_blank")}
                                 style={{
                                   background: "var(--blue-3)",
                                   color: "var(--blue-11)",
@@ -391,7 +398,12 @@ export function UploadModel() {
                               <Button
                                 size="1"
                                 variant="soft"
-                                onClick={() => window.open(`https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`, '_blank')}
+                                onClick={() =>
+                                  window.open(
+                                    `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
+                                    "_blank"
+                                  )
+                                }
                                 style={{
                                   background: "var(--blue-3)",
                                   color: "var(--blue-11)",
@@ -413,15 +425,21 @@ export function UploadModel() {
                 <Box>
                   <Flex align="center" justify="between" mb="3">
                     <Text size="2" style={{ fontWeight: 500 }}>
-                      Available Datasets ({trainingData.availableDatasets.filter(dataset => 
-                        !trainingData.selectedDatasets.some(d => d.id === dataset.id)
-                      ).length})
+                      Available Datasets (
+                      {
+                        trainingData.availableDatasets.filter(
+                          dataset => !trainingData.selectedDatasets.some(d => d.id === dataset.id)
+                        ).length
+                      }
+                      )
                     </Text>
                   </Flex>
                   <Flex wrap="wrap" gap="2">
                     {trainingData.availableDatasets
-                      .filter(dataset => !trainingData.selectedDatasets.some(d => d.id === dataset.id))
-                      .map((dataset) => (
+                      .filter(
+                        dataset => !trainingData.selectedDatasets.some(d => d.id === dataset.id)
+                      )
+                      .map(dataset => (
                         <Card
                           key={dataset.id}
                           style={{
@@ -462,10 +480,12 @@ export function UploadModel() {
                                 Select
                               </Button>
                             </Flex>
-                            <Flex align="center" gap="2" style={{ fontSize: "12px", color: "var(--gray-9)" }}>
-                              <Text size="1">
-                                {(dataset.size / 1024 / 1024).toFixed(2)} MB
-                              </Text>
+                            <Flex
+                              align="center"
+                              gap="2"
+                              style={{ fontSize: "12px", color: "var(--gray-9)" }}
+                            >
+                              <Text size="1">{(dataset.size / 1024 / 1024).toFixed(2)} MB</Text>
                               <Text size="1">•</Text>
                               <Text size="1">
                                 {new Date(dataset.createdAt).toLocaleDateString()}
@@ -475,7 +495,7 @@ export function UploadModel() {
                               <Button
                                 size="1"
                                 variant="soft"
-                                onClick={() => window.open(dataset.mediaUrl, '_blank')}
+                                onClick={() => window.open(dataset.mediaUrl, "_blank")}
                                 style={{
                                   background: "var(--blue-3)",
                                   color: "var(--blue-11)",
@@ -488,7 +508,12 @@ export function UploadModel() {
                               <Button
                                 size="1"
                                 variant="soft"
-                                onClick={() => window.open(`https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`, '_blank')}
+                                onClick={() =>
+                                  window.open(
+                                    `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
+                                    "_blank"
+                                  )
+                                }
                                 style={{
                                   background: "var(--blue-3)",
                                   color: "var(--blue-11)",
@@ -606,10 +631,7 @@ export function UploadModel() {
                 >
                   Model Type <span style={{ color: "#FF5733" }}>*</span>
                 </Text>
-                <Select.Root
-                  value={modelInfo.modelType}
-                  onValueChange={handleModelTypeChange}
-                >
+                <Select.Root value={modelInfo.modelType} onValueChange={handleModelTypeChange}>
                   <Select.Trigger
                     style={{
                       width: "100%",
@@ -686,9 +708,7 @@ export function UploadModel() {
                 <Flex direction="column" gap="2">
                   <Flex align="center" gap="2">
                     <ExclamationTriangleIcon style={{ color: "#D32F2F", width: 20, height: 20 }} />
-                    <Text style={{ color: "#D32F2F", fontWeight: 500 }}>
-                      Upload Failed
-                    </Text>
+                    <Text style={{ color: "#D32F2F", fontWeight: 500 }}>Upload Failed</Text>
                   </Flex>
                   <Text size="2" style={{ color: "#D32F2F" }}>
                     {uploadError}
@@ -740,15 +760,17 @@ export function UploadModel() {
                 <Flex direction="column" gap="2">
                   <Flex align="center" gap="2">
                     <CheckCircledIcon style={{ color: "#2E7D32", width: 20, height: 20 }} />
-                    <Text style={{ color: "#2E7D32", fontWeight: 500 }}>
-                      Upload Successful!
-                    </Text>
+                    <Text style={{ color: "#2E7D32", fontWeight: 500 }}>Upload Successful!</Text>
                   </Flex>
                   <Text size="2" style={{ color: "#2E7D32" }}>
-                    Your model has been successfully uploaded to the blockchain. Redirecting to models page...
+                    Your model has been successfully uploaded to the blockchain. Redirecting to
+                    models page...
                   </Text>
                   {transactionHash && (
-                    <Text size="1" style={{ marginTop: "4px", fontFamily: "monospace", color: "#2E7D32" }}>
+                    <Text
+                      size="1"
+                      style={{ marginTop: "4px", fontFamily: "monospace", color: "#2E7D32" }}
+                    >
                       Transaction: {transactionHash.substring(0, 10)}...
                     </Text>
                   )}
@@ -769,12 +791,14 @@ export function UploadModel() {
                   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
                   zIndex: 1000,
                   animation: "slideIn 0.3s ease-out",
-                  marginTop: "16px"
+                  marginTop: "16px",
                 }}
               >
                 <Flex direction="column" gap="2">
                   <Flex align="center" gap="2">
-                    <ReloadIcon style={{ color: "#1976D2", animation: "spin 1s linear infinite" }} />
+                    <ReloadIcon
+                      style={{ color: "#1976D2", animation: "spin 1s linear infinite" }}
+                    />
                     <Text style={{ color: "#1976D2", fontWeight: 500 }}>
                       Transaction in Progress
                     </Text>

@@ -24,10 +24,10 @@ export function useUploadModelToSui() {
   const account = useCurrentAccount();
 
   const uploadModel = async (
-    model: Model, 
+    model: Model,
     params: UploadModelParams,
     onSuccess?: (result: any) => void
-) => {
+  ) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
     }
@@ -65,13 +65,13 @@ export function useUploadModelToSui() {
           chain: `sui:${SUI_NETWORK.TYPE}`,
         },
         {
-          onSuccess: (result) => {
+          onSuccess: result => {
             console.log("Transaction successful:", result);
             if (onSuccess) {
               onSuccess(result);
             }
             return result;
-          }
+          },
         }
       );
     } catch (error) {
@@ -94,12 +94,12 @@ export function useModelInference() {
         transactionBlock: bytes,
         signature,
         options: {
-          showEvents: true,     // 이벤트 정보 포함
-          showEffects: true,    // 이펙트 정보 포함
+          showEvents: true, // 이벤트 정보 포함
+          showEffects: true, // 이펙트 정보 포함
           showRawEffects: true, // 트랜잭션 이펙트 보고용
         },
       });
-      
+
       return result;
     },
   });
@@ -155,15 +155,15 @@ export function useModelInference() {
           chain: `sui:${SUI_NETWORK.TYPE}`,
         },
         {
-          onSuccess: (result) => {
+          onSuccess: result => {
             console.log(`Layer ${layerIdx} prediction successful:`, result);
             console.log(`Layer ${layerIdx} prediction events:`, result.events);
-            
+
             if (onSuccess) {
               onSuccess(result);
             }
             return result;
-          }
+          },
         }
       );
     } catch (error) {
@@ -176,7 +176,7 @@ export function useModelInference() {
    * 모델 전체에 대해 PTB inference를 수행하는 함수
    * 모든 레이어를 한 번의 트랜잭션으로 처리
    * @param modelId 모델 객체 ID
-   * @param layerCount 모델 레이어 수 
+   * @param layerCount 모델 레이어 수
    * @param inputMagnitude 입력 벡터의 크기 값
    * @param inputSign 입력 벡터의 부호 값
    * @param onSuccess 성공 시 콜백 함수
@@ -242,27 +242,153 @@ export function useModelInference() {
           chain: `sui:${SUI_NETWORK.TYPE}`,
         },
         {
-          onSuccess: (result) => {
+          onSuccess: result => {
             console.log(`Full model prediction successful:`, result);
             console.log(`Events:`, result.events);
-            
+
             // 마지막 레이어의 이벤트를 파싱
             const events = result.events || [];
             const finalLayerEvent = parseLayerComputedEvent(events);
             const predictionCompletedEvent = parsePredictionCompletedEvent(events);
-            
+
             console.log(`Final layer output:`, finalLayerEvent);
             console.log(`Prediction completed:`, predictionCompletedEvent);
-            
+
             if (onSuccess) {
               onSuccess(result);
             }
             return result;
-          }
+          },
         }
       );
     } catch (error) {
       console.error(`Error predicting model ${modelId} with PTB:`, error);
+      throw error;
+    }
+  };
+
+  /**
+   * 최적화된 PTB inference를 수행하는 함수
+   * 레이어의 각 출력 차원에 대해 별도 트랜잭션 수행
+   * @param modelId 모델 객체 ID
+   * @param layerCount 모델 레이어 수
+   * @param layerDimensions 각 레이어의 출력 차원 크기 배열
+   * @param inputMagnitude 입력 벡터의 크기 값
+   * @param inputSign 입력 벡터의 부호 값
+   * @param onSuccess 성공 시 콜백 함수
+   * @returns 트랜잭션 실행 결과
+   */
+  const predictModelWithPTBOptimization = async (
+    modelId: string,
+    layerCount: number,
+    layerDimensions: number[],
+    inputMagnitude: number[],
+    inputSign: number[],
+    onSuccess?: (result: any) => void
+  ) => {
+    if (!account) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+    if (layerDimensions.length !== layerCount) {
+      throw new Error("Layer dimensions array length must match layer count.");
+    }
+
+    try {
+      console.log("Predicting model with optimized PTB", modelId);
+      console.log("Input magnitude:", inputMagnitude);
+      console.log("Input sign:", inputSign);
+      console.log("Layer dimensions:", layerDimensions);
+
+      const tx = new Transaction();
+      tx.setGasBudget(GAS_BUDGET);
+
+      let layerMagnitudes: number[] = [];
+      let layerSigns: number[] = [];
+
+      // 첫 번째 레이어 실행
+      console.log(`Processing layer 0 with output dimension ${layerDimensions[0]}`);
+      for (let dimIdx = 0; dimIdx < layerDimensions[0]; dimIdx++) {
+        // predict_layer_partial 함수 호출
+        // 반환값은 (output magnitude scalar, output sign scalar, output dimension index, is last dimension)
+        const partialResult = tx.moveCall({
+          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer_partial`,
+          arguments: [
+            tx.object(modelId),
+            tx.pure.u64(BigInt(0)),
+            tx.pure.u64(BigInt(dimIdx)),
+            tx.pure.vector("u64", inputMagnitude),
+            tx.pure.vector("u64", inputSign),
+          ],
+        });
+
+        layerMagnitudes.push(partialResult[0]?.NestedResult[0]);
+        layerSigns.push(partialResult[0]?.NestedResult[1]);
+
+        console.log("Partial layer magnitude", partialResult[0]?.NestedResult[0]);
+        console.log("Partial layer sign", partialResult[0]?.NestedResult[1]);
+      }
+
+      // 나머지 레이어들을 연속해서 실행
+      // 각 레이어의 출력을 다음 레이어의 입력으로 사용
+      for (let layerIdx = 1; layerIdx < layerCount; layerIdx++) {
+        const outputDimension = layerDimensions[layerIdx];
+        console.log(`Processing layer ${layerIdx} with output dimension ${outputDimension}`);
+
+        let currentLayerMagnitudes: number[] = [];
+        let currentLayerSigns: number[] = [];
+
+        for (let dimIdx = 0; dimIdx < outputDimension; dimIdx++) {
+          // predict_layer_partial 함수 호출
+          // 반환값은 (output magnitude scalar, output sign scalar, output dimension index, is last dimension)
+          const partialResult = tx.moveCall({
+            target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer_partial`,
+            arguments: [
+              tx.object(modelId),
+              tx.pure.u64(BigInt(layerIdx)),
+              tx.pure.u64(BigInt(dimIdx)),
+              tx.pure.vector("u64", layerMagnitudes),
+              tx.pure.vector("u64", layerSigns),
+            ],
+          });
+
+          // 현재 레이어 결과 저장
+          currentLayerMagnitudes.push(partialResult[0]?.NestedResult[0]);
+          currentLayerSigns.push(partialResult[0]?.NestedResult[1]);
+        }
+
+        // 현재 레이어의 결과로 다음 레이어의 입력 벡터 업데이트
+        layerMagnitudes = currentLayerMagnitudes;
+        layerSigns = currentLayerSigns;
+      }
+
+      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
+      return await signAndExecuteTransaction(
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: result => {
+            console.log(`Optimized PTB prediction successful:`, result);
+            console.log(`Events:`, result.events);
+
+            // 결과 이벤트 파싱
+            const events = result.events || [];
+            const partialLayerEvents = parseLayerPartialComputedEvents(events);
+            const predictionCompletedEvent = parsePredictionCompletedEvent(events);
+
+            console.log(`Partial layer outputs:`, partialLayerEvents);
+            console.log(`Prediction completed:`, predictionCompletedEvent);
+
+            if (onSuccess) {
+              onSuccess(result);
+            }
+            return result;
+          },
+        }
+      );
+    } catch (error) {
+      console.error(`Error predicting model ${modelId} with optimized PTB:`, error);
       throw error;
     }
   };
@@ -275,7 +401,10 @@ export function useModelInference() {
     try {
       // LayerComputed 이벤트 필터링
       const layerEvents = events.filter((event: any) => {
-        return event.type && event.type === `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::LayerComputed`
+        return (
+          event.type &&
+          event.type === `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::LayerComputed`
+        );
       });
 
       if (layerEvents.length === 0) {
@@ -305,7 +434,11 @@ export function useModelInference() {
     try {
       // PredictionCompleted 이벤트 필터링
       const predictionEvents = events.filter((event: any) => {
-        return event.type && event.type === `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::PredictionCompleted`
+        return (
+          event.type &&
+          event.type ===
+            `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::PredictionCompleted`
+        );
       });
 
       if (predictionEvents.length === 0) {
@@ -326,10 +459,89 @@ export function useModelInference() {
     }
   };
 
+  /**
+   * LayerPartialComputed 이벤트 데이터를 파싱하는 함수
+   * @param events 이벤트 배열
+   */
+  const parseLayerPartialComputedEvents = (events: any[]) => {
+    try {
+      // LayerPartialComputed 이벤트 필터링
+      const partialEvents = events.filter((event: any) => {
+        return (
+          event.type &&
+          event.type ===
+            `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::LayerPartialComputed`
+        );
+      });
+
+      if (partialEvents.length === 0) {
+        return [];
+      }
+
+      // 각 이벤트 파싱하여 결과 배열 생성
+      return partialEvents.map(event => {
+        return {
+          modelId: event.parsedJson?.model_id,
+          layerIdx: Number(event.parsedJson?.layer_idx),
+          outputDimIdx: Number(event.parsedJson?.output_dim_idx),
+          outputMagnitude: Number(event.parsedJson?.output_magnitude),
+          outputSign: Number(event.parsedJson?.output_sign),
+          isLastDimension: event.parsedJson?.is_last_dimension,
+        };
+      });
+    } catch (error) {
+      console.error("Error parsing layer partial computed events:", error);
+      return [];
+    }
+  };
+
+  /**
+   * LayerPartialComputed 이벤트들을 레이어 별로 재구성하는 함수
+   * @param partialEvents 각 차원별 계산 결과 이벤트 배열
+   * @param layerCount 총 레이어 수
+   */
+  const reconstructLayerOutputs = (partialEvents: any[], layerCount: number) => {
+    try {
+      // 레이어별 출력 결과를 저장할 객체
+      const layerOutputs: { [key: number]: { magnitudes: number[]; signs: number[] } } = {};
+
+      // 각 레이어 초기화
+      for (let i = 0; i < layerCount; i++) {
+        layerOutputs[i] = { magnitudes: [], signs: [] };
+      }
+
+      // 파셜 이벤트들을 레이어 및 차원 인덱스에 따라 정렬
+      partialEvents.sort((a, b) => {
+        if (a.layerIdx !== b.layerIdx) {
+          return a.layerIdx - b.layerIdx;
+        }
+        return a.outputDimIdx - b.outputDimIdx;
+      });
+
+      // 정렬된 이벤트를 바탕으로 각 레이어의 출력 벡터 재구성
+      partialEvents.forEach(event => {
+        const { layerIdx, outputMagnitude, outputSign } = event;
+
+        if (layerOutputs[layerIdx]) {
+          layerOutputs[layerIdx].magnitudes.push(outputMagnitude);
+          layerOutputs[layerIdx].signs.push(outputSign);
+        }
+      });
+
+      return layerOutputs;
+    } catch (error) {
+      console.error("Error reconstructing layer outputs:", error);
+      return {};
+    }
+  };
+
   return {
     predictLayer,
     predictModelWithPTB,
+    predictModelWithPTBOptimization,
     parseLayerComputedEvent,
+    parseLayerPartialComputedEvents,
+    reconstructLayerOutputs,
     parsePredictionCompletedEvent,
   };
 }
