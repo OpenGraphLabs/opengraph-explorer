@@ -17,7 +17,12 @@ import { MagnifyingGlassIcon, StarFilledIcon, DownloadIcon, CodeIcon } from "@ra
 import { Link } from "react-router-dom";
 import styles from "../styles/Card.module.css";
 import { useModels } from "../hooks/useModels";
-import { SUI_ADDRESS_DISPLAY_LENGTH, TASK_COLORS, TASK_NAMES, TASK_TYPES } from "../constants/suiConfig";
+import {
+  SUI_ADDRESS_DISPLAY_LENGTH,
+  TASK_COLORS,
+  TASK_NAMES,
+  TASK_TYPES,
+} from "../constants/suiConfig";
 
 export function Models() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -168,13 +173,22 @@ export function Models() {
             borderBottom: "1px solid var(--gray-4)",
           }}
         >
-          <Tabs.Trigger value="models" style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}>
+          <Tabs.Trigger
+            value="models"
+            style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}
+          >
             Models
           </Tabs.Trigger>
-          <Tabs.Trigger value="datasets" style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}>
+          <Tabs.Trigger
+            value="datasets"
+            style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}
+          >
             Datasets
           </Tabs.Trigger>
-          <Tabs.Trigger value="spaces" style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}>
+          <Tabs.Trigger
+            value="spaces"
+            style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}
+          >
             Spaces
           </Tabs.Trigger>
         </Tabs.List>
@@ -266,7 +280,11 @@ export function Models() {
                           transition: "transform 0.2s ease, box-shadow 0.2s ease",
                         }}
                       >
-                        <Flex direction="column" gap="4" style={{ height: "100%", padding: "18px" }}>
+                        <Flex
+                          direction="column"
+                          gap="4"
+                          style={{ height: "100%", padding: "18px" }}
+                        >
                           <Flex align="center" gap="3" mb="1">
                             <Avatar
                               size="2"
@@ -275,7 +293,9 @@ export function Models() {
                               radius="full"
                             />
                             <Text size="2" style={{ fontWeight: 500 }}>
-                            {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..." : model.creator}
+                              {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH
+                                ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..."
+                                : model.creator}
                             </Text>
                           </Flex>
 
@@ -314,7 +334,12 @@ export function Models() {
                             </Badge>
                             {model.frameworks &&
                               model.frameworks.map((framework: string) => (
-                                <Badge key={framework} size="1" variant="soft" style={{ padding: "4px 8px" }}>
+                                <Badge
+                                  key={framework}
+                                  size="1"
+                                  variant="soft"
+                                  style={{ padding: "4px 8px" }}
+                                >
                                   {framework}
                                 </Badge>
                               ))}
@@ -374,7 +399,12 @@ export function Models() {
                 <Text size="4" style={{ fontWeight: 500 }}>
                   No results found
                 </Text>
-                <Text size="2" color="gray" align="center" style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}>
+                <Text
+                  size="2"
+                  color="gray"
+                  align="center"
+                  style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}
+                >
                   Try adjusting your search or filter settings to find what you're looking for.
                 </Text>
                 <Button
@@ -415,7 +445,12 @@ export function Models() {
               <Text size="4" style={{ fontWeight: 500 }}>
                 Coming Soon
               </Text>
-              <Text size="2" color="gray" align="center" style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}>
+              <Text
+                size="2"
+                color="gray"
+                align="center"
+                style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}
+              >
                 Dataset support is currently under development. Stay tuned for updates!
               </Text>
             </Flex>
@@ -439,7 +474,12 @@ export function Models() {
               <Text size="4" style={{ fontWeight: 500 }}>
                 Coming Soon
               </Text>
-              <Text size="2" color="gray" align="center" style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}>
+              <Text
+                size="2"
+                color="gray"
+                align="center"
+                style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}
+              >
                 Spaces functionality is currently under development. Stay tuned for updates!
               </Text>
             </Flex>

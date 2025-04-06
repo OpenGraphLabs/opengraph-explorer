@@ -37,19 +37,19 @@ export function ModelUploader({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
-      
+
       if (multiple) {
         // Clean up existing preview URLs
         previewUrls.forEach(url => URL.revokeObjectURL(url));
-        
+
         // Create preview URLs for images
         const urls = files.map(file => {
-          if (file.type.startsWith('image/')) {
+          if (file.type.startsWith("image/")) {
             return URL.createObjectURL(file);
           }
-          return '';
+          return "";
         });
-        setPreviewUrls(urls.filter(url => url !== '')); // Remove empty URLs
+        setPreviewUrls(urls.filter(url => url !== "")); // Remove empty URLs
         onFileSelect(files);
       } else {
         const file = files[0];
@@ -100,27 +100,27 @@ export function ModelUploader({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const files = Array.from(e.dataTransfer.files);
-      
+
       if (multiple) {
         // Clean up existing preview URLs
         previewUrls.forEach(url => URL.revokeObjectURL(url));
-        
+
         // Create preview URLs for images
         const urls = files.map(file => {
-          if (file.type.startsWith('image/')) {
+          if (file.type.startsWith("image/")) {
             return URL.createObjectURL(file);
           }
-          return '';
+          return "";
         });
-        setPreviewUrls(urls.filter(url => url !== '')); // Remove empty URLs
+        setPreviewUrls(urls.filter(url => url !== "")); // Remove empty URLs
         onFileSelect(files);
       } else {
         const file = files[0];
         const fileExtension = file.name.split(".").pop()?.toLowerCase();
-        
+
         if (fileExtension === "h5") {
           onFileSelect([file]);
         } else {
@@ -276,9 +276,9 @@ export function ModelUploader({
                     <Text size="2" style={{ fontWeight: 500 }}>
                       Image Previews ({previewUrls.length})
                     </Text>
-                    <Button 
-                      size="1" 
-                      variant="soft" 
+                    <Button
+                      size="1"
+                      variant="soft"
                       onClick={handleClearAll}
                       style={{ color: "var(--red-11)" }}
                     >
@@ -352,7 +352,11 @@ export function ModelUploader({
                     padding: "10px 16px",
                   }}
                 >
-                  {isConverting ? "Converting..." : conversionStatus ? "Convert Again" : "Convert Model"}
+                  {isConverting
+                    ? "Converting..."
+                    : conversionStatus
+                      ? "Convert Again"
+                      : "Convert Model"}
                 </Button>
               )}
             </Flex>
@@ -452,8 +456,11 @@ export function ModelUploader({
       >
         <Flex align="center" gap="3">
           <InfoCircledIcon style={{ color: "#2196F3" }} width={18} height={18} />
-          <Text size="2" style={{ color: "var(--gray-11)", lineHeight: 1.5, letterSpacing: "0.01em" }}>
-            {multiple 
+          <Text
+            size="2"
+            style={{ color: "var(--gray-11)", lineHeight: 1.5, letterSpacing: "0.01em" }}
+          >
+            {multiple
               ? "You can upload various file formats including images, text, and CSV files."
               : "Only .h5 model files are supported. Uploaded models will be automatically converted to OpenGraph format."}
           </Text>

@@ -124,10 +124,12 @@ export function getActivationTypeName(type: number): string {
 // 벡터 형식화 함수
 export function formatVector(magnitudes: number[], signs: number[]): string {
   if (magnitudes.length !== signs.length) return "";
-  
-  return magnitudes.map((mag, i) => {
-    // 0이 양수, 1이 음수
-    const sign = signs[i] === 0 ? 1 : -1;
-    return (sign * mag).toFixed(2);
-  }).join(", ");
-} 
+
+  return magnitudes
+    .map((mag, i) => {
+      // 0이 양수, 1이 음수
+      const sign = signs[i] === 0 ? 1 : -1;
+      return (sign * mag).toFixed(2);
+    })
+    .join(", ");
+}

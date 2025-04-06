@@ -11,12 +11,12 @@ export const SUI_NETWORK = {
 
 // 컨트랙트 정보
 export const SUI_CONTRACT = {
-  PACKAGE_ID: "0x42585e49a708088e479268864d4eda3219b8170367673af5ceee89c86a9665a7",
+  PACKAGE_ID: "0x328ff00f8fa6ff1409e0e211c38e1de57c64daf0082c99d8c1200477a8747fba",
   MODULE_NAME: "model",
 };
 
 // 가스 비용
-export const GAS_BUDGET = 1_200_000_000; // 1200000000 = 1.2 SUI
+export const GAS_BUDGET = 500_000_000; // 500000000 = 0.5 SUI
 
 // SUI 주소 표시 길이 제한 (UI에서 주소를 표시할 때 사용)
 export const SUI_ADDRESS_DISPLAY_LENGTH = 16;

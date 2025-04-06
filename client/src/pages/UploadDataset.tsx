@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Heading,
-  Card,
-} from "@radix-ui/themes";
+import { Box, Flex, Text, Button, Heading, Card } from "@radix-ui/themes";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import { modelGraphQLService, BlobObject } from "../services/modelGraphQLService";
 import { uploadTrainingData } from "../services/walrusService";
@@ -27,7 +20,7 @@ export function UploadDataset() {
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewStep, setPreviewStep] = useState<'select' | 'preview' | 'upload'>('select');
+  const [previewStep, setPreviewStep] = useState<"select" | "preview" | "upload">("select");
 
   useEffect(() => {
     if (currentWallet?.accounts[0]?.address) {
@@ -39,7 +32,9 @@ export function UploadDataset() {
     try {
       setIsLoading(true);
       setError(null);
-      const userDatasets = await modelGraphQLService.getUserBlobs(currentWallet!.accounts[0].address);
+      const userDatasets = await modelGraphQLService.getUserBlobs(
+        currentWallet!.accounts[0].address
+      );
       setDatasets(userDatasets);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to fetch datasets");
@@ -52,29 +47,29 @@ export function UploadDataset() {
     if (files.length === 0) return;
     setSelectedFile(files[0]);
     setError(null);
-    setPreviewStep('preview');
+    setPreviewStep("preview");
   };
 
   const handleFileRemove = () => {
     setSelectedFile(null);
     setError(null);
-    setPreviewStep('select');
+    setPreviewStep("select");
   };
 
   const handleUpload = async () => {
     if (!currentWallet?.accounts[0]?.address || !selectedFile) return;
 
     try {
-      setPreviewStep('upload');
+      setPreviewStep("upload");
       setError(null);
       await uploadTrainingData(selectedFile, currentWallet.accounts[0].address);
       setUploadSuccess(true);
       setSelectedFile(null);
-      setPreviewStep('select');
+      setPreviewStep("select");
       await fetchUserDatasets();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to upload dataset");
-      setPreviewStep('preview');
+      setPreviewStep("preview");
     }
   };
 
@@ -117,10 +112,11 @@ export function UploadDataset() {
             </Flex>
 
             <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
-              Upload your training data file to create a new dataset. The file will be stored on-chain and can be used for model training.
+              Upload your training data file to create a new dataset. The file will be stored
+              on-chain and can be used for model training.
             </Text>
 
-            {previewStep === 'select' && (
+            {previewStep === "select" && (
               <Box
                 style={{
                   border: "2px dashed var(--gray-5)",
@@ -134,7 +130,7 @@ export function UploadDataset() {
               >
                 <input
                   type="file"
-                  onChange={(e) => {
+                  onChange={e => {
                     const files = e.target.files;
                     if (files && files.length > 0) {
                       handleFileSelect(Array.from(files));
@@ -163,7 +159,7 @@ export function UploadDataset() {
               </Box>
             )}
 
-            {previewStep === 'preview' && selectedFile && (
+            {previewStep === "preview" && selectedFile && (
               <Card
                 style={{
                   padding: "16px",
@@ -225,7 +221,7 @@ export function UploadDataset() {
               </Card>
             )}
 
-            {previewStep === 'upload' && (
+            {previewStep === "upload" && (
               <Card
                 style={{
                   padding: "16px",
@@ -334,7 +330,8 @@ export function UploadDataset() {
             </Flex>
 
             <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
-              View and manage your uploaded training datasets. You can use these datasets when uploading new models.
+              View and manage your uploaded training datasets. You can use these datasets when
+              uploading new models.
             </Text>
 
             {isLoading ? (
@@ -361,12 +358,15 @@ export function UploadDataset() {
                 </Flex>
               </Card>
             ) : datasets.length === 0 ? (
-              <Text size="2" style={{ color: "var(--gray-11)", textAlign: "center", padding: "24px 0" }}>
+              <Text
+                size="2"
+                style={{ color: "var(--gray-11)", textAlign: "center", padding: "24px 0" }}
+              >
                 No datasets found. Upload some files to get started.
               </Text>
             ) : (
               <Flex direction="column" gap="4">
-                {datasets.map((dataset) => (
+                {datasets.map(dataset => (
                   <Card
                     key={dataset.id}
                     style={{
@@ -394,7 +394,7 @@ export function UploadDataset() {
                         <Button
                           size="1"
                           variant="soft"
-                          onClick={() => window.open(dataset.mediaUrl, '_blank')}
+                          onClick={() => window.open(dataset.mediaUrl, "_blank")}
                           style={{
                             background: "var(--blue-3)",
                             color: "var(--blue-11)",
@@ -406,7 +406,12 @@ export function UploadDataset() {
                         <Button
                           size="1"
                           variant="soft"
-                          onClick={() => window.open(`https://walruscan.com/${SUI_NETWORK.TYPE}/blob/${dataset.id}`, '_blank')}
+                          onClick={() =>
+                            window.open(
+                              `https://walruscan.com/${SUI_NETWORK.TYPE}/blob/${dataset.id}`,
+                              "_blank"
+                            )
+                          }
                           style={{
                             background: "var(--purple-3)",
                             color: "var(--purple-11)",
@@ -418,7 +423,12 @@ export function UploadDataset() {
                         <Button
                           size="1"
                           variant="soft"
-                          onClick={() => window.open(`https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`, '_blank')}
+                          onClick={() =>
+                            window.open(
+                              `https://suiscan.xyz/${SUI_NETWORK.TYPE}/object/${dataset.id}`,
+                              "_blank"
+                            )
+                          }
                           style={{
                             background: "var(--blue-3)",
                             color: "var(--blue-11)",
@@ -447,4 +457,4 @@ export function UploadDataset() {
       </style>
     </Box>
   );
-} 
+}

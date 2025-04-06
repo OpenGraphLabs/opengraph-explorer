@@ -291,7 +291,7 @@ export class ModelGraphQLService {
         type: node.type,
         createdAt: createdAt.toISOString(),
         size: jsonData?.size || 0,
-        mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/by-object-id/${node.address}`
+        mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/by-object-id/${node.address}`,
       };
     });
   }
