@@ -491,6 +491,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
     try {
       // 모델의 레이어별 출력 차원 정보
       const layerDimensions = getLayerDimensions();
+      console.log("xxxxxx layerDimensions", layerDimensions);
 
       // 최적화된 PTB로 모든 레이어 예측 실행
       await predictModelWithPTBOptimization(

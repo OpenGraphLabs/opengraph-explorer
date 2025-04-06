@@ -294,22 +294,18 @@ export function useModelInference() {
     }
 
     try {
-      console.log("Predicting model with optimized PTB", modelId);
-      console.log("Input magnitude:", inputMagnitude);
-      console.log("Input sign:", inputSign);
-      console.log("Layer dimensions:", layerDimensions);
-
       const tx = new Transaction();
       tx.setGasBudget(GAS_BUDGET);
 
-      let layerMagnitudes: number[] = [];
-      let layerSigns: number[] = [];
+      let layerResultMagnitudes = undefined;
+      let layerResultSigns = undefined;
 
+      // 첫 번째 레이어 실행
       // 첫 번째 레이어 실행
       console.log(`Processing layer 0 with output dimension ${layerDimensions[0]}`);
       for (let dimIdx = 0; dimIdx < layerDimensions[0]; dimIdx++) {
         // predict_layer_partial 함수 호출
-        // 반환값은 (output magnitude scalar, output sign scalar, output dimension index, is last dimension)
+        // 반환값은 (accumulated magnitude, accumulated sign, output dimension index, is last dimension)
         const partialResult = tx.moveCall({
           target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer_partial`,
           arguments: [
@@ -318,14 +314,13 @@ export function useModelInference() {
             tx.pure.u64(BigInt(dimIdx)),
             tx.pure.vector("u64", inputMagnitude),
             tx.pure.vector("u64", inputSign),
+            layerResultMagnitudes ? layerResultMagnitudes : tx.pure.vector("u64", []),
+            layerResultSigns ? layerResultSigns : tx.pure.vector("u64", []),
           ],
         });
 
-        layerMagnitudes.push(partialResult[0]?.NestedResult[0]);
-        layerSigns.push(partialResult[0]?.NestedResult[1]);
-
-        console.log("Partial layer magnitude", partialResult[0]?.NestedResult[0]);
-        console.log("Partial layer sign", partialResult[0]?.NestedResult[1]);
+        layerResultMagnitudes = partialResult[0];
+        layerResultSigns = partialResult[1];
       }
 
       // 나머지 레이어들을 연속해서 실행
@@ -334,31 +329,33 @@ export function useModelInference() {
         const outputDimension = layerDimensions[layerIdx];
         console.log(`Processing layer ${layerIdx} with output dimension ${outputDimension}`);
 
-        let currentLayerMagnitudes: number[] = [];
-        let currentLayerSigns: number[] = [];
+        let currentLayerResultMagnitudes = undefined;
+        let currentLayerResultSigns = undefined;
 
         for (let dimIdx = 0; dimIdx < outputDimension; dimIdx++) {
           // predict_layer_partial 함수 호출
-          // 반환값은 (output magnitude scalar, output sign scalar, output dimension index, is last dimension)
+          // 반환값은 (accumulated magnitude, accumulated sign, output dimension index, is last dimension)
           const partialResult = tx.moveCall({
             target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer_partial`,
             arguments: [
               tx.object(modelId),
               tx.pure.u64(BigInt(layerIdx)),
               tx.pure.u64(BigInt(dimIdx)),
-              tx.pure.vector("u64", layerMagnitudes),
-              tx.pure.vector("u64", layerSigns),
+              layerResultMagnitudes,
+              layerResultSigns,
+              currentLayerResultMagnitudes ? currentLayerResultMagnitudes : tx.pure.vector("u64", []),
+              currentLayerResultSigns ? currentLayerResultSigns : tx.pure.vector("u64", []),
             ],
           });
 
           // 현재 레이어 결과 저장
-          currentLayerMagnitudes.push(partialResult[0]?.NestedResult[0]);
-          currentLayerSigns.push(partialResult[0]?.NestedResult[1]);
+          currentLayerResultMagnitudes = partialResult[0];
+          currentLayerResultSigns = partialResult[1];
         }
 
         // 현재 레이어의 결과로 다음 레이어의 입력 벡터 업데이트
-        layerMagnitudes = currentLayerMagnitudes;
-        layerSigns = currentLayerSigns;
+        layerResultMagnitudes = currentLayerResultMagnitudes;
+        layerResultSigns = currentLayerResultSigns;
       }
 
       // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
