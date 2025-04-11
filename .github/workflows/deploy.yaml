@@ -27,7 +27,7 @@ jobs:
         run: yarn build
 
       - name: Deploy to Walrus Sites with SLSA
-        uses: zktx-io/walrus-sites-provenance@v1
+        uses: zktx-io/walrus-sites-provenance@v0.0.11
         with:
           config-path: './client/site.config.json'
         env:
