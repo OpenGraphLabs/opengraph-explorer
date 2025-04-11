@@ -1,5 +1,5 @@
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
-import { Transaction } from "@mysten/sui/transactions";
+import { Transaction, TransactionArgument } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
 import { WalrusStorageInfo } from "./walrusService";
@@ -341,8 +341,8 @@ export function useModelInference() {
               tx.object(modelId),
               tx.pure.u64(BigInt(layerIdx)),
               tx.pure.u64(BigInt(dimIdx)),
-              layerResultMagnitudes,
-              layerResultSigns,
+              layerResultMagnitudes as TransactionArgument,
+              layerResultSigns as TransactionArgument,
               currentLayerResultMagnitudes ? currentLayerResultMagnitudes : tx.pure.vector("u64", []),
               currentLayerResultSigns ? currentLayerResultSigns : tx.pure.vector("u64", []),
             ],

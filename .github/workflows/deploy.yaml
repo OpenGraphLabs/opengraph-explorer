@@ -16,11 +16,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.15.0'
 
       - name: Install dependencies
         working-directory: ./client
         run: yarn install --frozen-lockfile
+
+      - name: Type check
+        working-directory: ./client
+        run: yarn tsc --noEmit
 
       - name: Build React app
         working-directory: ./client
