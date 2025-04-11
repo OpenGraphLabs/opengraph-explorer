@@ -8,7 +8,8 @@
     "name": "OpenGraph Explorer",
     "description": "Experience layer-by-layer neural network inference on the Sui blockchain with OpenGraph's infrastructure. Visualize and interact with AI models in a decentralized environment.",
     "project_url": "https://github.com/OpenGraphLabs/opengraph-explorer",
-    "creator": "OpenGraphLabs"
+    "creator": "OpenGraphLabs",
+    "object_id": "0x9dd6a3563206fe20cd130b7f4dc52dfba7ae5a3dfcbc37a37705bd7dfce731eb"
   },
   "epochs": 30,
   "path": "./client/dist",
