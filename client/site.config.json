@@ -1,0 +1,18 @@
+{
+  "network": "testnet",
+  "owner": "0x3ed5d70cdbc085b561df5d1eb1c270e37fcbbc1d134f4e7373c51a61bdb119c2",
+  "site_name": "OpenGraph Explorer",
+  "metadata": {
+    "link": "https://opengraph-landing.vercel.app/",
+    "image_url": "https://www.walrus.xyz/walrus-site",
+    "name": "OpenGraph Explorer",
+    "description": "Experience layer-by-layer neural network inference on the Sui blockchain with OpenGraph's infrastructure. Visualize and interact with AI models in a decentralized environment.",
+    "project_url": "https://github.com/OpenGraphLabs/opengraph-explorer",
+    "creator": "OpenGraphLabs"
+  },
+  "epochs": 30,
+  "path": "./client/dist",
+  "gas_budget": 100000000,
+  "write_retry_limit": 15,
+  "object_id": "0x0b87dc72e319f802862cdc1161e25d80ef771f973a36faff556c78bd84496c4e"
+}
