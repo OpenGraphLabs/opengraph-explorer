@@ -15,11 +15,7 @@ import {
 import { HeartIcon, DownloadIcon, Share1Icon, ExternalLinkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { useModelById } from "../hooks/useModels";
-import {
-  ModelOverviewTab,
-  ModelDataTab,
-  ModelInferenceTab,
-} from "../components/model";
+import { ModelOverviewTab, ModelDataTab, ModelInferenceTab } from "../components/model";
 import { getSuiScanUrl } from "../utils/sui";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
@@ -43,29 +39,29 @@ const creatorLinkHoverStyle = {
 // Helper functions for dataset types
 function getDataTypeColor(dataType: string) {
   switch (dataType.toLowerCase()) {
-    case 'image':
+    case "image":
       return {
-        bg: 'rgba(59, 130, 246, 0.1)',
-        text: 'rgb(29, 78, 216)'
+        bg: "rgba(59, 130, 246, 0.1)",
+        text: "rgb(29, 78, 216)",
       };
-    case 'text':
+    case "text":
       return {
-        bg: 'rgba(16, 185, 129, 0.1)',
-        text: 'rgb(6, 95, 70)'
+        bg: "rgba(16, 185, 129, 0.1)",
+        text: "rgb(6, 95, 70)",
       };
     default:
       return {
-        bg: 'rgba(107, 114, 128, 0.1)',
-        text: 'rgb(55, 65, 81)'
+        bg: "rgba(107, 114, 128, 0.1)",
+        text: "rgb(55, 65, 81)",
       };
   }
 }
 
 function getDataTypeIcon(dataType: string) {
   switch (dataType.toLowerCase()) {
-    case 'image':
+    case "image":
       return <Image />;
-    case 'text':
+    case "text":
       return <TextT />;
     default:
       return <Database />;
@@ -94,11 +90,13 @@ export function ModelDetail() {
   useEffect(() => {
     const fetchDatasets = async () => {
       if (!model) return;
-      
+
       setDatasetsLoading(true);
       try {
         if (model.training_dataset_id) {
-          const trainingData = await datasetGraphQLService.getDatasetById(model.training_dataset_id);
+          const trainingData = await datasetGraphQLService.getDatasetById(
+            model.training_dataset_id
+          );
           setTrainingDataset(trainingData);
         }
 
@@ -412,21 +410,29 @@ export function ModelDetail() {
             }}
           >
             <Flex justify="between" align="center" mb="4">
-              <Heading size="4" style={{ 
-                background: "linear-gradient(90deg, #FF5733 0%, #FF8C66 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                fontWeight: 600
-              }}>
+              <Heading
+                size="4"
+                style={{
+                  background: "linear-gradient(90deg, #FF5733 0%, #FF8C66 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  fontWeight: 600,
+                }}
+              >
                 Associated Datasets
               </Heading>
               <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                {trainingDataset ? '1' : '0'} Training + {testDatasets.length} Test
+                {trainingDataset ? "1" : "0"} Training + {testDatasets.length} Test
               </Badge>
             </Flex>
-            
+
             {datasetsLoading ? (
-              <Flex align="center" justify="center" py="6" style={{ background: "rgba(255, 255, 255, 0.5)", borderRadius: "12px" }}>
+              <Flex
+                align="center"
+                justify="center"
+                py="6"
+                style={{ background: "rgba(255, 255, 255, 0.5)", borderRadius: "12px" }}
+              >
                 <Box
                   style={{
                     width: "24px",
@@ -435,27 +441,34 @@ export function ModelDetail() {
                     border: "2px solid #FF5733",
                     borderTopColor: "transparent",
                     animation: "spin 1s linear infinite",
-                    marginRight: "12px"
+                    marginRight: "12px",
                   }}
                 />
-                <Text size="2" style={{ color: "#FF5733" }}>Loading datasets...</Text>
+                <Text size="2" style={{ color: "#FF5733" }}>
+                  Loading datasets...
+                </Text>
               </Flex>
             ) : (
               <Flex direction="column" gap="5">
                 {/* Training Dataset */}
                 <Box>
                   <Flex align="center" gap="2" mb="3">
-                    <Box style={{
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "50%",
-                      background: "#FF5733"
-                    }} />
-                    <Text size="2" style={{ 
-                      fontWeight: 600,
-                      color: "#FF5733",
-                      letterSpacing: "0.02em"
-                    }}>
+                    <Box
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "#FF5733",
+                      }}
+                    />
+                    <Text
+                      size="2"
+                      style={{
+                        fontWeight: 600,
+                        color: "#FF5733",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
                       Training Dataset
                     </Text>
                   </Flex>
@@ -471,18 +484,20 @@ export function ModelDetail() {
                           cursor: "pointer",
                           transition: "all 0.3s ease",
                           position: "relative",
-                          overflow: "hidden"
+                          overflow: "hidden",
                         }}
                         className="hover-effect"
                       >
-                        <Box style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "4px",
-                          height: "100%",
-                          background: "linear-gradient(to bottom, #FF5733, #FF8C66)"
-                        }} />
+                        <Box
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "4px",
+                            height: "100%",
+                            background: "linear-gradient(to bottom, #FF5733, #FF8C66)",
+                          }}
+                        />
                         <Flex align="center" gap="4">
                           <Box
                             style={{
@@ -494,17 +509,20 @@ export function ModelDetail() {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              fontSize: "24px"
+                              fontSize: "24px",
                             }}
                           >
                             {getDataTypeIcon(trainingDataset.dataType)}
                           </Box>
                           <Box style={{ flex: 1 }}>
-                            <Text size="3" style={{ 
-                              fontWeight: 600,
-                              marginBottom: "6px",
-                              color: "#1A1A1A"
-                            }}>
+                            <Text
+                              size="3"
+                              style={{
+                                fontWeight: 600,
+                                marginBottom: "6px",
+                                color: "#1A1A1A",
+                              }}
+                            >
                               {trainingDataset.name}
                             </Text>
                             <Flex gap="3" align="center">
@@ -514,39 +532,46 @@ export function ModelDetail() {
                                   color: getDataTypeColor(trainingDataset.dataType).text,
                                   padding: "4px 10px",
                                   borderRadius: "6px",
-                                  fontSize: "12px"
+                                  fontSize: "12px",
                                 }}
                               >
                                 {trainingDataset.dataType}
                               </Badge>
-                              <Text size="1" style={{ 
-                                color: "var(--gray-11)",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px"
-                              }}>
+                              <Text
+                                size="1"
+                                style={{
+                                  color: "var(--gray-11)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                }}
+                              >
                                 <Database size={12} />
                                 {trainingDataset.dataCount.toLocaleString()} files
                               </Text>
                             </Flex>
                           </Box>
-                          <Box style={{
-                            color: "#FF5733",
-                            opacity: 0.5,
-                            transition: "all 0.3s ease"
-                          }}>
+                          <Box
+                            style={{
+                              color: "#FF5733",
+                              opacity: 0.5,
+                              transition: "all 0.3s ease",
+                            }}
+                          >
                             <ExternalLinkIcon width="16" height="16" />
                           </Box>
                         </Flex>
                       </Card>
                     </Link>
                   ) : (
-                    <Card style={{
-                      padding: "20px",
-                      background: "rgba(255, 255, 255, 0.7)",
-                      border: "1px dashed rgba(255, 87, 51, 0.2)",
-                      borderRadius: "12px",
-                    }}>
+                    <Card
+                      style={{
+                        padding: "20px",
+                        background: "rgba(255, 255, 255, 0.7)",
+                        border: "1px dashed rgba(255, 87, 51, 0.2)",
+                        borderRadius: "12px",
+                      }}
+                    >
                       <Text size="2" style={{ color: "var(--gray-11)", textAlign: "center" }}>
                         No training dataset associated
                       </Text>
@@ -557,24 +582,33 @@ export function ModelDetail() {
                 {/* Test Datasets */}
                 <Box>
                   <Flex align="center" gap="2" mb="3">
-                    <Box style={{
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "50%",
-                      background: "#FF8C66"
-                    }} />
-                    <Text size="2" style={{ 
-                      fontWeight: 600,
-                      color: "#FF8C66",
-                      letterSpacing: "0.02em"
-                    }}>
+                    <Box
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "#FF8C66",
+                      }}
+                    />
+                    <Text
+                      size="2"
+                      style={{
+                        fontWeight: 600,
+                        color: "#FF8C66",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
                       Test Datasets {testDatasets.length > 0 && `(${testDatasets.length})`}
                     </Text>
                   </Flex>
                   <Flex direction="column" gap="3">
                     {testDatasets.length > 0 ? (
                       testDatasets.map(dataset => (
-                        <Link key={dataset.id} to={`/datasets/${dataset.id}`} style={{ textDecoration: "none" }}>
+                        <Link
+                          key={dataset.id}
+                          to={`/datasets/${dataset.id}`}
+                          style={{ textDecoration: "none" }}
+                        >
                           <Card
                             style={{
                               padding: "20px",
@@ -585,18 +619,20 @@ export function ModelDetail() {
                               cursor: "pointer",
                               transition: "all 0.3s ease",
                               position: "relative",
-                              overflow: "hidden"
+                              overflow: "hidden",
                             }}
                             className="hover-effect"
                           >
-                            <Box style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "4px",
-                              height: "100%",
-                              background: "linear-gradient(to bottom, #FF8C66, #FFAA99)"
-                            }} />
+                            <Box
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "4px",
+                                height: "100%",
+                                background: "linear-gradient(to bottom, #FF8C66, #FFAA99)",
+                              }}
+                            />
                             <Flex align="center" gap="4">
                               <Box
                                 style={{
@@ -608,17 +644,20 @@ export function ModelDetail() {
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                  fontSize: "24px"
+                                  fontSize: "24px",
                                 }}
                               >
                                 {getDataTypeIcon(dataset.dataType)}
                               </Box>
                               <Box style={{ flex: 1 }}>
-                                <Text size="3" style={{ 
-                                  fontWeight: 600,
-                                  marginBottom: "6px",
-                                  color: "#1A1A1A"
-                                }}>
+                                <Text
+                                  size="3"
+                                  style={{
+                                    fontWeight: 600,
+                                    marginBottom: "6px",
+                                    color: "#1A1A1A",
+                                  }}
+                                >
                                   {dataset.name}
                                 </Text>
                                 <Flex gap="3" align="center">
@@ -628,27 +667,32 @@ export function ModelDetail() {
                                       color: getDataTypeColor(dataset.dataType).text,
                                       padding: "4px 10px",
                                       borderRadius: "6px",
-                                      fontSize: "12px"
+                                      fontSize: "12px",
                                     }}
                                   >
                                     {dataset.dataType}
                                   </Badge>
-                                  <Text size="1" style={{ 
-                                    color: "var(--gray-11)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px"
-                                  }}>
+                                  <Text
+                                    size="1"
+                                    style={{
+                                      color: "var(--gray-11)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                    }}
+                                  >
                                     <Database size={12} />
                                     {dataset.dataCount.toLocaleString()} files
                                   </Text>
                                 </Flex>
                               </Box>
-                              <Box style={{
-                                color: "#FF8C66",
-                                opacity: 0.5,
-                                transition: "all 0.3s ease"
-                              }}>
+                              <Box
+                                style={{
+                                  color: "#FF8C66",
+                                  opacity: 0.5,
+                                  transition: "all 0.3s ease",
+                                }}
+                              >
                                 <ExternalLinkIcon width="16" height="16" />
                               </Box>
                             </Flex>
@@ -656,12 +700,14 @@ export function ModelDetail() {
                         </Link>
                       ))
                     ) : (
-                      <Card style={{
-                        padding: "20px",
-                        background: "rgba(255, 255, 255, 0.7)",
-                        border: "1px dashed rgba(255, 87, 51, 0.2)",
-                        borderRadius: "12px",
-                      }}>
+                      <Card
+                        style={{
+                          padding: "20px",
+                          background: "rgba(255, 255, 255, 0.7)",
+                          border: "1px dashed rgba(255, 87, 51, 0.2)",
+                          borderRadius: "12px",
+                        }}
+                      >
                         <Text size="2" style={{ color: "var(--gray-11)", textAlign: "center" }}>
                           No test datasets associated
                         </Text>

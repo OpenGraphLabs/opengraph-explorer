@@ -275,7 +275,7 @@ export class DatasetGraphQLService {
         license: "OpenGraph License",
         createdAt: new Date().toISOString(),
         dataCount: 0,
-        data: []
+        data: [],
       };
 
       // JSON 데이터가 있으면 해당 데이터 사용
@@ -292,14 +292,13 @@ export class DatasetGraphQLService {
           license: jsonData.license || defaultData.license,
           dataCount: dataItems.length,
           data: dataItems,
-          createdAt: node.createdAt || defaultData.createdAt
+          createdAt: node.createdAt || defaultData.createdAt,
         };
       }
 
       return defaultData;
     });
   }
-
 }
 
 // 싱글톤 인스턴스 생성

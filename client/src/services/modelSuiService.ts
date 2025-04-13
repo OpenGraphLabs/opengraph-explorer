@@ -343,7 +343,9 @@ export function useModelInference() {
               tx.pure.u64(BigInt(dimIdx)),
               layerResultMagnitudes as TransactionArgument,
               layerResultSigns as TransactionArgument,
-              currentLayerResultMagnitudes ? currentLayerResultMagnitudes : tx.pure.vector("u64", []),
+              currentLayerResultMagnitudes
+                ? currentLayerResultMagnitudes
+                : tx.pure.vector("u64", []),
               currentLayerResultSigns ? currentLayerResultSigns : tx.pure.vector("u64", []),
             ],
           });

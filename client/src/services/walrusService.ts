@@ -105,7 +105,9 @@ export async function uploadMedia(
     return storageInfo;
   } catch (error) {
     console.error("미디어 업로드 오류:", error);
-    throw new Error(`미디어 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
+    throw new Error(
+      `미디어 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`
+    );
   }
 }
 
@@ -240,7 +242,7 @@ export async function uploadDatasetFiles(
  */
 export async function calculateFileHash(file: File): Promise<string> {
   const buffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return "0x" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }

@@ -67,22 +67,19 @@ export function useDatasetSuiService() {
       const metadataObject = tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::metadata::new_metadata`,
         arguments: [
-          tx.pure.option('string', metadata.description),
+          tx.pure.option("string", metadata.description),
           tx.pure.string(metadata.dataType),
           tx.pure.u64(BigInt(metadata.dataSize)),
-          tx.pure.option('string', metadata.creator),
-          tx.pure.option('string', metadata.license),
-          tx.pure.option('vector<string>', metadata.tags),
+          tx.pure.option("string", metadata.creator),
+          tx.pure.option("string", metadata.license),
+          tx.pure.option("vector<string>", metadata.tags),
         ],
       });
 
       // 2. 데이터셋 객체 생성
       const dataset = tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_dataset`,
-        arguments: [
-          tx.pure.string(metadata.name),
-          metadataObject,
-        ],
+        arguments: [tx.pure.string(metadata.name), metadataObject],
       });
 
       // 3. 각 파일을 Walrus에 업로드하고 데이터 객체 생성
@@ -90,7 +87,7 @@ export function useDatasetSuiService() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const annotation = annotations[i];
-        
+
         try {
           // blob range 객체 생성
           const rangeOptionObject = tx.moveCall({
@@ -127,7 +124,9 @@ export function useDatasetSuiService() {
           dataIds.push(file.blobId);
         } catch (error) {
           console.error(`Error processing data object ${i + 1}:`, error);
-          throw new Error(`Failed to process data object ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`);
+          throw new Error(
+            `Failed to process data object ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`
+          );
         }
       }
 
@@ -150,9 +149,13 @@ export function useDatasetSuiService() {
           onError: error => {
             console.error("Transaction execution failed:", error);
             if (onError) {
-              onError(new Error(`Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`));
+              onError(
+                new Error(
+                  `Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`
+                )
+              );
             }
-          }
+          },
         }
       );
     } catch (error) {

@@ -55,7 +55,7 @@ const DATA_TYPE_ICONS: Record<string, any> = {
   "text/plain": <FileText size={20} />,
   "text/csv": <FileDoc size={20} />,
   "application/zip": <FileZip size={20} />,
-  "default": <Database size={20} />,
+  default: <Database size={20} />,
 };
 
 // 데이터 타입에 따른 색상 매핑
@@ -65,7 +65,7 @@ const DATA_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   "text/plain": { bg: "#E3F2FD", text: "#1565C0" },
   "text/csv": { bg: "#E0F7FA", text: "#00838F" },
   "application/zip": { bg: "#FFF3E0", text: "#E65100" },
-  "default": { bg: "#F3E8FD", text: "#7E22CE" },
+  default: { bg: "#F3E8FD", text: "#7E22CE" },
 };
 
 // Add utility functions before the DatasetCard component
@@ -87,15 +87,15 @@ const formatDataSize = (size: string | number): string => {
 };
 
 // Add this new component
-function DatasetCard({ 
-  dataset, 
-  onSelect, 
+function DatasetCard({
+  dataset,
+  onSelect,
   onRemove = null,
   isSelected = false,
   isDisabled = false,
   disabledReason = "",
-}: { 
-  dataset: DatasetObject; 
+}: {
+  dataset: DatasetObject;
   onSelect?: (dataset: DatasetObject) => void;
   onRemove?: (() => void) | null;
   isSelected?: boolean;
@@ -108,8 +108,8 @@ function DatasetCard({
       style={{
         padding: "16px",
         borderRadius: "12px",
-        border: `1px solid ${isSelected ? 'var(--accent-8)' : isDisabled ? 'var(--gray-5)' : 'var(--gray-4)'}`,
-        background: isDisabled ? 'var(--gray-2)' : 'var(--gray-1)',
+        border: `1px solid ${isSelected ? "var(--accent-8)" : isDisabled ? "var(--gray-5)" : "var(--gray-4)"}`,
+        background: isDisabled ? "var(--gray-2)" : "var(--gray-1)",
         cursor: onSelect && !isDisabled ? "pointer" : "default",
         opacity: isDisabled ? 0.7 : 1,
         minHeight: "280px",
@@ -140,10 +140,10 @@ function DatasetCard({
           {disabledReason}
         </Box>
       )}
-      <Flex 
-        direction="column" 
-        gap="3" 
-        style={{ 
+      <Flex
+        direction="column"
+        gap="3"
+        style={{
           height: "100%",
           filter: isDisabled && disabledReason ? "blur(2px)" : "none",
         }}
@@ -166,7 +166,16 @@ function DatasetCard({
               {getDataTypeIcon(dataset.dataType)}
             </Box>
             <Box style={{ flex: 1, minWidth: 0 }}>
-              <Text size="3" style={{ fontWeight: 600, marginBottom: "6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <Text
+                size="3"
+                style={{
+                  fontWeight: 600,
+                  marginBottom: "6px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {dataset.name}
               </Text>
               <Badge
@@ -184,7 +193,7 @@ function DatasetCard({
             <Button
               size="1"
               variant="soft"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 onRemove();
               }}
@@ -217,9 +226,9 @@ function DatasetCard({
           )}
         </Flex>
 
-        <Text 
-          size="2" 
-          style={{ 
+        <Text
+          size="2"
+          style={{
             color: "var(--gray-11)",
             flex: 1,
             overflow: "hidden",
@@ -234,7 +243,9 @@ function DatasetCard({
         <Grid columns="3" gap="2" style={{ marginTop: "auto" }}>
           <Card style={{ padding: "8px", background: "var(--gray-2)" }}>
             <Flex direction="column" gap="1">
-              <Text size="1" style={{ color: "var(--gray-11)" }}>Size</Text>
+              <Text size="1" style={{ color: "var(--gray-11)" }}>
+                Size
+              </Text>
               <Text size="2" style={{ fontWeight: 500 }}>
                 {formatDataSize(dataset.dataSize)}
               </Text>
@@ -242,7 +253,9 @@ function DatasetCard({
           </Card>
           <Card style={{ padding: "8px", background: "var(--gray-2)" }}>
             <Flex direction="column" gap="1">
-              <Text size="1" style={{ color: "var(--gray-11)" }}>Items</Text>
+              <Text size="1" style={{ color: "var(--gray-11)" }}>
+                Items
+              </Text>
               <Text size="2" style={{ fontWeight: 500 }}>
                 {dataset.dataCount} files
               </Text>
@@ -250,8 +263,18 @@ function DatasetCard({
           </Card>
           <Card style={{ padding: "8px", background: "var(--gray-2)" }}>
             <Flex direction="column" gap="1">
-              <Text size="1" style={{ color: "var(--gray-11)" }}>License</Text>
-              <Text size="2" style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <Text size="1" style={{ color: "var(--gray-11)" }}>
+                License
+              </Text>
+              <Text
+                size="2"
+                style={{
+                  fontWeight: 500,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {dataset.license || "N/A"}
               </Text>
             </Flex>
@@ -543,12 +566,17 @@ export function UploadModel() {
                   <DatasetCard
                     key={dataset.id}
                     dataset={dataset}
-                    onSelect={datasetInfo.selectedTrainingDataset?.id !== dataset.id ? 
-                      (dataset) => setDatasetInfo(prev => ({ ...prev, selectedTrainingDataset: dataset })) : 
-                      undefined}
-                    onRemove={datasetInfo.selectedTrainingDataset?.id === dataset.id ?
-                      () => setDatasetInfo(prev => ({ ...prev, selectedTrainingDataset: null })) :
-                      undefined}
+                    onSelect={
+                      datasetInfo.selectedTrainingDataset?.id !== dataset.id
+                        ? dataset =>
+                            setDatasetInfo(prev => ({ ...prev, selectedTrainingDataset: dataset }))
+                        : undefined
+                    }
+                    onRemove={
+                      datasetInfo.selectedTrainingDataset?.id === dataset.id
+                        ? () => setDatasetInfo(prev => ({ ...prev, selectedTrainingDataset: null }))
+                        : undefined
+                    }
                     isSelected={datasetInfo.selectedTrainingDataset?.id === dataset.id}
                     isDisabled={datasetInfo.selectedTestDatasets.some(d => d.id === dataset.id)}
                   />
@@ -597,7 +625,9 @@ export function UploadModel() {
             <Box style={{ marginTop: "24px" }}>
               <Flex justify="between" align="center" style={{ marginBottom: "12px" }}>
                 <Text size="2" style={{ fontWeight: 500 }}>
-                  Test Datasets {datasetInfo.selectedTestDatasets.length > 0 && `(${datasetInfo.selectedTestDatasets.length} selected)`}
+                  Test Datasets{" "}
+                  {datasetInfo.selectedTestDatasets.length > 0 &&
+                    `(${datasetInfo.selectedTestDatasets.length} selected)`}
                 </Text>
                 {datasetInfo.selectedTestDatasets.length > 0 && (
                   <Button
@@ -619,17 +649,23 @@ export function UploadModel() {
                   <DatasetCard
                     key={dataset.id}
                     dataset={dataset}
-                    onSelect={!datasetInfo.selectedTestDatasets.some(d => d.id === dataset.id) ? 
-                      handleTestDatasetSelect : 
-                      undefined}
-                    onRemove={datasetInfo.selectedTestDatasets.some(d => d.id === dataset.id) ?
-                      () => handleTestDatasetRemove(dataset) :
-                      undefined}
+                    onSelect={
+                      !datasetInfo.selectedTestDatasets.some(d => d.id === dataset.id)
+                        ? handleTestDatasetSelect
+                        : undefined
+                    }
+                    onRemove={
+                      datasetInfo.selectedTestDatasets.some(d => d.id === dataset.id)
+                        ? () => handleTestDatasetRemove(dataset)
+                        : undefined
+                    }
                     isSelected={datasetInfo.selectedTestDatasets.some(d => d.id === dataset.id)}
                     isDisabled={datasetInfo.selectedTrainingDataset?.id === dataset.id}
-                    disabledReason={datasetInfo.selectedTrainingDataset?.id === dataset.id ? 
-                      "This dataset is selected as Training Dataset" : 
-                      ""}
+                    disabledReason={
+                      datasetInfo.selectedTrainingDataset?.id === dataset.id
+                        ? "This dataset is selected as Training Dataset"
+                        : ""
+                    }
                   />
                 ))}
               </Grid>

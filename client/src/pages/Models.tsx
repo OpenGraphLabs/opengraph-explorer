@@ -214,8 +214,7 @@ export function Models() {
             <>
               <Flex mb="5" justify="between" align="center">
                 <Text size="3" style={{ fontWeight: 500 }}>
-                  Showing {filteredModels.length}{" "}
-                  {filteredModels.length === 1 ? "model" : "models"}
+                  Showing {filteredModels.length} {filteredModels.length === 1 ? "model" : "models"}
                 </Text>
                 <Link to="/upload">
                   <Button
@@ -254,11 +253,7 @@ export function Models() {
                         transition: "transform 0.2s ease, box-shadow 0.2s ease",
                       }}
                     >
-                      <Flex
-                        direction="column"
-                        gap="4"
-                        style={{ height: "100%", padding: "18px" }}
-                      >
+                      <Flex direction="column" gap="4" style={{ height: "100%", padding: "18px" }}>
                         <Flex align="center" gap="3" mb="1">
                           <Avatar
                             size="2"
@@ -322,11 +317,7 @@ export function Models() {
                         <Flex justify="between" align="center" mt="3">
                           <Flex gap="4" align="center">
                             <Flex gap="2" align="center">
-                              <StarFilledIcon
-                                width="14"
-                                height="14"
-                                style={{ color: "#FFB800" }}
-                              />
+                              <StarFilledIcon width="14" height="14" style={{ color: "#FFB800" }} />
                               <Text size="1" style={{ fontWeight: 500 }}>
                                 {model.likes}
                               </Text>

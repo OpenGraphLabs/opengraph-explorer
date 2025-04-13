@@ -27,7 +27,7 @@ const DATA_TYPE_ICONS: Record<string, any> = {
   "text/plain": <FileText size={20} />,
   "text/csv": <FileDoc size={20} />,
   "application/zip": <FileZip size={20} />,
-  "default": <Database size={20} />,
+  default: <Database size={20} />,
 };
 
 // 데이터 타입에 따른 색상 매핑
@@ -37,7 +37,7 @@ const DATA_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   "text/plain": { bg: "#E3F2FD", text: "#1565C0" },
   "text/csv": { bg: "#E0F7FA", text: "#00838F" },
   "application/zip": { bg: "#FFF3E0", text: "#E65100" },
-  "default": { bg: "#F3E8FD", text: "#7E22CE" },
+  default: { bg: "#F3E8FD", text: "#7E22CE" },
 };
 
 export function Datasets() {
@@ -485,4 +485,4 @@ export function Datasets() {
       </Box>
     </Box>
   );
-} 
+}

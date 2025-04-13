@@ -13,15 +13,7 @@ import {
   Dialog,
   Tooltip,
 } from "@radix-ui/themes";
-import {
-  Database,
-  ImageSquare,
-  FileDoc,
-  FileZip,
-  FileText,
-  Download,
-  Eye,
-} from "phosphor-react";
+import { Database, ImageSquare, FileDoc, FileZip, FileText, Download, Eye } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
@@ -35,7 +27,7 @@ const DATA_TYPE_ICONS: Record<string, any> = {
   "text/plain": <FileText size={24} />,
   "text/csv": <FileDoc size={24} />,
   "application/zip": <FileZip size={24} />,
-  "default": <Database size={24} />,
+  default: <Database size={24} />,
 };
 
 // 데이터 타입에 따른 색상 매핑
@@ -45,7 +37,7 @@ const DATA_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   "text/plain": { bg: "#E3F2FD", text: "#1565C0" },
   "text/csv": { bg: "#E0F7FA", text: "#00838F" },
   "application/zip": { bg: "#FFF3E0", text: "#E65100" },
-  "default": { bg: "#F3E8FD", text: "#7E22CE" },
+  default: { bg: "#F3E8FD", text: "#7E22CE" },
 };
 
 interface DataItem {
@@ -83,28 +75,28 @@ export function DatasetDetail() {
 
   const formatDataSize = (size: string | number): { value: string; unit: string } => {
     const numSize = typeof size === "string" ? parseInt(size) : Number(size);
-    
+
     if (numSize < 1024) {
       return {
         value: numSize.toString(),
-        unit: "bytes"
+        unit: "bytes",
       };
     }
     if (numSize < 1024 * 1024) {
       return {
         value: (numSize / 1024).toFixed(1),
-        unit: "KB"
+        unit: "KB",
       };
     }
     if (numSize < 1024 * 1024 * 1024) {
       return {
         value: (numSize / (1024 * 1024)).toFixed(1),
-        unit: "MB"
+        unit: "MB",
       };
     }
     return {
       value: (numSize / (1024 * 1024 * 1024)).toFixed(1),
-      unit: "GB"
+      unit: "GB",
     };
   };
 
@@ -239,9 +231,20 @@ export function DatasetDetail() {
                   <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
                     Total Size
                   </Text>
-                  <Text size="5" style={{ fontWeight: 600, color: "var(--gray-12)", display: "flex", alignItems: "baseline" }}>
+                  <Text
+                    size="5"
+                    style={{
+                      fontWeight: 600,
+                      color: "var(--gray-12)",
+                      display: "flex",
+                      alignItems: "baseline",
+                    }}
+                  >
                     {formatDataSize(dataset.dataSize).value}
-                    <Text size="2" style={{ color: "var(--gray-11)", marginLeft: "4px", fontWeight: 500 }}>
+                    <Text
+                      size="2"
+                      style={{ color: "var(--gray-11)", marginLeft: "4px", fontWeight: 500 }}
+                    >
                       {formatDataSize(dataset.dataSize).unit}
                     </Text>
                   </Text>
@@ -326,7 +329,9 @@ export function DatasetDetail() {
                   transition: "color 0.2s ease",
                 }}
                 className="hover-effect"
-                onClick={() => window.open(getSuiScanUrl("account", dataset.creator || ""), "_blank")}
+                onClick={() =>
+                  window.open(getSuiScanUrl("account", dataset.creator || ""), "_blank")
+                }
               >
                 {dataset.creator
                   ? `${dataset.creator.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...`
@@ -373,7 +378,9 @@ export function DatasetDetail() {
                         overflow: "hidden",
                         cursor: "pointer",
                       }}
-                      onClick={() => setSelectedImage(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`)}
+                      onClick={() =>
+                        setSelectedImage(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`)
+                      }
                     >
                       <img
                         src={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
@@ -394,7 +401,8 @@ export function DatasetDetail() {
                             bottom: 0,
                             left: 0,
                             right: 0,
-                            background: "linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0))",
+                            background:
+                              "linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0))",
                             padding: "20px 8px 8px",
                             display: "flex",
                             alignItems: "center",
@@ -415,14 +423,18 @@ export function DatasetDetail() {
                               gap: "4px",
                             }}
                           >
-                            <Text size="1" style={{ opacity: 0.7 }}>Annotation</Text>
-                            <Text size="1" style={{ fontWeight: "600" }}>{item.annotation}</Text>
+                            <Text size="1" style={{ opacity: 0.7 }}>
+                              Annotation
+                            </Text>
+                            <Text size="1" style={{ fontWeight: "600" }}>
+                              {item.annotation}
+                            </Text>
                           </Badge>
                         </Box>
                       )}
                     </Box>
                     <Flex gap="2">
-                      <Link 
+                      <Link
                         to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -431,7 +443,7 @@ export function DatasetDetail() {
                         <Button
                           size="1"
                           variant="soft"
-                          style={{ 
+                          style={{
                             width: "100%",
                             cursor: "pointer",
                             background: "var(--gray-3)",
@@ -446,13 +458,15 @@ export function DatasetDetail() {
                         <Button
                           size="1"
                           variant="soft"
-                          style={{ 
+                          style={{
                             cursor: "pointer",
                             background: "#FFF4F2",
                             color: "#FF5733",
                             border: "1px solid #FFE8E2",
                           }}
-                          onClick={() => window.open(getSuiScanUrl("object", item.fileHash), "_blank")}
+                          onClick={() =>
+                            window.open(getSuiScanUrl("object", item.fileHash), "_blank")
+                          }
                         >
                           <ExternalLinkIcon />
                         </Button>
@@ -475,9 +489,9 @@ export function DatasetDetail() {
                       {getDataTypeIcon(dataset.dataType)}
                     </Box>
                     {item.annotation && (
-                      <Flex 
-                        align="center" 
-                        gap="2" 
+                      <Flex
+                        align="center"
+                        gap="2"
                         style={{
                           background: "var(--gray-2)",
                           padding: "6px 10px",
@@ -485,9 +499,9 @@ export function DatasetDetail() {
                           border: "1px solid var(--gray-4)",
                         }}
                       >
-                        <Text 
-                          size="1" 
-                          style={{ 
+                        <Text
+                          size="1"
+                          style={{
                             color: "var(--gray-11)",
                             fontWeight: "500",
                           }}
@@ -509,7 +523,7 @@ export function DatasetDetail() {
                       </Flex>
                     )}
                     <Flex gap="2">
-                      <Link 
+                      <Link
                         to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -518,7 +532,7 @@ export function DatasetDetail() {
                         <Button
                           size="1"
                           variant="soft"
-                          style={{ 
+                          style={{
                             width: "100%",
                             cursor: "pointer",
                             background: "var(--gray-3)",
@@ -533,13 +547,15 @@ export function DatasetDetail() {
                         <Button
                           size="1"
                           variant="soft"
-                          style={{ 
+                          style={{
                             cursor: "pointer",
                             background: "#FFF4F2",
                             color: "#FF5733",
                             border: "1px solid #FFE8E2",
                           }}
-                          onClick={() => window.open(getSuiScanUrl("object", item.fileHash), "_blank")}
+                          onClick={() =>
+                            window.open(getSuiScanUrl("object", item.fileHash), "_blank")
+                          }
                         >
                           <ExternalLinkIcon />
                         </Button>
@@ -568,9 +584,9 @@ export function DatasetDetail() {
                 }}
               />
             )}
-            <Button 
-              variant="soft" 
-              style={{ 
+            <Button
+              variant="soft"
+              style={{
                 marginTop: "16px",
                 cursor: "pointer",
               }}
@@ -597,4 +613,4 @@ export function DatasetDetail() {
       </style>
     </Box>
   );
-} 
+}
