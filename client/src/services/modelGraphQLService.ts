@@ -57,6 +57,8 @@ export interface PartialDense {
 
 export interface BlobObject {
   id: string;
+  name: string;
+  description: string;
   owner: string;
   type: string;
   createdAt: string;
@@ -287,6 +289,8 @@ export class ModelGraphQLService {
 
       return {
         id: node.address,
+        name: jsonData?.name || "Unknown",
+        description: jsonData?.description || "No description available",
         owner: ownerAddress,
         type: node.type,
         createdAt: createdAt.toISOString(),

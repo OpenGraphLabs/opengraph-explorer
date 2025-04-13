@@ -2,7 +2,6 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import { Transaction, TransactionArgument } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
-import { WalrusStorageInfo } from "./walrusService";
 import { Model } from "../types/model";
 
 const suiClient = new SuiClient({
@@ -13,7 +12,8 @@ interface UploadModelParams {
   name: string;
   description: string;
   modelType: string;
-  trainingData?: WalrusStorageInfo[];
+  trainingDatasetId: string;
+  testDatasetIds: string[];
 }
 
 /**
@@ -37,12 +37,8 @@ export function useUploadModelToSui() {
 
       tx.setGasBudget(GAS_BUDGET);
 
-      // 학습 데이터 blob ID와 Sui 참조를 바이트 배열로 변환
-      // const trainingDataBlobIds = params.trainingData?.map(data => stringToBytes(data.blobId)) || [];
-      // const trainingDataSuiRefs = params.trainingData?.map(data => stringToBytes(data.suiRef)) || [];
-
       tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
+        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::new_model`,
         arguments: [
           // model metadata
           tx.pure.string(params.name),
@@ -56,6 +52,10 @@ export function useUploadModelToSui() {
           tx.pure.vector("vector<u64>", model.biasesMagnitudes),
           tx.pure.vector("vector<u64>", model.biasesSigns),
           tx.pure.u64(BigInt(model.scale)),
+
+          // dataset references
+          tx.pure.address(params.trainingDatasetId),
+          tx.pure.vector("address", params.testDatasetIds),
         ],
       });
 
