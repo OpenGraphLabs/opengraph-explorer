@@ -4,8 +4,8 @@ import { getSuiScanUrl } from "../utils/sui";
 
 // Walrus 네트워크 설정
 const WALRUS_NETWORK = "testnet"; // 또는 "devnet", "mainnet" 등
-const WALRUS_PUBLISHER_URL = "https://publisher.walrus-testnet.walrus.space";
-export const WALRUS_AGGREGATOR_URL = "https://aggregator.walrus-testnet.walrus.space";
+const WALRUS_PUBLISHER_URL = "https://publisher.testnet.walrus.atalma.io";
+export const WALRUS_AGGREGATOR_URL = "https://aggregator.testnet.walrus.atalma.io";
 const SUI_VIEW_TX_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/tx`;
 const SUI_VIEW_OBJECT_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/object`;
 

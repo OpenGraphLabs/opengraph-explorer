@@ -2,7 +2,6 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
-import { uploadMedia, calculateFileHash } from "./walrusService";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
@@ -49,8 +48,8 @@ export function useDatasetSuiService() {
    */
   const createDataset = async (
     metadata: DatasetMetadata,
-    files: File[],
     annotations: string[],
+    files: { blobId: string; fileHash: string }[],
     onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
   ) => {
@@ -91,17 +90,8 @@ export function useDatasetSuiService() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const annotation = annotations[i];
-
+        
         try {
-          // Walrus에 파일 업로드
-          console.log(`Uploading file ${i + 1}/${files.length} to Walrus...`);
-          const storageInfo = await uploadMedia(file, account.address, 10);
-          console.log(`File ${i + 1} uploaded successfully:`, storageInfo);
-          
-          // 파일 해시 계산
-          const fileHash = await calculateFileHash(file);
-          console.log(`File ${i + 1} hash calculated:`, fileHash);
-
           // blob range 객체 생성
           const rangeOptionObject = tx.moveCall({
             target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_range_option`,
@@ -111,13 +101,13 @@ export function useDatasetSuiService() {
             ],
           });
 
-          // 데이터 객체 생성 (u256 형식으로 변환)
+          // 데이터 객체 생성
           const dataObject = tx.moveCall({
             target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_data`,
             arguments: [
               tx.pure.string(`data_${i}`),
-              tx.pure.string(storageInfo.blobId),
-              tx.pure.string(fileHash),
+              tx.pure.string(file.blobId),
+              tx.pure.string(file.fileHash),
               rangeOptionObject,
             ],
           });
@@ -134,10 +124,10 @@ export function useDatasetSuiService() {
             arguments: [dataset, dataObject],
           });
 
-          dataIds.push(storageInfo.blobId);
+          dataIds.push(file.blobId);
         } catch (error) {
-          console.error(`Error processing file ${i + 1}:`, error);
-          throw new Error(`Failed to process file ${file.name}: ${error instanceof Error ? error.message : "Unknown error"}`);
+          console.error(`Error processing data object ${i + 1}:`, error);
+          throw new Error(`Failed to process data object ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`);
         }
       }
 
