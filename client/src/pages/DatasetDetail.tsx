@@ -421,24 +421,43 @@ export function DatasetDetail() {
                         </Box>
                       )}
                     </Box>
-                    <Link 
-                      to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ width: "100%" }}
-                    >
-                      <Button
-                        size="1"
-                        variant="soft"
-                        style={{ 
-                          width: "100%",
-                          cursor: "pointer",
-                        }}
+                    <Flex gap="2">
+                      <Link 
+                        to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ flex: 1 }}
                       >
-                        <Download />
-                        Download
-                      </Button>
-                    </Link>
+                        <Button
+                          size="1"
+                          variant="soft"
+                          style={{ 
+                            width: "100%",
+                            cursor: "pointer",
+                            background: "var(--gray-3)",
+                            color: "var(--gray-12)",
+                          }}
+                        >
+                          <Download size={14} />
+                          Download
+                        </Button>
+                      </Link>
+                      <Tooltip content="View on Sui Explorer">
+                        <Button
+                          size="1"
+                          variant="soft"
+                          style={{ 
+                            cursor: "pointer",
+                            background: "#FFF4F2",
+                            color: "#FF5733",
+                            border: "1px solid #FFE8E2",
+                          }}
+                          onClick={() => window.open(getSuiScanUrl("object", item.fileHash), "_blank")}
+                        >
+                          <ExternalLinkIcon />
+                        </Button>
+                      </Tooltip>
+                    </Flex>
                   </Box>
                 ) : (
                   <Flex direction="column" gap="2">
@@ -489,24 +508,43 @@ export function DatasetDetail() {
                         </Badge>
                       </Flex>
                     )}
-                    <Link 
-                      to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ width: "100%" }}
-                    >
-                      <Button
-                        size="1"
-                        variant="soft"
-                        style={{ 
-                          width: "100%",
-                          cursor: "pointer",
-                        }}
+                    <Flex gap="2">
+                      <Link 
+                        to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ flex: 1 }}
                       >
-                        <Download />
-                        Download
-                      </Button>
-                    </Link>
+                        <Button
+                          size="1"
+                          variant="soft"
+                          style={{ 
+                            width: "100%",
+                            cursor: "pointer",
+                            background: "var(--gray-3)",
+                            color: "var(--gray-12)",
+                          }}
+                        >
+                          <Download size={14} />
+                          Download
+                        </Button>
+                      </Link>
+                      <Tooltip content="View on Sui Explorer">
+                        <Button
+                          size="1"
+                          variant="soft"
+                          style={{ 
+                            cursor: "pointer",
+                            background: "#FFF4F2",
+                            color: "#FF5733",
+                            border: "1px solid #FFE8E2",
+                          }}
+                          onClick={() => window.open(getSuiScanUrl("object", item.fileHash), "_blank")}
+                        >
+                          <ExternalLinkIcon />
+                        </Button>
+                      </Tooltip>
+                    </Flex>
                   </Flex>
                 )}
               </Card>
