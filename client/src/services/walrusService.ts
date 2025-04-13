@@ -16,7 +16,7 @@ export enum WalrusStorageStatus {
   UNKNOWN = "Unknown",
 }
 
-// 저장 정보 인터페이스
+// 저장 정보 인터페이스c
 export interface WalrusStorageInfo {
   blobId: string;
   endEpoch: number;

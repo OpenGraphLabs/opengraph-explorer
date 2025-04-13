@@ -115,9 +115,15 @@ export function UploadDataset() {
             creator: "",
             license: "MIT",
           });
+        },
+        error => {
+          console.error("Dataset creation failed:", error);
+          setError(error.message);
+          setPreviewStep("preview");
         }
       );
     } catch (error) {
+      console.error("Error in handleUpload:", error);
       setError(error instanceof Error ? error.message : "Failed to upload dataset");
       setPreviewStep("preview");
     } finally {
