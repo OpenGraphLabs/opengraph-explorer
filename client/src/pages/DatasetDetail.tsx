@@ -165,32 +165,76 @@ export function DatasetDetail() {
             {dataset.description || "No description provided"}
           </Text>
 
-          <Grid columns="3" gap="4" mt="2">
-            <Card style={{ padding: "16px", background: "var(--gray-2)" }}>
-              <Text size="2" style={{ color: "var(--gray-11)" }}>
-                Size
-              </Text>
-              <Text size="4" style={{ fontWeight: 500 }}>
-                {formatDataSize(dataset.dataSize)}
-              </Text>
+          <Flex gap="4" mt="2">
+            <Card
+              style={{
+                padding: "16px",
+                background: "var(--gray-1)",
+                border: "1px solid var(--gray-4)",
+                borderRadius: "12px",
+                flex: 1,
+              }}
+            >
+              <Flex align="center" gap="3">
+                <Box
+                  style={{
+                    background: "var(--gray-3)",
+                    borderRadius: "8px",
+                    padding: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Database size={16} style={{ color: "var(--gray-11)" }} />
+                </Box>
+                <Flex direction="column" gap="1">
+                  <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
+                    Total Size
+                  </Text>
+                  <Text size="5" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
+                    {formatDataSize(dataset.dataSize)}
+                  </Text>
+                </Flex>
+              </Flex>
             </Card>
-            <Card style={{ padding: "16px", background: "var(--gray-2)" }}>
-              <Text size="2" style={{ color: "var(--gray-11)" }}>
-                Items
-              </Text>
-              <Text size="4" style={{ fontWeight: 500 }}>
-                {dataset.dataCount} files
-              </Text>
+
+            <Card
+              style={{
+                padding: "16px",
+                background: "var(--gray-1)",
+                border: "1px solid var(--gray-4)",
+                borderRadius: "12px",
+                flex: 1,
+              }}
+            >
+              <Flex align="center" gap="3">
+                <Box
+                  style={{
+                    background: "var(--gray-3)",
+                    borderRadius: "8px",
+                    padding: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ImageSquare size={16} style={{ color: "var(--gray-11)" }} />
+                </Box>
+                <Flex direction="column" gap="1">
+                  <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
+                    Total Items
+                  </Text>
+                  <Text size="5" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
+                    {dataset.dataCount}
+                    <Text size="2" style={{ color: "var(--gray-11)", marginLeft: "4px" }}>
+                      files
+                    </Text>
+                  </Text>
+                </Flex>
+              </Flex>
             </Card>
-            <Card style={{ padding: "16px", background: "var(--gray-2)" }}>
-              <Text size="2" style={{ color: "var(--gray-11)" }}>
-                Created
-              </Text>
-              <Text size="4" style={{ fontWeight: 500 }}>
-                {new Date(dataset.createdAt).toLocaleDateString()}
-              </Text>
-            </Card>
-          </Grid>
+          </Flex>
 
           {dataset.tags && dataset.tags.length > 0 && (
             <Flex gap="2" wrap="wrap">
@@ -238,12 +282,12 @@ export function DatasetDetail() {
         <Flex direction="column" gap="4">
           <Heading size="4">Dataset Contents</Heading>
 
-          <Grid columns={{ initial: "2", sm: "3", md: "4" }} gap="4">
+          <Grid columns={{ initial: "3", sm: "4", md: "5" }} gap="3">
             {dataset.data.map((item: DataItem, index: number) => (
               <Card
                 key={index}
                 style={{
-                  padding: "16px",
+                  padding: "12px",
                   border: "1px solid var(--gray-4)",
                   borderRadius: "8px",
                 }}
@@ -255,11 +299,13 @@ export function DatasetDetail() {
                         width: "100%",
                         paddingBottom: "100%",
                         position: "relative",
-                        marginBottom: "12px",
+                        marginBottom: "8px",
                         background: "var(--gray-3)",
                         borderRadius: "6px",
                         overflow: "hidden",
+                        cursor: "pointer",
                       }}
+                      onClick={() => setSelectedImage(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`)}
                     >
                       <img
                         src={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
@@ -273,33 +319,58 @@ export function DatasetDetail() {
                           objectFit: "cover",
                         }}
                       />
+                      {item.annotation && (
+                        <Box
+                          style={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            background: "linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0))",
+                            padding: "20px 8px 8px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <Badge
+                            style={{
+                              background: "rgba(255, 255, 255, 0.9)",
+                              color: "var(--gray-12)",
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                              fontSize: "11px",
+                              fontWeight: "500",
+                              letterSpacing: "0.3px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            <Text size="1" style={{ opacity: 0.7 }}>Annotation</Text>
+                            <Text size="1" style={{ fontWeight: "600" }}>{item.annotation}</Text>
+                          </Badge>
+                        </Box>
+                      )}
                     </Box>
-                    <Flex gap="2">
+                    <Link 
+                      to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ width: "100%" }}
+                    >
                       <Button
                         size="1"
                         variant="soft"
-                        onClick={() => setSelectedImage(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`)}
-                        style={{ flex: 1 }}
+                        style={{ 
+                          width: "100%",
+                          cursor: "pointer",
+                        }}
                       >
-                        <Eye />
-                        Preview
+                        <Download />
+                        Download
                       </Button>
-                      <Link 
-                        to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ flex: 1 }}
-                      >
-                        <Button
-                          size="1"
-                          variant="soft"
-                          style={{ width: "100%" }}
-                        >
-                          <Download />
-                          Download
-                        </Button>
-                      </Link>
-                    </Flex>
+                    </Link>
                   </Box>
                 ) : (
                   <Flex direction="column" gap="2">
@@ -316,6 +387,40 @@ export function DatasetDetail() {
                     >
                       {getDataTypeIcon(dataset.dataType)}
                     </Box>
+                    {item.annotation && (
+                      <Flex 
+                        align="center" 
+                        gap="2" 
+                        style={{
+                          background: "var(--gray-2)",
+                          padding: "6px 10px",
+                          borderRadius: "6px",
+                          border: "1px solid var(--gray-4)",
+                        }}
+                      >
+                        <Text 
+                          size="1" 
+                          style={{ 
+                            color: "var(--gray-11)",
+                            fontWeight: "500",
+                          }}
+                        >
+                          Annotation
+                        </Text>
+                        <Badge
+                          style={{
+                            background: "var(--gray-4)",
+                            color: "var(--gray-12)",
+                            padding: "2px 8px",
+                            borderRadius: "4px",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          {item.annotation}
+                        </Badge>
+                      </Flex>
+                    )}
                     <Link 
                       to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
                       target="_blank"
@@ -325,18 +430,16 @@ export function DatasetDetail() {
                       <Button
                         size="1"
                         variant="soft"
-                        style={{ width: "100%" }}
+                        style={{ 
+                          width: "100%",
+                          cursor: "pointer",
+                        }}
                       >
                         <Download />
                         Download
                       </Button>
                     </Link>
                   </Flex>
-                )}
-                {item.annotation && (
-                  <Text size="1" style={{ marginTop: "8px", color: "var(--gray-11)" }}>
-                    {item.annotation}
-                  </Text>
                 )}
               </Card>
             ))}
@@ -347,24 +450,42 @@ export function DatasetDetail() {
       {/* 이미지 미리보기 모달 */}
       <Dialog.Root open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
         <Dialog.Content style={{ maxWidth: "90vw", maxHeight: "90vh" }}>
-          {selectedImage && (
-            <img
-              src={selectedImage}
-              alt="Preview"
-              style={{
-                maxWidth: "100%",
-                maxHeight: "80vh",
-                objectFit: "contain",
+          <Flex direction="column" gap="3">
+            {selectedImage && (
+              <img
+                src={selectedImage}
+                alt="Preview"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "80vh",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            <Button 
+              variant="soft" 
+              style={{ 
+                marginTop: "16px",
+                cursor: "pointer",
               }}
-            />
-          )}
-          <Dialog.Close>
-            <Button variant="soft" style={{ marginTop: "16px" }}>
+              onClick={() => setSelectedImage(null)}
+            >
               Close
             </Button>
-          </Dialog.Close>
+          </Flex>
         </Dialog.Content>
       </Dialog.Root>
+
+      <style>
+        {`
+          button {
+            cursor: pointer !important;
+          }
+          button:hover {
+            opacity: 0.9;
+          }
+        `}
+      </style>
     </Box>
   );
 } 
