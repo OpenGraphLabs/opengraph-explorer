@@ -78,11 +78,31 @@ export function DatasetDetail() {
     }
   };
 
-  const formatDataSize = (size: string | number): string => {
+  const formatDataSize = (size: string | number): { value: string; unit: string } => {
     const numSize = typeof size === "string" ? parseInt(size) : Number(size);
-    if (numSize < 1024) return `${numSize} B`;
-    if (numSize < 1024 * 1024) return `${(numSize / 1024).toFixed(2)} KB`;
-    return `${(numSize / (1024 * 1024)).toFixed(2)} MB`;
+    
+    if (numSize < 1024) {
+      return {
+        value: numSize.toString(),
+        unit: "bytes"
+      };
+    }
+    if (numSize < 1024 * 1024) {
+      return {
+        value: (numSize / 1024).toFixed(1),
+        unit: "KB"
+      };
+    }
+    if (numSize < 1024 * 1024 * 1024) {
+      return {
+        value: (numSize / (1024 * 1024)).toFixed(1),
+        unit: "MB"
+      };
+    }
+    return {
+      value: (numSize / (1024 * 1024 * 1024)).toFixed(1),
+      unit: "GB"
+    };
   };
 
   const getDataTypeIcon = (dataType: string) => {
@@ -192,8 +212,11 @@ export function DatasetDetail() {
                   <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
                     Total Size
                   </Text>
-                  <Text size="5" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
-                    {formatDataSize(dataset.dataSize)}
+                  <Text size="5" style={{ fontWeight: 600, color: "var(--gray-12)", display: "flex", alignItems: "baseline" }}>
+                    {formatDataSize(dataset.dataSize).value}
+                    <Text size="2" style={{ color: "var(--gray-11)", marginLeft: "4px", fontWeight: 500 }}>
+                      {formatDataSize(dataset.dataSize).unit}
+                    </Text>
                   </Text>
                 </Flex>
               </Flex>
