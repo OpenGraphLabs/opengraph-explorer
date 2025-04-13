@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 1. Sui Typescript SDK 코드를 다룰 때는 [MystenLabs 공식 Docs](mdc:https:/sdk.mystenlabs.com/typescript)를 참고한다.
 2. Sui 관련 코드를 다룰 때는 [Sui 공식 Docs](mdc:https:/docs.sui.io/guides)를 참고한다.
