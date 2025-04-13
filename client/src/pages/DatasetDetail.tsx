@@ -11,6 +11,7 @@ import {
   Button,
   Avatar,
   Dialog,
+  Tooltip,
 } from "@radix-ui/themes";
 import {
   Database,
@@ -21,9 +22,11 @@ import {
   Download,
   Eye,
 } from "phosphor-react";
+import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
+import { getSuiScanUrl } from "../utils/sui";
 
 // 데이터 타입에 따른 아이콘 매핑
 const DATA_TYPE_ICONS: Record<string, any> = {
@@ -169,23 +172,47 @@ export function DatasetDetail() {
               <Heading size="6" mb="1">
                 {dataset.name}
               </Heading>
-              <Badge
+              <Flex align="center" gap="2">
+                <Badge
+                  style={{
+                    background: getDataTypeColor(dataset.dataType).bg,
+                    color: getDataTypeColor(dataset.dataType).text,
+                    padding: "4px 10px",
+                  }}
+                >
+                  {dataset.dataType}
+                </Badge>
+                <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
+                  On-Chain Dataset
+                </Badge>
+              </Flex>
+            </Box>
+            <Box style={{ marginLeft: "auto" }}>
+              <Button
+                variant="soft"
                 style={{
-                  background: getDataTypeColor(dataset.dataType).bg,
-                  color: getDataTypeColor(dataset.dataType).text,
-                  padding: "4px 10px",
+                  borderRadius: "8px",
+                  background: "#FFF4F2",
+                  color: "#FF5733",
+                  border: "1px solid #FFE8E2",
+                  transition: "all 0.2s ease",
                 }}
+                className="hover-effect"
+                onClick={() => window.open(getSuiScanUrl("object", dataset.id), "_blank")}
               >
-                {dataset.dataType}
-              </Badge>
+                <Flex align="center" gap="2">
+                  <Text size="2">View on Sui Explorer</Text>
+                  <ExternalLinkIcon />
+                </Flex>
+              </Button>
             </Box>
           </Flex>
 
-          <Text size="3" style={{ color: "var(--gray-11)" }}>
+          <Text size="3" style={{ color: "var(--gray-11)", marginTop: "16px" }}>
             {dataset.description || "No description provided"}
           </Text>
 
-          <Flex gap="4" mt="2">
+          <Flex gap="4" mt="4">
             <Card
               style={{
                 padding: "16px",
@@ -260,7 +287,7 @@ export function DatasetDetail() {
           </Flex>
 
           {dataset.tags && dataset.tags.length > 0 && (
-            <Flex gap="2" wrap="wrap">
+            <Flex gap="2" wrap="wrap" mt="4">
               {dataset.tags.map((tag, index) => (
                 <Badge
                   key={index}
@@ -276,19 +303,37 @@ export function DatasetDetail() {
             </Flex>
           )}
 
-          <Flex align="center" gap="2" mt="2">
+          <Flex align="center" gap="2" mt="4">
             <Avatar
               size="2"
               src=""
               fallback={dataset.creator ? dataset.creator[0] : "U"}
               radius="full"
+              style={{
+                background: "#FF5733",
+                boxShadow: "0 3px 8px rgba(255, 87, 51, 0.2)",
+              }}
             />
-            <Text size="2" style={{ color: "var(--gray-11)" }}>
-              Created by{" "}
-              {dataset.creator
-                ? `${dataset.creator.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...`
-                : "Unknown"}
-            </Text>
+            <Tooltip content="View creator on Sui Explorer">
+              <Text
+                size="2"
+                style={{
+                  color: "var(--gray-11)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  transition: "color 0.2s ease",
+                }}
+                className="hover-effect"
+                onClick={() => window.open(getSuiScanUrl("account", dataset.creator || ""), "_blank")}
+              >
+                {dataset.creator
+                  ? `${dataset.creator.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...`
+                  : "Unknown"}
+                <ExternalLinkIcon style={{ width: "12px", height: "12px", opacity: 0.7 }} />
+              </Text>
+            </Tooltip>
           </Flex>
         </Flex>
       </Card>
@@ -506,6 +551,9 @@ export function DatasetDetail() {
           }
           button:hover {
             opacity: 0.9;
+          }
+          .hover-effect:hover {
+            color: #FF5733 !important;
           }
         `}
       </style>
