@@ -157,261 +157,223 @@ export function Models() {
       </Card>
 
       {/* Model List */}
-      <Tabs.Root
-        defaultValue="models"
+      <Box
         style={{
           borderRadius: "12px",
           overflow: "hidden",
           boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
           border: "1px solid var(--gray-4)",
+          background: "white",
         }}
       >
-        <Tabs.List
-          style={{
-            background: "var(--gray-2)",
-            padding: "14px 18px",
-            borderBottom: "1px solid var(--gray-4)",
-          }}
-        >
-          <Tabs.Trigger
-            value="models"
-            style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}
-          >
-            Models
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="datasets"
-            style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}
-          >
-            Datasets
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="spaces"
-            style={{ fontWeight: 600, fontSize: "16px", padding: "6px 12px" }}
-          >
-            Spaces
-          </Tabs.Trigger>
-        </Tabs.List>
-
-        <Box py="6" px="5" style={{ background: "white" }}>
-          <Tabs.Content value="models">
-            {loading ? (
-              <Flex direction="column" align="center" gap="4" py="9">
-                <Spinner size="3" />
+        <Box py="6" px="5">
+          {loading ? (
+            <Flex direction="column" align="center" gap="4" py="9">
+              <Spinner size="3" />
+              <Text size="3" style={{ fontWeight: 500 }}>
+                Loading models...
+              </Text>
+            </Flex>
+          ) : error ? (
+            <Flex direction="column" align="center" gap="4" py="9">
+              <Box
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "50%",
+                  background: "var(--gray-3)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CodeIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
+              </Box>
+              <Text size="4" style={{ fontWeight: 500 }}>
+                Error Loading Models
+              </Text>
+              <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
+                {error}
+              </Text>
+              <Button
+                onClick={() => refetch()}
+                style={{
+                  background: "#FF5733",
+                  color: "white",
+                  marginTop: "14px",
+                  borderRadius: "8px",
+                  fontWeight: 500,
+                  padding: "10px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                Retry
+              </Button>
+            </Flex>
+          ) : filteredModels.length > 0 ? (
+            <>
+              <Flex mb="5" justify="between" align="center">
                 <Text size="3" style={{ fontWeight: 500 }}>
-                  Loading models...
+                  Showing {filteredModels.length} {filteredModels.length === 1 ? "model" : "models"}
                 </Text>
+                <Link to="/upload">
+                  <Button
+                    size="2"
+                    style={{
+                      background: "#FF5733",
+                      color: "white",
+                      borderRadius: "8px",
+                      fontWeight: 500,
+                      padding: "10px 16px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Upload Model
+                  </Button>
+                </Link>
               </Flex>
-            ) : error ? (
-              <Flex direction="column" align="center" gap="4" py="9">
-                <Box
-                  style={{
-                    width: "80px",
-                    height: "80px",
-                    borderRadius: "50%",
-                    background: "var(--gray-3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <CodeIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
-                </Box>
-                <Text size="4" style={{ fontWeight: 500 }}>
-                  Error Loading Models
-                </Text>
-                <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
-                  {error}
-                </Text>
-                <Button
-                  onClick={() => refetch()}
-                  style={{
-                    background: "#FF5733",
-                    color: "white",
-                    marginTop: "14px",
-                    borderRadius: "8px",
-                    fontWeight: 500,
-                    padding: "10px 16px",
-                  }}
-                >
-                  Retry
-                </Button>
-              </Flex>
-            ) : filteredModels.length > 0 ? (
-              <>
-                <Flex mb="5" justify="between" align="center">
-                  <Text size="3" style={{ fontWeight: 500 }}>
-                    Showing {filteredModels.length}{" "}
-                    {filteredModels.length === 1 ? "model" : "models"}
-                  </Text>
-                  <Link to="/upload">
-                    <Button
-                      size="2"
+
+              <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="5">
+                {filteredModels.map(model => (
+                  <Link
+                    key={model.id}
+                    to={`/models/${model.id}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Card
+                      className={styles.modelCard}
                       style={{
-                        background: "#FF5733",
-                        color: "white",
-                        borderRadius: "8px",
-                        fontWeight: 500,
-                        padding: "10px 16px",
+                        borderRadius: "12px",
+                        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
+                        border: "1px solid var(--gray-4)",
+                        overflow: "hidden",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
                       }}
                     >
-                      Upload Model
-                    </Button>
-                  </Link>
-                </Flex>
-
-                <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="5">
-                  {filteredModels.map(model => (
-                    <Link
-                      key={model.id}
-                      to={`/models/${model.id}`}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <Card
-                        className={styles.modelCard}
-                        style={{
-                          borderRadius: "12px",
-                          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
-                          border: "1px solid var(--gray-4)",
-                          overflow: "hidden",
-                          height: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                          transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                        }}
-                      >
-                        <Flex
-                          direction="column"
-                          gap="4"
-                          style={{ height: "100%", padding: "18px" }}
-                        >
-                          <Flex align="center" gap="3" mb="1">
-                            <Avatar
-                              size="2"
-                              src={`https://api.dicebear.com/7.x/initials/svg?seed=${model.creator}`}
-                              fallback={model.creator.charAt(0)}
-                              radius="full"
-                            />
-                            <Text size="2" style={{ fontWeight: 500 }}>
-                              {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH
-                                ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..."
-                                : model.creator}
-                            </Text>
-                          </Flex>
-
-                          <Heading size="4" style={{ fontWeight: 600, lineHeight: 1.4 }}>
-                            {model.name}
-                          </Heading>
-
-                          <Text
+                      <Flex direction="column" gap="4" style={{ height: "100%", padding: "18px" }}>
+                        <Flex align="center" gap="3" mb="1">
+                          <Avatar
                             size="2"
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${model.creator}`}
+                            fallback={model.creator.charAt(0)}
+                            radius="full"
+                          />
+                          <Text size="2" style={{ fontWeight: 500 }}>
+                            {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH
+                              ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..."
+                              : model.creator}
+                          </Text>
+                        </Flex>
+
+                        <Heading size="4" style={{ fontWeight: 600, lineHeight: 1.4 }}>
+                          {model.name}
+                        </Heading>
+
+                        <Text
+                          size="2"
+                          style={{
+                            color: "var(--gray-11)",
+                            flex: 1,
+                            display: "-webkit-box",
+                            WebkitLineClamp: "2",
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            lineHeight: 1.5,
+                            letterSpacing: "0.01em",
+                          }}
+                        >
+                          {model.description}
+                        </Text>
+
+                        <Flex gap="3" mt="2" wrap="wrap">
+                          <Badge
+                            size="1"
+                            variant="soft"
                             style={{
-                              color: "var(--gray-11)",
-                              flex: 1,
-                              display: "-webkit-box",
-                              WebkitLineClamp: "2",
-                              WebkitBoxOrient: "vertical",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              lineHeight: 1.5,
-                              letterSpacing: "0.01em",
+                              background: TASK_COLORS[model.task_type]?.bg || "var(--accent-3)",
+                              color: TASK_COLORS[model.task_type]?.text || "var(--accent-11)",
+                              padding: "4px 8px",
                             }}
                           >
-                            {model.description}
-                          </Text>
+                            {TASK_NAMES[model.task_type] || model.task_type}
+                          </Badge>
+                          {model.frameworks &&
+                            model.frameworks.map((framework: string) => (
+                              <Badge
+                                key={framework}
+                                size="1"
+                                variant="soft"
+                                style={{ padding: "4px 8px" }}
+                              >
+                                {framework}
+                              </Badge>
+                            ))}
+                        </Flex>
 
-                          <Flex gap="3" mt="2" wrap="wrap">
-                            <Badge
-                              size="1"
-                              variant="soft"
-                              style={{
-                                background: TASK_COLORS[model.task_type]?.bg || "var(--accent-3)",
-                                color: TASK_COLORS[model.task_type]?.text || "var(--accent-11)",
-                                padding: "4px 8px",
-                              }}
-                            >
-                              {TASK_NAMES[model.task_type] || model.task_type}
-                            </Badge>
-                            {model.frameworks &&
-                              model.frameworks.map((framework: string) => (
-                                <Badge
-                                  key={framework}
-                                  size="1"
-                                  variant="soft"
-                                  style={{ padding: "4px 8px" }}
-                                >
-                                  {framework}
-                                </Badge>
-                              ))}
-                          </Flex>
-
-                          <Flex justify="between" align="center" mt="3">
-                            <Flex gap="4" align="center">
-                              <Flex gap="2" align="center">
-                                <StarFilledIcon
-                                  width="14"
-                                  height="14"
-                                  style={{ color: "#FFB800" }}
-                                />
-                                <Text size="1" style={{ fontWeight: 500 }}>
-                                  {model.likes}
-                                </Text>
-                              </Flex>
-                              <Flex gap="2" align="center">
-                                <DownloadIcon
-                                  width="14"
-                                  height="14"
-                                  style={{ color: "var(--gray-9)" }}
-                                />
-                                <Text size="1" style={{ fontWeight: 500 }}>
-                                  {model.downloads}
-                                </Text>
-                              </Flex>
-                            </Flex>
-                            <Flex align="center" gap="2">
-                              <CodeIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
+                        <Flex justify="between" align="center" mt="3">
+                          <Flex gap="4" align="center">
+                            <Flex gap="2" align="center">
+                              <StarFilledIcon width="14" height="14" style={{ color: "#FFB800" }} />
                               <Text size="1" style={{ fontWeight: 500 }}>
-                                SUI
+                                {model.likes}
+                              </Text>
+                            </Flex>
+                            <Flex gap="2" align="center">
+                              <DownloadIcon
+                                width="14"
+                                height="14"
+                                style={{ color: "var(--gray-9)" }}
+                              />
+                              <Text size="1" style={{ fontWeight: 500 }}>
+                                {model.downloads}
                               </Text>
                             </Flex>
                           </Flex>
+                          <Flex align="center" gap="2">
+                            <CodeIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
+                            <Text size="1" style={{ fontWeight: 500 }}>
+                              SUI
+                            </Text>
+                          </Flex>
                         </Flex>
-                      </Card>
-                    </Link>
-                  ))}
-                </Grid>
-              </>
-            ) : (
-              <Flex direction="column" align="center" gap="4" py="9">
-                <Box
-                  style={{
-                    width: "80px",
-                    height: "80px",
-                    borderRadius: "50%",
-                    background: "var(--gray-3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <MagnifyingGlassIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
-                </Box>
-                <Text size="4" style={{ fontWeight: 500 }}>
-                  No results found
-                </Text>
-                <Text
-                  size="2"
-                  color="gray"
-                  align="center"
-                  style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}
-                >
-                  Try adjusting your search or filter settings to find what you're looking for.
-                </Text>
+                      </Flex>
+                    </Card>
+                  </Link>
+                ))}
+              </Grid>
+            </>
+          ) : (
+            <Flex direction="column" align="center" gap="4" py="9">
+              <Box
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "50%",
+                  background: "var(--gray-3)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <MagnifyingGlassIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
+              </Box>
+              <Text size="4" style={{ fontWeight: 500 }}>
+                No Models Found
+              </Text>
+              <Text
+                size="2"
+                color="gray"
+                align="center"
+                style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}
+              >
+                No models match your search criteria. Try changing your search terms or filters.
+              </Text>
+              <Link to="/upload">
                 <Button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedTask("all");
-                  }}
                   style={{
                     background: "#FF5733",
                     color: "white",
@@ -419,73 +381,16 @@ export function Models() {
                     borderRadius: "8px",
                     fontWeight: 500,
                     padding: "10px 16px",
+                    cursor: "pointer",
                   }}
                 >
-                  Reset Filters
+                  Upload Model
                 </Button>
-              </Flex>
-            )}
-          </Tabs.Content>
-
-          <Tabs.Content value="datasets">
-            <Flex direction="column" align="center" gap="4" py="9">
-              <Box
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "50%",
-                  background: "var(--gray-3)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <CodeIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
-              </Box>
-              <Text size="4" style={{ fontWeight: 500 }}>
-                Coming Soon
-              </Text>
-              <Text
-                size="2"
-                color="gray"
-                align="center"
-                style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}
-              >
-                Dataset support is currently under development. Stay tuned for updates!
-              </Text>
+              </Link>
             </Flex>
-          </Tabs.Content>
-
-          <Tabs.Content value="spaces">
-            <Flex direction="column" align="center" gap="4" py="9">
-              <Box
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "50%",
-                  background: "var(--gray-3)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <CodeIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
-              </Box>
-              <Text size="4" style={{ fontWeight: 500 }}>
-                Coming Soon
-              </Text>
-              <Text
-                size="2"
-                color="gray"
-                align="center"
-                style={{ maxWidth: "400px", lineHeight: 1.5, letterSpacing: "0.01em" }}
-              >
-                Spaces functionality is currently under development. Stay tuned for updates!
-              </Text>
-            </Flex>
-          </Tabs.Content>
+          )}
         </Box>
-      </Tabs.Root>
+      </Box>
     </Box>
   );
 }

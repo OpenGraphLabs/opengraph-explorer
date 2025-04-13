@@ -1,0 +1,30 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+1. Sui Typescript SDK 코드를 다룰 때는 [MystenLabs 공식 Docs](mdc:https:/sdk.mystenlabs.com/typescript)를 참고한다.
+2. Sui 관련 코드를 다룰 때는 [Sui 공식 Docs](mdc:https:/docs.sui.io/guides)를 참고한다.
+3. Walrus 관련 코드를 다룰 때는 [Walrus 공식 Docs](mdc:https:/docs.wal.app)를 참고한다.
+4. 클라이언트 코드 (`client/`)를 다룰 때는 Typescript + React Best Practice를 따른다.
+5. OpenGraph는 글로벌 서비스이기 때문에 유저에게 노출되는 모든 텍스트는 항상 영어로 작성한다. 한국어 등 영어가 아닌 언어는 제공하지 않는다.
+6. 서버 코드 (`server/`)를 다룰 때는 Python + FastAPI Best Practice를 따른다.
+
+# OpengraphExplorer(오픈그래프 익스플로러) 개발 가이드
+
+## 프로젝트 소개
+Opengraph는 Sui & Walrus 를 활용하여 MachineLearning, DeepLearning 등의 AI Model을 Web3 Blockchain 환경에서 활용하는 인프라를 구축하는 회사이다. ML Model을 규격화하여 Web3에 업로드한다. 모든 ML Model은 Graph[]로 표현되며, 모든 Graph는 Layer[]로 표현되고, 각 Layer는 []weight, []bias 를 가지고 있다. 이렇게 규격화된 ML Model은 Sui On-chain 환경에 저장되며, 해당 모델에 대한 Inference도 100% On-chain 환경에서 진행된다. 
+
+모델 학습에 활용된 Trained Dataset은 Web3 Decentralized Storage인 Walrus에 저장되며, 메타데이터는 Sui 온체인 환경에 저장된다. Dataset 또한 Opengraph가 규격화한 스키마대로 저장된다. Dataset은 []Data를 포함하며, 각 Data는 Walrus 에 저장된 Blob 과 매핑하기 위해 BlobId를 가진다. 
+
+OpengraphExplorer(오픈그래프 익스플로러)는 위의 구조대로 만들어진 Opengraph 인프라를 활용하기 위한 클라이언트이다. 유저는 Opengraph의 Model, Dataset을 조회할 수 있으며 모델 학습을 위해 정제된 Dataset을 올리거나 특정 Dataset으로 학습된 Model을 Sui 온체인에 올릴 수 있다. 또한, 이미 업로드된 Model에 대한 Inference도 수행하여 모델 추론 결과값도 받아볼 수 있다. 
+
+## 프로젝트 구조
+
+### 클라이언트 (Typescript + React)
+클라이언트 소스코드는 `client/` 폴더에 위치해있으며, Typescript + React로 구현되어 있다. Sui Typescript SDK를 사용하여 Sui 네트워크와 통신하며, Walrus HTTP REST API를 활용하여 Walrus 스토리지 네트워크와 통신한다. 
+
+### 서버 (Python + FastAPI)
+서버 소스코드는 `server/` 폴더에 위치해있으며, Python + FastAPI로 구현되어 있다. 서버는 ML Engineer 가 만든 모델을 Opengraph 표준에 맞게 변환하는 로직을 제공하며, 이는 HTTP API로 제공된다.
+현재는 .h5 파일을 Opengraph 표준에 맞게 변환하는 API를 제공하고 있다.
+

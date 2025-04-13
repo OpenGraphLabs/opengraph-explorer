@@ -20,6 +20,9 @@ export interface ModelObject {
   likes: number;
   createdAt: string;
   frameworks: string[];
+  // 데이터셋 관련 필드 추가
+  training_dataset_id: string;
+  test_dataset_ids: string[];
 }
 
 export interface GraphObject {
@@ -57,6 +60,8 @@ export interface PartialDense {
 
 export interface BlobObject {
   id: string;
+  name: string;
+  description: string;
   owner: string;
   type: string;
   createdAt: string;
@@ -179,14 +184,11 @@ export class ModelGraphQLService {
    */
   private transformModelNodes(nodes: any[]): ModelObject[] {
     return nodes.map(node => {
-      // JSON 데이터 추출
       const jsonData = node?.asMoveObject?.contents?.json;
       console.log("JSON 데이터:", jsonData);
 
-      // 모델 생성일
       const createdDate = new Date(node.createdAt || Date.now());
 
-      // 소유자 주소 처리
       let ownerAddress = "Unknown";
       if (node.owner && node.owner.owner && node.owner.owner.address) {
         ownerAddress = node.owner.owner.address.toString();
@@ -196,7 +198,6 @@ export class ModelGraphQLService {
         console.warn(`No JSON data found for model with ID ${node.address}`);
       }
 
-      // 기본값 설정
       const defaultData = {
         id: node.address,
         name: `Model ${node.address.substring(0, 8)}`,
@@ -206,13 +207,14 @@ export class ModelGraphQLService {
         partial_denses: [],
         scale: 0,
         creator: ownerAddress,
-        downloads: Math.floor(Math.random() * 1000), // 임시 데이터
-        likes: Math.floor(Math.random() * 500), // 임시 데이터
+        downloads: Math.floor(Math.random() * 1000),
+        likes: Math.floor(Math.random() * 500),
         createdAt: createdDate.toISOString(),
         frameworks: ["SUI", "OpenGraph"],
+        training_dataset_id: "",
+        test_dataset_ids: [],
       };
 
-      // JSON 데이터가 있으면 해당 데이터 사용
       if (jsonData) {
         return {
           ...defaultData,
@@ -222,6 +224,8 @@ export class ModelGraphQLService {
           graphs: jsonData.graphs || defaultData.graphs,
           partial_denses: jsonData.partial_denses || defaultData.partial_denses,
           scale: jsonData.scale || defaultData.scale,
+          training_dataset_id: jsonData.training_dataset_id || defaultData.training_dataset_id,
+          test_dataset_ids: jsonData.test_dataset_ids || defaultData.test_dataset_ids,
         };
       }
 
@@ -287,6 +291,8 @@ export class ModelGraphQLService {
 
       return {
         id: node.address,
+        name: jsonData?.name || "Unknown",
+        description: jsonData?.description || "No description available",
         owner: ownerAddress,
         type: node.type,
         createdAt: createdAt.toISOString(),

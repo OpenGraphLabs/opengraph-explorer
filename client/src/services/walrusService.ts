@@ -4,8 +4,8 @@ import { getSuiScanUrl } from "../utils/sui";
 
 // Walrus 네트워크 설정
 const WALRUS_NETWORK = "testnet"; // 또는 "devnet", "mainnet" 등
-const WALRUS_PUBLISHER_URL = "https://publisher.walrus-testnet.walrus.space";
-export const WALRUS_AGGREGATOR_URL = "https://aggregator.walrus-testnet.walrus.space";
+const WALRUS_PUBLISHER_URL = "https://publisher.testnet.walrus.atalma.io";
+export const WALRUS_AGGREGATOR_URL = "https://aggregator.testnet.walrus.atalma.io";
 const SUI_VIEW_TX_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/tx`;
 const SUI_VIEW_OBJECT_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/object`;
 
@@ -16,7 +16,7 @@ export enum WalrusStorageStatus {
   UNKNOWN = "Unknown",
 }
 
-// 저장 정보 인터페이스
+// 저장 정보 인터페이스c
 export interface WalrusStorageInfo {
   blobId: string;
   endEpoch: number;
@@ -32,7 +32,7 @@ export interface WalrusStorageInfo {
  * 이미지/영상 업로드 함수
  * @param file 업로드할 파일
  * @param sendTo 소유권을 가질 주소
- * @param epochs 저장할 에포크 수 (선택적)
+ * @param epochs 주기 (선택 사항)
  * @returns 저장 정보
  */
 export async function uploadMedia(
@@ -51,11 +51,18 @@ export async function uploadMedia(
     // PUT 요청으로 파일 업로드
     const response = await fetch(url, {
       method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+        "Content-Length": file.size.toString(),
+      },
       body: file,
     });
 
+    console.log("Walrus 업로드 응답:", response);
+
     if (!response.ok) {
-      throw new Error(`업로드 실패: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`업로드 실패: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -98,7 +105,9 @@ export async function uploadMedia(
     return storageInfo;
   } catch (error) {
     console.error("미디어 업로드 오류:", error);
-    throw error;
+    throw new Error(
+      `미디어 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`
+    );
   }
 }
 
@@ -210,4 +219,30 @@ export async function getTrainingData(blobIds: string[]): Promise<Blob[]> {
     console.error("학습 데이터 가져오기 오류:", error);
     throw error;
   }
+}
+
+/**
+ * 데이터셋 파일 업로드 함수
+ * @param files 업로드할 파일 배열
+ * @param address 소유권을 가질 주소
+ * @returns 저장 정보 배열
+ */
+export async function uploadDatasetFiles(
+  files: File[],
+  address: string
+): Promise<WalrusStorageInfo[]> {
+  const uploadPromises = files.map(file => uploadMedia(file, address));
+  return await Promise.all(uploadPromises);
+}
+
+/**
+ * 파일 해시 계산 함수
+ * @param file 파일 객체
+ * @returns 파일의 SHA-256 해시
+ */
+export async function calculateFileHash(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return "0x" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
