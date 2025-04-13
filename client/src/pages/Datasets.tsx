@@ -12,7 +12,7 @@ import {
   Badge,
   Spinner,
 } from "@radix-ui/themes";
-import { MagnifyingGlassIcon, DownloadIcon, TrashIcon } from "@radix-ui/react-icons";
+import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/Card.module.css";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";

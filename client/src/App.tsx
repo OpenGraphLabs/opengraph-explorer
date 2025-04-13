@@ -11,6 +11,7 @@ import { Profile } from "./pages/Profile";
 import { Datasets } from "./pages/Datasets";
 import { HamburgerMenuIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import logoImage from "./assets/logo/logo.png";
+import { DatasetDetail } from "./pages/DatasetDetail";
 
 export default function App() {
   const location = useLocation();
@@ -243,6 +244,7 @@ export default function App() {
             <Route path="/upload" element={<UploadModel />} />
             <Route path="/datasets" element={<Datasets />} />
             <Route path="/datasets/upload" element={<UploadDataset />} />
+            <Route path="/datasets/:id" element={<DatasetDetail />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
         </Box>

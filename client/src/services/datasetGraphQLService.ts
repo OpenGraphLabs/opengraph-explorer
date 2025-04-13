@@ -9,14 +9,18 @@ export interface DatasetObject {
   id: string;
   name: string;
   description?: string;
-  tags?: string[];
   dataType: string;
   dataSize: string | number;
-  creator?: string;
-  license: string;
-  // UI에 필요한 추가 필드
-  createdAt: string;
   dataCount: number;
+  creator?: string;
+  license?: string;
+  tags?: string[];
+  createdAt: string;
+  data: Array<{
+    blobId: string;
+    fileHash: string;
+    annotation?: string;
+  }>;
 }
 
 /**
@@ -81,6 +85,15 @@ export class DatasetGraphQLService {
                 contents {
                   json
                 }
+                dynamicFields {
+                  nodes {
+                    value {
+                      ... on MoveValue {
+                        json
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -126,6 +139,15 @@ export class DatasetGraphQLService {
               contents {
                 json
               }
+              dynamicFields {
+                nodes {
+                  value {
+                    ... on MoveValue {
+                      json
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -169,7 +191,7 @@ export class DatasetGraphQLService {
             nodes {
               address
               version
-              owner{
+              owner {
                 ... on AddressOwner {
                   owner {
                     address
@@ -179,6 +201,15 @@ export class DatasetGraphQLService {
               asMoveObject {
                 contents {
                   json
+                }
+                dynamicFields {
+                  nodes {
+                    value {
+                      ... on MoveValue {
+                        json
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -211,8 +242,16 @@ export class DatasetGraphQLService {
       const jsonData = node?.asMoveObject?.contents?.json;
       console.log("JSON 데이터:", jsonData);
 
-      // 데이터셋 생성일
-      const createdDate = new Date(node.createdAt || Date.now());
+      // 동적 필드 데이터 추출
+      const dynamicFields = node?.asMoveObject?.dynamicFields?.nodes || [];
+      const dataItems = dynamicFields.map((field: any) => {
+        const fieldData = field.value.json;
+        return {
+          blobId: fieldData.blob_id,
+          fileHash: fieldData.blob_hash,
+          annotation: fieldData.annotations?.[0]?.label || "",
+        };
+      });
 
       // 소유자 주소 처리
       let ownerAddress = "Unknown";
@@ -234,17 +273,16 @@ export class DatasetGraphQLService {
         dataSize: 0,
         creator: ownerAddress,
         license: "OpenGraph License",
-        createdAt: createdDate.toISOString(),
-        dataCount: 0
+        createdAt: new Date().toISOString(),
+        dataCount: 0,
+        data: []
       };
 
       // JSON 데이터가 있으면 해당 데이터 사용
       if (jsonData) {
-        // 데이터의 개수를 동적 필드에서 추출하기 어려우므로 임의의 값 설정
-        const dataCount = Math.floor(Math.random() * 10) + 1; // 임시 데이터
-        
         return {
           ...defaultData,
+          id: jsonData.id || defaultData.id,
           name: jsonData.name || defaultData.name,
           description: jsonData.description || defaultData.description,
           tags: jsonData.tags || defaultData.tags,
@@ -252,7 +290,9 @@ export class DatasetGraphQLService {
           dataSize: jsonData.data_size || defaultData.dataSize,
           creator: jsonData.creator || defaultData.creator,
           license: jsonData.license || defaultData.license,
-          dataCount: dataCount
+          dataCount: dataItems.length,
+          data: dataItems,
+          createdAt: node.createdAt || defaultData.createdAt
         };
       }
 
