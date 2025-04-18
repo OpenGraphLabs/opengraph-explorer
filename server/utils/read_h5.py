@@ -2,6 +2,7 @@ from tensorflow.keras.models import load_model
 import json
 from pydantic import BaseModel
 from typing import List
+import os
 
 
 class Model(BaseModel):
@@ -112,7 +113,8 @@ def convert_model_to_schema(model, scale=2):
 
 ########################################################################################################################
 
-path = "/home/userpc/Github/opengraph/opengraph-explorer/server/utils/fp32_model_norm_7_7.h5"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+path = os.path.join(current_dir, "fp32_model_norm_7_7.h5")
 SCALE = 2
 model = load_model(path)
 model_schema = convert_model_to_schema(model)
