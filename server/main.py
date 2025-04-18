@@ -7,7 +7,7 @@ from routers import model_router
 
 # 환경 변수 로드
 load_dotenv()
-#test
+
 app = FastAPI(
     title="HuggingFace 3.0 API",
     description="Sui 블록체인을 위한 AI 모델 파싱 API",

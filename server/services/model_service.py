@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 from tensorflow.keras.models import load_model
 from utils.read_h5 import convert_model_to_schema
 from models.model import Model
