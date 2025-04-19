@@ -45,6 +45,12 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
   // Parse input vector
   const parseInputVector = () => {
     try {
+      // 이미 저장된 inputValues와 inputSigns가 있다면 그것을 사용
+      if (inputValues.length > 0 && inputSigns.length > 0 && inputValues.length === inputSigns.length) {
+        return { magnitudes: inputValues, signs: inputSigns };
+      }
+
+      // 없는 경우 inputVector 문자열을 파싱
       let values = inputVector
         .split(",")
         .map(val => val.trim())
@@ -683,6 +689,8 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
     txDigest,
     // Actions
     setInputVector,
+    setInputValues,
+    setInputSigns,
     parseInputVector,
     startInference,
     predictNextLayer,
