@@ -307,27 +307,50 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
       setIsProcessingImage(true);
       
       const file = e.target.files[0];
+      console.log("File selected:", file.name, "type:", file.type, "size:", file.size);
+      
       const reader = new FileReader();
       
       reader.onload = (event) => {
         if (event.target?.result) {
           const dataUrl = event.target.result as string;
+          console.log("File loaded as data URL, length:", dataUrl.length);
           
           // Convert to vector
-          imageToVector(dataUrl, getFirstLayerDimension()).then(vector => {
-            // Store original vector for display
-            setImageData({ dataUrl, vector });
+          imageToVector(dataUrl, getFirstLayerDimension())
+            .then(vector => {
+              if (vector.length === 0) {
+                console.error("Vector conversion failed - empty vector");
+                setIsProcessingImage(false);
+                return;
+              }
+              
+              console.log("Vector generated successfully, updating state");
+              // Store original vector for display
+              setImageData({ dataUrl, vector });
 
-            // Format vector for prediction and update input
-            const formattedVector = formatVectorForPrediction(vector);
-            setInputValues(formattedVector.magnitudes);
-            setInputSigns(formattedVector.signs);
-            
-            // Update input vector text representation for compatibility
-            setInputVector(vector.join(', '));
-            setIsProcessingImage(false);
-          });
+              // Format vector for prediction and update input
+              const formattedVector = formatVectorForPrediction(vector);
+              setInputValues(formattedVector.magnitudes);
+              setInputSigns(formattedVector.signs);
+              
+              // Update input vector text representation for compatibility
+              setInputVector(vector.join(', '));
+              setIsProcessingImage(false);
+            })
+            .catch(error => {
+              console.error("Error in vector conversion:", error);
+              setIsProcessingImage(false);
+            });
+        } else {
+          console.error("FileReader result is null or undefined");
+          setIsProcessingImage(false);
         }
+      };
+      
+      reader.onerror = (error) => {
+        console.error("FileReader error:", error);
+        setIsProcessingImage(false);
       };
       
       reader.readAsDataURL(file);
@@ -364,24 +387,38 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
           for (let i = 0; i < imageData.data.length; i += 4) {
             // Convert RGB to grayscale (MNIST uses white digits on black background)
             const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
-            // Keep the original 0-255 range
-            vector.push(gray / 255); // 0~1 범위로 정규화
+            // Normalize to [0, 1] range - consistent with model training
+            vector.push(gray / 255);
           }
           
+          console.log(`Generated vector with ${vector.length} elements`);
           resolve(vector);
         } else {
+          console.error('Failed to get canvas context');
           resolve([]);
         }
+      };
+      
+      img.onerror = (error) => {
+        console.error('Error loading image:', error);
+        resolve([]);
       };
       
       img.src = dataUrl;
     });
   };
   
-  // Process uploaded image to vectors
+  // Process uploaded image to vectors - 디버깅 로그 추가
   const imageToVector = async (dataUrl: string, dimension: number): Promise<number[]> => {
-    // Uses the same conversion process as canvasToVector
-    return canvasToVector(dataUrl, dimension);
+    console.log("Converting image to vector, data URL length:", dataUrl.length);
+    try {
+      const vector = await canvasToVector(dataUrl, dimension);
+      console.log("Vector conversion successful, length:", vector.length);
+      return vector;
+    } catch (error) {
+      console.error("Error converting image to vector:", error);
+      return [];
+    }
   };
 
   // Canvas helper text
@@ -654,11 +691,11 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                     width: "100%",
                                   }}
                                 >
-                                  <Text size="2" style={{ fontWeight: 500 }}>
+                                  <Text size="2" style={{ fontWeight: 500, marginRight: "10px" }}>
                                     <ImageSquare size={16} weight="bold" style={{ verticalAlign: "middle", marginRight: "4px" }} />
                                     Uploaded Image
                                   </Text>
-                                  <Button size="1" variant="soft" onClick={() => setImageData({ dataUrl: null, vector: null })}>
+                                  <Button style={{ cursor: "pointer" }} size="1" variant="soft" onClick={() => setImageData({ dataUrl: null, vector: null })}>
                                     <ResetIcon /> Remove
                                   </Button>
                                 </Box>
@@ -702,6 +739,37 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                   justifyContent: "center",
                                   padding: "20px",
                                   gap: "12px",
+                                  border: "2px dashed #FFE8E2",
+                                  borderRadius: "8px",
+                                  backgroundColor: "#FDFDFD",
+                                  minHeight: "200px",
+                                  width: "100%",
+                                  position: "relative",
+                                }}
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.currentTarget.style.backgroundColor = "#FFF4F2";
+                                }}
+                                onDragLeave={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.currentTarget.style.backgroundColor = "#FDFDFD";
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.currentTarget.style.backgroundColor = "#FDFDFD";
+                                  
+                                  const files = e.dataTransfer.files;
+                                  if (files && files[0]) {
+                                    const event = {
+                                      target: {
+                                        files: files
+                                      }
+                                    } as unknown as React.ChangeEvent<HTMLInputElement>;
+                                    handleImageUpload(event);
+                                  }
                                 }}
                               >
                                 <Box
@@ -718,31 +786,37 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                   <UploadIcon style={{ width: "24px", height: "24px", color: "#FF5733" }} />
                                 </Box>
                                 <Text size="2" style={{ fontWeight: 500 }}>
-                                  Upload an Image
+                                  Drag & Drop Image Here
                                 </Text>
                                 <Text size="1" style={{ color: "#666", textAlign: "center" }}>
-                                  Upload a handwritten digit image for MNIST classification
+                                  or
                                 </Text>
-                                <label htmlFor="image-upload">
-                                  <Button
-                                    style={{
-                                      cursor: "pointer",
-                                      background: "#FFF4F2",
-                                      color: "#FF5733",
-                                      borderRadius: "8px",
-                                      transition: "all 0.2s ease",
-                                    }}
-                                  >
-                                    Choose Image
-                                  </Button>
-                                  <input
-                                    id="image-upload"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                    style={{ display: "none" }}
-                                  />
-                                </label>
+                                <Button
+                                  onClick={() => document.getElementById('image-upload')?.click()}
+                                  style={{
+                                    cursor: "pointer",
+                                    background: "#FFF4F2",
+                                    color: "#FF5733",
+                                    borderRadius: "8px",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                >
+                                  Choose Image
+                                </Button>
+                                <input
+                                  id="image-upload"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  style={{ display: "none" }}
+                                  onClick={(e) => {
+                                    // 같은 파일을 다시 선택할 수 있도록 value 초기화
+                                    (e.target as HTMLInputElement).value = '';
+                                  }}
+                                />
+                                <Text size="1" style={{ color: "#666", textAlign: "center" }}>
+                                  Supported formats: JPG, PNG
+                                </Text>
                               </Box>
                             )}
                           </>
@@ -805,9 +879,21 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                       padding: "8px",
                                       borderRadius: "4px",
                                     }}>
-                                      {imageData.vector[0].toFixed(6)} →{" "}
-                                      {formatVectorForPrediction([imageData.vector[0]]).magnitudes[0]}
-                                      {formatVectorForPrediction([imageData.vector[0]]).signs[0] === 1 ? " (negative)" : " (positive)"}
+                                      {(() => {
+                                        // 0보다 큰 magnitude를 가진 첫 번째 항목 찾기
+                                        const positiveIndex = imageData.vector.findIndex(v => v > 0.01);
+                                        const exampleIndex = positiveIndex >= 0 ? positiveIndex : 0;
+                                        const exampleValue = imageData.vector[exampleIndex];
+                                        const formattedResult = formatVectorForPrediction([exampleValue]);
+                                        
+                                        return (
+                                          <>
+                                            {exampleValue.toFixed(6)} →{" "}
+                                            {formattedResult.magnitudes[0]}
+                                            {formattedResult.signs[0] === 1 ? " (negative)" : " (positive)"}
+                                          </>
+                                        );
+                                      })()}
                                     </Box>
                                   </Flex>
                                 </Card>
