@@ -290,7 +290,7 @@ export function UploadDataset() {
             license: "OpenGraph",
           });
           setPreviewStep("select");
-          
+
           // 성공 후 1초 뒤에 datasets 페이지로 이동
           setTimeout(() => {
             navigate("/datasets");

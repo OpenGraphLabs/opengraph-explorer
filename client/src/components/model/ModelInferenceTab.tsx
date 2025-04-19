@@ -67,11 +67,11 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   const inferenceTableRef = useRef<HTMLDivElement>(null);
 
   // State declarations
-  const [inputType, setInputType] = useState<'vector' | 'image'>('vector');
+  const [inputType, setInputType] = useState<"vector" | "image">("vector");
   const [imageData, setImageData] = useState<ImageData>({ dataUrl: null, vector: null });
   const [isCanvasActive, setIsCanvasActive] = useState<boolean>(false);
   const [isProcessingImage, setIsProcessingImage] = useState<boolean>(false);
-  
+
   // Canvas refs and state
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -162,7 +162,12 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
 
   // Get first layer dimension
   const getFirstLayerDimension = (): number => {
-    if (!model.graphs || model.graphs.length === 0 || !model.graphs[0].layers || model.graphs[0].layers.length === 0) {
+    if (
+      !model.graphs ||
+      model.graphs.length === 0 ||
+      !model.graphs[0].layers ||
+      model.graphs[0].layers.length === 0
+    ) {
       return 784; // Default for MNIST (28x28)
     }
     return parseInt(model.graphs[0].layers[0].in_dimension.toString()) || 784;
@@ -172,69 +177,75 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   useEffect(() => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      
+      const ctx = canvas.getContext("2d");
+
       if (ctx) {
         // Configure context for drawing
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
         ctx.lineWidth = 15;
-        ctx.strokeStyle = 'white';  // 흰색으로 그리기
-        
+        ctx.strokeStyle = "white"; // 흰색으로 그리기
+
         // Clear the canvas with black background
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         setCanvasContext(ctx);
       }
     }
   }, [isCanvasActive]);
-  
+
   // Canvas container style
   const canvasContainerStyle = {
-    background: '#333',  // 어두운 배경
-    padding: '16px',
-    borderRadius: '8px',
-    border: '1px solid #666',
-    cursor: 'crosshair',  // 십자 커서로 변경하여 더 정확한 포인팅 제공
+    background: "#333", // 어두운 배경
+    padding: "16px",
+    borderRadius: "8px",
+    border: "1px solid #666",
+    cursor: "crosshair", // 십자 커서로 변경하여 더 정확한 포인팅 제공
   };
 
   // Drawing handlers
-  const startDrawing = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (canvasContext && canvasRef.current) {
-      setIsDrawing(true);
+  const startDrawing = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (canvasContext && canvasRef.current) {
+        setIsDrawing(true);
+        const rect = canvasRef.current.getBoundingClientRect();
+        if (rect) {
+          // 캔버스의 스케일 및 위치 고려하여 정확한 좌표 계산
+          const scaleX = canvasRef.current.width / rect.width;
+          const scaleY = canvasRef.current.height / rect.height;
+
+          const x = (e.clientX - rect.left) * scaleX;
+          const y = (e.clientY - rect.top) * scaleY;
+
+          canvasContext.beginPath();
+          canvasContext.moveTo(x, y);
+        }
+      }
+    },
+    [canvasContext]
+  );
+
+  const draw = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!isDrawing || !canvasContext || !canvasRef.current) return;
+
       const rect = canvasRef.current.getBoundingClientRect();
       if (rect) {
         // 캔버스의 스케일 및 위치 고려하여 정확한 좌표 계산
         const scaleX = canvasRef.current.width / rect.width;
         const scaleY = canvasRef.current.height / rect.height;
-        
+
         const x = (e.clientX - rect.left) * scaleX;
         const y = (e.clientY - rect.top) * scaleY;
-        
-        canvasContext.beginPath();
-        canvasContext.moveTo(x, y);
+
+        canvasContext.lineTo(x, y);
+        canvasContext.stroke();
       }
-    }
-  }, [canvasContext]);
-  
-  const draw = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !canvasContext || !canvasRef.current) return;
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    if (rect) {
-      // 캔버스의 스케일 및 위치 고려하여 정확한 좌표 계산
-      const scaleX = canvasRef.current.width / rect.width;
-      const scaleY = canvasRef.current.height / rect.height;
-      
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-      
-      canvasContext.lineTo(x, y);
-      canvasContext.stroke();
-    }
-  }, [isDrawing, canvasContext]);
-  
+    },
+    [isDrawing, canvasContext]
+  );
+
   const stopDrawing = useCallback(() => {
     if (isDrawing && canvasContext) {
       setIsDrawing(false);
@@ -242,7 +253,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
       processCanvasImage();
     }
   }, [isDrawing, canvasContext]);
-  
+
   // Format vector for OpenGraphLabs schema
   const formatVectorForPrediction = (vector: number[]): FormattedVector => {
     const scale = getModelScale();
@@ -265,13 +276,13 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   // Process canvas image and convert to vector
   const processCanvasImage = useCallback(() => {
     if (!canvasRef.current) return;
-    
+
     setIsProcessingImage(true);
-    
+
     try {
       // Get image data from canvas
-      const dataUrl = canvasRef.current.toDataURL('image/png');
-      
+      const dataUrl = canvasRef.current.toDataURL("image/png");
+
       // Convert to vector (processed asynchronously)
       canvasToVector(dataUrl, getFirstLayerDimension()).then(vector => {
         // Store original vector for display
@@ -281,41 +292,41 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
         const formattedVector = formatVectorForPrediction(vector);
         setInputValues(formattedVector.magnitudes);
         setInputSigns(formattedVector.signs);
-        
+
         // Update input vector text representation for compatibility
-        setInputVector(vector.join(', '));
+        setInputVector(vector.join(", "));
         setIsProcessingImage(false);
       });
     } catch (error) {
-      console.error('Error processing canvas image:', error);
+      console.error("Error processing canvas image:", error);
       setIsProcessingImage(false);
     }
   }, [getFirstLayerDimension, setInputVector]);
-  
+
   // Clear canvas
   const clearCanvas = useCallback(() => {
     if (canvasContext && canvasRef.current) {
-      canvasContext.fillStyle = 'black';  // 검은색 배경으로 초기화
+      canvasContext.fillStyle = "black"; // 검은색 배경으로 초기화
       canvasContext.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       setImageData({ dataUrl: null, vector: null });
     }
   }, [canvasContext]);
-  
+
   // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setIsProcessingImage(true);
-      
+
       const file = e.target.files[0];
       console.log("File selected:", file.name, "type:", file.type, "size:", file.size);
-      
+
       const reader = new FileReader();
-      
-      reader.onload = (event) => {
+
+      reader.onload = event => {
         if (event.target?.result) {
           const dataUrl = event.target.result as string;
           console.log("File loaded as data URL, length:", dataUrl.length);
-          
+
           // Convert to vector
           imageToVector(dataUrl, getFirstLayerDimension())
             .then(vector => {
@@ -324,7 +335,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 setIsProcessingImage(false);
                 return;
               }
-              
+
               console.log("Vector generated successfully, updating state");
               // Store original vector for display
               setImageData({ dataUrl, vector });
@@ -333,9 +344,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               const formattedVector = formatVectorForPrediction(vector);
               setInputValues(formattedVector.magnitudes);
               setInputSigns(formattedVector.signs);
-              
+
               // Update input vector text representation for compatibility
-              setInputVector(vector.join(', '));
+              setInputVector(vector.join(", "));
               setIsProcessingImage(false);
             })
             .catch(error => {
@@ -347,42 +358,42 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
           setIsProcessingImage(false);
         }
       };
-      
-      reader.onerror = (error) => {
+
+      reader.onerror = error => {
         console.error("FileReader error:", error);
         setIsProcessingImage(false);
       };
-      
+
       reader.readAsDataURL(file);
     }
   };
-  
+
   // Process canvas drawing to vectors
   const canvasToVector = async (dataUrl: string, dimension: number): Promise<number[]> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const img = new Image();
       img.onload = () => {
         // Create temp canvas for processing
-        const tempCanvas = document.createElement('canvas');
+        const tempCanvas = document.createElement("canvas");
         const size = Math.sqrt(dimension); // Assuming square input (e.g. 28x28 for MNIST)
         tempCanvas.width = size;
         tempCanvas.height = size;
-        const ctx = tempCanvas.getContext('2d');
-        
+        const ctx = tempCanvas.getContext("2d");
+
         if (ctx) {
           // Fill with black background first (important for MNIST)
-          ctx.fillStyle = 'black';
+          ctx.fillStyle = "black";
           ctx.fillRect(0, 0, size, size);
-          
+
           // Draw image resized to target dimensions
           ctx.drawImage(img, 0, 0, size, size);
-          
+
           // Get image data
           const imageData = ctx.getImageData(0, 0, size, size);
-          
+
           // Convert to vector (for MNIST, we need grayscale values)
           const vector: number[] = [];
-          
+
           // Process pixel data (RGBA format)
           for (let i = 0; i < imageData.data.length; i += 4) {
             // Convert RGB to grayscale (MNIST uses white digits on black background)
@@ -390,24 +401,24 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             // Normalize to [0, 1] range - consistent with model training
             vector.push(gray / 255);
           }
-          
+
           console.log(`Generated vector with ${vector.length} elements`);
           resolve(vector);
         } else {
-          console.error('Failed to get canvas context');
+          console.error("Failed to get canvas context");
           resolve([]);
         }
       };
-      
-      img.onerror = (error) => {
-        console.error('Error loading image:', error);
+
+      img.onerror = error => {
+        console.error("Error loading image:", error);
         resolve([]);
       };
-      
+
       img.src = dataUrl;
     });
   };
-  
+
   // Process uploaded image to vectors - 디버깅 로그 추가
   const imageToVector = async (dataUrl: string, dimension: number): Promise<number[]> => {
     console.log("Converting image to vector, data URL length:", dataUrl.length);
@@ -423,7 +434,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
 
   // Canvas helper text
   const canvasHelperText = (
-    <Text size="2" style={{ color: '#666', marginTop: '8px', textAlign: 'center' }}>
+    <Text size="2" style={{ color: "#666", marginTop: "8px", textAlign: "center" }}>
       Draw with white on black background (MNIST format)
     </Text>
   );
@@ -525,8 +536,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 <InfoCircledIcon style={{ width: "16px", height: "16px" }} />
               </Box>
               <Text size="2" style={{ fontWeight: 500, lineHeight: "1.6" }}>
-                Choose how to input data for the model: direct vector input, image upload, or drawing. 
-                Each layer's output will be automatically passed as input to the next layer.
+                Choose how to input data for the model: direct vector input, image upload, or
+                drawing. Each layer's output will be automatically passed as input to the next
+                layer.
               </Text>
             </Flex>
 
@@ -534,20 +546,20 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               {/* 입력 방식 선택 탭 */}
               <Tabs.Root defaultValue="vector">
                 <Tabs.List>
-                  <Tabs.Trigger value="vector" onClick={() => setInputType('vector')}>
+                  <Tabs.Trigger value="vector" onClick={() => setInputType("vector")}>
                     <Flex align="center" gap="2">
                       <TextT size={16} weight="bold" />
                       <Text>Vector Input</Text>
                     </Flex>
                   </Tabs.Trigger>
-                  <Tabs.Trigger value="image" onClick={() => setInputType('image')}>
+                  <Tabs.Trigger value="image" onClick={() => setInputType("image")}>
                     <Flex align="center" gap="2">
                       <ImageSquare size={16} weight="bold" />
                       <Text>Image Input</Text>
                     </Flex>
                   </Tabs.Trigger>
                 </Tabs.List>
-                
+
                 <Box style={{ padding: "16px 0" }}>
                   <Tabs.Content value="vector">
                     {/* 기존 벡터 입력 UI */}
@@ -573,7 +585,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                       }}
                     />
                   </Tabs.Content>
-                  
+
                   <Tabs.Content value="image">
                     {/* 이미지 입력 UI */}
                     <Flex direction="column" gap="4">
@@ -582,11 +594,11 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                           <ImageSquare size={20} weight="duotone" style={{ color: "#FF5733" }} />
                           <Heading size="3">Image Input</Heading>
                         </Flex>
-                        
+
                         <Flex gap="2">
-                          <Button 
-                            size="2" 
-                            variant="soft" 
+                          <Button
+                            size="2"
+                            variant="soft"
                             onClick={() => setIsCanvasActive(false)}
                             style={{
                               background: !isCanvasActive ? "#FFF4F2" : "transparent",
@@ -596,8 +608,8 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                           >
                             <UploadIcon /> Upload Image
                           </Button>
-                          <Button 
-                            size="2" 
+                          <Button
+                            size="2"
                             variant="soft"
                             onClick={() => setIsCanvasActive(true)}
                             style={{
@@ -610,7 +622,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                           </Button>
                         </Flex>
                       </Flex>
-                      
+
                       {/* 이미지 입력 컨테이너 */}
                       <Card
                         style={{
@@ -637,14 +649,18 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                               }}
                             >
                               <Text size="2" style={{ fontWeight: 500 }}>
-                                <PencilSimple size={16} weight="bold" style={{ verticalAlign: "middle", marginRight: "4px" }} />
+                                <PencilSimple
+                                  size={16}
+                                  weight="bold"
+                                  style={{ verticalAlign: "middle", marginRight: "4px" }}
+                                />
                                 {canvasHelperText}
                               </Text>
                               <Button size="1" variant="soft" onClick={clearCanvas}>
                                 <ResetIcon /> Clear
                               </Button>
                             </Box>
-                            
+
                             <canvas
                               ref={canvasRef}
                               width={280}
@@ -655,7 +671,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                               onMouseUp={stopDrawing}
                               onMouseLeave={stopDrawing}
                             />
-                            
+
                             {isProcessingImage && (
                               <Box
                                 style={{
@@ -686,30 +702,39 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                   style={{
                                     display: "flex",
                                     justifyContent: "space-between",
-                                    alignItems: "center", 
+                                    alignItems: "center",
                                     marginBottom: "8px",
                                     width: "100%",
                                   }}
                                 >
                                   <Text size="2" style={{ fontWeight: 500, marginRight: "10px" }}>
-                                    <ImageSquare size={16} weight="bold" style={{ verticalAlign: "middle", marginRight: "4px" }} />
+                                    <ImageSquare
+                                      size={16}
+                                      weight="bold"
+                                      style={{ verticalAlign: "middle", marginRight: "4px" }}
+                                    />
                                     Uploaded Image
                                   </Text>
-                                  <Button style={{ cursor: "pointer" }} size="1" variant="soft" onClick={() => setImageData({ dataUrl: null, vector: null })}>
+                                  <Button
+                                    style={{ cursor: "pointer" }}
+                                    size="1"
+                                    variant="soft"
+                                    onClick={() => setImageData({ dataUrl: null, vector: null })}
+                                  >
                                     <ResetIcon /> Remove
                                   </Button>
                                 </Box>
-                                <img 
-                                  src={imageData.dataUrl} 
-                                  alt="Uploaded" 
-                                  style={{ 
-                                    maxWidth: "100%", 
-                                    maxHeight: "200px", 
+                                <img
+                                  src={imageData.dataUrl}
+                                  alt="Uploaded"
+                                  style={{
+                                    maxWidth: "100%",
+                                    maxHeight: "200px",
                                     objectFit: "contain",
                                     borderRadius: "4px",
-                                  }} 
+                                  }}
                                 />
-                                
+
                                 {isProcessingImage && (
                                   <Box
                                     style={{
@@ -723,7 +748,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                     }}
                                   >
                                     <Flex align="center" gap="2" justify="center">
-                                      <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                                      <ReloadIcon
+                                        style={{ animation: "spin 1s linear infinite" }}
+                                      />
                                       <Text size="2">Processing...</Text>
                                     </Flex>
                                   </Box>
@@ -746,27 +773,27 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                   width: "100%",
                                   position: "relative",
                                 }}
-                                onDragOver={(e) => {
+                                onDragOver={e => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   e.currentTarget.style.backgroundColor = "#FFF4F2";
                                 }}
-                                onDragLeave={(e) => {
+                                onDragLeave={e => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   e.currentTarget.style.backgroundColor = "#FDFDFD";
                                 }}
-                                onDrop={(e) => {
+                                onDrop={e => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   e.currentTarget.style.backgroundColor = "#FDFDFD";
-                                  
+
                                   const files = e.dataTransfer.files;
                                   if (files && files[0]) {
                                     const event = {
                                       target: {
-                                        files: files
-                                      }
+                                        files: files,
+                                      },
                                     } as unknown as React.ChangeEvent<HTMLInputElement>;
                                     handleImageUpload(event);
                                   }
@@ -783,7 +810,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                     justifyContent: "center",
                                   }}
                                 >
-                                  <UploadIcon style={{ width: "24px", height: "24px", color: "#FF5733" }} />
+                                  <UploadIcon
+                                    style={{ width: "24px", height: "24px", color: "#FF5733" }}
+                                  />
                                 </Box>
                                 <Text size="2" style={{ fontWeight: 500 }}>
                                   Drag & Drop Image Here
@@ -792,7 +821,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                   or
                                 </Text>
                                 <Button
-                                  onClick={() => document.getElementById('image-upload')?.click()}
+                                  onClick={() => document.getElementById("image-upload")?.click()}
                                   style={{
                                     cursor: "pointer",
                                     background: "#FFF4F2",
@@ -809,9 +838,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                   accept="image/*"
                                   onChange={handleImageUpload}
                                   style={{ display: "none" }}
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     // 같은 파일을 다시 선택할 수 있도록 value 초기화
-                                    (e.target as HTMLInputElement).value = '';
+                                    (e.target as HTMLInputElement).value = "";
                                   }}
                                 />
                                 <Text size="1" style={{ color: "#666", textAlign: "center" }}>
@@ -822,7 +851,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                           </>
                         )}
                       </Card>
-                      
+
                       {/* Vector Information Display */}
                       {imageData.vector && imageData.vector.length > 0 && (
                         <Box
@@ -838,15 +867,19 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                               <Text size="2" style={{ fontWeight: 600 }}>
                                 Converted Vector Information
                               </Text>
-                              <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
+                              <Badge
+                                variant="soft"
+                                style={{ background: "#FFF4F2", color: "#FF5733" }}
+                              >
                                 {imageData.vector.length} dimensions
                               </Badge>
                             </Flex>
-                            
+
                             <Flex align="center" gap="2">
                               <CheckCircle size={14} weight="fill" style={{ color: "#4CAF50" }} />
                               <Text size="1">
-                                Image has been converted to a {imageData.vector.length}-dimensional vector.
+                                Image has been converted to a {imageData.vector.length}-dimensional
+                                vector.
                               </Text>
                             </Flex>
 
@@ -856,81 +889,117 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                                 OpenGraphLabs Format Preview
                               </Text>
                               <Flex gap="3">
-                                <Card style={{ 
-                                  flex: 1, 
-                                  background: "#FFFFFF",
-                                  border: "1px solid #E0E0E0",
-                                  padding: "12px",
-                                }}>
+                                <Card
+                                  style={{
+                                    flex: 1,
+                                    background: "#FFFFFF",
+                                    border: "1px solid #E0E0E0",
+                                    padding: "12px",
+                                  }}
+                                >
                                   <Flex direction="column" gap="2">
-                                    <Text size="1" style={{ color: "#666" }}>Scale Factor</Text>
+                                    <Text size="1" style={{ color: "#666" }}>
+                                      Scale Factor
+                                    </Text>
                                     <Flex align="center" gap="2">
                                       <Code>10^{getModelScale()}</Code>
                                       <Tooltip content="Scale factor defined in the model configuration">
-                                        <InfoCircledIcon style={{ color: "#666", cursor: "help" }} />
+                                        <InfoCircledIcon
+                                          style={{ color: "#666", cursor: "help" }}
+                                        />
                                       </Tooltip>
                                     </Flex>
-                                    
-                                    <Text size="1" style={{ color: "#666", marginTop: "8px" }}>Example Conversion</Text>
-                                    <Box style={{ 
-                                      fontFamily: "monospace", 
-                                      fontSize: "12px",
-                                      background: "#F5F5F5",
-                                      padding: "8px",
-                                      borderRadius: "4px",
-                                    }}>
+
+                                    <Text size="1" style={{ color: "#666", marginTop: "8px" }}>
+                                      Example Conversion
+                                    </Text>
+                                    <Box
+                                      style={{
+                                        fontFamily: "monospace",
+                                        fontSize: "12px",
+                                        background: "#F5F5F5",
+                                        padding: "8px",
+                                        borderRadius: "4px",
+                                      }}
+                                    >
                                       {(() => {
                                         // 0보다 큰 magnitude를 가진 첫 번째 항목 찾기
-                                        const positiveIndex = imageData.vector.findIndex(v => v > 0.01);
+                                        const positiveIndex = imageData.vector.findIndex(
+                                          v => v > 0.01
+                                        );
                                         const exampleIndex = positiveIndex >= 0 ? positiveIndex : 0;
                                         const exampleValue = imageData.vector[exampleIndex];
-                                        const formattedResult = formatVectorForPrediction([exampleValue]);
-                                        
+                                        const formattedResult = formatVectorForPrediction([
+                                          exampleValue,
+                                        ]);
+
                                         return (
                                           <>
                                             {exampleValue.toFixed(6)} →{" "}
                                             {formattedResult.magnitudes[0]}
-                                            {formattedResult.signs[0] === 1 ? " (negative)" : " (positive)"}
+                                            {formattedResult.signs[0] === 1
+                                              ? " (negative)"
+                                              : " (positive)"}
                                           </>
                                         );
                                       })()}
                                     </Box>
                                   </Flex>
                                 </Card>
-                                
-                                <Card style={{ 
-                                  flex: 2, 
-                                  background: "#FFFFFF",
-                                  border: "1px solid #E0E0E0",
-                                  padding: "12px",
-                                }}>
+
+                                <Card
+                                  style={{
+                                    flex: 2,
+                                    background: "#FFFFFF",
+                                    border: "1px solid #E0E0E0",
+                                    padding: "12px",
+                                  }}
+                                >
                                   <Flex direction="column" gap="2">
-                                    <Text size="1" style={{ color: "#666" }}>Formatted for Prediction</Text>
+                                    <Text size="1" style={{ color: "#666" }}>
+                                      Formatted for Prediction
+                                    </Text>
                                     <Flex gap="2">
                                       <Box style={{ flex: 1 }}>
-                                        <Text size="1" style={{ color: "#666" }}>Magnitudes</Text>
-                                        <Code style={{ 
-                                          display: "block", 
-                                          marginTop: "4px",
-                                          padding: "4px",
-                                          fontSize: "11px",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                        }}>
-                                          [{formatVectorForPrediction(imageData.vector).magnitudes.join(', ')}]
+                                        <Text size="1" style={{ color: "#666" }}>
+                                          Magnitudes
+                                        </Text>
+                                        <Code
+                                          style={{
+                                            display: "block",
+                                            marginTop: "4px",
+                                            padding: "4px",
+                                            fontSize: "11px",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                          }}
+                                        >
+                                          [
+                                          {formatVectorForPrediction(
+                                            imageData.vector
+                                          ).magnitudes.join(", ")}
+                                          ]
                                         </Code>
                                       </Box>
                                       <Box style={{ flex: 1 }}>
-                                        <Text size="1" style={{ color: "#666" }}>Signs</Text>
-                                        <Code style={{ 
-                                          display: "block", 
-                                          marginTop: "4px",
-                                          padding: "4px",
-                                          fontSize: "11px",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                        }}>
-                                          [{formatVectorForPrediction(imageData.vector).signs.join(', ')}]
+                                        <Text size="1" style={{ color: "#666" }}>
+                                          Signs
+                                        </Text>
+                                        <Code
+                                          style={{
+                                            display: "block",
+                                            marginTop: "4px",
+                                            padding: "4px",
+                                            fontSize: "11px",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                          }}
+                                        >
+                                          [
+                                          {formatVectorForPrediction(imageData.vector).signs.join(
+                                            ", "
+                                          )}
+                                          ]
                                         </Code>
                                       </Box>
                                     </Flex>
@@ -941,48 +1010,69 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
 
                             {/* Vector Statistics */}
                             <Box>
-                              <Text size="2" style={{ fontWeight: 500, marginBottom: "8px" }}>Vector Statistics</Text>
+                              <Text size="2" style={{ fontWeight: 500, marginBottom: "8px" }}>
+                                Vector Statistics
+                              </Text>
                               <Flex gap="3">
-                                <Card style={{ 
-                                  flex: 1, 
-                                  background: "#FFFFFF",
-                                  border: "1px solid #E0E0E0",
-                                  padding: "8px",
-                                }}>
-                                  <Text size="1" style={{ color: "#666" }}>Mean</Text>
+                                <Card
+                                  style={{
+                                    flex: 1,
+                                    background: "#FFFFFF",
+                                    border: "1px solid #E0E0E0",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  <Text size="1" style={{ color: "#666" }}>
+                                    Mean
+                                  </Text>
                                   <Text size="2" style={{ fontWeight: 500 }}>
-                                    {(imageData.vector.reduce((a, b) => a + b, 0) / imageData.vector.length).toFixed(3)}
+                                    {(
+                                      imageData.vector.reduce((a, b) => a + b, 0) /
+                                      imageData.vector.length
+                                    ).toFixed(3)}
                                   </Text>
                                 </Card>
-                                <Card style={{ 
-                                  flex: 1, 
-                                  background: "#FFFFFF",
-                                  border: "1px solid #E0E0E0",
-                                  padding: "8px",
-                                }}>
-                                  <Text size="1" style={{ color: "#666" }}>Max</Text>
+                                <Card
+                                  style={{
+                                    flex: 1,
+                                    background: "#FFFFFF",
+                                    border: "1px solid #E0E0E0",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  <Text size="1" style={{ color: "#666" }}>
+                                    Max
+                                  </Text>
                                   <Text size="2" style={{ fontWeight: 500 }}>
                                     {Math.max(...imageData.vector).toFixed(3)}
                                   </Text>
                                 </Card>
-                                <Card style={{ 
-                                  flex: 1, 
-                                  background: "#FFFFFF",
-                                  border: "1px solid #E0E0E0",
-                                  padding: "8px",
-                                }}>
-                                  <Text size="1" style={{ color: "#666" }}>Min</Text>
+                                <Card
+                                  style={{
+                                    flex: 1,
+                                    background: "#FFFFFF",
+                                    border: "1px solid #E0E0E0",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  <Text size="1" style={{ color: "#666" }}>
+                                    Min
+                                  </Text>
                                   <Text size="2" style={{ fontWeight: 500 }}>
                                     {Math.min(...imageData.vector).toFixed(3)}
                                   </Text>
                                 </Card>
-                                <Card style={{ 
-                                  flex: 1, 
-                                  background: "#FFFFFF",
-                                  border: "1px solid #E0E0E0",
-                                  padding: "8px",
-                                }}>
-                                  <Text size="1" style={{ color: "#666" }}>Non-zero</Text>
+                                <Card
+                                  style={{
+                                    flex: 1,
+                                    background: "#FFFFFF",
+                                    border: "1px solid #E0E0E0",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  <Text size="1" style={{ color: "#666" }}>
+                                    Non-zero
+                                  </Text>
                                   <Text size="2" style={{ fontWeight: 500 }}>
                                     {imageData.vector.filter(v => v > 0.01).length}
                                   </Text>
@@ -991,16 +1081,19 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                             </Box>
 
                             {/* Visualization Hint */}
-                            <Box style={{ 
-                              background: "#E3F2FD", 
-                              padding: "8px", 
-                              borderRadius: "4px",
-                              border: "1px solid #90CAF9",
-                            }}>
+                            <Box
+                              style={{
+                                background: "#E3F2FD",
+                                padding: "8px",
+                                borderRadius: "4px",
+                                border: "1px solid #90CAF9",
+                              }}
+                            >
                               <Flex align="center" gap="2">
                                 <InfoCircledIcon style={{ color: "#1565C0" }} />
                                 <Text size="1" style={{ color: "#1565C0" }}>
-                                  Values are normalized to [0, 1] range. Darker colors indicate higher values.
+                                  Values are normalized to [0, 1] range. Darker colors indicate
+                                  higher values.
                                 </Text>
                               </Flex>
                             </Box>
@@ -1590,7 +1683,7 @@ function InferenceResultTable({
             <Table.Cell>
               <Badge variant="outline" mr="1">
                 {currentLayerIndex + idx + (isProcessing ? 1 : 0) + 1}
-                </Badge>
+              </Badge>
             </Table.Cell>
             <Table.Cell>Pending</Table.Cell>
             <Table.Cell>-</Table.Cell>

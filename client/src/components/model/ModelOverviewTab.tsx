@@ -28,12 +28,14 @@ function calculateLayerStats(layer: any) {
   const weightCount = layer.weight_tensor?.magnitude?.length || 0;
   const biasCount = layer.bias_tensor?.magnitude?.length || 0;
   const totalParams = weightCount + biasCount;
-  
+
   // 가중치의 분포 계산
   const weightMagnitudes = layer.weight_tensor?.magnitude?.map(Number) || [];
   const weightSigns = layer.weight_tensor?.sign?.map(Number) || [];
-  const weights = weightMagnitudes.map((mag: number, i: number) => weightSigns[i] === 1 ? -mag : mag);
-  
+  const weights = weightMagnitudes.map((mag: number, i: number) =>
+    weightSigns[i] === 1 ? -mag : mag
+  );
+
   const maxWeight = Math.max(...weights.map(Math.abs));
   const minWeight = Math.min(...weights.map(Math.abs));
   const avgWeight = weights.reduce((a: number, b: number) => a + Math.abs(b), 0) / weights.length;
@@ -269,7 +271,8 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                     letterSpacing: "0.01em",
                   }}
                 >
-                  Detailed visualization of the neural network architecture, including layer dimensions and parameter statistics.
+                  Detailed visualization of the neural network architecture, including layer
+                  dimensions and parameter statistics.
                 </Text>
 
                 {/* Layer Flow Visualization */}
@@ -304,14 +307,11 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                             >
                               <Flex direction="column" gap="3">
                                 <Flex align="center" justify="between">
-                                  <Text
-                                    size="2"
-                                    style={{ fontWeight: 600, color: "#FF5733" }}
-                                  >
+                                  <Text size="2" style={{ fontWeight: 600, color: "#FF5733" }}>
                                     Layer {index + 1}
                                   </Text>
                                 </Flex>
-                                
+
                                 {/* Dimensions */}
                                 <Box style={{ marginTop: "4px" }}>
                                   <Flex align="center" gap="2" mb="1">
@@ -344,11 +344,17 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                                         <Text size="1" style={{ color: "#666" }}>
                                           Weights
                                         </Text>
-                                        <Badge size="1" style={{ background: "#FFE8E2", color: "#FF5733" }}>
+                                        <Badge
+                                          size="1"
+                                          style={{ background: "#FFE8E2", color: "#FF5733" }}
+                                        >
                                           {stats.weightCount.toLocaleString()}
                                         </Badge>
                                       </Flex>
-                                      <Text size="1" style={{ color: "#666", fontFamily: "monospace" }}>
+                                      <Text
+                                        size="1"
+                                        style={{ color: "#666", fontFamily: "monospace" }}
+                                      >
                                         Shape: {layer.weight_tensor?.shape.join(" × ")}
                                       </Text>
                                     </Box>
@@ -359,11 +365,17 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                                         <Text size="1" style={{ color: "#666" }}>
                                           Biases
                                         </Text>
-                                        <Badge size="1" style={{ background: "#FFE8E2", color: "#FF5733" }}>
+                                        <Badge
+                                          size="1"
+                                          style={{ background: "#FFE8E2", color: "#FF5733" }}
+                                        >
                                           {stats.biasCount.toLocaleString()}
                                         </Badge>
                                       </Flex>
-                                      <Text size="1" style={{ color: "#666", fontFamily: "monospace" }}>
+                                      <Text
+                                        size="1"
+                                        style={{ color: "#666", fontFamily: "monospace" }}
+                                      >
                                         Shape: {layer.bias_tensor?.shape.join(" × ")}
                                       </Text>
                                     </Box>
@@ -431,11 +443,21 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                     <Table.Root>
                       <Table.Header>
                         <Table.Row>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Layer</Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Weights</Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Biases</Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Weight Stats</Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>Dimensions</Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
+                            Layer
+                          </Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
+                            Weights
+                          </Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
+                            Biases
+                          </Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
+                            Weight Stats
+                          </Table.ColumnHeaderCell>
+                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
+                            Dimensions
+                          </Table.ColumnHeaderCell>
                         </Table.Row>
                       </Table.Header>
                       <Table.Body>

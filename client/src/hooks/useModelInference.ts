@@ -46,7 +46,11 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
   const parseInputVector = () => {
     try {
       // 이미 저장된 inputValues와 inputSigns가 있다면 그것을 사용
-      if (inputValues.length > 0 && inputSigns.length > 0 && inputValues.length === inputSigns.length) {
+      if (
+        inputValues.length > 0 &&
+        inputSigns.length > 0 &&
+        inputValues.length === inputSigns.length
+      ) {
         return { magnitudes: inputValues, signs: inputSigns };
       }
 
