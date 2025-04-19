@@ -12,8 +12,8 @@ interface UploadModelParams {
   name: string;
   description: string;
   modelType: string;
-  trainingDatasetId: string;
-  testDatasetIds: string[];
+  trainingDatasetId?: string;
+  testDatasetIds?: string[];
 }
 
 /**
@@ -54,8 +54,8 @@ export function useUploadModelToSui() {
           tx.pure.u64(BigInt(model.scale)),
 
           // dataset references
-          tx.pure.address(params.trainingDatasetId),
-          tx.pure.vector("address", params.testDatasetIds),
+          tx.pure.option("address", params.trainingDatasetId),
+          tx.pure.option("vector<address>", params.testDatasetIds),
         ],
       });
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -26,6 +27,7 @@ import { calculateFileHash } from "../services/walrusService";
 import { uploadMedia } from "../services/walrusService";
 
 export function UploadDataset() {
+  const navigate = useNavigate();
   const { currentWallet } = useCurrentWallet();
   const { createDataset } = useDatasetSuiService();
   const [isLoading, setIsLoading] = useState(false);
@@ -288,6 +290,11 @@ export function UploadDataset() {
             license: "OpenGraph",
           });
           setPreviewStep("select");
+          
+          // 성공 후 1초 뒤에 datasets 페이지로 이동
+          setTimeout(() => {
+            navigate("/datasets");
+          }, 1000);
         },
         error => {
           console.error("Dataset creation failed:", error);

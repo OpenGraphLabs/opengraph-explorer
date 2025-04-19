@@ -421,11 +421,6 @@ export function UploadModel() {
       return;
     }
 
-    if (!datasetInfo.selectedTrainingDataset) {
-      setUploadError("Please select a training dataset.");
-      return;
-    }
-
     setIsUploading(true);
     setUploadError(null);
     setTransactionInProgress(true);
@@ -439,7 +434,7 @@ export function UploadModel() {
           name: modelInfo.name,
           description: modelInfo.description,
           modelType: modelInfo.modelType,
-          trainingDatasetId: datasetInfo.selectedTrainingDataset.id,
+          trainingDatasetId: datasetInfo.selectedTrainingDataset?.id,
           testDatasetIds: datasetInfo.selectedTestDatasets.map(dataset => dataset.id),
         },
         result => {
