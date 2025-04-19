@@ -15,7 +15,7 @@ import {
 import { HeartIcon, DownloadIcon, Share1Icon, ExternalLinkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { useModelById } from "../hooks/useModels";
-import { ModelOverviewTab, ModelDataTab, ModelInferenceTab } from "../components/model";
+import { ModelOverviewTab, ModelInferenceTab } from "../components/model";
 import { getSuiScanUrl } from "../utils/sui";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
@@ -768,18 +768,6 @@ export function ModelDetail() {
               >
                 On-Chain Inference
               </Tabs.Trigger>
-              <Tabs.Trigger
-                value="model-data"
-                style={{
-                  cursor: "pointer",
-                  fontWeight: activeTab === "model-data" ? 700 : 500,
-                  color: activeTab === "model-data" ? "#FF5733" : "#666",
-                  transition: "all 0.3s ease",
-                  padding: "8px 16px",
-                }}
-              >
-                Model Data
-              </Tabs.Trigger>
             </Tabs.List>
 
             <Box py="5" px="4" style={{ background: "white" }}>
@@ -791,11 +779,6 @@ export function ModelDetail() {
               {/* Inference Tab */}
               <Tabs.Content value="inference">
                 <ModelInferenceTab model={model} />
-              </Tabs.Content>
-
-              {/* Model Data Tab */}
-              <Tabs.Content value="model-data">
-                <ModelDataTab model={model} />
               </Tabs.Content>
             </Box>
           </Tabs.Root>
