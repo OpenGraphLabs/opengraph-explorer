@@ -124,7 +124,7 @@ print(model_schema)
 
 model_json = json.dumps(model_schema.dict())
 
-with open("converted_model.json", "w") as f:
+with open("./utils/converted_model.json", "w") as f:
     f.write(model_json)
     print("\nModel saved to converted_model.json")
 
