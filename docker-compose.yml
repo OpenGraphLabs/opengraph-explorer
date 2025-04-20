@@ -32,7 +32,7 @@ services:
       dockerfile: docker/server/Dockerfile
     container_name: opengraph-server
     ports:
-      - "8000:8000"
+      - "3000:3000"
     volumes:
       - ./server/uploads:/app/uploads
     env_file:
