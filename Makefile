@@ -27,8 +27,7 @@ stop-dev:
 
 # Restart with rebuilding (stop, build new images, and start)
 restart: stop
-	$(DOCKER_COMPOSE) build
-	$(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE) up --build -d
 
 # View logs
 logs:
