@@ -18,7 +18,6 @@ services:
     networks:
       - opengraph-dev-network
     command: yarn dev
-    restart: unless-stopped
 
   server-dev:
     build:
@@ -34,7 +33,6 @@ services:
     networks:
       - opengraph-dev-network
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    restart: unless-stopped
 
 networks:
   opengraph-dev-network:

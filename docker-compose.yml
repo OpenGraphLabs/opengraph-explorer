@@ -10,8 +10,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/letsencrypt/live/explorer.opengraphlabs.xyz:/etc/nginx/ssl/explorer.opengraphlabs.xyz:ro
-      - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/nginx/ssl/archive:ro
+      - /etc/letsencrypt/live/explorer.opengraphlabs.xyz:/etc/letsencrypt/live/explorer.opengraphlabs.xyz
+      - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/letsencrypt/archive/explorer.opengraphlabs.xyz
     depends_on:
       - server
     environment:
@@ -20,7 +20,6 @@ services:
       - ./client/.env
     networks:
       - opengraph-network
-    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -40,7 +39,6 @@ services:
       - ./server/.env
     networks:
       - opengraph-network
-    restart: unless-stopped
     deploy:
       resources:
         limits:

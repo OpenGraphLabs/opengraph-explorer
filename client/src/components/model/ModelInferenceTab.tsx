@@ -1571,10 +1571,11 @@ function InferenceResultTable({
                   </Badge>
                   <Text size="2" style={{ fontWeight: 600, color: "#2E7D32" }}>
                     Value:{" "}
-                    {formatVector(
+                    {/* {formatVector(
                       [result.outputMagnitude[result.argmaxIdx]],
                       [result.outputSign[result.argmaxIdx]]
-                    )}
+                    )} */}
+                    {result.argmaxIdx}
                   </Text>
                   {result.txDigest && (
                     <Button
