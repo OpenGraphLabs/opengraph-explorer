@@ -8,7 +8,6 @@ import {
   Grid,
   Button,
   Select,
-  Tabs,
   Avatar,
   Badge,
   Spinner,

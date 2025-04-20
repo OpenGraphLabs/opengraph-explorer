@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  client-dev:
+    build:
+      context: .
+      dockerfile: docker/client/Dockerfile.dev
+    container_name: opengraph-client-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./client/.env.development
+    networks:
+      - opengraph-dev-network
+    command: yarn dev
+    restart: unless-stopped
+
+  server-dev:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    container_name: opengraph-server-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server:/app
+    env_file:
+      - ./server/.env
+    networks:
+      - opengraph-dev-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+networks:
+  opengraph-dev-network:
+    driver: bridge 

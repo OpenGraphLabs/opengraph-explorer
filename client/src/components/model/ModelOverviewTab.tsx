@@ -6,7 +6,6 @@ import {
   Rocket,
   Calendar,
   GithubLogo,
-  ChartLine,
   Barcode,
   Stack,
   Database,

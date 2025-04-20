@@ -73,20 +73,20 @@ def convert_model_to_schema(model, scale=2):
     
     return model_schema
 
-########################################################################################################################
+# ########################################################################################################################
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-path = os.path.join(current_dir, "fp32_model_norm_7_7.h5")
-SCALE = 2
-model = load_model(path)
-model_schema = convert_model_to_schema(model)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# path = os.path.join(current_dir, "fp32_model_norm_7_7.h5")
+# SCALE = 2
+# model = load_model(path)
+# model_schema = convert_model_to_schema(model)
 
-print("\nConverted Model Schema:")
-print(model_schema)
+# print("\nConverted Model Schema:")
+# print(model_schema)
 
-model_json = json.dumps(model_schema.dict())
+# model_json = json.dumps(model_schema.dict())
 
-with open("./utils/converted_model.json", "w") as f:
-    f.write(model_json)
-    print("\nModel saved to converted_model.json")
+# with open("./utils/converted_model.json", "w") as f:
+#     f.write(model_json)
+#     print("\nModel saved to converted_model.json")
 

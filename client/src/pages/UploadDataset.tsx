@@ -65,9 +65,6 @@ export function UploadDataset() {
     >
   >({});
 
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ blobId: string; fileHash: string }>>(
-    []
-  );
   const [isCreatingDataset, setIsCreatingDataset] = useState(false);
 
   const MAX_RETRIES = 3;
@@ -222,7 +219,6 @@ export function UploadDataset() {
       setPreviewStep("upload");
       setError(null);
       setIsLoading(true);
-      setUploadedFiles([]);
       setUploadProgress({
         totalFiles: selectedFiles.length,
         uploadedFiles: 0,
@@ -250,8 +246,6 @@ export function UploadDataset() {
         return;
       }
 
-      // 모든 파일이 성공적으로 업로드되면 자동으로 데이터셋 생성
-      setUploadedFiles(successfulUploads);
       setUploadProgress(prev => ({
         ...prev,
         status: "creating",
@@ -279,7 +273,6 @@ export function UploadDataset() {
           setSelectedFiles([]);
           setAnnotations([]);
           setUploadStatus({});
-          setUploadedFiles([]);
           setMetadata({
             name: "",
             description: "",

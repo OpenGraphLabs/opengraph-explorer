@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+.github
+
+# Docker
+.dockerignore
+docker-compose*.yml
+Dockerfile*
+
+# Node.js
+**/node_modules
+**/dist
+**/build
+**/.env
+**/.env.*
+
+# Python
+**/__pycache__
+**/*.py[cod]
+**/*$py.class
+**/venv
+**/.venv
+**/.pytest_cache
+**/.coverage
+**/*.h5
+**/*.model
+**/*.ckpt*
+**/*.keras
+**/*.hdf5
+**/server/uploads/*
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+**/.DS_Store
+
+# 캐시 및 임시 파일
+**/.cache
+**/.tmp
+**/tmp
+**/.ipynb_checkpoints 

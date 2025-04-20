@@ -67,7 +67,6 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   const inferenceTableRef = useRef<HTMLDivElement>(null);
 
   // State declarations
-  const [inputType, setInputType] = useState<"vector" | "image">("vector");
   const [imageData, setImageData] = useState<ImageData>({ dataUrl: null, vector: null });
   const [isCanvasActive, setIsCanvasActive] = useState<boolean>(false);
   const [isProcessingImage, setIsProcessingImage] = useState<boolean>(false);
@@ -546,13 +545,13 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               {/* 입력 방식 선택 탭 */}
               <Tabs.Root defaultValue="vector">
                 <Tabs.List>
-                  <Tabs.Trigger value="vector" onClick={() => setInputType("vector")}>
+                  <Tabs.Trigger value="vector">
                     <Flex align="center" gap="2">
                       <TextT size={16} weight="bold" />
                       <Text>Vector Input</Text>
                     </Flex>
                   </Tabs.Trigger>
-                  <Tabs.Trigger value="image" onClick={() => setInputType("image")}>
+                  <Tabs.Trigger value="image">
                     <Flex align="center" gap="2">
                       <ImageSquare size={16} weight="bold" />
                       <Text>Image Input</Text>
