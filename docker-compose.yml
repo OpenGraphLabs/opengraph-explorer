@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: docker/client/Dockerfile
+    container_name: opengraph-client
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - server
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./client/.env
+    networks:
+      - opengraph-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M  
+
+  server:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    container_name: opengraph-server
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server/uploads:/app/uploads
+    env_file:
+      - ./server/.env
+    networks:
+      - opengraph-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1.5G 
+
+networks:
+  opengraph-network:
+    driver: bridge
+
+volumes:
+  uploads: 
