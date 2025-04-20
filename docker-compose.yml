@@ -10,7 +10,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./ssl:/etc/nginx/ssl:ro
+      - /etc/letsencrypt/live/explorer.opengraphlabs.xyz:/etc/nginx/ssl/explorer.opengraphlabs.xyz:ro
+      - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/nginx/ssl/archive:ro
     depends_on:
       - server
     environment:
