@@ -27,25 +27,12 @@ import {
 import { Database, ImageSquare, FileDoc, FileZip, FileText } from "phosphor-react";
 import styles from "../styles/Card.module.css";
 
-interface TrainingDataInfo {
-  availableDatasets: BlobObject[];
-  selectedDatasets: BlobObject[];
-  isLoading: boolean;
-  error: string | null;
-}
-
 interface DatasetSelectionInfo {
   availableDatasets: DatasetObject[];
   selectedTrainingDataset: DatasetObject | null;
   selectedTestDatasets: DatasetObject[];
   isLoading: boolean;
   error: string | null;
-}
-
-interface BlobObject {
-  id: string;
-  name: string;
-  description: string;
 }
 
 // 데이터 타입에 따른 아이콘 매핑
@@ -327,12 +314,6 @@ export function UploadModel() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [transactionInProgress, setTransactionInProgress] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
-  const [trainingData, setTrainingData] = useState<TrainingDataInfo>({
-    availableDatasets: [],
-    selectedDatasets: [],
-    isLoading: false,
-    error: null,
-  });
   const [datasetInfo, setDatasetInfo] = useState<DatasetSelectionInfo>({
     availableDatasets: [],
     selectedTrainingDataset: null,

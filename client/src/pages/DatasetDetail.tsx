@@ -13,7 +13,7 @@ import {
   Dialog,
   Tooltip,
 } from "@radix-ui/themes";
-import { Database, ImageSquare, FileDoc, FileZip, FileText, Download, Eye } from "phosphor-react";
+import { Database, ImageSquare, FileDoc, FileZip, FileText, Download } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
