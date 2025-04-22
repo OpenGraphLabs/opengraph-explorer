@@ -11,10 +11,17 @@ import {
   Avatar,
   Badge,
   Spinner,
+  Separator,
+  IconButton,
+  Tooltip,
 } from "@radix-ui/themes";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { 
+  MagnifyingGlassIcon, 
+  ChevronUpIcon, 
+  ChevronDownIcon, 
+  DotsHorizontalIcon,
+} from "@radix-ui/react-icons";
 import { Link, useNavigate } from "react-router-dom";
-import styles from "../styles/Card.module.css";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 import { useCurrentWallet } from "@mysten/dapp-kit";
@@ -22,22 +29,30 @@ import { Database, ImageSquare, FileDoc, FileZip, FileText } from "phosphor-reac
 
 // 데이터 타입에 따른 아이콘 매핑
 const DATA_TYPE_ICONS: Record<string, any> = {
-  "image/png": <ImageSquare size={20} />,
-  "image/jpeg": <ImageSquare size={20} />,
-  "text/plain": <FileText size={20} />,
-  "text/csv": <FileDoc size={20} />,
-  "application/zip": <FileZip size={20} />,
-  default: <Database size={20} />,
+  "image/png": <ImageSquare size={20} weight="bold" />,
+  "image/jpeg": <ImageSquare size={20} weight="bold" />,
+  "text/plain": <FileText size={20} weight="bold" />,
+  "text/csv": <FileDoc size={20} weight="bold" />,
+  "application/zip": <FileZip size={20} weight="bold" />,
+  default: <Database size={20} weight="bold" />,
 };
 
 // 데이터 타입에 따른 색상 매핑
-const DATA_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
-  "image/png": { bg: "#E8F5E9", text: "#2E7D32" },
-  "image/jpeg": { bg: "#E8F5E9", text: "#2E7D32" },
-  "text/plain": { bg: "#E3F2FD", text: "#1565C0" },
-  "text/csv": { bg: "#E0F7FA", text: "#00838F" },
-  "application/zip": { bg: "#FFF3E0", text: "#E65100" },
-  default: { bg: "#F3E8FD", text: "#7E22CE" },
+const DATA_TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  "image/png": { bg: "#E8F5E9", text: "#2E7D32", border: "#A5D6A7" },
+  "image/jpeg": { bg: "#E8F5E9", text: "#2E7D32", border: "#A5D6A7" },
+  "text/plain": { bg: "#E3F2FD", text: "#1565C0", border: "#90CAF9" },
+  "text/csv": { bg: "#E0F7FA", text: "#00838F", border: "#80DEEA" },
+  "application/zip": { bg: "#FFF3E0", text: "#E65100", border: "#FFCC80" },
+  default: { bg: "#F3E8FD", text: "#7E22CE", border: "#D0BCFF" },
+};
+
+// 데이터 유형별 표시 이름
+const DATA_TYPE_NAMES: Record<string, string> = {
+  "image": "Images",
+  "text": "Text",
+  "application": "Applications",
+  "default": "Data"
 };
 
 export function Datasets() {
@@ -49,11 +64,19 @@ export function Datasets() {
   const [datasets, setDatasets] = useState<DatasetObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // 데이터셋 가져오기
   useEffect(() => {
     fetchDatasets();
   }, [currentWallet]);
+
+  useEffect(() => {
+    if (!loading && !error) {
+      // 애니메이션을 위한 타이머
+      setTimeout(() => setIsLoaded(true), 100);
+    }
+  }, [loading, error]);
 
   const fetchDatasets = async () => {
     try {
@@ -101,8 +124,8 @@ export function Datasets() {
   const formatDataSize = (size: string | number): string => {
     const numSize = typeof size === "string" ? parseInt(size) : Number(size);
     if (numSize < 1024) return `${numSize} B`;
-    if (numSize < 1024 * 1024) return `${(numSize / 1024).toFixed(2)} KB`;
-    return `${(numSize / (1024 * 1024)).toFixed(2)} MB`;
+    if (numSize < 1024 * 1024) return `${(numSize / 1024).toFixed(1)} KB`;
+    return `${(numSize / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   // 데이터 타입 아이콘 및 색상 가져오기
@@ -116,373 +139,598 @@ export function Datasets() {
     return DATA_TYPE_COLORS[key];
   };
 
-  return (
-    <Box style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 28px" }}>
-      <Heading size={{ initial: "7", md: "8" }} mb="6" style={{ fontWeight: 700 }}>
-        Explore Datasets
-      </Heading>
+  // 데이터 타입 필터 옵션
+  const typeFilters = [
+    { value: "all", label: "All Types", icon: "🔍" },
+    { value: "image", label: "Images", icon: "🖼️" },
+    { value: "text", label: "Text", icon: "📝" },
+    { value: "application", label: "Applications", icon: "📦" },
+  ];
 
-      {/* 검색 및 필터 섹션 */}
-      <Card
-        style={{
-          padding: "28px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
-          marginBottom: "36px",
-          border: "1px solid var(--gray-4)",
-        }}
-      >
-        <Flex direction="column" gap="5">
-          <div
-            className="rt-TextFieldRoot"
+  return (
+    <Box style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 28px", minHeight: "90vh" }}>
+      <Flex gap="5" justify="between" align="baseline" mb="6">
+        <div>
+          <Heading 
+            size={{ initial: "8", md: "9" }} 
+            style={{ 
+              fontWeight: 800, 
+              letterSpacing: "-0.03em", 
+              background: "linear-gradient(90deg, #FF5733 0%, #E74C3C 100%)", 
+              WebkitBackgroundClip: "text", 
+              WebkitTextFillColor: "transparent" 
+            }}
+            mb="2"
+          >
+            Explore Datasets
+          </Heading>
+          <Text size="3" color="gray" style={{ maxWidth: "620px" }}>
+            Discover high-quality datasets stored on Walrus and indexed on Sui blockchain
+          </Text>
+        </div>
+        <Link to="/datasets/upload">
+          <Button 
+            size="3"
             style={{
+              background: "#FF5733",
+              color: "white",
               borderRadius: "8px",
-              border: "1px solid var(--gray-5)",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
-              overflow: "hidden",
+              fontWeight: 600,
+              padding: "10px 18px",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(255, 87, 51, 0.25)",
+              border: "none",
+              transition: "all 0.2s ease",
             }}
           >
-            <div className="rt-TextFieldSlot" style={{ padding: "0 14px" }}>
-              <MagnifyingGlassIcon height="18" width="18" style={{ color: "var(--gray-9)" }} />
+            Upload Dataset
+          </Button>
+        </Link>
+      </Flex>
+
+      {/* 향상된 검색 및 필터 섹션 */}
+      <Flex 
+        direction={{ initial: "column", sm: "row" }} 
+        gap="4" 
+        mb="6" 
+        style={{ 
+          background: "white", 
+          padding: "20px", 
+          borderRadius: "16px", 
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)", 
+          border: "1px solid var(--gray-4)"
+        }}
+      >
+        <Box style={{ flex: 1 }}>
+          <div
+            className="rt-TextFieldRoot"
+            style={{ width: "100%" }}
+          >
+            <div className="rt-TextFieldSlot">
+              <MagnifyingGlassIcon height="16" width="16" />
             </div>
             <input
               className="rt-TextFieldInput"
-              placeholder="Search datasets..."
+              placeholder="Search datasets by name or description..." 
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
               style={{
-                padding: "16px 18px",
-                fontSize: "16px",
+                backgroundColor: "var(--gray-1)",
+                borderRadius: "8px",
+                border: "1px solid var(--gray-4)",
+                padding: "10px 16px",
                 width: "100%",
-                border: "none",
-                outline: "none",
-                background: "transparent",
               }}
             />
           </div>
-
-          <Flex gap="4" wrap="wrap">
-            <Box style={{ minWidth: "200px", flex: 1 }}>
-              <Text
-                as="label"
-                size="2"
-                style={{ display: "block", marginBottom: "10px", fontWeight: 500 }}
-              >
-                Filter by Type
-              </Text>
-              <Select.Root value={selectedType} onValueChange={setSelectedType}>
-                <Select.Trigger
-                  style={{
-                    width: "100%",
-                    borderRadius: "8px",
-                    padding: "12px 18px",
-                    border: "1px solid var(--gray-5)",
-                  }}
-                />
-                <Select.Content>
-                  <Select.Item value="all">All Types</Select.Item>
-                  <Select.Item value="image">Images</Select.Item>
-                  <Select.Item value="text">Text</Select.Item>
-                  <Select.Item value="application">Applications</Select.Item>
-                </Select.Content>
-              </Select.Root>
-            </Box>
-
-            <Box style={{ minWidth: "200px", flex: 1 }}>
-              <Text
-                as="label"
-                size="2"
-                style={{ display: "block", marginBottom: "10px", fontWeight: 500 }}
-              >
-                Sort By
-              </Text>
-              <Select.Root value={selectedSort} onValueChange={setSelectedSort}>
-                <Select.Trigger
-                  style={{
-                    width: "100%",
-                    borderRadius: "8px",
-                    padding: "12px 18px",
-                    border: "1px solid var(--gray-5)",
-                  }}
-                />
-                <Select.Content>
-                  <Select.Item value="newest">Newest First</Select.Item>
-                  <Select.Item value="oldest">Oldest First</Select.Item>
-                  <Select.Item value="name">Name</Select.Item>
-                  <Select.Item value="size">Size</Select.Item>
-                </Select.Content>
-              </Select.Root>
-            </Box>
-          </Flex>
-        </Flex>
-      </Card>
-
-      {/* 데이터셋 목록 */}
-      <Box py="6" px="5" style={{ background: "white" }}>
-        {loading ? (
-          <Flex direction="column" align="center" gap="4" py="9">
-            <Spinner size="3" />
-            <Text size="3" style={{ fontWeight: 500 }}>
-              Loading datasets...
-            </Text>
-          </Flex>
-        ) : error ? (
-          <Flex direction="column" align="center" gap="4" py="9">
-            <Box
-              style={{
-                width: "80px",
-                height: "80px",
-                borderRadius: "50%",
-                background: "var(--gray-3)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Database size={32} style={{ color: "var(--gray-9)" }} />
-            </Box>
-            <Text size="4" style={{ fontWeight: 500 }}>
-              Error Loading Datasets
-            </Text>
-            <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
-              {error}
-            </Text>
-            <Button
-              onClick={fetchDatasets}
-              style={{
-                background: "#FF5733",
-                color: "white",
-                marginTop: "14px",
+        </Box>
+        
+        <Flex gap="3" align="center">
+          <Select.Root value={selectedType} onValueChange={setSelectedType}>
+            <Select.Trigger 
+              placeholder="Data Type" 
+              style={{ 
+                minWidth: "160px", 
+                backgroundColor: "var(--gray-1)",
+                border: "1px solid var(--gray-4)",
                 borderRadius: "8px",
-                fontWeight: 500,
-                padding: "10px 16px",
               }}
-            >
-              Retry
-            </Button>
-          </Flex>
-        ) : (
-          <>
-            <Flex mb="5" justify="between" align="center">
-              <Text size="3" style={{ fontWeight: 500 }}>
-                Showing {filteredDatasets.length} datasets
+            />
+            <Select.Content position="popper">
+              <Select.Group>
+                {typeFilters.map(type => (
+                  <Select.Item 
+                    key={type.value} 
+                    value={type.value}
+                    style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "8px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <span style={{ fontSize: "16px" }}>{type.icon}</span>
+                    {type.label}
+                  </Select.Item>
+                ))}
+              </Select.Group>
+            </Select.Content>
+          </Select.Root>
+          
+          <div style={{ position: "relative" }}>
+            <Tooltip content={
+              <Box p="2">
+                <Flex direction="column" gap="1">
+                  <Button 
+                    size="1" 
+                    variant={selectedSort === "newest" ? "solid" : "ghost"} 
+                    onClick={() => setSelectedSort("newest")}
+                  >
+                    <ChevronUpIcon /> Newest First
+                  </Button>
+                  <Button 
+                    size="1" 
+                    variant={selectedSort === "oldest" ? "solid" : "ghost"} 
+                    onClick={() => setSelectedSort("oldest")}
+                  >
+                    <ChevronDownIcon /> Oldest First
+                  </Button>
+                  <Button 
+                    size="1" 
+                    variant={selectedSort === "name" ? "solid" : "ghost"} 
+                    onClick={() => setSelectedSort("name")}
+                  >
+                    <span style={{ fontSize: "14px" }}>A-Z</span> Name
+                  </Button>
+                  <Button 
+                    size="1" 
+                    variant={selectedSort === "size" ? "solid" : "ghost"} 
+                    onClick={() => setSelectedSort("size")}
+                  >
+                    <span style={{ fontSize: "14px" }}>⬇️</span> Size
+                  </Button>
+                </Flex>
+              </Box>
+            }>
+              <IconButton 
+                size="3" 
+                variant="soft" 
+                style={{ 
+                  background: "var(--gray-4)",
+                  borderRadius: "8px",
+                }}
+              >
+                <DotsHorizontalIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
+        </Flex>
+      </Flex>
+
+      {/* 통계 요약 */}
+      {!loading && !error && (
+        <Box mb="6">
+          <Flex 
+            justify="between" 
+            align="center" 
+            style={{ 
+              padding: "16px 20px", 
+              borderRadius: "12px", 
+              background: "var(--gray-1)", 
+              border: "1px solid var(--gray-4)",
+            }}
+          >
+            <Flex align="center" gap="2">
+              <Text weight="medium">
+                {filteredDatasets.length} {filteredDatasets.length === 1 ? "dataset" : "datasets"} 
               </Text>
-              <Link to="/datasets/upload">
-                <Button
-                  size="2"
-                  style={{
-                    background: "#FF5733",
-                    color: "white",
-                    borderRadius: "8px",
-                    fontWeight: 500,
-                    padding: "10px 16px",
+              {selectedType !== "all" && (
+                <Badge 
+                  variant="soft" 
+                  style={{ 
+                    background: "var(--accent-3)",
+                    color: "var(--accent-11)",
                   }}
                 >
-                  Upload Dataset
-                </Button>
-              </Link>
+                  {DATA_TYPE_NAMES[selectedType] || selectedType}
+                </Badge>
+              )}
+              {searchQuery && (
+                <Badge variant="soft" color="blue">
+                  "{searchQuery}"
+                </Badge>
+              )}
             </Flex>
+            
+            <Flex align="center" gap="3">
+              <Flex align="center" gap="2" title="Sort by">
+                <DotsHorizontalIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
+                <Text size="2" color="gray" style={{ fontWeight: 500 }}>
+                  {selectedSort === "newest" && "Newest First"}
+                  {selectedSort === "oldest" && "Oldest First"}
+                  {selectedSort === "name" && "Name (A-Z)"}
+                  {selectedSort === "size" && "Size (Largest)"}
+                </Text>
+              </Flex>
+            </Flex>
+          </Flex>
+        </Box>
+      )}
 
-            {filteredDatasets.length === 0 ? (
-              <Flex direction="column" align="center" gap="4" py="9">
+      {/* 데이터셋 그리드 */}
+      {loading ? (
+        <Flex direction="column" align="center" gap="4" py="9" style={{ minHeight: "60vh", justifyContent: "center" }}>
+          <Spinner size="3" />
+          <Text size="3" style={{ fontWeight: 500 }}>
+            Loading datasets...
+          </Text>
+        </Flex>
+      ) : error ? (
+        <Flex 
+          direction="column" 
+          align="center" 
+          gap="4" 
+          py="9" 
+          style={{ 
+            minHeight: "60vh", 
+            justifyContent: "center",
+            background: "white",
+            borderRadius: "16px",
+            padding: "40px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--gray-4)"
+          }}
+        >
+          <Box
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              background: "var(--gray-3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Database size={32} style={{ color: "var(--gray-9)" }} />
+          </Box>
+          <Text size="6" style={{ fontWeight: 600 }}>
+            Error Loading Datasets
+          </Text>
+          <Text size="3" color="gray" align="center" style={{ maxWidth: "400px" }}>
+            {error}
+          </Text>
+          <Button
+            onClick={fetchDatasets}
+            style={{
+              background: "#FF5733",
+              color: "white",
+              marginTop: "14px",
+              borderRadius: "8px",
+              fontWeight: 500,
+              padding: "10px 16px",
+              cursor: "pointer",
+            }}
+          >
+            Retry
+          </Button>
+        </Flex>
+      ) : filteredDatasets.length === 0 ? (
+        <Flex 
+          direction="column" 
+          align="center" 
+          gap="4" 
+          py="9"
+          style={{ 
+            minHeight: "60vh", 
+            justifyContent: "center",
+            background: "white",
+            borderRadius: "16px",
+            padding: "40px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--gray-4)"
+          }}
+        >
+          <Box
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              background: "var(--gray-3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Database size={32} style={{ color: "var(--gray-9)" }} />
+          </Box>
+          <Text size="6" style={{ fontWeight: 600 }}>
+            No Datasets Found
+          </Text>
+          <Text
+            size="3"
+            color="gray"
+            align="center"
+            style={{ maxWidth: "400px", lineHeight: 1.6, letterSpacing: "0.01em" }}
+          >
+            No datasets match your search criteria. Try changing your search terms or filters.
+          </Text>
+          <Button
+            onClick={() => navigate("/datasets/upload")}
+            style={{
+              background: "#FF5733",
+              color: "white",
+              marginTop: "14px",
+              borderRadius: "8px",
+              fontWeight: 500,
+              padding: "10px 16px",
+              cursor: "pointer",
+            }}
+          >
+            Upload Dataset
+          </Button>
+        </Flex>
+      ) : (
+        <Grid columns={{ initial: "1", sm: "2", lg: "3", xl: "4" }} gap="5">
+          {filteredDatasets.map((dataset, index) => (
+            <Link
+              key={dataset.id}
+              to={`/datasets/${dataset.id}`}
+              style={{ 
+                textDecoration: "none",
+                opacity: isLoaded ? 1 : 0,
+                transform: isLoaded ? "translateY(0)" : "translateY(10px)",
+                transition: "opacity 0.5s ease, transform 0.5s ease",
+                transitionDelay: `${index * 50}ms`,
+              }}
+            >
+              <Card
+                style={{
+                  borderRadius: "16px",
+                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.06)",
+                  border: "none",
+                  overflow: "hidden",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
+                  cursor: "pointer",
+                }}
+              >
+                {/* 데이터셋 헤더 */}
                 <Box
                   style={{
-                    width: "80px",
-                    height: "80px",
-                    borderRadius: "50%",
-                    background: "var(--gray-3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    padding: "18px",
+                    background: `linear-gradient(45deg, ${getDataTypeColor(dataset.dataType).bg}80, ${getDataTypeColor(dataset.dataType).bg}40)`,
+                    position: "relative",
+                    overflow: "hidden",
+                    borderBottom: "none",
                   }}
                 >
-                  <Database size={32} style={{ color: "var(--gray-9)" }} />
-                </Box>
-                <Text size="4" style={{ fontWeight: 500 }}>
-                  No Datasets Found
-                </Text>
-                <Text size="2" color="gray" align="center" style={{ maxWidth: "400px" }}>
-                  No datasets match your search criteria. Try changing your search terms or filters.
-                </Text>
-                <Button
-                  onClick={() => navigate("/datasets/upload")}
-                  style={{
-                    background: "#FF5733",
-                    color: "white",
-                    marginTop: "14px",
-                    borderRadius: "8px",
-                    fontWeight: 500,
-                    padding: "10px 16px",
-                  }}
-                >
-                  Upload Dataset
-                </Button>
-              </Flex>
-            ) : (
-              <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="5">
-                {filteredDatasets.map(dataset => (
-                  <Link
-                    key={dataset.id}
-                    to={`/datasets/${dataset.id}`}
-                    style={{ textDecoration: "none" }}
-                  >
-                    <Card
-                      className={styles.modelCard}
-                      style={{
-                        borderRadius: "12px",
-                        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
-                        border: "1px solid var(--gray-4)",
-                        overflow: "hidden",
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                      }}
-                    >
-                      {/* 데이터셋 헤더 */}
+                  {/* 배경 장식 요소 */}
+                  <Box 
+                    style={{
+                      position: "absolute",
+                      top: "-20px",
+                      right: "-20px",
+                      width: "100px",
+                      height: "100px",
+                      borderRadius: "50%",
+                      background: `linear-gradient(135deg, ${getDataTypeColor(dataset.dataType).border}40, transparent)`,
+                      zIndex: 0,
+                    }}
+                  />
+                  
+                  <Flex justify="between" align="center" style={{ position: "relative", zIndex: 1 }}>
+                    <Flex align="center" gap="3">
                       <Box
                         style={{
-                          padding: "16px",
-                          borderBottom: "1px solid var(--gray-4)",
-                          background: "var(--gray-1)",
+                          background: "white",
+                          color: getDataTypeColor(dataset.dataType).text,
+                          borderRadius: "12px",
+                          width: "42px",
+                          height: "42px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 3px 10px rgba(0, 0, 0, 0.08)",
+                          border: "none",
                         }}
                       >
-                        <Flex justify="between" align="center">
-                          <Flex align="center" gap="2">
-                            <Box
-                              style={{
-                                background: getDataTypeColor(dataset.dataType).bg,
-                                color: getDataTypeColor(dataset.dataType).text,
-                                borderRadius: "6px",
-                                width: "34px",
-                                height: "34px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              {getDataTypeIcon(dataset.dataType)}
-                            </Box>
-                            <Badge
-                              style={{
-                                background: getDataTypeColor(dataset.dataType).bg,
-                                color: getDataTypeColor(dataset.dataType).text,
-                                padding: "4px 8px",
-                                fontWeight: 500,
-                                fontSize: "11px",
-                              }}
-                            >
-                              {dataset.dataType.split("/")[0]}
-                            </Badge>
-                          </Flex>
-                          <Text
-                            size="1"
-                            style={{ color: "var(--gray-11)", fontFamily: "monospace" }}
-                          >
-                            {formatDataSize(dataset.dataSize)}
-                          </Text>
-                        </Flex>
+                        {getDataTypeIcon(dataset.dataType)}
                       </Box>
-
-                      {/* 데이터셋 콘텐츠 */}
-                      <Box style={{ padding: "16px", flex: 1 }}>
-                        <Heading size="3" mb="1" style={{ fontWeight: 600 }}>
-                          {dataset.name}
-                        </Heading>
-                        <Text
-                          size="2"
+                      <Box>
+                        <Badge
                           style={{
-                            color: "var(--gray-11)",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                            marginBottom: "12px",
-                            height: "40px",
+                            background: "white",
+                            color: getDataTypeColor(dataset.dataType).text,
+                            padding: "4px 12px",
+                            fontWeight: 600,
+                            fontSize: "12px",
+                            borderRadius: "20px",
+                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                            border: "none",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.02em",
                           }}
                         >
-                          {dataset.description || "No description"}
-                        </Text>
-
-                        {/* 태그 */}
-                        {dataset.tags && dataset.tags.length > 0 && (
-                          <Flex gap="2" wrap="wrap" mb="3">
-                            {dataset.tags.slice(0, 3).map((tag, index) => (
-                              <Badge
-                                key={index}
-                                style={{
-                                  background: "var(--gray-3)",
-                                  color: "var(--gray-11)",
-                                  padding: "2px 8px",
-                                  borderRadius: "4px",
-                                  fontSize: "11px",
-                                }}
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                            {dataset.tags.length > 3 && (
-                              <Badge
-                                style={{
-                                  background: "var(--gray-3)",
-                                  color: "var(--gray-11)",
-                                  padding: "2px 8px",
-                                  borderRadius: "4px",
-                                  fontSize: "11px",
-                                }}
-                              >
-                                +{dataset.tags.length - 3}
-                              </Badge>
-                            )}
-                          </Flex>
-                        )}
-
-                        {/* 데이터 항목 수 */}
-                        <Flex align="center" gap="2" mb="3">
-                          <Database size={14} style={{ color: "var(--gray-9)" }} />
-                          <Text size="1" style={{ color: "var(--gray-11)" }}>
-                            {dataset.dataCount} items
-                          </Text>
-                        </Flex>
-
-                        {/* 작성자 */}
-                        <Flex align="center" gap="2" mb="3">
-                          <Avatar
-                            size="1"
-                            src=""
-                            fallback={dataset.creator ? dataset.creator[0] : "U"}
-                            radius="full"
-                            style={{
-                              background: "var(--gray-5)",
-                              color: "var(--gray-11)",
-                              fontSize: "10px",
-                            }}
-                          />
-                          <Text size="1" style={{ color: "var(--gray-11)" }}>
-                            {dataset.creator
-                              ? `${dataset.creator.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...`
-                              : "Unknown"}
-                          </Text>
-                        </Flex>
-
-                        {/* 라이센스 및 날짜 */}
-                        <Flex justify="between" align="center" mt="auto">
-                          <Text size="1" style={{ color: "var(--gray-11)" }}>
+                          {dataset.dataType.split("/")[0]}
+                        </Badge>
+                        {dataset.license && (
+                          <Text size="1" style={{ color: getDataTypeColor(dataset.dataType).text, marginTop: "4px", opacity: 0.8 }}>
                             {dataset.license}
                           </Text>
-                          <Text size="1" style={{ color: "var(--gray-9)" }}>
-                            {new Date(dataset.createdAt).toLocaleDateString()}
+                        )}
+                      </Box>
+                    </Flex>
+                    
+                    <Tooltip content="Dataset Size">
+                      <Box 
+                        style={{
+                          background: "white",
+                          padding: "6px 12px",
+                          borderRadius: "20px",
+                          boxShadow: "0 3px 10px rgba(0, 0, 0, 0.08)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                        }}
+                      >
+                        <Box 
+                          style={{ 
+                            width: "8px", 
+                            height: "8px", 
+                            borderRadius: "50%", 
+                            background: getDataTypeColor(dataset.dataType).text,
+                          }} 
+                        />
+                        <Text
+                          size="2"
+                          style={{ 
+                            color: getDataTypeColor(dataset.dataType).text, 
+                            fontWeight: 600,
+                            fontSize: "13px",
+                          }}
+                        >
+                          {formatDataSize(dataset.dataSize)}
+                        </Text>
+                      </Box>
+                    </Tooltip>
+                  </Flex>
+                </Box>
+
+                {/* 데이터셋 콘텐츠 */}
+                <Box 
+                  style={{ 
+                    padding: "20px", 
+                    flex: 1, 
+                    display: "flex", 
+                    flexDirection: "column",
+                    background: "linear-gradient(180deg, white, var(--gray-1))",
+                  }}
+                >
+                  <Heading size="3" mb="2" style={{ fontWeight: 700, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
+                    {dataset.name}
+                  </Heading>
+                  <Text
+                    size="2"
+                    style={{
+                      color: "var(--gray-11)",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      lineHeight: 1.6,
+                      flex: 1,
+                    }}
+                  >
+                    {dataset.description || "No description provided for this dataset."}
+                  </Text>
+
+                  <Separator size="4" style={{ 
+                    margin: "14px 0", 
+                    height: "1px", 
+                    background: "linear-gradient(90deg, var(--gray-4), transparent)" 
+                  }} />
+
+                  {/* 태그 */}
+                  {dataset.tags && dataset.tags.length > 0 && (
+                    <Flex gap="2" wrap="wrap" mb="3">
+                      {dataset.tags.slice(0, 3).map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="surface"
+                          radius="full"
+                          style={{
+                            padding: "3px 10px",
+                            fontSize: "11px",
+                            border: "none",
+                            background: "var(--gray-3)",
+                            color: "var(--gray-11)",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                      {dataset.tags.length > 3 && (
+                        <Badge
+                          variant="surface"
+                          radius="full"
+                          style={{
+                            padding: "3px 10px",
+                            fontSize: "11px",
+                            background: "var(--accent-3)",
+                            color: "var(--accent-11)",
+                            fontWeight: 500,
+                            border: "none",
+                          }}
+                        >
+                          +{dataset.tags.length - 3}
+                        </Badge>
+                      )}
+                    </Flex>
+                  )}
+
+                  {/* 메타데이터 및 정보 */}
+                  <Flex justify="between" align="center" mt="auto" style={{ marginTop: "14px" }}>
+                    <Flex align="center" gap="2">
+                      <Avatar
+                        size="1"
+                        src={`https://api.dicebear.com/7.x/identicon/svg?seed=${dataset.creator}`}
+                        fallback={dataset.creator ? dataset.creator[0] : "U"}
+                        radius="full"
+                        style={{
+                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                        }}
+                      />
+                      <Text size="1" style={{ fontWeight: 500, color: "var(--gray-10)" }}>
+                        {dataset.creator
+                          ? `${dataset.creator.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...`
+                          : "Unknown"}
+                      </Text>
+                    </Flex>
+                    
+                    <Flex gap="3" align="center">
+                      <Tooltip content="Total items in dataset">
+                        <Flex 
+                          align="center" 
+                          gap="2" 
+                          style={{ 
+                            color: "var(--gray-10)",
+                            background: "var(--gray-3)",
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                          }}
+                        >
+                          <Database size={14} weight="bold" />
+                          <Text size="1" style={{ fontWeight: 500 }}>
+                            {dataset.dataCount}
                           </Text>
                         </Flex>
-                      </Box>
-                    </Card>
-                  </Link>
-                ))}
-              </Grid>
-            )}
-          </>
-        )}
-      </Box>
+                      </Tooltip>
+                      <Tooltip content={`Created: ${new Date(dataset.createdAt).toLocaleDateString()}`}>
+                        <Text 
+                          size="1" 
+                          style={{ 
+                            color: "var(--gray-10)", 
+                            fontWeight: 500,
+                            background: "var(--gray-3)",
+                            padding: "4px 8px",
+                            borderRadius: "12px",
+                          }}
+                        >
+                          {new Date(dataset.createdAt).toLocaleDateString()}
+                        </Text>
+                      </Tooltip>
+                    </Flex>
+                  </Flex>
+                </Box>
+              </Card>
+            </Link>
+          ))}
+        </Grid>
+      )}
     </Box>
   );
 }
