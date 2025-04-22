@@ -148,7 +148,7 @@ export function Datasets() {
   ];
 
   return (
-    <Box style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 28px", minHeight: "90vh" }}>
+    <Box className={`${isLoaded ? "pageLoaded" : ''}`} style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 28px", minHeight: "90vh" }}>
       <Flex gap="5" justify="between" align="baseline" mb="6">
         <div>
           <Heading 
@@ -183,7 +183,9 @@ export function Datasets() {
               transition: "all 0.2s ease",
             }}
           >
-            Upload Dataset
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              Upload Dataset
+            </span>
           </Button>
         </Link>
       </Flex>
@@ -266,28 +268,36 @@ export function Datasets() {
                     variant={selectedSort === "newest" ? "solid" : "ghost"} 
                     onClick={() => setSelectedSort("newest")}
                   >
-                    <ChevronUpIcon /> Newest First
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                      <ChevronUpIcon /> Newest First
+                    </span>
                   </Button>
                   <Button 
                     size="1" 
                     variant={selectedSort === "oldest" ? "solid" : "ghost"} 
                     onClick={() => setSelectedSort("oldest")}
                   >
-                    <ChevronDownIcon /> Oldest First
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                      <ChevronDownIcon /> Oldest First
+                    </span>
                   </Button>
                   <Button 
                     size="1" 
                     variant={selectedSort === "name" ? "solid" : "ghost"} 
                     onClick={() => setSelectedSort("name")}
                   >
-                    <span style={{ fontSize: "14px" }}>A-Z</span> Name
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "14px" }}>A-Z</span> Name
+                    </span>
                   </Button>
                   <Button 
                     size="1" 
                     variant={selectedSort === "size" ? "solid" : "ghost"} 
                     onClick={() => setSelectedSort("size")}
                   >
-                    <span style={{ fontSize: "14px" }}>⬇️</span> Size
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "14px" }}>⬇️</span> Size
+                    </span>
                   </Button>
                 </Flex>
               </Box>
@@ -298,6 +308,7 @@ export function Datasets() {
                 style={{ 
                   background: "var(--gray-4)",
                   borderRadius: "8px",
+                  cursor: "pointer",
                 }}
               >
                 <DotsHorizontalIcon />
@@ -343,7 +354,7 @@ export function Datasets() {
             </Flex>
             
             <Flex align="center" gap="3">
-              <Flex align="center" gap="2" title="Sort by">
+              <Flex align="center" gap="2" title="Sort by" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
                 <DotsHorizontalIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
                 <Text size="2" color="gray" style={{ fontWeight: 500 }}>
                   {selectedSort === "newest" && "Newest First"}
@@ -362,7 +373,7 @@ export function Datasets() {
         <Flex direction="column" align="center" gap="4" py="9" style={{ minHeight: "60vh", justifyContent: "center" }}>
           <Spinner size="3" />
           <Text size="3" style={{ fontWeight: 500 }}>
-            Loading datasets...
+            Loading amazing datasets...
           </Text>
         </Flex>
       ) : error ? (
@@ -412,7 +423,9 @@ export function Datasets() {
               cursor: "pointer",
             }}
           >
-            Retry
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              Retry
+            </span>
           </Button>
         </Flex>
       ) : filteredDatasets.length === 0 ? (
@@ -467,11 +480,13 @@ export function Datasets() {
               cursor: "pointer",
             }}
           >
-            Upload Dataset
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              Upload Dataset
+            </span>
           </Button>
         </Flex>
       ) : (
-        <Grid columns={{ initial: "1", sm: "2", lg: "3", xl: "4" }} gap="5">
+        <Grid columns={{ initial: "1", sm: "2", lg: "3", xl: "4" }} gap="5" className="modelGrid">
           {filteredDatasets.map((dataset, index) => (
             <Link
               key={dataset.id}
@@ -483,6 +498,7 @@ export function Datasets() {
                 transition: "opacity 0.5s ease, transform 0.5s ease",
                 transitionDelay: `${index * 50}ms`,
               }}
+              className={`${isLoaded ? "visible" : ''}`}
             >
               <Card
                 style={{
@@ -496,6 +512,7 @@ export function Datasets() {
                   transition: "all 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
                   cursor: "pointer",
                 }}
+                className="datasetCard"
               >
                 {/* 데이터셋 헤더 */}
                 <Box
@@ -608,6 +625,7 @@ export function Datasets() {
                     flexDirection: "column",
                     background: "linear-gradient(180deg, white, var(--gray-1))",
                   }}
+                  className="datasetCardContent"
                 >
                   <Heading size="3" mb="2" style={{ fontWeight: 700, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
                     {dataset.name}
@@ -649,6 +667,7 @@ export function Datasets() {
                             color: "var(--gray-11)",
                             fontWeight: 500,
                           }}
+                          className="tagBadge"
                         >
                           {tag}
                         </Badge>
@@ -665,6 +684,7 @@ export function Datasets() {
                             fontWeight: 500,
                             border: "none",
                           }}
+                          className="tagBadge"
                         >
                           +{dataset.tags.length - 3}
                         </Badge>
@@ -702,6 +722,7 @@ export function Datasets() {
                             padding: "4px 10px",
                             borderRadius: "12px",
                           }}
+                          className="statsCounter"
                         >
                           <Database size={14} weight="bold" />
                           <Text size="1" style={{ fontWeight: 500 }}>
@@ -719,6 +740,7 @@ export function Datasets() {
                             padding: "4px 8px",
                             borderRadius: "12px",
                           }}
+                          className="statsCounter"
                         >
                           {new Date(dataset.createdAt).toLocaleDateString()}
                         </Text>
@@ -731,6 +753,70 @@ export function Datasets() {
           ))}
         </Grid>
       )}
+
+      <style>
+        {`
+        .pageLoaded {
+          animation: fadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0.7; }
+          to { opacity: 1; }
+        }
+        
+        .visible {
+          animation: cardFadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes cardFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .datasetCard {
+          transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .datasetCard:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 16px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .datasetCardContent {
+          transition: all 0.25s ease;
+        }
+        
+        .datasetCard:hover .datasetCardContent {
+          background: linear-gradient(180deg, white, var(--gray-2));
+        }
+        
+        .tagBadge {
+          transition: all 0.2s ease;
+        }
+        
+        .tagBadge:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .statsCounter {
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+        
+        .statsCounter:hover {
+          transform: translateY(-1px);
+          background: var(--gray-4);
+        }
+        `}
+      </style>
     </Box>
   );
 }
