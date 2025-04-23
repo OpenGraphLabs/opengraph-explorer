@@ -341,12 +341,28 @@ export function Models() {
           </Button>
         </Flex>
       ) : filteredModels.length > 0 ? (
-        <Grid columns={{ initial: "1", sm: "2", lg: "3", xl: "4" }} gap="5" className={styles.modelGrid}>
+        <Grid 
+          columns={{ initial: "1", sm: "2", lg: "3" }} 
+          gap="5" 
+          className={styles.modelGrid}
+          style={{
+            maxWidth: "100%",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          }}
+        >
           {filteredModels.map((model, index) => (
             <Link
               key={model.id}
               to={`/models/${model.id}`}
-              style={{ textDecoration: "none" }}
+              style={{ 
+                textDecoration: "none",
+                minWidth: "320px",
+                maxWidth: "100%",
+                display: "block",
+                height: "100%",
+              }}
               className={`${styles.modelCardLink} ${isLoaded ? styles.visible : ''}`}
             >
               <div 
@@ -355,6 +371,7 @@ export function Models() {
                   opacity: isLoaded ? 1 : 0,
                   transform: isLoaded ? "translateY(0)" : "translateY(10px)",
                   transition: "opacity 0.5s ease, transform 0.5s ease",
+                  height: "100%",
                 }}
               >
                 <Card
@@ -369,6 +386,10 @@ export function Models() {
                     flexDirection: "column",
                     transition: "all 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
                     background: "linear-gradient(180deg, white 0%, var(--gray-1) 100%)",
+                    minWidth: "320px",
+                    maxWidth: "100%",
+                    minHeight: "320px",
+                    maxHeight: "380px",
                   }}
                 >
                   <Flex direction="column" gap="4" style={{ height: "100%", padding: "22px" }} className={styles.modelCardContent}>

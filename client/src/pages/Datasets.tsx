@@ -486,7 +486,17 @@ export function Datasets() {
           </Button>
         </Flex>
       ) : (
-        <Grid columns={{ initial: "1", sm: "2", lg: "3", xl: "4" }} gap="5" className="modelGrid">
+        <Grid 
+          columns={{ initial: "1", sm: "2", lg: "3" }} 
+          gap="5" 
+          className="modelGrid"
+          style={{
+            maxWidth: "100%",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          }}
+        >
           {filteredDatasets.map((dataset, index) => (
             <Link
               key={dataset.id}
@@ -497,6 +507,8 @@ export function Datasets() {
                 transform: isLoaded ? "translateY(0)" : "translateY(10px)",
                 transition: "opacity 0.5s ease, transform 0.5s ease",
                 transitionDelay: `${index * 50}ms`,
+                minWidth: "320px",
+                maxWidth: "100%",
               }}
               className={`${isLoaded ? "visible" : ''}`}
             >
@@ -511,6 +523,8 @@ export function Datasets() {
                   flexDirection: "column",
                   transition: "all 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
                   cursor: "pointer",
+                  minWidth: "320px",
+                  maxWidth: "100%",
                 }}
                 className="datasetCard"
               >
