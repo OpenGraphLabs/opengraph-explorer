@@ -151,7 +151,7 @@ function getSampleWeights(layer: Layer, maxConnections: number = 50): WeightConn
 }
 
 // Main Neural Network Visualization component
-export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: NeuralNetworkVisualizationProps) {
+export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 5 }: NeuralNetworkVisualizationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [nodeRefs, setNodeRefs] = useState<{[key: string]: DOMRect | null}>({});
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
@@ -442,7 +442,7 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
   return (
     <Card
       style={{
-        padding: '32px',
+        padding: '24px',
         background: colors.card,
         border: `1px solid ${colors.border}`,
         borderRadius: '12px',
@@ -502,10 +502,10 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
         ref={containerRef}
         style={{
           position: 'relative',
-          padding: '50px 20px',
+          padding: '30px 20px',
           background: colors.background,
           borderRadius: '12px',
-          minHeight: '500px',
+          minHeight: '400px',
           overflow: 'hidden',
           boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.05)',
           marginBottom: '24px',
@@ -539,7 +539,7 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
             position: 'relative', 
             zIndex: 2, 
             height: '100%', 
-            minHeight: '400px',
+            minHeight: '300px',
             padding: '0 20px'
           }}
           className="network-layers-flex"
@@ -570,9 +570,15 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
               return colors.node.hidden;
             };
             
+            // 생략된 노드 수를 표시하는 함수
+            const getEllipsisLabel = (total: number, shown: number) => {
+              const hidden = total - shown;
+              return hidden > 0 ? `+${hidden} more` : '';
+            };
+            
             // Calculate the vertical spacing for nodes
             const getNodeSpacing = (nodeCount: number) => {
-              return Math.min(20, 300 / nodeCount); // Adaptive spacing
+              return Math.min(16, 200 / nodeCount); // 20px, 300px에서 16px, 200px로 줄임
             };
             
             return (
@@ -585,7 +591,7 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                   justifyContent: 'center',
                   margin: '0 5px',
                   position: 'relative',
-                  minWidth: '120px',
+                  minWidth: '100px', // 120px에서 100px로 줄임
                   height: '100%',
                 }}
                 className="network-layer"
@@ -625,16 +631,7 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                 
                 {/* Input nodes section */}
                 {showInputNodes && (
-                  <div 
-                    style={{ 
-                      marginBottom: '30px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {/* Input nodes label */}
+                  <div style={{ marginBottom: '20px' }}> {/* 30px에서 20px로 줄임 */}
                     <Text size="1" style={{ color: colors.text, marginBottom: '8px', opacity: 0.7 }}>
                       Input: {inputDimension}
                     </Text>
@@ -643,6 +640,7 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                       flexDirection: 'column',
                       gap: `${getNodeSpacing(inputNodesToShow)}px`,
                       alignItems: 'center',
+                      position: 'relative',
                     }}>
                       {Array.from({ length: inputNodesToShow }).map((_, i) => {
                         const nodeColor = getNodeColor(true);
@@ -658,53 +656,66 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                               data-layer={layerIdx}
                               data-node={i}
                               data-type="input"
-                              initial={{ scale: 0, opacity: 0 }}
+                              initial={{ scale: 0.8, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
                               transition={{ 
-                                duration: 0.5, 
-                                delay: (layerIdx * 0.1) + (i * 0.02),
-                                type: "spring", 
-                                stiffness: 260, 
-                                damping: 20 
+                                duration: 0.2, // 0.5에서 0.2로 줄임
+                                delay: (layerIdx * 0.05) + (i * 0.01), // 0.1, 0.02에서 0.05, 0.01로 줄임
+                                type: "spring",
+                                stiffness: 300, // 260에서 300으로 증가
+                                damping: 25 // 20에서 25로 증가
                               }}
                               style={{
-                                width: 24,
-                                height: 24,
+                                width: 20, // 24px에서 20px로 줄임
+                                height: 20,
                                 borderRadius: '50%',
                                 backgroundColor: nodeColor,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: `0 4px 6px ${nodeColor}30`,
+                                boxShadow: `0 2px 4px ${nodeColor}30`,
                                 position: 'relative',
                                 zIndex: 3,
+                                cursor: 'pointer',
                               }}
                               whileHover={{ 
-                                scale: 1.2, 
-                                boxShadow: `0 8px 16px ${nodeColor}50`,
+                                scale: 1.15, // 1.2에서 1.15로 줄임
+                                boxShadow: `0 4px 8px ${nodeColor}50`,
+                                transition: { duration: 0.1 } // 빠른 호버 효과
                               }}
                             >
                               {showEllipsis && (
-                                <Text style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>...</Text>
+                                <Text style={{ color: 'white', fontSize: '9px', fontWeight: 'bold' }}>...</Text>
                               )}
                             </motion.div>
                           </Tooltip>
                         );
                       })}
+                      {/* 생략된 노드 수 표시 */}
+                      {showInputEllipsis && (
+                        <Text 
+                          size="1" 
+                          style={{ 
+                            color: colors.text,
+                            opacity: 0.7,
+                            fontSize: '10px',
+                            marginTop: '4px'
+                          }}
+                        >
+                          {getEllipsisLabel(inputDimension, inputNodesToShow)}
+                        </Text>
+                      )}
                     </div>
                   </div>
                 )}
                 
                 {/* Output nodes section */}
-                <div
-                  style={{ 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {/* Output nodes label */}
+                <div style={{ 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
                   <Text size="1" style={{ color: colors.text, marginBottom: '8px', opacity: 0.7 }}>
                     Output: {outputDimension}
                   </Text>
@@ -713,11 +724,12 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                     flexDirection: 'column',
                     gap: `${getNodeSpacing(outputNodesToShow)}px`,
                     alignItems: 'center',
+                    position: 'relative',
                   }}>
                     {Array.from({ length: outputNodesToShow }).map((_, i) => {
                       const nodeColor = getNodeColor(false);
                       const showEllipsis = showOutputEllipsis && i === outputNodesToShow - 1;
-                      const size = isLastLayer ? 32 : 24;
+                      const size = isLastLayer ? 24 : 20; // 32, 24에서 24, 20으로 줄임
                       
                       return (
                         <Tooltip 
@@ -729,14 +741,14 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                             data-layer={layerIdx}
                             data-node={i}
                             data-type="output"
-                            initial={{ scale: 0, opacity: 0 }}
+                            initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ 
-                              duration: 0.5, 
-                              delay: (layerIdx * 0.1) + (i * 0.02),
-                              type: "spring", 
-                              stiffness: 260, 
-                              damping: 20 
+                              duration: 0.2,
+                              delay: (layerIdx * 0.05) + (i * 0.01),
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 25
                             }}
                             style={{
                               width: size,
@@ -746,17 +758,19 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              boxShadow: `0 4px 6px ${nodeColor}30`,
+                              boxShadow: `0 2px 4px ${nodeColor}30`,
                               position: 'relative',
                               zIndex: 3,
+                              cursor: 'pointer',
                             }}
                             whileHover={{ 
-                              scale: 1.2, 
-                              boxShadow: `0 8px 16px ${nodeColor}50`,
+                              scale: 1.15,
+                              boxShadow: `0 4px 8px ${nodeColor}50`,
+                              transition: { duration: 0.1 }
                             }}
                           >
                             {showEllipsis && (
-                              <Text style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>...</Text>
+                              <Text style={{ color: 'white', fontSize: '9px', fontWeight: 'bold' }}>...</Text>
                             )}
                             {isLastLayer && (
                               <Text style={{ color: 'white', fontSize: '9px', fontWeight: 'bold' }}>{i}</Text>
@@ -765,6 +779,20 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 8 }: Neur
                         </Tooltip>
                       );
                     })}
+                    {/* 생략된 노드 수 표시 */}
+                    {showOutputEllipsis && (
+                      <Text 
+                        size="1" 
+                        style={{ 
+                          color: colors.text,
+                          opacity: 0.7,
+                          fontSize: '10px',
+                          marginTop: '4px'
+                        }}
+                      >
+                        {getEllipsisLabel(outputDimension, outputNodesToShow)}
+                      </Text>
+                    )}
                   </div>
                 </div>
                 
