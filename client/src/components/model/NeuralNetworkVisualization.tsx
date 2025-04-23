@@ -833,68 +833,112 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 5 }: Neur
       </Box>
 
       {/* Weight visualization section */}
-      <Box style={{ marginTop: '32px' }}>
-        <Text size="2" style={{ color: colors.text, marginBottom: '16px', fontWeight: 500 }}>
-          Weight Distribution Samples
+      <Box style={{ marginTop: '24px' }}>
+        <Text size="2" style={{ color: colors.text, marginBottom: '8px', fontWeight: 500 }}>
+          Weight Distribution
         </Text>
         
-        <Flex wrap="wrap" gap="3">
+        <Flex wrap="wrap" gap="2">
           {layers.map((layer, index) => {
-            const weightConnections = getSampleWeights(layer, 5);
+            const weightConnections = getSampleWeights(layer, 6); // 6개의 대표 weight만 표시
+            const totalWeights = layer.weight_tensor?.magnitude?.length || 0;
             
             // Skip if no weights
             if (weightConnections.length === 0) return null;
+            
+            // weight 값들의 통계 계산
+            const weights = weightConnections.map(c => c.weight);
+            const maxWeight = Math.max(...weights.map(Math.abs));
+            const minWeight = Math.min(...weights.map(Math.abs));
             
             return (
               <Card
                 key={`weight-${index}`}
                 style={{
-                  padding: '16px',
+                  padding: '8px',
                   background: colors.card,
                   border: `1px solid ${colors.border}`,
                   borderRadius: '8px',
-                  width: 'calc(33.33% - 8px)',
-                  minWidth: '240px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  width: 'calc(25% - 6px)',
+                  minWidth: '160px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 }}
               >
-                <Text size="2" style={{ fontWeight: 600, marginBottom: '12px' }}>
-                  Layer {index + 1} ({layer.in_dimension} × {layer.out_dimension})
-                </Text>
+                <Flex justify="between" align="center" mb="1">
+                  <Text size="1" style={{ fontWeight: 600, color: colors.text }}>
+                    Layer {index + 1}
+                  </Text>
+                  <Badge
+                    size="1"
+                    style={{
+                      backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                      color: colors.text,
+                      fontSize: '10px',
+                    }}
+                  >
+                    {totalWeights.toLocaleString()} weights
+                  </Badge>
+                </Flex>
                 
-                {weightConnections.map((connection, i) => {
-                  const weight = connection.weight;
-                  return (
-                    <Flex key={i} align="center" gap="2" style={{ marginBottom: '8px' }}>
-                      <Text size="1" style={{ width: '16px', color: colors.text }}>
-                        {i+1}.
-                      </Text>
-                      <div
-                        style={{
-                          flex: 1,
-                          height: '8px',
-                          position: 'relative',
-                          backgroundColor: '#f1f5f9',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                        }}
+                <Flex wrap="wrap" gap="1" style={{ padding: '4px 0' }}>
+                  {weightConnections.map((connection, i) => {
+                    const weight = connection.weight;
+                    const color = getWeightColor(weight);
+                    const absWeight = Math.abs(weight);
+                    // weight의 상대적 크기에 따라 원의 크기 조정
+                    const size = 6 + (absWeight / maxWeight) * 4;
+                    
+                    return (
+                      <Tooltip
+                        key={i}
+                        content={
+                          <Text style={{ fontFamily: 'monospace', fontSize: '11px' }}>
+                            {weight.toFixed(3)}
+                          </Text>
+                        }
                       >
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(Math.abs(weight) * 100, 100)}%` }}
+                        <Box
                           style={{
-                            height: '100%',
-                            backgroundColor: getWeightColor(weight),
-                            borderRadius: '4px',
+                            width: `${size}px`,
+                            height: `${size}px`,
+                            borderRadius: '50%',
+                            backgroundColor: color,
+                            opacity: 0.8 + (absWeight / maxWeight) * 0.2,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
                           }}
                         />
-                      </div>
-                      <Text size="1" style={{ width: '50px', textAlign: 'right', color: colors.text, fontFamily: 'monospace' }}>
-                        {weight.toFixed(3)}
-                      </Text>
-                    </Flex>
-                  );
-                })}
+                      </Tooltip>
+                    );
+                  })}
+                </Flex>
+
+                <Flex 
+                  direction="column" 
+                  gap="1" 
+                  style={{
+                    borderTop: `1px solid ${colors.border}`,
+                    marginTop: '4px',
+                    paddingTop: '4px',
+                    fontSize: '10px',
+                  }}
+                >
+                  <Flex justify="between" align="center">
+                    <Text style={{ color: colors.text, opacity: 0.7 }}>
+                      Showing top {weightConnections.length}
+                    </Text>
+                    <Text style={{ 
+                      color: colors.text, 
+                      opacity: 0.7,
+                      fontFamily: 'monospace',
+                    }}>
+                      [{minWeight.toFixed(2)} ~ {maxWeight.toFixed(2)}]
+                    </Text>
+                  </Flex>
+                  <Text style={{ color: colors.text, opacity: 0.7 }}>
+                    {(totalWeights - weightConnections.length).toLocaleString()} more weights hidden
+                  </Text>
+                </Flex>
               </Card>
             );
           })}
