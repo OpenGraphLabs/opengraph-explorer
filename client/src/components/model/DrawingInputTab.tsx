@@ -9,11 +9,12 @@ import {
   Tooltip,
   Slider,
   IconButton,
+  Grid,
+  Separator,
 } from "@radix-ui/themes";
 import {
   InfoCircledIcon,
   ResetIcon,
-  MagnifyingGlassIcon,
   DotIcon,
 } from "@radix-ui/react-icons";
 import { useRef, useEffect, useState, useCallback } from "react";
@@ -43,7 +44,6 @@ export function DrawingInputTab({
   const [lineThickness, setLineThickness] = useState<number>(18);
   const [drawingColor, setDrawingColor] = useState<string>('#FFFFFF');
   const [brushStyle, setBrushStyle] = useState<string>('normal');
-  const [canvasScale, setCanvasScale] = useState<number>(1);
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
   const [lastPoint, setLastPoint] = useState<{x: number, y: number} | null>(null);
   
@@ -185,7 +185,7 @@ export function DrawingInputTab({
       img.onload = () => {
         // Create temp canvas for processing
         const tempCanvas = document.createElement("canvas");
-        const size = Math.sqrt(dimension); // Assuming square input (e.g. 28x28 for MNIST)
+        const size = Math.sqrt(dimension); // Assuming square input (e.g. 28x28)
         tempCanvas.width = size;
         tempCanvas.height = size;
         const ctx = tempCanvas.getContext("2d");
@@ -393,109 +393,77 @@ export function DrawingInputTab({
     }
   };
 
-  // 반응형 스케일링
-  const handleZoomIn = () => {
-    setCanvasScale(prev => Math.min(prev + 0.1, 1.3));
-  };
-  
-  const handleZoomOut = () => {
-    setCanvasScale(prev => Math.max(prev - 0.1, 0.8));
-  };
-
-  return (
-    <Flex direction="column" gap="4">
-      <Flex align="center" gap="3" mb="2">
-        <PencilSimple size={22} weight="duotone" style={{ color: "#FF5733" }} />
-        <Heading size="3">Drawing Canvas</Heading>
-      </Flex>
-
-      {/* 그리기 도구 모음 - OpenGraph 스타일에 맞게 수정 */}
-      <Card
-        style={{
-          background: "white",
-          border: "1px solid #E5E5E5",
-          padding: "12px",
-          borderRadius: "8px",
-          marginBottom: "16px",
-        }}
-      >
-        <Flex justify="between" align="center" wrap="wrap" gap="2">
-          <Flex gap="2">
-            <Tooltip content="Drawing tools">
-              <Flex>
-                <IconButton
-                  color={tool === 'pen' ? 'orange' : 'gray'}
-                  variant={tool === 'pen' ? 'solid' : 'soft'}
-                  onClick={() => setTool('pen')}
-                  style={{ borderRadius: "4px 0 0 4px", cursor: 'pointer' }}
-                >
-                  <PencilSimple size={16} weight="bold" />
-                </IconButton>
-                <IconButton
-                  color={tool === 'eraser' ? 'orange' : 'gray'}
-                  variant={tool === 'eraser' ? 'solid' : 'soft'}
-                  onClick={() => setTool('eraser')}
-                  style={{ borderRadius: "0 4px 4px 0", cursor: 'pointer' }}
-                >
-                  <Eraser size={16} weight="bold" />
-                </IconButton>
-              </Flex>
-            </Tooltip>
-            
-            <Button
-              size="2"
-              variant="soft"
-              color="red"
-              style={{ cursor: 'pointer' }}
-              onClick={clearCanvas}
-            >
-              <ResetIcon /> Clear Canvas
-            </Button>
-          </Flex>
-          
-          <Flex align="center" gap="3" wrap="wrap">
-            {/* 브러시 스타일 선택 */}
-            <Flex align="center" gap="2">
-              <Text size="1" style={{ color: '#666' }}>Brush:</Text>
-              <Flex>
-                {['normal', 'glow', 'neon', 'calligraphy', 'dotted'].map((style) => (
-                  <IconButton
-                    key={style}
-                    size="1"
-                    color={brushStyle === style ? 'orange' : 'gray'}
-                    variant={brushStyle === style ? 'solid' : 'soft'}
-                    onClick={() => setBrushStyle(style)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {getBrushStyleIcon(style)}
-                  </IconButton>
-                ))}
-              </Flex>
-            </Flex>
-            
-            <Flex align="center" gap="2">
-              <Text size="1" style={{ color: '#666', minWidth: '60px' }}>Thickness:</Text>
-              <Slider 
-                value={[lineThickness]} 
-                onValueChange={(values) => setLineThickness(values[0])} 
-                min={5} 
-                max={40}
-                step={1}
-                style={{ width: '120px', cursor: 'pointer' }}
-              />
-            </Flex>
-            
-            <Flex gap="1">
-              <IconButton size="1" onClick={handleZoomOut} variant="soft" style={{ cursor: 'pointer' }}>
-                <MagnifyingGlassIcon style={{ transform: 'scale(0.8)' }} />
-              </IconButton>
-              <IconButton size="1" onClick={handleZoomIn} variant="soft" style={{ cursor: 'pointer' }}>
-                <MagnifyingGlassIcon style={{ transform: 'scale(1.2)' }} />
-              </IconButton>
-            </Flex>
-          </Flex>
+  // 왼쪽 캔버스 섹션 렌더링
+  const renderCanvasSection = () => (
+    <Flex direction="column" gap="3" style={{ flex: 1, minWidth: '320px' }}>
+      {/* 간소화된 그리기 도구 모음 */}
+      <Flex gap="4" align="center" mb="2">
+        <Flex style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '6px', padding: '2px' }}>
+          <IconButton
+            size="1"
+            color={tool === 'pen' ? 'orange' : 'gray'}
+            variant={tool === 'pen' ? 'solid' : 'soft'}
+            onClick={() => setTool('pen')}
+            style={{ borderRadius: "4px 0 0 4px", cursor: 'pointer' }}
+          >
+            <PencilSimple size={14} weight="bold" />
+          </IconButton>
+          <IconButton
+            size="1"
+            color={tool === 'eraser' ? 'orange' : 'gray'}
+            variant={tool === 'eraser' ? 'solid' : 'soft'}
+            onClick={() => setTool('eraser')}
+            style={{ borderRadius: "0 4px 4px 0", cursor: 'pointer' }}
+          >
+            <Eraser size={14} weight="bold" />
+          </IconButton>
         </Flex>
-      </Card>
+        
+        <Tooltip content="Clear drawing">
+          <IconButton
+            size="1"
+            variant="soft" 
+            color="red"
+            onClick={clearCanvas}
+            style={{ cursor: 'pointer' }}
+          >
+            <ResetIcon />
+          </IconButton>
+        </Tooltip>
+        
+        <Separator orientation="vertical" />
+        
+        {/* 브러시 스타일 선택 - 더 작게 */}
+        <Flex align="center" gap="1">
+          {['normal', 'glow', 'neon', 'dotted'].map((style) => (
+            <IconButton
+              key={style}
+              size="1"
+              color={brushStyle === style ? 'orange' : 'gray'}
+              variant={brushStyle === style ? 'solid' : 'soft'}
+              onClick={() => setBrushStyle(style)}
+              style={{ cursor: 'pointer', padding: '2px' }}
+            >
+              {getBrushStyleIcon(style)}
+            </IconButton>
+          ))}
+        </Flex>
+        
+        <Separator orientation="vertical" />
+        
+        <Flex align="center" gap="1">
+          <Text size="1" style={{ color: '#888', marginRight: '2px' }}>Size:</Text>
+          <Slider 
+            value={[lineThickness]} 
+            onValueChange={(values) => setLineThickness(values[0])} 
+            min={5} 
+            max={30}
+            step={1}
+            size="1"
+            style={{ width: '100px', cursor: 'pointer' }}
+          />
+        </Flex>
+      </Flex>
 
       {/* 정사각형 캔버스 컨테이너 */}
       <Box 
@@ -531,7 +499,7 @@ export function DrawingInputTab({
             ...canvasContainerStyle,
             position: 'relative',
             zIndex: 1,
-            transform: `scale(${canvasScale})`,
+            transform: 'scale(1)',
             transformOrigin: 'center center',
           }}
           onMouseDown={startDrawing}
@@ -560,23 +528,23 @@ export function DrawingInputTab({
         />
       </Box>
       
-      <Flex justify="between" align="center" mt="3">
-        <Badge variant="soft" color="orange" style={{ padding: '4px 8px' }}>
-          <Text size="1">
-            {Math.round(Math.sqrt(getFirstLayerDimension()))}x{Math.round(Math.sqrt(getFirstLayerDimension()))} model input
-          </Text>
-        </Badge>
-        
+      <Flex justify="end" align="center" mt="1">
         <Tooltip content="Draw digits with high contrast for best results">
-          <Box style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Flex align="center" gap="1">
             <InfoCircledIcon style={{ color: '#999', width: '12px', height: '12px' }} />
-            <Text size="1" style={{ color: '#999' }}>MNIST-optimized drawing</Text>
-          </Box>
+            <Text size="1" style={{ color: '#999' }}>
+              {Math.round(Math.sqrt(getFirstLayerDimension()))}×{Math.round(Math.sqrt(getFirstLayerDimension()))} input
+            </Text>
+          </Flex>
         </Tooltip>
       </Flex>
+    </Flex>
+  );
 
-      {/* Show vector info if drawing is processed */}
-      {imageData.vector && imageData.vector.length > 0 && (
+  // 벡터 정보 섹션 렌더링
+  const renderVectorInfoSection = () => (
+    <Box style={{ flex: 1, minWidth: '320px' }}>
+      {imageData.vector && imageData.vector.length > 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -588,7 +556,52 @@ export function DrawingInputTab({
             formatVectorForPrediction={formatVectorForPrediction}
           />
         </motion.div>
+      ) : (
+        <Card style={{ 
+          height: '100%', 
+          minHeight: '300px',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          background: '#F8F9FA',
+          border: '1px dashed #DDD',
+          borderRadius: '12px'
+        }}>
+          <Flex direction="column" align="center" gap="3" style={{ padding: '40px 20px', textAlign: 'center' }}>
+            <Box style={{ 
+              width: '120px', 
+              height: '120px', 
+              borderRadius: '60px',
+              background: 'rgba(0,0,0,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <PencilSimple size={48} weight="duotone" style={{ color: '#CCC' }} />
+            </Box>
+            <Text size="3" style={{ color: '#888', fontWeight: 500 }}>
+              Draw something to see vector conversion
+            </Text>
+            <Text size="1" style={{ color: '#AAA', maxWidth: '300px' }}>
+              As you draw on the canvas, your drawing will be converted into a vector that can be used for model inference.
+            </Text>
+          </Flex>
+        </Card>
       )}
-    </Flex>
+    </Box>
+  );
+
+  return (
+    <Box>
+      {/* 가로 레이아웃으로 변경 */}
+      <Flex 
+        direction={{ initial: 'column', md: 'row' }} 
+        gap="4" 
+        align="start"
+      >
+        {renderCanvasSection()}
+        {renderVectorInfoSection()}
+      </Flex>
+    </Box>
   );
 } 
