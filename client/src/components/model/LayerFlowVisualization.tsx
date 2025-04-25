@@ -5,6 +5,7 @@ import { CheckCircledIcon, CrossCircledIcon, ReloadIcon, InfoCircledIcon } from 
 import { ArrowRight, CircleNotch, ArrowsHorizontal, FlowArrow, CircleWavyCheck as CircuitBoard, CheckCircle, Trophy, NumberCircleOne, NumberCircleTwo, NumberCircleThree, NumberCircleFour, NumberCircleFive, NumberCircleSix, NumberCircleSeven, NumberCircleEight, NumberCircleNine, NumberCircleZero } from "phosphor-react";
 import { PredictResult } from "../../hooks/useModelInference";
 import { formatVector, getActivationTypeName, calculateConfidenceScores } from "../../utils/modelUtils";
+import { getSuiScanUrl } from "../../utils/sui";
 
 // Status summary component
 interface StatusSummaryProps {
@@ -44,6 +45,7 @@ interface LayerFlowVisualizationProps {
   isProcessing: boolean;
   totalLayers: number;
   inferenceTableRef: React.RefObject<HTMLDivElement>;
+  txDigest?: string;
 }
 
 // Inference results table component
@@ -273,12 +275,19 @@ const getNumberIcon = (num: number) => {
   }
 };
 
+// Confidence Scores 상위 항목만 표시하는 함수
+const getTopConfidenceScores = (result: PredictResult, count: number = 5) => {
+  const scores = calculateConfidenceScores(result);
+  return scores.slice(0, count); // 상위 5개 항목만 반환
+};
+
 export function LayerFlowVisualization({
   predictResults,
   currentLayerIndex,
   isProcessing,
   totalLayers,
   inferenceTableRef,
+  txDigest,
 }: LayerFlowVisualizationProps) {
   // Prepare data for visualization
   const generateLayerData = (layerIndex: number) => {
@@ -394,7 +403,7 @@ export function LayerFlowVisualization({
                       </Box>
                     </Box>
                     
-                    <Box style={{
+                    {/* <Box style={{
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
@@ -414,7 +423,7 @@ export function LayerFlowVisualization({
                       }}>
                         {getNumberIcon(finalResult.argmaxIdx)}
                       </Box>
-                    </Box>
+                    </Box> */}
                     
                     <Flex direction="column" align="start" gap="2" style={{ flex: 1, maxWidth: "280px" }}>
                       <Text size="2" style={{ fontWeight: 600, color: "#333" }}>
@@ -429,16 +438,45 @@ export function LayerFlowVisualization({
                           100% On-chain computation
                         </Text>
                       </Flex>
+                      
+                      {/* 트랜잭션 링크 추가 */}
+                      {txDigest && (
+                        <Box
+                          style={{
+                            marginTop: "8px",
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            background: "#FFF4F2",
+                            border: "1px solid #FFCCBC",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                          }}
+                          onClick={() => window.open(getSuiScanUrl("transaction", txDigest), "_blank")}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.boxShadow = "0 4px 8px rgba(255, 87, 51, 0.2)";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                        >
+                          <Flex align="center" gap="2">
+                            <CircuitBoard size={14} weight="fill" style={{ color: "#FF5733" }} />
+                            <Text size="1" style={{ color: "#FF5733", fontWeight: 500 }}>
+                              View on Sui Scan
+                            </Text>
+                          </Flex>
+                        </Box>
+                      )}
                     </Flex>
                   </Flex>
                   
-                  {/* 신뢰도 점수 시각화 */}
+                  {/* 신뢰도 점수 시각화 - 스크롤 없이 상위 값만 표시 */}
                   <Box mt="5" style={{ borderTop: "1px solid #FFCCBC", paddingTop: "16px" }}>
-                    <Text size="2" style={{ fontWeight: 600, color: "#333", marginBottom: "12px" }}>
-                      Confidence Scores
+                    <Text size="2" style={{ fontWeight: 600, color: "#333" }}>
+                      Confidence Scores (Top 5)
                     </Text>
-                    <Flex direction="column" gap="2" style={{ maxHeight: "200px", overflowY: "auto" }}>
-                      {calculateConfidenceScores(finalResult).map((item) => (
+                    <Flex direction="column" gap="2" mt="4">
+                      {getTopConfidenceScores(finalResult).map((item) => (
                         <Flex key={item.index} align="center" gap="3">
                           <Box style={{ width: "30px", textAlign: "center", position: "relative" }}>
                             <Text size="2" style={{ 
@@ -481,6 +519,15 @@ export function LayerFlowVisualization({
                       ))}
                     </Flex>
                   </Box>
+                  
+                  {/* 트랜잭션 ID 표시 */}
+                  {txDigest && (
+                    <Box mt="4" style={{ borderTop: "1px dashed #FFCCBC", paddingTop: "12px" }}>
+                      <Text size="1" style={{ color: "#666", fontFamily: "monospace", fontSize: "11px" }}>
+                        TX: {txDigest.substring(0, 8)}...{txDigest.substring(txDigest.length - 8)}
+                      </Text>
+                    </Box>
+                  )}
                 </Card>
               </Flex>
             </Card>

@@ -387,103 +387,6 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
           </Box>
         </motion.div>
 
-        {inferenceStatus && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card
-              style={{
-                padding: "16px",
-                borderRadius: "12px",
-                background:
-                  inferenceStatusType === "info"
-                    ? "#E3F2FD"
-                    : inferenceStatusType === "error"
-                      ? "#FFEBEE"
-                      : inferenceStatusType === "warning"
-                        ? "#FFF3E0"
-                        : "#E8F5E9",
-                border: inferenceStatusType === "error" ? "1px solid #FFCDD2" : "none",
-                marginBottom: "20px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.05)",
-              }}
-            >
-              <Flex justify="between" align="center">
-                <Flex align="center" gap="2">
-                  {inferenceStatusType === "info" && (
-                    <InfoCircledIcon style={{ color: "#2196F3", width: "18px", height: "18px" }} />
-                  )}
-                  {inferenceStatusType === "error" && (
-                    <CrossCircledIcon style={{ color: "#F44336", width: "18px", height: "18px" }} />
-                  )}
-                  {inferenceStatusType === "warning" && (
-                    <ExclamationTriangleIcon
-                      style={{ color: "#FF9800", width: "18px", height: "18px" }}
-                    />
-                  )}
-                  {inferenceStatusType === "success" && (
-                    <CheckIcon style={{ color: "#4CAF50", width: "18px", height: "18px" }} />
-                  )}
-                  <Text
-                    size="2"
-                    style={{
-                      fontWeight: 500,
-                      color:
-                        inferenceStatusType === "info"
-                          ? "#0D47A1"
-                          : inferenceStatusType === "error"
-                            ? "#B71C1C"
-                            : inferenceStatusType === "warning"
-                              ? "#E65100"
-                              : "#1B5E20",
-                    }}
-                  >
-                    {inferenceStatus}
-                  </Text>
-                </Flex>
-                {txDigest && (
-                  <Button
-                    variant="soft"
-                    size="1"
-                    style={{
-                      background: "#FFF4F2",
-                      color: "#FF5733",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease-in-out",
-                      border: "1px solid #FFE8E2",
-                    }}
-                    className="hover-effect"
-                    onClick={() => window.open(getSuiScanUrl("transaction", txDigest), "_blank")}
-                  >
-                    <Flex align="center" gap="2">
-                      <Text size="1">View on Sui Explorer</Text>
-                      <ExternalLinkIcon />
-                    </Flex>
-                  </Button>
-                )}
-              </Flex>
-              {txDigest && (
-                <Tooltip content="Click to view this transaction on Sui Explorer">
-                  <Text
-                    size="1"
-                    style={{
-                      marginTop: "6px",
-                      fontFamily: "monospace",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => window.open(getSuiScanUrl("transaction", txDigest), "_blank")}
-                  >
-                    Transaction: {txDigest.substring(0, 10)}...
-                    {txDigest.substring(txDigest.length - 10)}
-                  </Text>
-                </Tooltip>
-              )}
-            </Card>
-          </motion.div>
-        )}
-
         {predictResults.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -519,6 +422,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 isProcessing={isProcessing}
                 totalLayers={getLayerCount()}
                 inferenceTableRef={inferenceTableRef}
+                txDigest={txDigest}
               />
             </Box>
           </motion.div>
