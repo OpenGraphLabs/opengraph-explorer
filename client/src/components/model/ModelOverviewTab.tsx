@@ -17,7 +17,6 @@ import {
 import { ModelObject } from "../../services/modelGraphQLService";
 import { getSuiScanUrl } from "../../utils/sui";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../../constants/suiConfig";
-import { NeuralNetworkVisualization } from "./NeuralNetworkVisualization";
 
 interface ModelOverviewTabProps {
   model: ModelObject;
@@ -276,9 +275,9 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                 </Text>
 
                 {/* Neural Network Visualization */}
-                <Box style={{ marginTop: "24px", marginBottom: "24px" }}>
+                {/* <Box style={{ marginTop: "24px", marginBottom: "24px" }}>
                   <NeuralNetworkVisualization model={model} />
-                </Box>
+                </Box> */}
 
                 {/* Traditional Layer Flow Visualization */}
                 <Box style={{ marginTop: "40px", marginBottom: "40px" }}>
