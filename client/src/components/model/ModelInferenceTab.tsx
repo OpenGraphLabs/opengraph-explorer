@@ -366,18 +366,6 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   )}
                 </Button>
               </Flex>
-
-              <Flex gap="2" mt="2" direction="column">
-                <Text size="1" style={{ color: "#666" }}>
-                  <InfoCircledIcon style={{ width: "12px", height: "12px", marginRight: "4px" }} />
-                  PTB allows running all layers in a single transaction, requiring only one wallet
-                  signature.
-                </Text>
-                <Text size="1" style={{ color: "#666" }}>
-                  <InfoCircledIcon style={{ width: "12px", height: "12px", marginRight: "4px" }} />
-                  Optimized PTB computes each dimension separately for even better performance.
-                </Text>
-              </Flex>
             </Flex>
           </Box>
         </motion.div>

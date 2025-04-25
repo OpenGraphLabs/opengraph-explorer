@@ -405,13 +405,14 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
 
         // 최종 결과 메시지 설정
         if (predictionCompletedEvent && predictionCompletedEvent.argmaxIdx !== undefined) {
-          const finalValue = formatVector(
-            [predictionCompletedEvent.outputMagnitude[predictionCompletedEvent.argmaxIdx]],
-            [predictionCompletedEvent.outputSign[predictionCompletedEvent.argmaxIdx]]
-          );
+          // const finalValue = formatVector(
+          //   [predictionCompletedEvent.outputMagnitude[predictionCompletedEvent.argmaxIdx]],
+          //   [predictionCompletedEvent.outputSign[predictionCompletedEvent.argmaxIdx]]
+          // );
+          const finalValue = predictionCompletedEvent.argmaxIdx;
 
           setInferenceStatus(
-            `Success: PTB prediction complete! All ${totalLayers} layers processed in a single transaction. Final output value: ${finalValue}`
+            `Success: All ${totalLayers} layers processed in a single transaction. Final output value: ${finalValue}`
           );
           setInferenceStatusType("success");
         } else {
@@ -645,24 +646,25 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
 
         // 최종 결과 메시지 설정
         if (predictionCompletedEvent && predictionCompletedEvent.argmaxIdx !== undefined) {
-          const finalValue = formatVector(
-            [predictionCompletedEvent.outputMagnitude[predictionCompletedEvent.argmaxIdx]],
-            [predictionCompletedEvent.outputSign[predictionCompletedEvent.argmaxIdx]]
-          );
+          // const finalValue = formatVector(
+          //   [predictionCompletedEvent.outputMagnitude[predictionCompletedEvent.argmaxIdx]],
+          //   [predictionCompletedEvent.outputSign[predictionCompletedEvent.argmaxIdx]]
+          // );
+          const finalValue = predictionCompletedEvent.argmaxIdx;
 
           setInferenceStatus(
-            `Success: Optimized PTB prediction complete! All ${totalLayers} layers processed with dimension-level optimization. Final output value: ${finalValue}`
+            `Success! All ${totalLayers} layers processed. Final output value: ${finalValue}`
           );
           setInferenceStatusType("success");
         } else {
           setInferenceStatus(
-            `Success: Optimized PTB prediction complete! All ${totalLayers} layers processed with dimension-level optimization.`
+            `Success! All ${totalLayers} layers processed.`
           );
           setInferenceStatusType("success");
         }
       } else {
         setInferenceStatus(
-          `Warning: Optimized PTB transaction completed but no layer computation events found. Please check the transaction details.`
+          `Warning: PTB transaction completed but no layer computation events found. Please check the transaction details.`
         );
         setInferenceStatusType("warning");
       }
