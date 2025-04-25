@@ -8,17 +8,18 @@ import {
   Badge,
   Tooltip,
   Slider,
+  IconButton,
 } from "@radix-ui/themes";
 import {
   InfoCircledIcon,
-  ReloadIcon,
   ResetIcon,
   MagnifyingGlassIcon,
   DotIcon,
 } from "@radix-ui/react-icons";
 import { useRef, useEffect, useState, useCallback } from "react";
-import { PencilSimple } from "phosphor-react";
+import { PencilSimple, Eraser, Minus, Diamond } from "phosphor-react";
 import { VectorInfoDisplay, ImageData, FormattedVector } from "./VectorInfoDisplay";
+import { motion } from "framer-motion";
 
 interface DrawingInputTabProps {
   getFirstLayerDimension: () => number;
@@ -33,26 +34,53 @@ export function DrawingInputTab({
 }: DrawingInputTabProps) {
   // 상태 관리
   const [imageData, setImageData] = useState<ImageData>({ dataUrl: null, vector: null });
-  const [isProcessingImage, setIsProcessingImage] = useState<boolean>(false);
   
   // 캔버스 관련 상태
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null);
-  const [lineThickness, setLineThickness] = useState<number>(15);
+  const [lineThickness, setLineThickness] = useState<number>(18);
   const [drawingColor, setDrawingColor] = useState<string>('#FFFFFF');
   const [brushStyle, setBrushStyle] = useState<string>('normal');
+  const [canvasScale, setCanvasScale] = useState<number>(1);
+  const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
+  const [lastPoint, setLastPoint] = useState<{x: number, y: number} | null>(null);
+  
+  // 정사각형 캔버스 크기 설정
+  const CANVAS_SIZE = 420;
 
   // Canvas container style
   const canvasContainerStyle = {
-    background: "linear-gradient(to bottom right, #1a1a1a, #2d2d2d)",
-    padding: "16px",
-    borderRadius: "12px",
+    background: "linear-gradient(to bottom right, #111111, #222222)",
+    padding: "20px",
+    borderRadius: "16px",
     border: "1px solid #444",
-    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1)",
-    cursor: "crosshair",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05)",
+    cursor: tool === 'pen' ? "crosshair" : "pointer",
     position: "relative" as const,
     overflow: "hidden" as const,
+    width: "100%",
+    height: "100%",
+    transition: "transform 0.3s ease",
+  };
+
+  // 종이 질감 배경 효과
+  const paperOverlayStyle = {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: "none" as const,
+    backgroundImage: `
+      radial-gradient(#ffffff03 1px, transparent 1px),
+      radial-gradient(#ffffff02 1px, transparent 1px)
+    `,
+    backgroundSize: "20px 20px, 10px 10px",
+    backgroundPosition: "0 0, 5px 5px",
+    opacity: 0.1,
+    mixBlendMode: "overlay" as const,
   };
 
   // OpenGraphLabs 형식으로 벡터 변환
@@ -78,10 +106,18 @@ export function DrawingInputTab({
   const initializeCanvas = useCallback(() => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
+      // 정사각형 캔버스 크기 설정
+      canvas.width = CANVAS_SIZE;
+      canvas.height = CANVAS_SIZE;
+      
+      const ctx = canvas.getContext("2d", { alpha: false });
 
       if (ctx) {
-        // Configure context for drawing
+        // 부드러운 그리기를 위한 기본 설정
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // 그리기 스타일 설정
         ctx.lineJoin = "round";
         ctx.lineCap = "round";
         ctx.lineWidth = lineThickness;
@@ -89,7 +125,10 @@ export function DrawingInputTab({
 
         // Set shadow based on brush style
         if (brushStyle === 'glow') {
-          ctx.shadowBlur = 10;
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = drawingColor;
+        } else if (brushStyle === 'neon') {
+          ctx.shadowBlur = 20;
           ctx.shadowColor = drawingColor;
         } else {
           ctx.shadowBlur = 0;
@@ -110,24 +149,34 @@ export function DrawingInputTab({
     if (canvasRef.current) {
       initializeCanvas();
     }
+
   }, [initializeCanvas]);
 
   // 선 두께와 색상 변경 시 업데이트
   useEffect(() => {
     if (canvasContext) {
       canvasContext.lineWidth = lineThickness;
-      canvasContext.strokeStyle = drawingColor;
       
-      // Set shadow based on brush style
-      if (brushStyle === 'glow') {
-        canvasContext.shadowBlur = 10;
-        canvasContext.shadowColor = drawingColor;
-      } else {
+      if (tool === 'pen') {
+        canvasContext.strokeStyle = drawingColor;
+        
+        // Set shadow based on brush style
+        if (brushStyle === 'glow') {
+          canvasContext.shadowBlur = 15;
+          canvasContext.shadowColor = drawingColor;
+        } else if (brushStyle === 'neon') {
+          canvasContext.shadowBlur = 20;
+          canvasContext.shadowColor = drawingColor;
+        } else {
+          canvasContext.shadowBlur = 0;
+          canvasContext.shadowColor = 'transparent';
+        }
+      } else if (tool === 'eraser') {
+        canvasContext.strokeStyle = '#000000';
         canvasContext.shadowBlur = 0;
-        canvasContext.shadowColor = 'transparent';
       }
     }
-  }, [lineThickness, drawingColor, brushStyle, canvasContext]);
+  }, [lineThickness, drawingColor, brushStyle, canvasContext, tool]);
 
   // 캔버스 이미지를 벡터로 변환
   const canvasToVector = async (dataUrl: string, dimension: number): Promise<number[]> => {
@@ -184,8 +233,6 @@ export function DrawingInputTab({
   const processCanvasImage = useCallback(() => {
     if (!canvasRef.current) return;
 
-    setIsProcessingImage(true);
-
     try {
       // Get image data from canvas
       const dataUrl = canvasRef.current.toDataURL("image/png");
@@ -197,14 +244,67 @@ export function DrawingInputTab({
 
         // 부모 컴포넌트로 생성된 벡터 전달
         onVectorGenerated(vector);
-        
-        setIsProcessingImage(false);
       });
     } catch (error) {
       console.error("Error processing canvas image:", error);
-      setIsProcessingImage(false);
     }
   }, [getFirstLayerDimension, onVectorGenerated]);
+
+  // 부드러운 곡선을 그리기 위한 보간 함수
+  const drawSmoothLine = useCallback((x1: number, y1: number, x2: number, y2: number) => {
+    if (!canvasContext) return;
+    
+    // 중간 제어점을 생성하여 부드러운 곡선 생성
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    if (dist < 1) return; // 너무 가까운 점은 무시
+    
+    // 부드러운 곡선을 그리기 위한 제어점
+    const cp1x = x1 + dx / 3;
+    const cp1y = y1 + dy / 3;
+    const cp2x = x1 + dx * 2 / 3;
+    const cp2y = y1 + dy * 2 / 3;
+    
+    // 현재 경로에 새 곡선 추가
+    canvasContext.beginPath();
+    canvasContext.moveTo(x1, y1);
+    
+    if (brushStyle === 'calligraphy') {
+      // 캘리그래피 효과
+      const angle = Math.atan2(dy, dx);
+      const width = lineThickness / 2;
+      
+      canvasContext.lineWidth = lineThickness * (1 - 0.5 * Math.abs(Math.sin(angle)));
+      canvasContext.lineTo(x2, y2);
+    } 
+    else if (brushStyle === 'dotted') {
+      // 점선 효과
+      const segment = 5;
+      const gap = 5;
+      const numSegments = Math.floor(dist / (segment + gap));
+      
+      for (let i = 0; i < numSegments; i++) {
+        const t1 = i * (segment + gap) / dist;
+        const t2 = t1 + segment / dist;
+        
+        const sx = x1 + dx * t1;
+        const sy = y1 + dy * t1;
+        const ex = x1 + dx * t2;
+        const ey = y1 + dy * t2;
+        
+        canvasContext.moveTo(sx, sy);
+        canvasContext.lineTo(ex, ey);
+      }
+    }
+    else {
+      // 일반/네온/글로우 효과는 베지어 곡선으로 부드럽게
+      canvasContext.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
+    }
+    
+    canvasContext.stroke();
+  }, [canvasContext, lineThickness, brushStyle]);
 
   // 그리기 핸들러
   const startDrawing = useCallback(
@@ -220,17 +320,21 @@ export function DrawingInputTab({
           const x = (e.clientX - rect.left) * scaleX;
           const y = (e.clientY - rect.top) * scaleY;
 
+          setLastPoint({x, y});
+          
+          // 첫 점에 점 하나 찍기
           canvasContext.beginPath();
-          canvasContext.moveTo(x, y);
+          canvasContext.arc(x, y, lineThickness / 2, 0, Math.PI * 2);
+          canvasContext.fill();
         }
       }
     },
-    [canvasContext]
+    [canvasContext, lineThickness]
   );
 
   const draw = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!isDrawing || !canvasContext || !canvasRef.current) return;
+      if (!isDrawing || !canvasContext || !canvasRef.current || !lastPoint) return;
 
       const rect = canvasRef.current.getBoundingClientRect();
       if (rect) {
@@ -241,17 +345,20 @@ export function DrawingInputTab({
         const x = (e.clientX - rect.left) * scaleX;
         const y = (e.clientY - rect.top) * scaleY;
 
-        canvasContext.lineTo(x, y);
-        canvasContext.stroke();
+        // 부드러운 선 그리기
+        drawSmoothLine(lastPoint.x, lastPoint.y, x, y);
+        
+        // 현재 포인트 업데이트
+        setLastPoint({x, y});
       }
     },
-    [isDrawing, canvasContext]
+    [isDrawing, canvasContext, lastPoint, drawSmoothLine]
   );
 
   const stopDrawing = useCallback(() => {
     if (isDrawing && canvasContext) {
       setIsDrawing(false);
-      canvasContext.closePath();
+      setLastPoint(null);
       // 그리기 종료 시 이미지 처리
       processCanvasImage();
     }
@@ -267,199 +374,220 @@ export function DrawingInputTab({
       onVectorGenerated([]);
     }
   }, [canvasContext, onVectorGenerated]);
+  
+  // 브러시 스타일 변경 시 효과
+  const getBrushStyleIcon = (style: string) => {
+    switch(style) {
+      case 'normal':
+        return <PencilSimple size={16} weight="bold" />;
+      case 'glow':
+        return <Diamond size={16} weight="fill" />;
+      case 'neon':
+        return <Minus size={16} weight="bold" />;
+      case 'calligraphy':
+        return <Minus size={16} weight="bold" />;
+      case 'dotted':
+        return <DotIcon />;
+      default:
+        return <PencilSimple size={16} weight="bold" />;
+    }
+  };
+
+  // 반응형 스케일링
+  const handleZoomIn = () => {
+    setCanvasScale(prev => Math.min(prev + 0.1, 1.3));
+  };
+  
+  const handleZoomOut = () => {
+    setCanvasScale(prev => Math.max(prev - 0.1, 0.8));
+  };
 
   return (
     <Flex direction="column" gap="4">
-      <Flex align="center" gap="3">
-        <PencilSimple size={20} weight="duotone" style={{ color: "#FF5733" }} />
-        <Heading size="3">Drawing Input</Heading>
+      <Flex align="center" gap="3" mb="2">
+        <PencilSimple size={22} weight="duotone" style={{ color: "#FF5733" }} />
+        <Heading size="3">Drawing Canvas</Heading>
       </Flex>
 
-      {/* 그리기 캔버스 컨테이너 */}
-      <Box style={{ width: "100%", position: "relative" }}>
-        <Flex 
-          justify="between" 
-          align="center" 
-          mb="3"
-          style={{
-            background: "#FFFFFF",
-            borderRadius: "8px",
-            padding: "8px 12px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-            border: "1px solid #FFE8E2",
-          }}
-        >
+      {/* 그리기 도구 모음 - OpenGraph 스타일에 맞게 수정 */}
+      <Card
+        style={{
+          background: "white",
+          border: "1px solid #E5E5E5",
+          padding: "12px",
+          borderRadius: "8px",
+          marginBottom: "16px",
+        }}
+      >
+        <Flex justify="between" align="center" wrap="wrap" gap="2">
           <Flex gap="2">
-            <Tooltip content="Clear drawing">
-              <Button
-                style={{ cursor: "pointer" }}
-                size="1"
-                variant="soft"
-                color="red"
-                onClick={clearCanvas}
-              >
-                <ResetIcon /> Clear
-              </Button>
-            </Tooltip>
-          </Flex>
-          
-          <Flex align="center" gap="3">
-            <Tooltip content="Brush style">
-              <Flex gap="1">
-                <Button
-                  size="1"
-                  variant={brushStyle === 'normal' ? 'solid' : 'soft'}
-                  onClick={() => setBrushStyle('normal')}
-                  style={{ 
-                    cursor: "pointer", 
-                    background: brushStyle === 'normal' ? '#FF5733' : undefined,
-                    color: brushStyle === 'normal' ? 'white' : undefined
-                  }}
+            <Tooltip content="Drawing tools">
+              <Flex>
+                <IconButton
+                  color={tool === 'pen' ? 'orange' : 'gray'}
+                  variant={tool === 'pen' ? 'solid' : 'soft'}
+                  onClick={() => setTool('pen')}
+                  style={{ borderRadius: "4px 0 0 4px", cursor: 'pointer' }}
                 >
-                  <DotIcon />
-                </Button>
-                <Button
-                  size="1"
-                  variant={brushStyle === 'glow' ? 'solid' : 'soft'}
-                  onClick={() => setBrushStyle('glow')}
-                  style={{ 
-                    cursor: "pointer", 
-                    background: brushStyle === 'glow' ? '#FF5733' : undefined,
-                    color: brushStyle === 'glow' ? 'white' : undefined
-                  }}
+                  <PencilSimple size={16} weight="bold" />
+                </IconButton>
+                <IconButton
+                  color={tool === 'eraser' ? 'orange' : 'gray'}
+                  variant={tool === 'eraser' ? 'solid' : 'soft'}
+                  onClick={() => setTool('eraser')}
+                  style={{ borderRadius: "0 4px 4px 0", cursor: 'pointer' }}
                 >
-                  <MagnifyingGlassIcon />
-                </Button>
+                  <Eraser size={16} weight="bold" />
+                </IconButton>
               </Flex>
             </Tooltip>
             
+            <Button
+              size="2"
+              variant="soft"
+              color="red"
+              style={{ cursor: 'pointer' }}
+              onClick={clearCanvas}
+            >
+              <ResetIcon /> Clear Canvas
+            </Button>
+          </Flex>
+          
+          <Flex align="center" gap="3" wrap="wrap">
+            {/* 브러시 스타일 선택 */}
             <Flex align="center" gap="2">
-              <Text size="1" style={{ color: '#666', width: '70px' }}>Pen size</Text>
+              <Text size="1" style={{ color: '#666' }}>Brush:</Text>
+              <Flex>
+                {['normal', 'glow', 'neon', 'calligraphy', 'dotted'].map((style) => (
+                  <IconButton
+                    key={style}
+                    size="1"
+                    color={brushStyle === style ? 'orange' : 'gray'}
+                    variant={brushStyle === style ? 'solid' : 'soft'}
+                    onClick={() => setBrushStyle(style)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {getBrushStyleIcon(style)}
+                  </IconButton>
+                ))}
+              </Flex>
+            </Flex>
+            
+            <Flex align="center" gap="2">
+              <Text size="1" style={{ color: '#666', minWidth: '60px' }}>Thickness:</Text>
               <Slider 
                 value={[lineThickness]} 
                 onValueChange={(values) => setLineThickness(values[0])} 
-                min={2} 
-                max={30}
+                min={5} 
+                max={40}
                 step={1}
-                style={{ width: '100px' }}
+                style={{ width: '120px', cursor: 'pointer' }}
               />
+            </Flex>
+            
+            <Flex gap="1">
+              <IconButton size="1" onClick={handleZoomOut} variant="soft" style={{ cursor: 'pointer' }}>
+                <MagnifyingGlassIcon style={{ transform: 'scale(0.8)' }} />
+              </IconButton>
+              <IconButton size="1" onClick={handleZoomIn} variant="soft" style={{ cursor: 'pointer' }}>
+                <MagnifyingGlassIcon style={{ transform: 'scale(1.2)' }} />
+              </IconButton>
             </Flex>
           </Flex>
         </Flex>
+      </Card>
 
+      {/* 정사각형 캔버스 컨테이너 */}
+      <Box 
+        ref={canvasContainerRef}
+        style={{
+          position: 'relative',
+          width: CANVAS_SIZE,
+          height: CANVAS_SIZE,
+          maxWidth: '100%',
+          aspectRatio: '1/1',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+          margin: '0 auto',
+        }}
+      >
+        {/* 캔버스 배경 그라데이션 효과 */}
+        <Box 
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'radial-gradient(circle at center, #1a1a1a 0%, #0f0f0f 100%)',
+            zIndex: 0,
+          }}
+        />
+        
+        <canvas
+          ref={canvasRef}
+          style={{
+            ...canvasContainerStyle,
+            position: 'relative',
+            zIndex: 1,
+            transform: `scale(${canvasScale})`,
+            transformOrigin: 'center center',
+          }}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+        />
+        
+        {/* 격자 오버레이 (그리드) */}
+        <Box style={paperOverlayStyle} />
+        
+        {/* 가운데 중심점 표시 */}
         <Box
           style={{
-            position: 'relative',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '150px',
+            height: '150px',
+            transform: 'translate(-50%, -50%)',
+            border: '1px dashed rgba(255, 255, 255, 0.15)',
+            borderRadius: '15px',
+            zIndex: 2,
+            pointerEvents: 'none',
           }}
-        >
-          <canvas
-            ref={canvasRef}
-            width={280}
-            height={280}
-            style={canvasContainerStyle}
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-          />
-          
-          {/* Grid overlay for drawing guidance */}
-          <Box 
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              pointerEvents: 'none',
-              background: 'linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-              borderRadius: '12px',
-            }}
-          />
-          
-          {/* Drawing hint */}
-          {!isDrawing && !imageData.dataUrl && (
-            <Flex 
-              align="center" 
-              justify="center"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                pointerEvents: 'none',
-              }}
-            >
-              <Text 
-                size="3" 
-                style={{ 
-                  color: 'rgba(255, 255, 255, 0.3)',
-                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
-                  fontWeight: 500
-                }}
-              >
-                Draw here
-              </Text>
-            </Flex>
-          )}
-        </Box>
-
-        <Flex justify="between" align="center" mt="3">
-          <Text size="1" style={{ color: '#999' }}>
-            {isDrawing ? (
-              <Badge variant="soft" color="orange">Drawing...</Badge>
-            ) : (
-              <Badge variant="soft" color="gray">Will be converted to {Math.round(Math.sqrt(getFirstLayerDimension()))}x{Math.round(Math.sqrt(getFirstLayerDimension()))} size</Badge>
-            )}
-          </Text>
-          
-          <Tooltip content="Completed drawing will be optimized for ML model input">
-            <Box style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <InfoCircledIcon style={{ color: '#999', width: '12px', height: '12px' }} />
-              <Text size="1" style={{ color: '#999' }}>MNIST Optimization</Text>
-            </Box>
-          </Tooltip>
-        </Flex>
-
-        {isProcessingImage && (
-          <Box
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              background: "rgba(0, 0, 0, 0.8)",
-              padding: "16px 24px",
-              borderRadius: "8px",
-              textAlign: "center",
-              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",
-            }}
-          >
-            <Flex align="center" gap="2" justify="center">
-              <ReloadIcon 
-                style={{ 
-                  animation: "spin 1s linear infinite",
-                  color: "#FF5733"
-                }} 
-              />
-              <Text size="2" style={{ color: "white" }}>Processing...</Text>
-            </Flex>
-          </Box>
-        )}
+        />
       </Box>
+      
+      <Flex justify="between" align="center" mt="3">
+        <Badge variant="soft" color="orange" style={{ padding: '4px 8px' }}>
+          <Text size="1">
+            {Math.round(Math.sqrt(getFirstLayerDimension()))}x{Math.round(Math.sqrt(getFirstLayerDimension()))} model input
+          </Text>
+        </Badge>
+        
+        <Tooltip content="Draw digits with high contrast for best results">
+          <Box style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <InfoCircledIcon style={{ color: '#999', width: '12px', height: '12px' }} />
+            <Text size="1" style={{ color: '#999' }}>MNIST-optimized drawing</Text>
+          </Box>
+        </Tooltip>
+      </Flex>
 
       {/* Show vector info if drawing is processed */}
       {imageData.vector && imageData.vector.length > 0 && (
-        <VectorInfoDisplay
-          imageData={imageData}
-          getModelScale={getModelScale}
-          formatVectorForPrediction={formatVectorForPrediction}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <VectorInfoDisplay
+            imageData={imageData}
+            getModelScale={getModelScale}
+            formatVectorForPrediction={formatVectorForPrediction}
+          />
+        </motion.div>
       )}
     </Flex>
   );
