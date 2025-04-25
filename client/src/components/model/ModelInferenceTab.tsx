@@ -351,16 +351,33 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                     borderRadius: "8px",
                     opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
                     transition: "all 0.2s ease",
+                    padding: "12px 25px",
+                    fontSize: "16px",
+                    transform: "translateY(0)",
+                    border: "none",
+                    width: "180px",
+                    height: "50px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
                   }}
                 >
                   {isProcessing ? (
                     <Flex align="center" gap="2">
-                      <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                      <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />
                       <span>Processing...</span>
                     </Flex>
                   ) : (
-                    <Flex align="center" gap="2">
-                      <TreeStructure size={16} weight="bold" />
+                    <Flex align="center" gap="3">
+                      <TreeStructure size={20} weight="fill" />
                       <span>Predict</span>
                     </Flex>
                   )}

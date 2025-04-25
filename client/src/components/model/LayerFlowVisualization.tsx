@@ -2,9 +2,9 @@ import React from "react";
 import { Box, Flex, Text, Card, Table, Badge, Heading, Tooltip } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import { CheckCircledIcon, CrossCircledIcon, ReloadIcon, InfoCircledIcon } from "@radix-ui/react-icons";
-import { ArrowRight, CircleNotch, ArrowsHorizontal, FlowArrow, CircleWavyCheck as CircuitBoard, CheckCircle } from "phosphor-react";
+import { ArrowRight, CircleNotch, ArrowsHorizontal, FlowArrow, CircleWavyCheck as CircuitBoard, CheckCircle, Trophy, NumberCircleOne, NumberCircleTwo, NumberCircleThree, NumberCircleFour, NumberCircleFive, NumberCircleSix, NumberCircleSeven, NumberCircleEight, NumberCircleNine, NumberCircleZero } from "phosphor-react";
 import { PredictResult } from "../../hooks/useModelInference";
-import { formatVector, getActivationTypeName } from "../../utils/modelUtils";
+import { formatVector, getActivationTypeName, calculateConfidenceScores } from "../../utils/modelUtils";
 
 // Status summary component
 interface StatusSummaryProps {
@@ -256,6 +256,23 @@ function InferenceResultTable({
   );
 }
 
+// 숫자에 맞는 아이콘 반환 함수
+const getNumberIcon = (num: number) => {
+  switch(num) {
+    case 0: return <NumberCircleZero weight="fill" />;
+    case 1: return <NumberCircleOne weight="fill" />;
+    case 2: return <NumberCircleTwo weight="fill" />;
+    case 3: return <NumberCircleThree weight="fill" />;
+    case 4: return <NumberCircleFour weight="fill" />;
+    case 5: return <NumberCircleFive weight="fill" />;
+    case 6: return <NumberCircleSix weight="fill" />;
+    case 7: return <NumberCircleSeven weight="fill" />;
+    case 8: return <NumberCircleEight weight="fill" />;
+    case 9: return <NumberCircleNine weight="fill" />;
+    default: return null;
+  }
+};
+
 export function LayerFlowVisualization({
   predictResults,
   currentLayerIndex,
@@ -291,7 +308,10 @@ export function LayerFlowVisualization({
 
   // Create layer data for all layers (including pending ones)
   const layerData = Array.from({ length: totalLayers }).map((_, idx) => generateLayerData(idx));
-
+  
+  // 최종 예측 결과 추출
+  const finalResult = predictResults.find(r => r.argmaxIdx !== undefined);
+  
   return (
     <Box style={{ marginTop: "24px" }}>
       <Card
@@ -303,6 +323,170 @@ export function LayerFlowVisualization({
           boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)",
         }}
       >
+        {/* 최종 예측 결과 부분 (신뢰도 점수 시각화 개선) */}
+        {finalResult && finalResult.argmaxIdx !== undefined && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card style={{
+              padding: "16px",
+              marginBottom: "24px",
+              borderRadius: "12px",
+              background: "#FFF4F2",
+              border: "1px solid #FFCCBC",
+              overflow: "hidden",
+              boxShadow: "0 4px 12px rgba(255, 87, 51, 0.1)",
+            }}>
+              <Flex justify="between" align="center">
+                <Flex align="center" gap="3">
+                  <Box style={{
+                    background: "#FF5733",
+                    borderRadius: "50%",
+                    width: "40px",
+                    height: "40px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
+                    <Trophy size={24} weight="fill" style={{ color: "white" }} />
+                  </Box>
+                  <Heading size="3" style={{ color: "#D84315" }}>Final Prediction Result</Heading>
+                </Flex>
+                <Badge size="2" variant="solid" color="orange">
+                  {currentLayerIndex === totalLayers ? 'Complete' : `Layer ${currentLayerIndex}/${totalLayers}`}
+                </Badge>
+              </Flex>
+              
+              <Flex mt="4" align="center" justify="center">
+                <Card style={{
+                  padding: "24px",
+                  background: "white",
+                  borderRadius: "16px",
+                  border: "1px solid #FFCCBC",
+                  width: "100%",
+                }}>
+                  <Flex align="center" justify="center" gap="6">
+                    <Box style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      <Text size="1" style={{ fontWeight: 500, color: "#666", marginBottom: "8px" }}>
+                        Detected Digit
+                      </Text>
+                      <Box style={{
+                        width: "80px",
+                        height: "80px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "#FF5733",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontSize: "48px",
+                        fontWeight: "bold",
+                        boxShadow: "0 4px 12px rgba(255, 87, 51, 0.2)",
+                      }}>
+                        {finalResult.argmaxIdx}
+                      </Box>
+                    </Box>
+                    
+                    <Box style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      marginLeft: "12px",
+                    }}>
+                      <Text size="1" style={{ fontWeight: 500, color: "#666", marginBottom: "8px" }}>
+                        Visualization
+                      </Text>
+                      <Box style={{
+                        width: "80px",
+                        height: "80px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "48px",
+                        color: "#FF5733",
+                      }}>
+                        {getNumberIcon(finalResult.argmaxIdx)}
+                      </Box>
+                    </Box>
+                    
+                    <Flex direction="column" align="start" gap="2" style={{ flex: 1, maxWidth: "280px" }}>
+                      <Text size="2" style={{ fontWeight: 600, color: "#333" }}>
+                        On-chain Inference Complete
+                      </Text>
+                      <Text size="1" style={{ color: "#666", lineHeight: "1.5" }}>
+                        The neural network successfully processed your input through {totalLayers} layers and produced a final prediction.
+                      </Text>
+                      <Flex align="center" gap="1" mt="1">
+                        <CheckCircle size={14} weight="fill" style={{ color: "#4CAF50" }} />
+                        <Text size="1" style={{ color: "#4CAF50" }}>
+                          100% On-chain computation
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  </Flex>
+                  
+                  {/* 신뢰도 점수 시각화 */}
+                  <Box mt="5" style={{ borderTop: "1px solid #FFCCBC", paddingTop: "16px" }}>
+                    <Text size="2" style={{ fontWeight: 600, color: "#333", marginBottom: "12px" }}>
+                      Confidence Scores
+                    </Text>
+                    <Flex direction="column" gap="2" style={{ maxHeight: "200px", overflowY: "auto" }}>
+                      {calculateConfidenceScores(finalResult).map((item) => (
+                        <Flex key={item.index} align="center" gap="3">
+                          <Box style={{ width: "30px", textAlign: "center", position: "relative" }}>
+                            <Text size="2" style={{ 
+                              fontWeight: item.index === finalResult.argmaxIdx ? 700 : 400,
+                              color: item.index === finalResult.argmaxIdx ? "#FF5733" : "#666"
+                            }}>
+                              {item.index}
+                            </Text>
+                            {item.index === finalResult.argmaxIdx && (
+                              <Box style={{
+                                position: "absolute",
+                                top: "-3px",
+                                right: "-3px",
+                                width: "8px",
+                                height: "8px",
+                                borderRadius: "50%",
+                                background: "#FF5733"
+                              }} />
+                            )}
+                          </Box>
+                          <Box style={{ flex: 1 }}>
+                            <Flex align="center" gap="2">
+                              <Box style={{
+                                height: "12px",
+                                width: `${Math.max(item.score * 100, 2)}%`, // 최소 2% 너비 보장
+                                background: item.index === finalResult.argmaxIdx ? "#FF5733" : "#FFB74D",
+                                borderRadius: "6px",
+                                transition: "width 0.5s ease-out",
+                              }} />
+                              <Text size="1" style={{ 
+                                width: "40px", 
+                                fontWeight: item.index === finalResult.argmaxIdx ? 700 : 400,
+                                color: item.index === finalResult.argmaxIdx ? "#FF5733" : "#666"
+                              }}>
+                                {(item.score * 100).toFixed(1)}%
+                              </Text>
+                            </Flex>
+                          </Box>
+                        </Flex>
+                      ))}
+                    </Flex>
+                  </Box>
+                </Card>
+              </Flex>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Progress Bar 및 요약 정보를 상단으로 이동 */}
         <Flex direction="column" gap="4" mb="4">
           <Box>
@@ -374,25 +558,14 @@ export function LayerFlowVisualization({
           </Heading>
         </Flex>
 
-        <Text
-          size="2"
-          style={{
-            lineHeight: "1.6",
-            color: "#666",
-            letterSpacing: "0.01em",
-            marginBottom: "12px",
-          }}
-        >
-          Visual overview of each layer's processing status
-        </Text>
-
-        {/* Layer Flow Visualization - 카드 크기 축소 */}
+        {/* Layer Flow Visualization */}
         <Box
           style={{
             marginBottom: "24px",
             maxHeight: "250px",
             overflowY: "auto",
             overflowX: "hidden",
+            padding: "4px",
           }}
         >
           <Flex gap="2" wrap="wrap" style={{ justifyContent: "flex-start" }}>
@@ -408,7 +581,7 @@ export function LayerFlowVisualization({
                       : layer.status === "error"
                         ? "#FFEBEE"
                         : layer.status === "success"
-                          ? "#E8F5E9"
+                          ? layer.isFinalLayer ? "#E8F5E9" : "#F1F8E9"
                           : "#F5F5F5",
                   border: `1px solid ${
                     layer.status === "processing"
@@ -416,22 +589,33 @@ export function LayerFlowVisualization({
                       : layer.status === "error"
                         ? "#FFCDD2"
                         : layer.status === "success"
-                          ? "#C8E6C9"
+                          ? layer.isFinalLayer ? "#66BB6A" : "#C8E6C9"
                           : "#E0E0E0"
                   }`,
                   overflow: "hidden",
-                  marginBottom: "8px",
+                  marginBottom: "12px",
+                  transform: layer.isFinalLayer ? "scale(1.01)" : "scale(1)",
+                  transformOrigin: "center",
+                  boxShadow: layer.isFinalLayer ? "0 4px 12px rgba(76, 175, 80, 0.2)" : "none",
+                  transition: "all 0.2s ease",
                 }}
                 data-status={layer.status}
               >
                 <Box style={{ padding: "10px" }}>
                   <Flex align="center" justify="between" mb="1">
                     <Flex align="center" gap="1">
-                      <Badge color="orange" variant="soft" size="1">
+                      <Badge 
+                        color={layer.isFinalLayer ? "green" : "orange"} 
+                        variant="soft" 
+                        size="1"
+                      >
                         {index + 1}
                       </Badge>
-                      <Text size="2" style={{ fontWeight: 600, color: "#333" }}>
-                        Layer {index + 1}
+                      <Text size="2" style={{ 
+                        fontWeight: layer.isFinalLayer ? 700 : 600, 
+                        color: layer.isFinalLayer ? "#2E7D32" : "#333" 
+                      }}>
+                        {layer.isFinalLayer ? "Final Layer" : `Layer ${index + 1}`}
                       </Text>
                     </Flex>
                     {layer.status === "processing" && (
@@ -453,7 +637,11 @@ export function LayerFlowVisualization({
                       />
                     )}
                     {layer.status === "success" && (
-                      <CheckCircle size={14} weight="fill" style={{ color: "#2E7D32" }} />
+                      <CheckCircle 
+                        size={14} 
+                        weight="fill" 
+                        style={{ color: layer.isFinalLayer ? "#2E7D32" : "#4CAF50" }} 
+                      />
                     )}
                   </Flex>
 
@@ -471,8 +659,13 @@ export function LayerFlowVisualization({
                   )}
 
                   {layer.status === "success" && (
-                    <Badge size="1" color="green" variant="soft" style={{ marginBottom: "4px" }}>
-                      Completed
+                    <Badge 
+                      size="1" 
+                      color={layer.isFinalLayer ? "green" : "grass"} 
+                      variant={layer.isFinalLayer ? "solid" : "soft"} 
+                      style={{ marginBottom: "4px" }}
+                    >
+                      {layer.isFinalLayer ? "Final Output" : "Completed"}
                     </Badge>
                   )}
 
@@ -542,23 +735,23 @@ export function LayerFlowVisualization({
                     </>
                   )}
 
-                  {layer.isFinalLayer && layer.finalValue && layer.status === "success" && (
+                  {layer.isFinalLayer && layer.finalValue !== null && layer.status === "success" && (
                     <Box
                       style={{
-                        marginTop: "4px",
-                        padding: "4px",
+                        marginTop: "8px",
+                        padding: "6px",
                         background: "#E8F5E9",
                         borderRadius: "4px",
-                        border: "1px solid #C8E6C9",
+                        border: "1px solid #66BB6A",
                       }}
                     >
-                      <Flex align="center" gap="1">
-                        <CheckCircle size={10} weight="fill" style={{ color: "#2E7D32" }} />
+                      <Flex align="center" justify="center" gap="1">
+                        <Trophy size={12} weight="fill" style={{ color: "#2E7D32" }} />
                         <Text
-                          size="1"
-                          style={{ color: "#2E7D32", fontWeight: 500, fontSize: "10px" }}
+                          size="2"
+                          style={{ color: "#2E7D32", fontWeight: 700, fontSize: "14px" }}
                         >
-                          Final: {layer.finalValue}
+                          Result: {layer.finalValue}
                         </Text>
                       </Flex>
                     </Box>
@@ -629,4 +822,4 @@ export function LayerFlowVisualization({
       </Card>
     </Box>
   );
-} 
+}
