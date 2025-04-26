@@ -551,7 +551,7 @@ export function Datasets() {
       ) : (
         <Grid 
           columns={{ initial: "1", sm: "2", lg: "3" }} 
-          gap="5" 
+          gap="4" 
           className="modelGrid"
           style={{
             maxWidth: "100%",
@@ -651,7 +651,7 @@ export function Datasets() {
                           {dataset.dataType.split("/")[0]}
                         </Badge>
                         {dataset.license && (
-                          <Text size="1" style={{ color: getDataTypeColor(dataset.dataType).text, marginTop: "4px", opacity: 0.8 }}>
+                          <Text size="1" style={{ color: getDataTypeColor(dataset.dataType).text, marginTop: "4px", marginLeft: "6px", opacity: 0.8 }}>
                             {dataset.license}
                           </Text>
                         )}

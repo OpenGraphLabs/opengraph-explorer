@@ -163,14 +163,20 @@ export function UploadDataset() {
 
   const handleFileSelect = (files: File[]) => {
     if (files.length === 0) return;
-    setSelectedFiles(files);
-    setAnnotations(Array(files.length).fill(""));
+    
+    // 기존 파일 배열에 새 파일을 추가합니다.
+    const newFiles = [...selectedFiles, ...files];
+    const newAnnotations = [...annotations, ...Array(files.length).fill("")];
+    
+    setSelectedFiles(newFiles);
+    setAnnotations(newAnnotations);
     setError(null);
 
-    // 파일 업로드 상태 초기화
-    const initialStatus: Record<number, any> = {};
+    // 파일 업로드 상태 초기화 - 새로 추가된 파일만 초기화
+    const initialStatus = { ...uploadStatus };
+    const startIdx = selectedFiles.length;
     files.forEach((_, index) => {
-      initialStatus[index] = { status: "idle", progress: 0, message: "" };
+      initialStatus[startIdx + index] = { status: "idle", progress: 0, message: "" };
     });
     setUploadStatus(initialStatus);
 
@@ -552,6 +558,23 @@ export function UploadDataset() {
               </Box>
             )}
 
+            {/* 항상 존재하는 숨겨진 파일 선택기 (Add More 기능을 위함) */}
+            <input
+              type="file"
+              multiple
+              onChange={e => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  handleFileSelect(Array.from(files));
+                  // 선택 후 input 값을 초기화하여 같은 파일을 다시 선택할 수 있게 함
+                  e.target.value = '';
+                }
+              }}
+              disabled={!currentWallet?.accounts[0]?.address}
+              style={{ display: "none" }}
+              id="dataset-upload-more"
+            />
+
             {selectedFiles.length > 0 && (
               <Card
                 style={{
@@ -562,96 +585,187 @@ export function UploadDataset() {
                 }}
               >
                 <Flex direction="column" gap="3">
-                  <Heading size="3">Selected Files</Heading>
-                  {selectedFiles.map((file, index) => (
-                    <Card
-                      key={index}
-                      style={{
-                        padding: "12px",
-                        borderRadius: "6px",
-                        border: "1px solid var(--gray-4)",
-                        background:
-                          uploadStatus[index]?.status === "failed"
-                            ? "#FFEBEE"
-                            : uploadStatus[index]?.status === "success"
-                              ? "#E8F5E9"
-                              : "var(--gray-2)",
-                      }}
-                    >
-                      <Flex direction="column" gap="2">
-                        <Flex align="center" justify="between">
-                          <Flex align="center" gap="2">
-                            <FileIcon width={16} height={16} style={{ color: "var(--gray-9)" }} />
-                            <Text size="2" style={{ fontWeight: 500 }}>
-                              {file.name}
-                            </Text>
+                  <Flex justify="between" align="center">
+                    <Heading size="3">Selected Files ({selectedFiles.length})</Heading>
+                    <Flex gap="2" align="center">
+                      <Button 
+                        size="1" 
+                        variant="soft" 
+                        onClick={() => document.getElementById('dataset-upload-more')?.click()}
+                        style={{
+                          background: "var(--blue-3)",
+                          color: "var(--blue-11)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <PlusIcon width={14} height={14} />
+                        <span style={{ marginLeft: '4px' }}>Add More</span>
+                      </Button>
+                      {selectedFiles.some(
+                        (_, idx) => uploadStatus[idx]?.status !== "uploading"
+                      ) && (
+                        <Button
+                          size="1"
+                          variant="soft"
+                          onClick={() => {
+                            const newFiles = selectedFiles.filter(
+                              (_, idx) => uploadStatus[idx]?.status === "uploading"
+                            );
+                            const newAnnotations = annotations.filter(
+                              (_, idx) => uploadStatus[idx]?.status === "uploading"
+                            );
+                            setSelectedFiles(newFiles);
+                            setAnnotations(newAnnotations);
+                            if (newFiles.length === 0) {
+                              setPreviewStep("select");
+                            }
+                          }}
+                          style={{
+                            background: "var(--red-3)",
+                            color: "var(--red-11)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <TrashIcon width={14} height={14} />
+                          <span style={{ marginLeft: '4px' }}>Clear Completed</span>
+                        </Button>
+                      )}
+                    </Flex>
+                  </Flex>
 
-                            {/* 파일 상태 표시 */}
-                            {uploadStatus[index]?.status === "uploading" && (
-                              <Badge color="blue">
-                                Uploading... {uploadStatus[index]?.progress}%
-                                {uploadStatus[index]?.message &&
-                                  ` (${uploadStatus[index]?.message})`}
-                              </Badge>
-                            )}
-                            {uploadStatus[index]?.status === "success" && (
-                              <Badge color="green">
-                                Uploaded
-                                {uploadStatus[index]?.message &&
-                                  ` (${uploadStatus[index]?.message})`}
-                              </Badge>
-                            )}
-                            {uploadStatus[index]?.status === "failed" && (
-                              <Badge color="red">
-                                Failed
-                                {uploadStatus[index]?.message &&
-                                  ` (${uploadStatus[index]?.message})`}
-                              </Badge>
-                            )}
-                          </Flex>
+                  {/* 테이블 헤더 */}
+                  <Box 
+                    style={{ 
+                      padding: "8px 12px", 
+                      background: "var(--gray-3)", 
+                      borderRadius: "8px 8px 0 0",
+                      display: "grid",
+                      gridTemplateColumns: "minmax(200px, 3fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(200px, 3fr) 80px",
+                      gap: "8px",
+                      alignItems: "center",
+                      fontWeight: 500,
+                      fontSize: "13px",
+                      color: "var(--gray-11)",
+                    }}
+                  >
+                    <Box>File Name</Box>
+                    <Box>Size</Box>
+                    <Box>Type</Box>
+                    <Box>Annotation</Box>
+                    <Box>Actions</Box>
+                  </Box>
 
-                          <Flex gap="2">
-                            {/* 실패한 파일은 재시도 버튼 표시 */}
-                            {uploadStatus[index]?.status === "failed" && (
-                              <Button
-                                size="1"
-                                variant="soft"
-                                onClick={() => handleRetryFile(index)}
-                                style={{
-                                  background: "var(--blue-3)",
-                                  color: "var(--blue-11)",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <ReloadIcon width={14} height={14} />
-                              </Button>
-                            )}
+                  {/* 테이블 내용 */}
+                  <Box style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    {selectedFiles.map((file, index) => (
+                      <Box
+                        key={index}
+                        style={{
+                          padding: "10px 12px",
+                          borderBottom: "1px solid var(--gray-4)",
+                          background:
+                            uploadStatus[index]?.status === "failed"
+                              ? "var(--red-2)"
+                              : uploadStatus[index]?.status === "success"
+                                ? "var(--green-2)"
+                                : "white",
+                          display: "grid",
+                          gridTemplateColumns: "minmax(200px, 3fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(200px, 3fr) 80px",
+                          gap: "8px",
+                          alignItems: "center",
+                          transition: "background-color 0.2s ease",
+                        }}
+                      >
+                        {/* 파일명 및 상태 */}
+                        <Flex align="center" gap="2" style={{ overflow: "hidden" }}>
+                          <FileIcon width={16} height={16} style={{ flexShrink: 0, color: "var(--gray-9)" }} />
+                          <Text size="2" style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {file.name}
+                          </Text>
+                          {uploadStatus[index]?.status === "uploading" && (
+                            <Badge color="blue" size="1" style={{ flexShrink: 0 }}>
+                              {uploadStatus[index]?.progress}%
+                            </Badge>
+                          )}
+                          {uploadStatus[index]?.status === "success" && (
+                            <CheckCircledIcon style={{ color: "var(--green-9)", width: 14, height: 14, flexShrink: 0 }} />
+                          )}
+                          {uploadStatus[index]?.status === "failed" && (
+                            <ExclamationTriangleIcon style={{ color: "var(--red-9)", width: 14, height: 14, flexShrink: 0 }} />
+                          )}
+                        </Flex>
 
+                        {/* 파일 크기 */}
+                        <Text size="2" style={{ color: "var(--gray-9)" }}>
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </Text>
+
+                        {/* 파일 타입 */}
+                        <Text size="2" style={{ color: "var(--gray-9)" }}>
+                          {file.type || "Unknown"}
+                        </Text>
+
+                        {/* 애노테이션 인풋 */}
+                        <TextField.Root
+                          placeholder="Enter annotation"
+                          value={annotations[index] || ""}
+                          onChange={e => handleAnnotationChange(index, e.target.value)}
+                          size="1"
+                          variant="soft"
+                          style={{ 
+                            width: "100%",
+                            border: "1px solid var(--gray-4)",
+                            borderRadius: "4px",
+                          }}
+                        />
+
+                        {/* 액션 버튼 */}
+                        <Flex gap="2" justify="center">
+                          {/* 업로드 실패 시 재시도 버튼 */}
+                          {uploadStatus[index]?.status === "failed" && (
                             <Button
                               size="1"
                               variant="soft"
-                              onClick={() => handleFileRemove(index)}
+                              onClick={() => handleRetryFile(index)}
                               style={{
-                                background: "var(--red-3)",
-                                color: "var(--red-11)",
+                                background: "var(--blue-3)",
+                                color: "var(--blue-11)",
                                 cursor: "pointer",
+                                padding: "0 8px",
+                                height: "26px",
                               }}
                             >
-                              <TrashIcon width={14} height={14} />
+                              <ReloadIcon width={12} height={12} />
                             </Button>
-                          </Flex>
+                          )}
+
+                          {/* 삭제 버튼 */}
+                          <Button
+                            size="1"
+                            variant="soft"
+                            onClick={() => handleFileRemove(index)}
+                            style={{
+                              background: "var(--red-3)",
+                              color: "var(--red-11)",
+                              cursor: "pointer",
+                              padding: "0 8px",
+                              height: "26px",
+                            }}
+                          >
+                            <TrashIcon width={12} height={12} />
+                          </Button>
                         </Flex>
 
                         {/* 업로드 진행 상태바 */}
                         {uploadStatus[index]?.status === "uploading" && (
                           <Box
                             style={{
+                              gridColumn: "1 / span 5",
                               width: "100%",
-                              height: "4px",
+                              height: "3px",
                               background: "var(--gray-4)",
-                              borderRadius: "2px",
+                              borderRadius: "1.5px",
                               marginTop: "4px",
-                              marginBottom: "8px",
                               overflow: "hidden",
                             }}
                           >
@@ -660,7 +774,7 @@ export function UploadDataset() {
                                 width: `${uploadStatus[index]?.progress || 0}%`,
                                 height: "100%",
                                 background: "var(--blue-9)",
-                                borderRadius: "2px",
+                                borderRadius: "1.5px",
                                 transition: "width 0.3s ease",
                               }}
                             />
@@ -669,27 +783,74 @@ export function UploadDataset() {
 
                         {/* 업로드 실패 에러 메시지 */}
                         {uploadStatus[index]?.status === "failed" && uploadStatus[index]?.error && (
-                          <Text size="1" style={{ color: "var(--red-11)" }}>
+                          <Text size="1" style={{ color: "var(--red-11)", gridColumn: "1 / span 5", marginTop: "4px" }}>
                             Error: {uploadStatus[index]?.error}
                           </Text>
                         )}
+                      </Box>
+                    ))}
+                  </Box>
 
-                        <Flex direction="column" gap="1">
-                          <Text size="1" style={{ color: "var(--gray-9)" }}>
-                            Size: {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </Text>
-                          <Text size="1" style={{ color: "var(--gray-9)" }}>
-                            Type: {file.type || "Unknown"}
-                          </Text>
-                          <TextField.Root
-                            placeholder="Enter annotation"
-                            value={annotations[index]}
-                            onChange={e => handleAnnotationChange(index, e.target.value)}
-                          />
+                  {/* 데이터 배치 애노테이션 도구 */}
+                  {selectedFiles.length > 0 && (
+                    <Card style={{ padding: "12px", marginTop: "8px", background: "white", border: "1px solid var(--gray-4)" }}>
+                      <Flex direction="column" gap="2">
+                        <Text size="2" weight="medium">Batch Annotation Tools</Text>
+                        <Flex gap="2" wrap="wrap">
+                          <Button 
+                            size="1" 
+                            variant="soft" 
+                            onClick={() => {
+                              // 모든 선택된 파일에 동일한 애노테이션 적용
+                              const annotationValue = window.prompt("Enter annotation to apply to all selected files:");
+                              if (annotationValue !== null) {
+                                setAnnotations(annotations.map(() => annotationValue));
+                              }
+                            }}
+                            style={{
+                              background: "var(--violet-3)",
+                              color: "var(--violet-11)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Apply to All
+                          </Button>
+                          
+                          <Button 
+                            size="1" 
+                            variant="soft" 
+                            onClick={() => {
+                              // 파일이름으로 애노테이션 자동 생성
+                              setAnnotations(selectedFiles.map(file => {
+                                const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+                                return nameWithoutExt.replace(/[_-]/g, ' ');
+                              }));
+                            }}
+                            style={{
+                              background: "var(--amber-3)",
+                              color: "var(--amber-11)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Use Filenames
+                          </Button>
+                          
+                          <Button 
+                            size="1" 
+                            variant="soft" 
+                            onClick={() => setAnnotations(annotations.map(() => ""))}
+                            style={{
+                              background: "var(--gray-3)",
+                              color: "var(--gray-11)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Clear All
+                          </Button>
                         </Flex>
                       </Flex>
                     </Card>
-                  ))}
+                  )}
                 </Flex>
               </Card>
             )}
