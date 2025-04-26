@@ -377,7 +377,7 @@ export function UploadDataset() {
   return (
     <Box style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px" }}>
       <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
-        Training Datasets
+        Upload Dataset
       </Heading>
 
       <Flex direction="column" gap="6">

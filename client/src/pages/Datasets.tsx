@@ -20,6 +20,7 @@ import {
   ChevronDownIcon, 
   TextAlignLeftIcon,
   StackIcon,
+  Cross2Icon,
 } from "@radix-ui/react-icons";
 import { Link, useNavigate } from "react-router-dom";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
@@ -61,10 +62,12 @@ export function Datasets() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedSort, setSelectedSort] = useState("newest");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [datasets, setDatasets] = useState<DatasetObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showTagSelector, setShowTagSelector] = useState(false);
 
   // 데이터셋 가져오기
   useEffect(() => {
@@ -96,16 +99,48 @@ export function Datasets() {
     }
   };
 
+  // 모든 고유 태그 추출
+  const getAllUniqueTags = () => {
+    const allTags = new Set<string>();
+    datasets.forEach(dataset => {
+      if (dataset.tags && dataset.tags.length > 0) {
+        dataset.tags.forEach(tag => allTags.add(tag));
+      }
+    });
+    return Array.from(allTags).sort();
+  };
+
+  // 태그 선택 토글
+  const toggleTag = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter(t => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
+  // 모든 태그 선택 해제
+  const clearTags = () => {
+    setSelectedTags([]);
+  };
+
   // 필터링된 데이터셋 목록
   const filteredDatasets = datasets
-    .filter(
-      dataset =>
-        (selectedType === "all" || dataset.dataType.includes(selectedType)) &&
-        (searchQuery === "" ||
-          dataset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (dataset.description &&
-            dataset.description.toLowerCase().includes(searchQuery.toLowerCase())))
-    )
+    .filter(dataset => {
+      // 데이터 타입 필터
+      const typeFilter = selectedType === "all" || dataset.dataType.includes(selectedType);
+      
+      // 검색어 필터
+      const searchFilter = searchQuery === "" ||
+        dataset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (dataset.description && dataset.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // 태그 필터 - 선택된 태그가 있을 경우 해당 태그를 모두 포함하는 데이터셋만 필터링
+      const tagFilter = selectedTags.length === 0 || 
+        (dataset.tags && selectedTags.every(tag => dataset.tags?.includes(tag)));
+      
+      return typeFilter && searchFilter && tagFilter;
+    })
     .sort((a, b) => {
       if (selectedSort === "newest")
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -192,7 +227,7 @@ export function Datasets() {
 
       {/* 향상된 검색 및 필터 섹션 */}
       <Flex 
-        direction={{ initial: "column", sm: "row" }} 
+        direction="column"
         gap="4" 
         mb="6" 
         style={{ 
@@ -203,31 +238,32 @@ export function Datasets() {
           border: "1px solid var(--gray-4)"
         }}
       >
-        <Box style={{ flex: 1 }}>
-          <div
-            className="rt-TextFieldRoot"
-            style={{ width: "100%" }}
-          >
-            <div className="rt-TextFieldSlot" style={{ marginRight: "10px" }} >
-              <MagnifyingGlassIcon height="16" width="16" />
+        {/* 검색 및 데이터 타입 필터 */}
+        <Flex direction={{ initial: "column", sm: "row" }} gap="4" align="start">
+          <Box style={{ flex: 1 }}>
+            <div
+              className="rt-TextFieldRoot"
+              style={{ width: "100%" }}
+            >
+              <div className="rt-TextFieldSlot" style={{ marginRight: "10px" }} >
+                <MagnifyingGlassIcon height="16" width="16" />
+              </div>
+              <input
+                className="rt-TextFieldInput"
+                placeholder="Search datasets by name or description..." 
+                value={searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                style={{
+                  backgroundColor: "var(--gray-1)",
+                  borderRadius: "8px",
+                  border: "1px solid var(--gray-4)",
+                  padding: "10px 16px",
+                  width: "100%",
+                }}
+              />
             </div>
-            <input
-              className="rt-TextFieldInput"
-              placeholder="Search datasets by name or description..." 
-              value={searchQuery}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-              style={{
-                backgroundColor: "var(--gray-1)",
-                borderRadius: "8px",
-                border: "1px solid var(--gray-4)",
-                padding: "10px 16px",
-                width: "100%",
-              }}
-            />
-          </div>
-        </Box>
-        
-        <Flex gap="3" align="center">
+          </Box>
+          
           <Select.Root value={selectedType} onValueChange={setSelectedType}>
             <Select.Trigger 
               placeholder="Data Type" 
@@ -261,6 +297,104 @@ export function Datasets() {
             </Select.Content>
           </Select.Root>
         </Flex>
+
+        {/* 태그 필터 섹션 */}
+        <Box>
+          <Flex justify="between" align="center" mb="2">
+            <Text size="2" weight="medium" style={{ color: "var(--gray-11)" }}>
+              Filter by Tags
+            </Text>
+            {selectedTags.length > 0 && (
+              <Button 
+                size="1" 
+                variant="soft" 
+                onClick={clearTags}
+                style={{ 
+                  cursor: "pointer",
+                  fontSize: "12px", 
+                  padding: "4px 8px",
+                  background: "var(--gray-3)",
+                  color: "var(--gray-11)",
+                }}
+              >
+                Clear All
+              </Button>
+            )}
+          </Flex>
+
+          {/* 선택된 태그 섹션 */}
+          {selectedTags.length > 0 && (
+            <Box mb="2">
+              <Text size="1" color="gray" mb="1">Selected Tags:</Text>
+              <Flex gap="2" wrap="wrap">
+                {selectedTags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="surface"
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "20px",
+                      background: "var(--accent-3)",
+                      color: "var(--accent-11)",
+                      border: "1px solid var(--accent-6)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                      margin: "2px",
+                    }}
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag}
+                    <Cross2Icon width={12} height={12} style={{ opacity: 0.7 }} />
+                  </Badge>
+                ))}
+              </Flex>
+            </Box>
+          )}
+
+          {/* 모든 태그 표시 */}
+          <Box
+            style={{
+              maxHeight: "120px",
+              overflowY: "auto",
+              padding: "8px 0",
+              marginTop: "4px",
+              border: "1px solid var(--gray-4)",
+              borderRadius: "8px",
+              background: "var(--gray-1)",
+            }}
+          >
+            <Flex gap="2" wrap="wrap" p="2">
+              {getAllUniqueTags().length === 0 ? (
+                <Text size="1" color="gray" style={{ padding: "8px 12px" }}>
+                  No tags available in any datasets
+                </Text>
+              ) : (
+                getAllUniqueTags().map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="surface"
+                    style={{
+                      padding: "4px 10px",
+                      margin: "2px",
+                      borderRadius: "20px",
+                      background: selectedTags.includes(tag) ? "var(--accent-3)" : "white",
+                      color: selectedTags.includes(tag) ? "var(--accent-11)" : "var(--gray-11)",
+                      border: selectedTags.includes(tag) ? "1px solid var(--accent-6)" : "1px solid var(--gray-4)",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      fontSize: "12px",
+                    }}
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag}
+                  </Badge>
+                ))
+              )}
+            </Flex>
+          </Box>
+        </Box>
       </Flex>
 
       {/* 통계 요약 */}
@@ -295,6 +429,38 @@ export function Datasets() {
                 <Badge variant="soft" color="blue">
                   "{searchQuery}"
                 </Badge>
+              )}
+              {/* 선택된 태그 요약 (최대 2개까지 표시, 나머지는 +n 형식으로) */}
+              {selectedTags.length > 0 && (
+                <Flex align="center" gap="1">
+                  {selectedTags.slice(0, 2).map((tag) => (
+                    <Badge 
+                      key={tag} 
+                      variant="soft" 
+                      color="purple"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                      <Cross2Icon width={10} height={10} style={{ opacity: 0.7 }} />
+                    </Badge>
+                  ))}
+                  {selectedTags.length > 2 && (
+                    <Badge 
+                      variant="soft" 
+                      color="purple"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setShowTagSelector(true)}
+                    >
+                      +{selectedTags.length - 2} more
+                    </Badge>
+                  )}
+                </Flex>
               )}
             </Flex>
             
