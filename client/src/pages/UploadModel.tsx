@@ -93,13 +93,13 @@ function DatasetCard({
     <Card
       className={styles.datasetCard}
       style={{
-        padding: "16px",
-        borderRadius: "12px",
+        padding: "12px",
+        borderRadius: "8px",
         border: `1px solid ${isSelected ? "var(--accent-8)" : isDisabled ? "var(--gray-5)" : "var(--gray-4)"}`,
         background: isDisabled ? "var(--gray-2)" : "var(--gray-1)",
         cursor: onSelect && !isDisabled ? "pointer" : "default",
         opacity: isDisabled ? 0.7 : 1,
-        minHeight: "280px",
+        minHeight: "150px",
         display: "flex",
         flexDirection: "column",
         position: "relative",
@@ -129,21 +129,21 @@ function DatasetCard({
       )}
       <Flex
         direction="column"
-        gap="3"
+        gap="2"
         style={{
           height: "100%",
           filter: isDisabled && disabledReason ? "blur(2px)" : "none",
         }}
       >
         <Flex align="center" justify="between">
-          <Flex align="center" gap="3" style={{ flex: 1, minWidth: 0 }}>
+          <Flex align="center" gap="2" style={{ flex: 1, minWidth: 0 }}>
             <Box
               style={{
                 background: getDataTypeColor(dataset.dataType).bg,
                 color: getDataTypeColor(dataset.dataType).text,
-                borderRadius: "8px",
-                width: "40px",
-                height: "40px",
+                borderRadius: "6px",
+                width: "30px",
+                height: "30px",
                 flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
@@ -154,10 +154,10 @@ function DatasetCard({
             </Box>
             <Box style={{ flex: 1, minWidth: 0 }}>
               <Text
-                size="3"
+                size="2"
                 style={{
                   fontWeight: 600,
-                  marginBottom: "6px",
+                  marginBottom: "2px",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -166,13 +166,16 @@ function DatasetCard({
                 {dataset.name}
               </Text>
               <Badge
+                size="1"
                 style={{
                   background: getDataTypeColor(dataset.dataType).bg,
                   color: getDataTypeColor(dataset.dataType).text,
-                  padding: "2px 8px",
+                  padding: "1px 6px",
+                  fontSize: "10px",
+                  marginLeft: "4px",
                 }}
               >
-                {dataset.dataType}
+                {dataset.dataType.split('/')[0]}
               </Badge>
             </Box>
           </Flex>
@@ -188,8 +191,10 @@ function DatasetCard({
                 background: "var(--red-3)",
                 color: "var(--red-11)",
                 cursor: "pointer",
-                marginLeft: "12px",
+                marginLeft: "8px",
                 flexShrink: 0,
+                padding: "0 8px",
+                height: "24px",
               }}
             >
               Remove
@@ -200,11 +205,11 @@ function DatasetCard({
               style={{
                 background: "var(--accent-3)",
                 color: "var(--accent-11)",
-                padding: "4px 8px",
+                padding: "2px 6px",
                 borderRadius: "4px",
-                fontSize: "12px",
+                fontSize: "10px",
                 fontWeight: 500,
-                marginLeft: "12px",
+                marginLeft: "8px",
                 flexShrink: 0,
               }}
             >
@@ -214,7 +219,7 @@ function DatasetCard({
         </Flex>
 
         <Text
-          size="2"
+          size="1"
           style={{
             color: "var(--gray-11)",
             flex: 1,
@@ -227,70 +232,72 @@ function DatasetCard({
           {dataset.description}
         </Text>
 
-        <Grid columns="3" gap="2" style={{ marginTop: "auto" }}>
-          <Card style={{ padding: "8px", background: "var(--gray-2)" }}>
-            <Flex direction="column" gap="1">
-              <Text size="1" style={{ color: "var(--gray-11)" }}>
-                Size
-              </Text>
-              <Text size="2" style={{ fontWeight: 500 }}>
-                {formatDataSize(dataset.dataSize)}
-              </Text>
-            </Flex>
-          </Card>
-          <Card style={{ padding: "8px", background: "var(--gray-2)" }}>
-            <Flex direction="column" gap="1">
-              <Text size="1" style={{ color: "var(--gray-11)" }}>
-                Items
-              </Text>
-              <Text size="2" style={{ fontWeight: 500 }}>
-                {dataset.dataCount} files
-              </Text>
-            </Flex>
-          </Card>
-          <Card style={{ padding: "8px", background: "var(--gray-2)" }}>
-            <Flex direction="column" gap="1">
-              <Text size="1" style={{ color: "var(--gray-11)" }}>
-                License
-              </Text>
-              <Text
-                size="2"
-                style={{
-                  fontWeight: 500,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {dataset.license || "N/A"}
-              </Text>
-            </Flex>
-          </Card>
-        </Grid>
+        <Flex gap="2" justify="between" style={{ marginTop: "auto" }}>
+          <Box style={{ display: "flex", gap: "1px", alignItems: "center" }}>
+            <Text size="1" style={{ color: "var(--gray-11)" }}>
+              Size:
+            </Text>
+            <Text size="1" style={{ fontWeight: 500, marginLeft: "4px" }}>
+              {formatDataSize(dataset.dataSize)}
+            </Text>
+          </Box>
+          
+          <Box style={{ display: "flex", gap: "1px", alignItems: "center" }}>
+            <Text size="1" style={{ color: "var(--gray-11)" }}>
+              Items:
+            </Text>
+            <Text size="1" style={{ fontWeight: 500, marginLeft: "4px" }}>
+              {dataset.dataCount}
+            </Text>
+          </Box>
+          
+          <Box style={{ display: "flex", gap: "1px", alignItems: "center" }}>
+            <Text size="1" style={{ color: "var(--gray-11)" }}>
+              License:
+            </Text>
+            <Text
+              size="1"
+              style={{
+                fontWeight: 500,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                marginLeft: "4px",
+                maxWidth: "60px"
+              }}
+            >
+              {dataset.license || "N/A"}
+            </Text>
+          </Box>
+        </Flex>
 
         {dataset.tags && dataset.tags.length > 0 && (
-          <Flex gap="2" wrap="wrap" style={{ marginTop: "8px" }}>
-            {dataset.tags.slice(0, 3).map((tag, index) => (
+          <Flex gap="1" wrap="wrap">
+            {dataset.tags.slice(0, 2).map((tag, index) => (
               <Badge
                 key={index}
+                size="1"
                 style={{
                   background: "var(--gray-3)",
                   color: "var(--gray-11)",
-                  padding: "2px 8px",
+                  padding: "1px 6px",
+                  fontSize: "9px",
                 }}
               >
                 {tag}
               </Badge>
             ))}
-            {dataset.tags.length > 3 && (
+            {dataset.tags.length > 2 && (
               <Badge
+                size="1"
                 style={{
                   background: "var(--gray-3)",
                   color: "var(--gray-11)",
-                  padding: "2px 8px",
+                  padding: "1px 6px",
+                  fontSize: "9px",
                 }}
               >
-                +{dataset.tags.length - 3}
+                +{dataset.tags.length - 2}
               </Badge>
             )}
           </Flex>
@@ -321,6 +328,10 @@ export function UploadModel() {
     isLoading: false,
     error: null,
   });
+  
+  // 태그 필터링을 위한 상태 추가
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const {
     selectedFile,
@@ -356,6 +367,49 @@ export function UploadModel() {
       fetchUserDatasets();
     }
   }, [currentWallet?.accounts[0]?.address]);
+
+  // 모든 고유 태그 추출
+  const getAllUniqueTags = () => {
+    const allTags = new Set<string>();
+    datasetInfo.availableDatasets.forEach(dataset => {
+      if (dataset.tags && dataset.tags.length > 0) {
+        dataset.tags.forEach(tag => allTags.add(tag));
+      }
+    });
+    return Array.from(allTags).sort();
+  };
+
+  // 태그 선택 토글
+  const toggleTag = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter(t => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
+  // 모든 태그 선택 해제
+  const clearTags = () => {
+    setSelectedTags([]);
+  };
+
+  // 검색 및 태그로 필터링된 데이터셋 목록
+  const getFilteredDatasets = () => {
+    return datasetInfo.availableDatasets.filter(dataset => {
+      // 검색 필터
+      const searchFilter = 
+        searchQuery === "" ||
+        dataset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (dataset.description && dataset.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // 태그 필터
+      const tagFilter = 
+        selectedTags.length === 0 || 
+        (dataset.tags && selectedTags.every(tag => dataset.tags?.includes(tag)));
+      
+      return searchFilter && tagFilter;
+    });
+  };
 
   const handleFileSelect = async (files: File[]) => {
     if (files.length === 0) return;
@@ -528,17 +582,152 @@ export function UploadModel() {
               </Heading>
             </Flex>
 
-            <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+            <Text size="2" style={{ color: "var(--gray-11)" }}>
               Choose a training dataset for your model.
             </Text>
 
             {/* Training Dataset Selection */}
             <Box>
-              <Text size="2" style={{ fontWeight: 500, marginBottom: "12px" }}>
-                Training Dataset
-              </Text>
-              <Grid columns={{ initial: "1", sm: "2" }} gap="3">
-                {datasetInfo.availableDatasets.map(dataset => (
+              {/* 데이터셋 검색 및 필터 UI */}
+              <Card
+                mt="2"
+                style={{
+                  padding: "12px",
+                  marginBottom: "16px",
+                  background: "var(--gray-1)",
+                  border: "1px solid var(--gray-4)",
+                  borderRadius: "8px",
+                }}
+              >
+                <Flex direction="column" gap="2">
+                  {/* 검색 필드 */}
+                  <Flex gap="2" align="center">
+                    <Box style={{ flex: 1 }}>
+                      <TextField.Root
+                        size="2"
+                        placeholder="Search datasets..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                          width: "100%",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    </Box>
+                    {searchQuery && (
+                      <Button
+                        size="1"
+                        variant="soft"
+                        onClick={() => setSearchQuery("")}
+                        style={{ padding: "0 8px" }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Flex>
+
+                  {/* 태그 필터 UI */}
+                  <Box>
+                    <Flex justify="between" align="center" mb="1">
+                      <Text size="1" style={{ fontWeight: 500, color: "var(--gray-11)" }}>
+                        Filter by Tags
+                      </Text>
+                      {selectedTags.length > 0 && (
+                        <Button
+                          size="1"
+                          variant="soft"
+                          onClick={clearTags}
+                          style={{
+                            fontSize: "10px",
+                            padding: "0 6px",
+                            height: "20px",
+                          }}
+                        >
+                          Clear All
+                        </Button>
+                      )}
+                    </Flex>
+
+                    {/* 선택된 태그 표시 */}
+                    {selectedTags.length > 0 && (
+                      <Flex gap="1" wrap="wrap" mb="1">
+                        {selectedTags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            size="1"
+                            style={{
+                              background: "var(--accent-3)",
+                              color: "var(--accent-11)",
+                              padding: "1px 6px",
+                              borderRadius: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              fontSize: "10px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => toggleTag(tag)}
+                          >
+                            {tag} ✕
+                          </Badge>
+                        ))}
+                      </Flex>
+                    )}
+
+                    {/* 태그 선택 영역 */}
+                    <Box
+                      style={{
+                        maxHeight: "80px",
+                        overflowY: "auto",
+                        padding: "4px",
+                        marginTop: "4px",
+                        border: "1px solid var(--gray-4)",
+                        borderRadius: "6px",
+                        background: "white",
+                      }}
+                    >
+                      {getAllUniqueTags().length === 0 ? (
+                        <Text size="1" color="gray" style={{ padding: "4px" }}>
+                          No tags available
+                        </Text>
+                      ) : (
+                        <Flex gap="1" wrap="wrap">
+                          {getAllUniqueTags().map((tag) => (
+                            <Badge
+                              key={tag}
+                              size="1"
+                              style={{
+                                background: selectedTags.includes(tag)
+                                  ? "var(--accent-3)"
+                                  : "var(--gray-3)",
+                                color: selectedTags.includes(tag)
+                                  ? "var(--accent-11)"
+                                  : "var(--gray-11)",
+                                padding: "1px 6px",
+                                borderRadius: "4px",
+                                fontSize: "10px",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease",
+                              }}
+                              onClick={() => toggleTag(tag)}
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
+                        </Flex>
+                      )}
+                    </Box>
+                  </Box>
+
+                  {/* 필터링 결과 카운트 */}
+                  <Text size="1" style={{ color: "var(--gray-11)" }}>
+                    Showing {getFilteredDatasets().length} of {datasetInfo.availableDatasets.length} datasets
+                  </Text>
+                </Flex>
+              </Card>
+
+              <Grid columns={{ initial: "1", sm: "3" }} gap="3"> {/* 열 수를 3으로 변경 */}
+                {getFilteredDatasets().map(dataset => (
                   <DatasetCard
                     key={dataset.id}
                     dataset={dataset}
@@ -593,12 +782,12 @@ export function UploadModel() {
               </Heading>
             </Flex>
 
-            <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+            <Text size="2" style={{ color: "var(--gray-11)" }}>
               Choose test datasets for your model (optional).
             </Text>
 
             {/* Test Dataset Selection */}
-            <Box style={{ marginTop: "24px" }}>
+            <Box style={{ marginTop: "8px" }}>
               <Flex justify="between" align="center" style={{ marginBottom: "12px" }}>
                 <Text size="2" style={{ fontWeight: 500 }}>
                   Test Datasets{" "}
@@ -620,8 +809,8 @@ export function UploadModel() {
                   </Button>
                 )}
               </Flex>
-              <Grid columns={{ initial: "1", sm: "2" }} gap="3">
-                {datasetInfo.availableDatasets.map(dataset => (
+              <Grid columns={{ initial: "1", sm: "3" }} gap="3">
+                {getFilteredDatasets().map(dataset => (
                   <DatasetCard
                     key={dataset.id}
                     dataset={dataset}
@@ -754,17 +943,18 @@ export function UploadModel() {
                       padding: "12px 16px",
                       fontSize: "15px",
                       boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
+                      cursor: "pointer",
                     }}
                   />
                   <Select.Content>
-                    <Select.Item value="text-generation">Text Generation</Select.Item>
-                    <Select.Item value="text-classification">Text Classification</Select.Item>
-                    <Select.Item value="image-classification">Image Classification</Select.Item>
-                    <Select.Item value="token-classification">Token Classification</Select.Item>
-                    <Select.Item value="question-answering">Question Answering</Select.Item>
-                    <Select.Item value="object-detection">Object Detection</Select.Item>
-                    <Select.Item value="text-to-image">Text-to-Image</Select.Item>
-                    <Select.Item value="translation">Translation</Select.Item>
+                    <Select.Item value="text-generation" style={{ cursor: "pointer" }}>Text Generation</Select.Item>
+                    <Select.Item value="text-classification" style={{ cursor: "pointer" }}>Text Classification</Select.Item>
+                    <Select.Item value="image-classification" style={{ cursor: "pointer" }}>Image Classification</Select.Item>
+                    <Select.Item value="token-classification" style={{ cursor: "pointer" }}>Token Classification</Select.Item>
+                    <Select.Item value="question-answering" style={{ cursor: "pointer" }}>Question Answering</Select.Item>
+                    <Select.Item value="object-detection" style={{ cursor: "pointer" }}>Object Detection</Select.Item>
+                    <Select.Item value="text-to-image" style={{ cursor: "pointer" }}>Text-to-Image</Select.Item>
+                    <Select.Item value="translation" style={{ cursor: "pointer" }}>Translation</Select.Item>
                   </Select.Content>
                 </Select.Root>
               </Box>
