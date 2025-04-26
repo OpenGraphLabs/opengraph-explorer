@@ -11,8 +11,6 @@ import {
   Avatar,
   Badge,
   Spinner,
-  IconButton,
-  TextField,
   Separator,
   Tooltip,
 } from "@radix-ui/themes";
@@ -22,9 +20,6 @@ import {
   DownloadIcon,
   CodeIcon,
   ChevronUpIcon,
-  DotsHorizontalIcon,
-  Share1Icon,
-  InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { Link } from "react-router-dom";
 import styles from "../styles/Card.module.css";
@@ -40,7 +35,6 @@ export function Models() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTask, setSelectedTask] = useState("all");
   const [selectedSort, setSelectedSort] = useState("downloads");
-  const [showSort, setShowSort] = useState(false);
   
   // New state for animation
   const [isLoaded, setIsLoaded] = useState(false);
@@ -74,13 +68,13 @@ export function Models() {
 
   // Task filter options with icons and colors
   const taskFilters = [
-    { value: "all", label: "All Tasks", icon: "🔍" },
-    { value: TASK_TYPES.TEXT_GENERATION, label: TASK_NAMES[TASK_TYPES.TEXT_GENERATION], icon: "📝" },
-    { value: TASK_TYPES.TEXT_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION], icon: "🏷️" },
-    { value: TASK_TYPES.IMAGE_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION], icon: "🖼️" },
-    { value: TASK_TYPES.OBJECT_DETECTION, label: TASK_NAMES[TASK_TYPES.OBJECT_DETECTION], icon: "🎯" },
-    { value: TASK_TYPES.TEXT_TO_IMAGE, label: TASK_NAMES[TASK_TYPES.TEXT_TO_IMAGE], icon: "🎨" },
-    { value: TASK_TYPES.TRANSLATION, label: TASK_NAMES[TASK_TYPES.TRANSLATION], icon: "🌐" },
+    { value: "all", label: "All Tasks", icon: "🔍 " },
+    { value: TASK_TYPES.TEXT_GENERATION, label: TASK_NAMES[TASK_TYPES.TEXT_GENERATION], icon: "📝 " },
+    { value: TASK_TYPES.TEXT_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION], icon: "🏷️ " },
+    { value: TASK_TYPES.IMAGE_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION], icon: "🖼️ " },
+    { value: TASK_TYPES.OBJECT_DETECTION, label: TASK_NAMES[TASK_TYPES.OBJECT_DETECTION], icon: "🎯 " },
+    { value: TASK_TYPES.TEXT_TO_IMAGE, label: TASK_NAMES[TASK_TYPES.TEXT_TO_IMAGE], icon: "🎨 " },
+    { value: TASK_TYPES.TRANSLATION, label: TASK_NAMES[TASK_TYPES.TRANSLATION], icon: "🌐 " },
   ];
 
   return (
@@ -134,7 +128,7 @@ export function Models() {
       >
         <Box style={{ flex: 1 }}>
           <div className="rt-TextFieldRoot" style={{ width: "100%" }}>
-            <div className="rt-TextFieldSlot">
+            <div className="rt-TextFieldSlot" style={{ marginRight: "10px" }} >
               <MagnifyingGlassIcon height="16" width="16" />
             </div>
             <input 
@@ -162,6 +156,7 @@ export function Models() {
                 backgroundColor: "var(--gray-1)",
                 border: "1px solid var(--gray-4)",
                 borderRadius: "8px",
+                cursor: "pointer",
               }}
             />
             <Select.Content position="popper">
@@ -175,6 +170,7 @@ export function Models() {
                       alignItems: "center", 
                       gap: "8px",
                       fontSize: "14px",
+                      cursor: "pointer",
                     }}
                   >
                     <span style={{ fontSize: "16px" }}>{task.icon}</span>
@@ -184,51 +180,6 @@ export function Models() {
               </Select.Group>
             </Select.Content>
           </Select.Root>
-          
-          <div style={{ position: "relative" }}>
-            <Tooltip content={
-              <Box p="2">
-                <Flex direction="column" gap="1">
-                  <Button 
-                    size="1" 
-                    variant={selectedSort === "downloads" ? "solid" : "ghost"} 
-                    onClick={() => setSelectedSort("downloads")}
-                    className={styles.dropdown}
-                  >
-                    <DownloadIcon /> Most Downloads
-                  </Button>
-                  <Button 
-                    size="1" 
-                    variant={selectedSort === "likes" ? "solid" : "ghost"} 
-                    onClick={() => setSelectedSort("likes")}
-                    className={styles.dropdown}
-                  >
-                    <StarFilledIcon /> Most Likes
-                  </Button>
-                  <Button 
-                    size="1" 
-                    variant={selectedSort === "newest" ? "solid" : "ghost"} 
-                    onClick={() => setSelectedSort("newest")}
-                    className={styles.dropdown}
-                  >
-                    <ChevronUpIcon /> Newest First
-                  </Button>
-                </Flex>
-              </Box>
-            }>
-              <IconButton 
-                size="3" 
-                variant="soft" 
-                onClick={() => setShowSort(!showSort)}
-                style={{ 
-                  background: "var(--gray-4)",
-                  borderRadius: "8px",
-                }}
-              >
-                <DotsHorizontalIcon />
-              </IconButton>
-            </Tooltip>
-          </div>
         </Flex>
       </Flex>
 
@@ -268,14 +219,111 @@ export function Models() {
             </Flex>
             
             <Flex align="center" gap="3">
-              <Flex align="center" gap="1" title="Sort by">
-                <DotsHorizontalIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
-                <Text size="2" color="gray" style={{ fontWeight: 500 }}>
-                  {selectedSort === "downloads" && "Most Downloads"}
-                  {selectedSort === "likes" && "Most Likes"}
-                  {selectedSort === "newest" && "Newest First"}
-                </Text>
-              </Flex>
+              <Select.Root 
+                value={selectedSort}
+                onValueChange={setSelectedSort}
+              >
+                <Select.Trigger
+                  style={{
+                    padding: "8px 12px",
+                    border: "1px solid var(--gray-5)",
+                    borderRadius: "8px",
+                    background: "white",
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+                    cursor: "pointer",
+                    minWidth: "180px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Flex align="center" gap="2" style={{ overflow: "hidden" }}>
+                    {selectedSort === "downloads" && <DownloadIcon style={{ flexShrink: 0 }} />}
+                    {selectedSort === "likes" && <StarFilledIcon style={{ flexShrink: 0 }} />}
+                    {selectedSort === "newest" && <ChevronUpIcon style={{ flexShrink: 0 }} />}
+                    
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {selectedSort === "downloads" && "Most Downloads"}
+                      {selectedSort === "likes" && "Most Likes"}
+                      {selectedSort === "newest" && "Newest First"}
+                    </span>
+                  </Flex>
+                </Select.Trigger>
+
+                <Select.Content 
+                  position="popper" 
+                  style={{ 
+                    zIndex: 999,
+                    borderRadius: "8px", 
+                    overflow: "hidden", 
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", 
+                    border: "1px solid var(--gray-4)",
+                    background: "white",
+                    animation: "slideDown 0.2s ease",
+                  }}
+                >
+                  <Select.Group>
+                    <Select.Label style={{ padding: "8px 22px", color: "var(--gray-9)", fontSize: "12px", fontWeight: 600 }}>
+                      Sort by
+                    </Select.Label>
+                    
+                    <Select.Item 
+                      value="downloads" 
+                      style={{ 
+                        padding: "8px 22px", 
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "8px",
+                        fontSize: "13px",
+                        transition: "background 0.1s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <DownloadIcon style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }} />
+                      <span style={{ display: "inline-block", verticalAlign: "middle", marginLeft: "6px" }}>Most Downloads</span>
+                    </Select.Item>
+                    
+                    <Select.Item 
+                      value="likes" 
+                      style={{ 
+                        padding: "8px 22px", 
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontSize: "13px",
+                        transition: "background 0.1s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <StarFilledIcon style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }} />
+                      <span style={{ display: "inline-block", verticalAlign: "middle", marginLeft: "6px" }}>Most Likes</span>
+                    </Select.Item>
+                    
+                    <Select.Item 
+                      value="newest" 
+                      style={{ 
+                        padding: "8px 22px", 
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontSize: "13px",
+                        transition: "background 0.1s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <ChevronUpIcon style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }} />
+                      <span style={{ display: "inline-block", verticalAlign: "middle", marginLeft: "6px" }}>Newest First</span>
+                    </Select.Item>
+                  </Select.Group>
+                </Select.Content>
+              </Select.Root>
             </Flex>
           </Flex>
         </Box>

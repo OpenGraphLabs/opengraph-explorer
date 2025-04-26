@@ -141,10 +141,10 @@ export function Datasets() {
 
   // 데이터 타입 필터 옵션
   const typeFilters = [
-    { value: "all", label: "All Types", icon: "🔍" },
-    { value: "image", label: "Images", icon: "🖼️" },
-    { value: "text", label: "Text", icon: "📝" },
-    { value: "application", label: "Applications", icon: "📦" },
+    { value: "all", label: "All Types", icon: "🔍 " },
+    { value: "image", label: "Images", icon: "🖼️ " },
+    { value: "text", label: "Text", icon: "📝 " },
+    { value: "application", label: "Applications", icon: "📦 " },
   ];
 
   return (
@@ -208,7 +208,7 @@ export function Datasets() {
             className="rt-TextFieldRoot"
             style={{ width: "100%" }}
           >
-            <div className="rt-TextFieldSlot">
+            <div className="rt-TextFieldSlot" style={{ marginRight: "10px" }} >
               <MagnifyingGlassIcon height="16" width="16" />
             </div>
             <input

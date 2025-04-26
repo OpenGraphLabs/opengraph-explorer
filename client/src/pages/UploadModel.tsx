@@ -762,6 +762,9 @@ export function UploadModel() {
                     <Select.Item value="image-classification">Image Classification</Select.Item>
                     <Select.Item value="token-classification">Token Classification</Select.Item>
                     <Select.Item value="question-answering">Question Answering</Select.Item>
+                    <Select.Item value="object-detection">Object Detection</Select.Item>
+                    <Select.Item value="text-to-image">Text-to-Image</Select.Item>
+                    <Select.Item value="translation">Translation</Select.Item>
                   </Select.Content>
                 </Select.Root>
               </Box>
