@@ -12,14 +12,14 @@ import {
   Badge,
   Spinner,
   Separator,
-  IconButton,
   Tooltip,
 } from "@radix-ui/themes";
 import { 
   MagnifyingGlassIcon, 
   ChevronUpIcon, 
   ChevronDownIcon, 
-  DotsHorizontalIcon,
+  TextAlignLeftIcon,
+  StackIcon,
 } from "@radix-ui/react-icons";
 import { Link, useNavigate } from "react-router-dom";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
@@ -236,6 +236,7 @@ export function Datasets() {
                 backgroundColor: "var(--gray-1)",
                 border: "1px solid var(--gray-4)",
                 borderRadius: "8px",
+                cursor: "pointer",
               }}
             />
             <Select.Content position="popper">
@@ -249,6 +250,7 @@ export function Datasets() {
                       alignItems: "center", 
                       gap: "8px",
                       fontSize: "14px",
+                      cursor: "pointer",
                     }}
                   >
                     <span style={{ fontSize: "16px" }}>{type.icon}</span>
@@ -258,63 +260,6 @@ export function Datasets() {
               </Select.Group>
             </Select.Content>
           </Select.Root>
-          
-          <div style={{ position: "relative" }}>
-            <Tooltip content={
-              <Box p="2">
-                <Flex direction="column" gap="1">
-                  <Button 
-                    size="1" 
-                    variant={selectedSort === "newest" ? "solid" : "ghost"} 
-                    onClick={() => setSelectedSort("newest")}
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                      <ChevronUpIcon /> Newest First
-                    </span>
-                  </Button>
-                  <Button 
-                    size="1" 
-                    variant={selectedSort === "oldest" ? "solid" : "ghost"} 
-                    onClick={() => setSelectedSort("oldest")}
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                      <ChevronDownIcon /> Oldest First
-                    </span>
-                  </Button>
-                  <Button 
-                    size="1" 
-                    variant={selectedSort === "name" ? "solid" : "ghost"} 
-                    onClick={() => setSelectedSort("name")}
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ fontSize: "14px" }}>A-Z</span> Name
-                    </span>
-                  </Button>
-                  <Button 
-                    size="1" 
-                    variant={selectedSort === "size" ? "solid" : "ghost"} 
-                    onClick={() => setSelectedSort("size")}
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ fontSize: "14px" }}>⬇️</span> Size
-                    </span>
-                  </Button>
-                </Flex>
-              </Box>
-            }>
-              <IconButton 
-                size="3" 
-                variant="soft" 
-                style={{ 
-                  background: "var(--gray-4)",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                <DotsHorizontalIcon />
-              </IconButton>
-            </Tooltip>
-          </div>
         </Flex>
       </Flex>
 
@@ -354,15 +299,133 @@ export function Datasets() {
             </Flex>
             
             <Flex align="center" gap="3">
-              <Flex align="center" gap="2" title="Sort by" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                <DotsHorizontalIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
-                <Text size="2" color="gray" style={{ fontWeight: 500 }}>
-                  {selectedSort === "newest" && "Newest First"}
-                  {selectedSort === "oldest" && "Oldest First"}
-                  {selectedSort === "name" && "Name (A-Z)"}
-                  {selectedSort === "size" && "Size (Largest)"}
-                </Text>
-              </Flex>
+              <Select.Root 
+                value={selectedSort}
+                onValueChange={setSelectedSort}
+              >
+                <Select.Trigger
+                  style={{
+                    padding: "8px 12px",
+                    border: "1px solid var(--gray-5)",
+                    borderRadius: "8px",
+                    background: "white",
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+                    cursor: "pointer",
+                    minWidth: "180px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Flex align="center" gap="2" style={{ overflow: "hidden" }}>
+                    {selectedSort === "newest" && <ChevronUpIcon style={{ flexShrink: 0 }} />}
+                    {selectedSort === "oldest" && <ChevronDownIcon style={{ flexShrink: 0 }} />}
+                    {selectedSort === "name" && <TextAlignLeftIcon style={{ flexShrink: 0 }} />}
+                    {selectedSort === "size" && <StackIcon style={{ flexShrink: 0 }} />}
+                    
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", marginLeft: "6px" }}>
+                      {selectedSort === "newest" && "Newest First"}
+                      {selectedSort === "oldest" && "Oldest First"}
+                      {selectedSort === "name" && "Name"}
+                      {selectedSort === "size" && "Size"}
+                    </span>
+                  </Flex>
+                </Select.Trigger>
+
+                <Select.Content 
+                  position="popper" 
+                  style={{ 
+                    zIndex: 999,
+                    borderRadius: "8px", 
+                    overflow: "hidden", 
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", 
+                    border: "1px solid var(--gray-4)",
+                    background: "white",
+                    animation: "slideDown 0.2s ease",
+                  }}
+                >
+                  <Select.Group>
+                    <Select.Label style={{ padding: "8px 22px", color: "var(--gray-9)", fontSize: "12px", fontWeight: 600 }}>
+                      Sort by
+                    </Select.Label>
+                    
+                    <Select.Item 
+                      value="newest" 
+                      style={{ 
+                        padding: "8px 22px", 
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "8px",
+                        fontSize: "13px",
+                        transition: "background 0.1s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <ChevronUpIcon style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }} />
+                      <span style={{ display: "inline-block", verticalAlign: "middle", marginLeft: "6px" }}>Newest First</span>
+                    </Select.Item>
+                    
+                    <Select.Item 
+                      value="oldest" 
+                      style={{ 
+                        padding: "8px 22px", 
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "8px",
+                        fontSize: "13px",
+                        transition: "background 0.1s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <ChevronDownIcon style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }} />
+                      <span style={{ display: "inline-block", verticalAlign: "middle", marginLeft: "6px" }}>Oldest First</span>
+                    </Select.Item>
+
+                    <Select.Item 
+                      value="name" 
+                      style={{ 
+                        padding: "8px 22px", 
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "8px",
+                        fontSize: "13px",
+                        transition: "background 0.1s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <TextAlignLeftIcon style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }} />
+                      <span style={{ display: "inline-block", verticalAlign: "middle", marginLeft: "6px" }}>Name</span>
+                    </Select.Item>
+                    
+                    <Select.Item 
+                      value="size" 
+                      style={{ 
+                        padding: "8px 22px", 
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "8px",
+                        fontSize: "13px",
+                        transition: "background 0.1s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <StackIcon style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }} />
+                      <span style={{ display: "inline-block", verticalAlign: "middle", marginLeft: "6px" }}>Size</span>
+                    </Select.Item>
+                  </Select.Group>
+                </Select.Content>
+              </Select.Root>
             </Flex>
           </Flex>
         </Box>
