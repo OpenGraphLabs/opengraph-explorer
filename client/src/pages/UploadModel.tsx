@@ -869,96 +869,144 @@ export function UploadModel() {
               </Heading>
             </Flex>
 
-            <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+            <Text size="2" style={{ color: "var(--gray-11)" }}>
               Provide details about your model. This information will be stored on-chain with your
               model.
             </Text>
 
-            <Flex direction="column" gap="4">
-              <Box>
-                <Text
-                  as="label"
-                  size="2"
-                  style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}
-                >
-                  Model Name <span style={{ color: "#FF5733" }}>*</span>
-                </Text>
-                <TextField.Root
-                  size="3"
-                  placeholder="Enter model name"
-                  value={modelInfo.name}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setModelInfo({ ...modelInfo, name: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "0 10px",
-                    fontSize: "15px",
-                    borderRadius: "8px",
-                    border: "1px solid var(--gray-5)",
-                    background: "var(--gray-1)",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
-                  }}
-                />
-              </Box>
+            <Card
+              style={{
+                padding: "20px",
+                background: "white",
+                borderRadius: "10px",
+                marginTop: "8px",
+              }}
+            >
+              <Flex direction="column" gap="4">
+                <Flex gap="4" direction={{ initial: "column", sm: "row" }}>
+                  {/* 모델 이름 */}
+                  <Box style={{ flex: 1 }}>
+                    <Flex align="baseline" gap="1" mb="1">
+                      <Text 
+                        as="label" 
+                        size="2" 
+                        style={{ fontWeight: 500, display: "block" }}
+                      >
+                        Model Name
+                      </Text>
+                      <Text size="1" style={{ color: "#FF5733" }}>*</Text>
+                    </Flex>
+                    <TextField.Root
+                      size="2"
+                      placeholder="Enter model name"
+                      value={modelInfo.name}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setModelInfo({ ...modelInfo, name: e.target.value })
+                      }
+                      style={{
+                        width: "100%",
+                        borderRadius: "6px",
+                        transition: "all 0.2s ease",
+                        height: "34px",
+                      }}
+                    />
+                    <Text size="1" style={{ color: "var(--gray-9)", marginTop: "4px" }}>
+                      A clear, concise name for your model
+                    </Text>
+                  </Box>
 
-              <Box>
-                <Text
-                  as="label"
-                  size="2"
-                  style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}
-                >
-                  Description <span style={{ color: "#FF5733" }}>*</span>
-                </Text>
-                <TextArea
-                  size="3"
-                  placeholder="Enter model description"
-                  value={modelInfo.description}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                    setModelInfo({ ...modelInfo, description: e.target.value })
-                  }
-                  style={{
-                    minHeight: "120px",
-                    padding: "4px 10px",
-                    fontSize: "15px",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
-                  }}
-                />
-              </Box>
+                  {/* 모델 타입 */}
+                  <Box style={{ flex: 1 }}>
+                    <Flex align="baseline" gap="1" mb="1">
+                      <Text
+                        as="label"
+                        size="2"
+                        style={{ fontWeight: 500, display: "block" }}
+                      >
+                        Model Type
+                      </Text>
+                      <Text size="1" style={{ color: "#FF5733" }}>*</Text>
+                    </Flex>
+                    <Select.Root 
+                      value={modelInfo.modelType} 
+                      onValueChange={handleModelTypeChange}
+                    >
+                      <Select.Trigger
+                        style={{
+                          width: "100%",
+                          borderRadius: "6px",
+                          padding: "7px 12px",
+                          border: "1px solid var(--gray-4)",
+                          background: "white",
+                          fontSize: "14px",
+                          transition: "all 0.2s ease",
+                          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+                          cursor: "pointer",
+                          height: "34px",
+                        }}
+                      >
+                        <Flex align="center" gap="2">
+                          <span>{modelInfo.modelType.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</span>
+                        </Flex>
+                      </Select.Trigger>
+                      <Select.Content>
+                        <Select.Item value="text-generation" style={{ cursor: "pointer" }}>Text Generation</Select.Item>
+                        <Select.Item value="text-classification" style={{ cursor: "pointer" }}>Text Classification</Select.Item>
+                        <Select.Item value="image-classification" style={{ cursor: "pointer" }}>Image Classification</Select.Item>
+                        <Select.Item value="token-classification" style={{ cursor: "pointer" }}>Token Classification</Select.Item>
+                        <Select.Item value="question-answering" style={{ cursor: "pointer" }}>Question Answering</Select.Item>
+                        <Select.Item value="object-detection" style={{ cursor: "pointer" }}>Object Detection</Select.Item>
+                        <Select.Item value="text-to-image" style={{ cursor: "pointer" }}>Text-to-Image</Select.Item>
+                        <Select.Item value="translation" style={{ cursor: "pointer" }}>Translation</Select.Item>
+                      </Select.Content>
+                    </Select.Root>
+                    <Text size="1" style={{ color: "var(--gray-9)", marginTop: "4px" }}>
+                      The primary task your model performs
+                    </Text>
+                  </Box>
+                </Flex>
 
-              <Box>
-                <Text
-                  as="label"
-                  size="2"
-                  style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}
-                >
-                  Model Type <span style={{ color: "#FF5733" }}>*</span>
-                </Text>
-                <Select.Root value={modelInfo.modelType} onValueChange={handleModelTypeChange}>
-                  <Select.Trigger
+                {/* 모델 설명 */}
+                <Box>
+                  <Flex align="baseline" gap="1" mb="1">
+                    <Text
+                      as="label"
+                      size="2"
+                      style={{ fontWeight: 500, display: "block" }}
+                    >
+                      Description
+                    </Text>
+                    <Text size="1" style={{ color: "#FF5733" }}>*</Text>
+                  </Flex>
+                  <TextArea
+                    size="2"
+                    placeholder="Enter model description..."
+                    value={modelInfo.description}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                      setModelInfo({ ...modelInfo, description: e.target.value })
+                    }
                     style={{
+                      minHeight: "100px",
                       width: "100%",
-                      borderRadius: "8px",
-                      padding: "12px 16px",
-                      fontSize: "15px",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
-                      cursor: "pointer",
+                      padding: "8px 12px",
+                      fontSize: "14px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--gray-4)",
+                      transition: "all 0.2s ease",
+                      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
                     }}
                   />
-                  <Select.Content>
-                    <Select.Item value="text-generation" style={{ cursor: "pointer" }}>Text Generation</Select.Item>
-                    <Select.Item value="text-classification" style={{ cursor: "pointer" }}>Text Classification</Select.Item>
-                    <Select.Item value="image-classification" style={{ cursor: "pointer" }}>Image Classification</Select.Item>
-                    <Select.Item value="token-classification" style={{ cursor: "pointer" }}>Token Classification</Select.Item>
-                    <Select.Item value="question-answering" style={{ cursor: "pointer" }}>Question Answering</Select.Item>
-                    <Select.Item value="object-detection" style={{ cursor: "pointer" }}>Object Detection</Select.Item>
-                    <Select.Item value="text-to-image" style={{ cursor: "pointer" }}>Text-to-Image</Select.Item>
-                    <Select.Item value="translation" style={{ cursor: "pointer" }}>Translation</Select.Item>
-                  </Select.Content>
-                </Select.Root>
-              </Box>
-            </Flex>
+                  <Text size="1" style={{ color: "var(--gray-9)", marginTop: "4px" }}>
+                    Describe what your model does, how it was trained, and any specific use cases
+                  </Text>
+                </Box>
+
+                {/* 필수 필드 안내 */}
+                <Text size="1" style={{ color: "var(--gray-10)", marginTop: "8px" }}>
+                  <span style={{ color: "#FF5733" }}>*</span> Required fields
+                </Text>
+              </Flex>
+            </Card>
           </Flex>
         </Card>
 
