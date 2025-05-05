@@ -18,7 +18,7 @@ import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
-import { getSuiScanUrl } from "../utils/sui";
+import { getSuiScanUrl, getWalruScanUrl } from "../utils/sui";
 
 // 데이터 타입에 따른 아이콘 매핑
 const DATA_TYPE_ICONS: Record<string, any> = {
@@ -454,7 +454,7 @@ export function DatasetDetail() {
                           Download
                         </Button>
                       </Link>
-                      <Tooltip content="View on Sui Explorer">
+                      <Tooltip content="View on WalrusScan">
                         <Button
                           size="1"
                           variant="soft"
@@ -465,7 +465,7 @@ export function DatasetDetail() {
                             border: "1px solid #FFE8E2",
                           }}
                           onClick={() =>
-                            window.open(getSuiScanUrl("object", item.fileHash), "_blank")
+                            window.open(getWalruScanUrl(item.blobId), "_blank")
                           }
                         >
                           <ExternalLinkIcon />
@@ -543,7 +543,7 @@ export function DatasetDetail() {
                           Download
                         </Button>
                       </Link>
-                      <Tooltip content="View on Sui Explorer">
+                      <Tooltip content="View on WalrusScan">
                         <Button
                           size="1"
                           variant="soft"
@@ -554,7 +554,7 @@ export function DatasetDetail() {
                             border: "1px solid #FFE8E2",
                           }}
                           onClick={() =>
-                            window.open(getSuiScanUrl("object", item.fileHash), "_blank")
+                            window.open(getWalruScanUrl(item.blobId), "_blank")
                           }
                         >
                           <ExternalLinkIcon />

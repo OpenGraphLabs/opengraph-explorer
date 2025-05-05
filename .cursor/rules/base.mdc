@@ -9,6 +9,7 @@ alwaysApply: true
 4. 클라이언트 코드 (`client/`)를 다룰 때는 Typescript + React Best Practice를 따른다.
 5. OpenGraph는 글로벌 서비스이기 때문에 유저에게 노출되는 모든 텍스트는 항상 영어로 작성한다. 한국어 등 영어가 아닌 언어는 제공하지 않는다.
 6. 서버 코드 (`server/`)를 다룰 때는 Python + FastAPI Best Practice를 따른다.
+7. OpenGraph의 Sui Move Contract 코드는 ./move.mdc 파일을 참고한다. OpenGraph가 정의한 AI/ML 모델 Upload/Predict 관련 코드를 확인할 수 있다.
 
 # OpengraphExplorer(오픈그래프 익스플로러) 개발 가이드
 

@@ -7,8 +7,13 @@ export const getSuiScanUrl = (type: "transaction" | "object" | "account", id: st
   if (type === "transaction") {
     return `${baseUrl}/tx/${id}`;
   } else if (type === "account") {
-    return `${baseUrl}/account/${id}`;
+    return `${baseUrl}/account/${id}/fields`;
   } else {
-    return `${baseUrl}/object/${id}`;
+    return `${baseUrl}/object/${id}/fields`;
   }
+};
+
+// Get WalruScan URL
+export const getWalruScanUrl = (blogId: string) => {
+  return `https://walruscan.com/${SUI_NETWORK.TYPE}/blob/${blogId}`;
 };
