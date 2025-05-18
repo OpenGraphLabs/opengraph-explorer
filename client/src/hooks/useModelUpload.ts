@@ -53,6 +53,7 @@ export function useModelUpload() {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const convertedModel = await modelService.convertModel(file);
+      console.log("Converted model:\n", convertedModel);
 
       // Test용 가벼운 모델
       // const convertedModel: Model = {

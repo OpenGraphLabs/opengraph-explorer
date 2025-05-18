@@ -1,8 +1,8 @@
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction, TransactionArgument } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
-import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
-import { Model } from "../types/model";
+import {SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET, SUI_MAX_PARAMS_PER_TX} from "../constants/suiConfig";
+import {Model, validateModel} from "../types/model";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
@@ -37,20 +37,15 @@ export function useUploadModelToSui() {
 
       tx.setGasBudget(GAS_BUDGET);
 
-      tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::new_model`,
+      console.log("CREATE MODEL!")
+      // 1. create model
+      const modelObject = tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
         arguments: [
           // model metadata
           tx.pure.string(params.name),
           tx.pure.string(params.description),
           tx.pure.string(params.modelType),
-
-          // model data
-          tx.pure.vector("vector<u64>", model.layerDimensions),
-          tx.pure.vector("vector<u64>", model.weightsMagnitudes),
-          tx.pure.vector("vector<u64>", model.weightsSigns),
-          tx.pure.vector("vector<u64>", model.biasesMagnitudes),
-          tx.pure.vector("vector<u64>", model.biasesSigns),
           tx.pure.u64(BigInt(model.scale)),
 
           // dataset references
@@ -58,6 +53,142 @@ export function useUploadModelToSui() {
           tx.pure.option("vector<address>", params.testDatasetIds),
         ],
       });
+
+      // for now, only one graph is supported
+      console.log("ADD GRAPH!")
+      const numGraph = 1;
+      for (let i = 0; i < numGraph; i++) {
+        // 2. add graph
+        tx.moveCall({
+          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_graph`,
+          arguments: [modelObject],
+        });
+
+        try {
+          validateModel(model);
+        } catch (e) {
+          console.error("Model validation failed:", e);
+          if (e instanceof Error) {
+            throw new Error(e.message);
+          } else {
+            throw new Error(String(e));
+          }
+        }
+
+        console.log("ADD LAYER!")
+        for (let j = 0; j < model.layerDimensions.length; j++) {
+          const layerDimensionPair = model.layerDimensions[j];
+
+          const numTotalParams = model.weightsMagnitudes[j].length + model.weightsSigns[j].length + model.biasesMagnitudes[j].length + model.biasesSigns[j].length;
+
+          if (numTotalParams <= SUI_MAX_PARAMS_PER_TX) {
+            // 3-a. (simple case) add layers in one transaction
+
+            console.log(`ADD LAYER ${j} (SINGLE TRANSACTION)`);
+            tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_layer`,
+              arguments: [
+                modelObject,
+                tx.pure.u64(BigInt(i)), // graph index
+                tx.pure.string("dense"), // layer type
+
+                // layer data
+                tx.pure.u64(BigInt(layerDimensionPair[0])),
+                tx.pure.u64(BigInt(layerDimensionPair[1])),
+                tx.pure.vector("u64", model.weightsMagnitudes[j]),
+                tx.pure.vector("u64", model.weightsSigns[j]),
+                tx.pure.vector("u64", model.biasesMagnitudes[j]),
+                tx.pure.vector("u64", model.biasesSigns[j]),
+              ],
+            });
+          } else {
+            // 3-b. (complex case) add layers in multiple transactions, chunk by chunk
+
+            // start layer
+            tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::start_layer`,
+              arguments: [
+                modelObject,
+                tx.pure.string("dense"), // layer type
+
+                // layer dimension data
+                tx.pure.u64(BigInt(layerDimensionPair[0])),
+                tx.pure.u64(BigInt(layerDimensionPair[1])),
+              ],
+            });
+
+            // add weights in chunks
+            const weightsMagnitudes = model.weightsMagnitudes[j];
+            const weightsSigns = model.weightsSigns[j];
+            const numTotalWeights = weightsMagnitudes.length;
+
+            let weightStartIdx = 0;
+            while (weightStartIdx < numTotalWeights) {
+              const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalWeights - weightStartIdx);
+              const weightMagChunk = weightsMagnitudes.slice(weightStartIdx, weightStartIdx + chunkSize);
+              const weightSignChunk = weightsSigns.slice(weightStartIdx, weightStartIdx + chunkSize);
+
+              console.log(`ADD WEIGHTS CHUNK (${weightStartIdx}:${weightStartIdx + chunkSize}/${numTotalWeights})`);
+              tx.moveCall({
+                target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_weights_chunk`,
+                arguments: [
+                  modelObject,
+                  tx.pure.u64(BigInt(weightStartIdx)), // weight start index
+                  tx.pure.vector("u64", weightMagChunk), // chunked weight magnitudes
+                  tx.pure.vector("u64", weightSignChunk), // chunked weight signs
+                  tx.pure.bool(weightStartIdx + chunkSize >= numTotalWeights), // isLastChunk
+                ],
+              });
+
+              weightStartIdx += chunkSize;
+            }
+
+            // add biases in chunks
+            const biasesMagnitudes = model.biasesMagnitudes[j];
+            const biasesSigns = model.biasesSigns[j];
+            const numTotalBiases = biasesMagnitudes.length;
+
+            let biasStartIdx = 0;
+            while (biasStartIdx < numTotalBiases) {
+              const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalBiases - biasStartIdx);
+              const biasMagChunk = biasesMagnitudes.slice(biasStartIdx, biasStartIdx + chunkSize);
+              const biasSignChunk = biasesSigns.slice(biasStartIdx, biasStartIdx + chunkSize);
+
+              console.log(`ADD BIASES CHUNK (${biasStartIdx}:${biasStartIdx + chunkSize}/${numTotalBiases})`);
+              tx.moveCall({
+                target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_biases_chunk`,
+                arguments: [
+                  modelObject,
+                  tx.pure.u64(BigInt(biasStartIdx)), // bias start index
+                  tx.pure.vector("u64", biasMagChunk), // chunked bias magnitudes
+                  tx.pure.vector("u64", biasSignChunk), // chunked bias signs
+                  tx.pure.bool(biasStartIdx + chunkSize >= numTotalBiases), // isLastChunk
+                ],
+              });
+
+              biasStartIdx += chunkSize;
+            }
+
+            // complete layer
+            console.log(`COMPLETE LAYER ${j}`);
+            tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::complete_layer`,
+              arguments: [
+                modelObject,
+                tx.pure.bool(j >= model.layerDimensions.length - 1), // isFinalLayer
+              ],
+            });
+
+          }
+        }
+
+        console.log("COMPLETE MODEL!")
+        // 4. complete model
+        tx.moveCall({
+          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::complete_model`,
+          arguments: [modelObject],
+        });
+      }
 
       return await signAndExecuteTransaction(
         {
@@ -543,116 +674,4 @@ export function useModelInference() {
     reconstructLayerOutputs,
     parsePredictionCompletedEvent,
   };
-}
-
-/**
- * 특정 주소가 업로드한 모델 객체를 가져오는 함수
- */
-export async function getModels(ownerAddress: string) {
-  if (!ownerAddress) {
-    return {
-      models: [],
-      isLoading: false,
-      error: null,
-    };
-  }
-
-  try {
-    // 해당 주소가 소유한 객체 가져오기
-    const { data } = await suiClient.getOwnedObjects({
-      owner: ownerAddress,
-    });
-
-    // 객체 ID 추출
-    const objectIds = data
-      .map(item => item.data?.objectId)
-      .filter((id): id is string => id !== undefined);
-
-    if (!objectIds.length) {
-      return {
-        models: [],
-        isLoading: false,
-        error: null,
-      };
-    }
-
-    // 객체 상세 정보 가져오기
-    const objects = await suiClient.multiGetObjects({
-      ids: objectIds,
-      options: {
-        showContent: true,
-        showType: true,
-      },
-    });
-
-    // 모델 객체만 필터링
-    const modelObjects = objects.filter(
-      obj =>
-        obj.data?.content?.dataType === "moveObject" &&
-        obj.data?.content?.type?.includes(`${SUI_CONTRACT.MODULE_NAME}::Graph`)
-    );
-
-    // 모델 객체 파싱 (실제 구현은 컨트랙트 반환 구조에 따라 달라질 수 있음)
-    const models = modelObjects.map(obj => {
-      // const content = obj.data?.content;
-      // 여기서는 예시로 반환하지만, 실제 구현은 컨트랙트 반환 구조에 맞게 조정 필요
-      return {
-        id: obj.data?.objectId,
-        owner: obj.data?.owner?.toString() || "",
-        // 기타 모델 정보를 구조에 맞게 파싱
-      };
-    });
-
-    return {
-      models,
-      isLoading: false,
-      error: null,
-    };
-  } catch (error) {
-    console.error("Error fetching models:", error);
-    return {
-      models: [],
-      isLoading: false,
-      error,
-    };
-  }
-}
-
-/**
- * 모델 ID로 특정 모델의 상세 정보를 가져오는 함수
- */
-export async function getModelById(modelId: string) {
-  if (!modelId) {
-    throw new Error("Model ID is required");
-  }
-
-  try {
-    const object = await suiClient.getObject({
-      id: modelId,
-      options: {
-        showContent: true,
-        showType: true,
-      },
-    });
-
-    if (object.data?.content?.dataType !== "moveObject") {
-      throw new Error("Invalid model object");
-    }
-
-    // 모델 정보 파싱 (실제 구현은 컨트랙트 반환 구조에 따라 달라질 수 있음)
-    // 이 부분은 실제 컨트랙트가 반환하는 형식에 맞게 조정 필요
-    // const modelData = object.data.content;
-
-    return {
-      model: {
-        id: object.data.objectId,
-        // 기타 필요한 정보 파싱
-      },
-      isLoading: false,
-      error: null,
-    };
-  } catch (error) {
-    console.error("Error fetching model by ID:", error);
-    throw error;
-  }
 }
