@@ -79,107 +79,82 @@ export function useUploadModelToSui() {
         for (let j = 0; j < model.layerDimensions.length; j++) {
           const layerDimensionPair = model.layerDimensions[j];
 
-          const numTotalParams = model.weightsMagnitudes[j].length + model.weightsSigns[j].length + model.biasesMagnitudes[j].length + model.biasesSigns[j].length;
+          // 3. add layers in multiple transactions, chunk by chunk
 
-          if (numTotalParams <= SUI_MAX_PARAMS_PER_TX) {
-            // 3-a. (simple case) add layers in one transaction
+          // start layer
+          tx.moveCall({
+            target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::start_layer`,
+            arguments: [
+              modelObject,
+              tx.pure.string("dense"), // layer type
 
-            console.log(`ADD LAYER ${j} (SINGLE TRANSACTION)`);
+              // layer dimension data
+              tx.pure.u64(BigInt(layerDimensionPair[0])),
+              tx.pure.u64(BigInt(layerDimensionPair[1])),
+            ],
+          });
+
+          // add weights in chunks
+          const weightsMagnitudes = model.weightsMagnitudes[j];
+          const weightsSigns = model.weightsSigns[j];
+          const numTotalWeights = weightsMagnitudes.length;
+
+          let weightStartIdx = 0;
+          while (weightStartIdx < numTotalWeights) {
+            const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalWeights - weightStartIdx);
+            const weightMagChunk = weightsMagnitudes.slice(weightStartIdx, weightStartIdx + chunkSize);
+            const weightSignChunk = weightsSigns.slice(weightStartIdx, weightStartIdx + chunkSize);
+
+            console.log(`ADD WEIGHTS CHUNK (${weightStartIdx}:${weightStartIdx + chunkSize}/${numTotalWeights})`);
             tx.moveCall({
-              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_layer`,
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_weights_chunk`,
               arguments: [
                 modelObject,
-                tx.pure.u64(BigInt(i)), // graph index
-                tx.pure.string("dense"), // layer type
-
-                // layer data
-                tx.pure.u64(BigInt(layerDimensionPair[0])),
-                tx.pure.u64(BigInt(layerDimensionPair[1])),
-                tx.pure.vector("u64", model.weightsMagnitudes[j]),
-                tx.pure.vector("u64", model.weightsSigns[j]),
-                tx.pure.vector("u64", model.biasesMagnitudes[j]),
-                tx.pure.vector("u64", model.biasesSigns[j]),
-              ],
-            });
-          } else {
-            // 3-b. (complex case) add layers in multiple transactions, chunk by chunk
-
-            // start layer
-            tx.moveCall({
-              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::start_layer`,
-              arguments: [
-                modelObject,
-                tx.pure.string("dense"), // layer type
-
-                // layer dimension data
-                tx.pure.u64(BigInt(layerDimensionPair[0])),
-                tx.pure.u64(BigInt(layerDimensionPair[1])),
-              ],
-            });
-
-            // add weights in chunks
-            const weightsMagnitudes = model.weightsMagnitudes[j];
-            const weightsSigns = model.weightsSigns[j];
-            const numTotalWeights = weightsMagnitudes.length;
-
-            let weightStartIdx = 0;
-            while (weightStartIdx < numTotalWeights) {
-              const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalWeights - weightStartIdx);
-              const weightMagChunk = weightsMagnitudes.slice(weightStartIdx, weightStartIdx + chunkSize);
-              const weightSignChunk = weightsSigns.slice(weightStartIdx, weightStartIdx + chunkSize);
-
-              console.log(`ADD WEIGHTS CHUNK (${weightStartIdx}:${weightStartIdx + chunkSize}/${numTotalWeights})`);
-              tx.moveCall({
-                target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_weights_chunk`,
-                arguments: [
-                  modelObject,
-                  tx.pure.u64(BigInt(weightStartIdx)), // weight start index
-                  tx.pure.vector("u64", weightMagChunk), // chunked weight magnitudes
-                  tx.pure.vector("u64", weightSignChunk), // chunked weight signs
-                  tx.pure.bool(weightStartIdx + chunkSize >= numTotalWeights), // isLastChunk
-                ],
-              });
-
-              weightStartIdx += chunkSize;
-            }
-
-            // add biases in chunks
-            const biasesMagnitudes = model.biasesMagnitudes[j];
-            const biasesSigns = model.biasesSigns[j];
-            const numTotalBiases = biasesMagnitudes.length;
-
-            let biasStartIdx = 0;
-            while (biasStartIdx < numTotalBiases) {
-              const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalBiases - biasStartIdx);
-              const biasMagChunk = biasesMagnitudes.slice(biasStartIdx, biasStartIdx + chunkSize);
-              const biasSignChunk = biasesSigns.slice(biasStartIdx, biasStartIdx + chunkSize);
-
-              console.log(`ADD BIASES CHUNK (${biasStartIdx}:${biasStartIdx + chunkSize}/${numTotalBiases})`);
-              tx.moveCall({
-                target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_biases_chunk`,
-                arguments: [
-                  modelObject,
-                  tx.pure.u64(BigInt(biasStartIdx)), // bias start index
-                  tx.pure.vector("u64", biasMagChunk), // chunked bias magnitudes
-                  tx.pure.vector("u64", biasSignChunk), // chunked bias signs
-                  tx.pure.bool(biasStartIdx + chunkSize >= numTotalBiases), // isLastChunk
-                ],
-              });
-
-              biasStartIdx += chunkSize;
-            }
-
-            // complete layer
-            console.log(`COMPLETE LAYER ${j}`);
-            tx.moveCall({
-              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::complete_layer`,
-              arguments: [
-                modelObject,
-                tx.pure.bool(j >= model.layerDimensions.length - 1), // isFinalLayer
+                tx.pure.u64(BigInt(weightStartIdx)), // weight start index
+                tx.pure.vector("u64", weightMagChunk), // chunked weight magnitudes
+                tx.pure.vector("u64", weightSignChunk), // chunked weight signs
+                tx.pure.bool(weightStartIdx + chunkSize >= numTotalWeights), // isLastChunk
               ],
             });
 
+            weightStartIdx += chunkSize;
           }
+
+          // add biases in chunks
+          const biasesMagnitudes = model.biasesMagnitudes[j];
+          const biasesSigns = model.biasesSigns[j];
+          const numTotalBiases = biasesMagnitudes.length;
+
+          let biasStartIdx = 0;
+          while (biasStartIdx < numTotalBiases) {
+            const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalBiases - biasStartIdx);
+            const biasMagChunk = biasesMagnitudes.slice(biasStartIdx, biasStartIdx + chunkSize);
+            const biasSignChunk = biasesSigns.slice(biasStartIdx, biasStartIdx + chunkSize);
+
+            console.log(`ADD BIASES CHUNK (${biasStartIdx}:${biasStartIdx + chunkSize}/${numTotalBiases})`);
+            tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_biases_chunk`,
+              arguments: [
+                modelObject,
+                tx.pure.u64(BigInt(biasStartIdx)), // bias start index
+                tx.pure.vector("u64", biasMagChunk), // chunked bias magnitudes
+                tx.pure.vector("u64", biasSignChunk), // chunked bias signs
+                tx.pure.bool(biasStartIdx + chunkSize >= numTotalBiases), // isLastChunk
+              ],
+            });
+
+            biasStartIdx += chunkSize;
+          }
+
+          // complete layer
+          console.log(`COMPLETE LAYER ${j}`);
+          tx.moveCall({
+            target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::complete_layer`,
+            arguments: [
+              modelObject,
+              tx.pure.bool(j >= model.layerDimensions.length - 1), // isFinalLayer
+            ],
+          });
         }
 
         console.log("COMPLETE MODEL!")
@@ -237,168 +212,6 @@ export function useModelInference() {
   const account = useCurrentAccount();
 
   /**
-   * 단일 레이어에 대해 inference를 수행하는 함수
-   * @param modelId 모델 객체 ID
-   * @param layerIdx 레이어 인덱스
-   * @param inputMagnitude 입력 벡터의 크기 값
-   * @param inputSign 입력 벡터의 부호 값
-   * @param onSuccess 성공 시 콜백 함수
-   */
-  const predictLayer = async (
-    modelId: string,
-    layerIdx: number,
-    inputMagnitude: number[],
-    inputSign: number[],
-    onSuccess?: (result: any) => void
-  ) => {
-    if (!account) {
-      throw new Error("Wallet account not found. Please connect your wallet first.");
-    }
-
-    try {
-      console.log("Predicting layer", layerIdx, "for model", modelId);
-      console.log("inputMagnitude", inputMagnitude);
-      console.log("inputSign", inputSign);
-
-      const tx = new Transaction();
-
-      tx.setGasBudget(GAS_BUDGET);
-
-      tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
-        arguments: [
-          tx.object(modelId),
-          tx.pure.u64(BigInt(layerIdx)),
-          tx.pure.vector("u64", inputMagnitude),
-          tx.pure.vector("u64", inputSign),
-        ],
-      });
-
-      console.log(`Predicting layer ${layerIdx} for model ${modelId}`, {
-        inputMagnitude,
-        inputSign,
-      });
-
-      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
-      return await signAndExecuteTransaction(
-        {
-          transaction: tx,
-          chain: `sui:${SUI_NETWORK.TYPE}`,
-        },
-        {
-          onSuccess: result => {
-            console.log(`Layer ${layerIdx} prediction successful:`, result);
-            console.log(`Layer ${layerIdx} prediction events:`, result.events);
-
-            if (onSuccess) {
-              onSuccess(result);
-            }
-            return result;
-          },
-        }
-      );
-    } catch (error) {
-      console.error(`Error predicting layer ${layerIdx} for model ${modelId}:`, error);
-      throw error;
-    }
-  };
-
-  /**
-   * 모델 전체에 대해 PTB inference를 수행하는 함수
-   * 모든 레이어를 한 번의 트랜잭션으로 처리
-   * @param modelId 모델 객체 ID
-   * @param layerCount 모델 레이어 수
-   * @param inputMagnitude 입력 벡터의 크기 값
-   * @param inputSign 입력 벡터의 부호 값
-   * @param onSuccess 성공 시 콜백 함수
-   * @returns 트랜잭션 실행 결과
-   */
-  const predictModelWithPTB = async (
-    modelId: string,
-    layerCount: number,
-    inputMagnitude: number[],
-    inputSign: number[],
-    onSuccess?: (result: any) => void
-  ) => {
-    if (!account) {
-      throw new Error("Wallet account not found. Please connect your wallet first.");
-    }
-
-    try {
-      console.log("Predicting full model with PTB chaining", modelId);
-      console.log("Input magnitude:", inputMagnitude);
-      console.log("Input sign:", inputSign);
-
-      const tx = new Transaction();
-      tx.setGasBudget(GAS_BUDGET);
-
-      // predict_layer는 (vector<u64>, vector<u64>, Option<u64>)를 반환
-      // 첫 번째 레이어 실행
-      let layerOutput = tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
-        arguments: [
-          tx.object(modelId),
-          tx.pure.u64(0n), // 첫 번째 레이어(인덱스 0)
-          tx.pure.vector("u64", inputMagnitude),
-          tx.pure.vector("u64", inputSign),
-        ],
-      });
-
-      // 나머지 레이어들을 연속해서 실행
-      // 각 레이어의 출력을 다음 레이어의 입력으로 사용
-      for (let i = 1; i < layerCount; i++) {
-        // layerOutput은 (magnitude, sign, argmax_option) 튜플
-        // 다음 레이어의 입력으로 이전 레이어의 magnitude와 sign만 사용
-        layerOutput = tx.moveCall({
-          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
-          arguments: [
-            tx.object(modelId),
-            tx.pure.u64(BigInt(i)),
-            // result[0]은 output_magnitude, result[1]은 output_sign
-            layerOutput[0], // magnitude vector
-            layerOutput[1], // sign vector
-          ],
-        });
-      }
-
-      // 최종 출력은 layerOutput에 저장됨
-      // layerOutput[0]: 최종 magnitude
-      // layerOutput[1]: 최종 sign
-      // layerOutput[2]: 마지막 레이어의 argmax_option (Option<u64> 타입)
-
-      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
-      return await signAndExecuteTransaction(
-        {
-          transaction: tx,
-          chain: `sui:${SUI_NETWORK.TYPE}`,
-        },
-        {
-          onSuccess: result => {
-            console.log(`Full model prediction successful:`, result);
-            console.log(`Events:`, result.events);
-
-            // 마지막 레이어의 이벤트를 파싱
-            const events = result.events || [];
-            const finalLayerEvent = parseLayerComputedEvent(events);
-            const predictionCompletedEvent = parsePredictionCompletedEvent(events);
-
-            console.log(`Final layer output:`, finalLayerEvent);
-            console.log(`Prediction completed:`, predictionCompletedEvent);
-
-            if (onSuccess) {
-              onSuccess(result);
-            }
-            return result;
-          },
-        }
-      );
-    } catch (error) {
-      console.error(`Error predicting model ${modelId} with PTB:`, error);
-      throw error;
-    }
-  };
-
-  /**
    * 최적화된 PTB inference를 수행하는 함수
    * 레이어의 각 출력 차원에 대해 별도 트랜잭션 수행
    * @param modelId 모델 객체 ID
@@ -431,7 +244,6 @@ export function useModelInference() {
       let layerResultMagnitudes = undefined;
       let layerResultSigns = undefined;
 
-      // 첫 번째 레이어 실행
       // 첫 번째 레이어 실행
       console.log(`Processing layer 0 with output dimension ${layerDimensions[0]}`);
       for (let dimIdx = 0; dimIdx < layerDimensions[0]; dimIdx++) {
@@ -474,9 +286,7 @@ export function useModelInference() {
               tx.pure.u64(BigInt(dimIdx)),
               layerResultMagnitudes as TransactionArgument,
               layerResultSigns as TransactionArgument,
-              currentLayerResultMagnitudes
-                ? currentLayerResultMagnitudes
-                : tx.pure.vector("u64", []),
+              currentLayerResultMagnitudes ? currentLayerResultMagnitudes : tx.pure.vector("u64", []),
               currentLayerResultSigns ? currentLayerResultSigns : tx.pure.vector("u64", []),
             ],
           });
@@ -666,8 +476,6 @@ export function useModelInference() {
   };
 
   return {
-    predictLayer,
-    predictModelWithPTB,
     predictModelWithPTBOptimization,
     parseLayerComputedEvent,
     parseLayerPartialComputedEvents,

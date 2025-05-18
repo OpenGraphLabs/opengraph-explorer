@@ -6,16 +6,10 @@ import {
   Card,
   Badge,
   Button,
-  Tooltip,
   Tabs,
 } from "@radix-ui/themes";
 import {
-  InfoCircledIcon,
   ReloadIcon,
-  ExternalLinkIcon,
-  CheckIcon,
-  CrossCircledIcon,
-  ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -29,7 +23,6 @@ import {
   PencilSimple,
 } from "phosphor-react";
 import { ModelObject } from "../../services/modelGraphQLService";
-import { getSuiScanUrl } from "../../utils/sui";
 import { VectorInputTab } from "./VectorInputTab";
 import { ImageInputTab } from "./ImageInputTab";
 import { DrawingInputTab } from "./DrawingInputTab";
@@ -67,8 +60,6 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     inputVector,
     currentLayerIndex,
     predictResults,
-    inferenceStatus,
-    inferenceStatusType,
     isProcessing,
     txDigest,
     setInputVector,
