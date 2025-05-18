@@ -32,17 +32,17 @@ export interface GraphObject {
 
 export interface Layer {
   layer_type: number;
-  in_dimension: string | number;
-  out_dimension: string | number;
+  in_dimension: number;
+  out_dimension: number;
   weight_tensor: Tensor;
   bias_tensor: Tensor;
 }
 
 export interface Tensor {
-  shape: (string | number)[];
-  magnitude: (string | number)[];
-  sign: (string | number)[];
-  scale: string | number;
+  shape: number[];
+  magnitude: number[];
+  sign: number[];
+  scale: number;
 }
 
 export interface PartialDenseObject {
@@ -51,11 +51,11 @@ export interface PartialDenseObject {
 }
 
 export interface PartialDense {
-  accum_mag: (string | number)[];
-  accum_sign: (string | number)[];
-  out_dim: string | number;
-  in_dim: string | number;
-  scale: string | number;
+  accum_mag: number[];
+  accum_sign: number[];
+  out_dim: number;
+  in_dim: number;
+  scale: number;
 }
 
 export interface BlobObject {

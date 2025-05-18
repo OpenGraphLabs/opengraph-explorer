@@ -11,11 +11,13 @@ export const SUI_NETWORK = {
 
 // 컨트랙트 정보
 export const SUI_CONTRACT = {
-  PACKAGE_ID: "0x49435510c1638a4721eac36525b270628c7734dbb965f10d15fcfdd5969c74d1",
+  PACKAGE_ID: "0x7805cc814612e68e6bd2fc3e0622c6de5301a87517edac7b4835b51ff1b02239",
   MODULE_NAME: "model",
 };
 
 export const SUI_MAX_PARAMS_PER_TX = 3000;
+
+export const SUI_PREDICT_COMPUTATION_BATCH_SIZE = 100;
 
 // 가스 비용
 export const GAS_BUDGET = 1_000_000_000; // 1000000000 = 1 SUI

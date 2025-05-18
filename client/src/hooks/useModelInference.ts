@@ -15,7 +15,7 @@ export interface PredictResult {
   errorMessage?: string;
 }
 
-export function useModelInferenceState(modelId: string, totalLayers: number, model?: ModelObject) {
+export function useModelInferenceState(model: ModelObject, totalLayers: number) {
   // Inference related state
   const [inputVector, setInputVector] = useState<string>("");
   const [inputValues, setInputValues] = useState<number[]>([]);
@@ -31,7 +31,9 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
 
   // Get SUI inference hook
   const {
+    predictModel,
     predictModelWithPTBOptimization,
+    predictModelWithChunkedPTB,
     parseLayerPartialComputedEvents,
     reconstructLayerOutputs,
     parsePredictionCompletedEvent,
@@ -116,9 +118,125 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
 
       // 최적화된 PTB로 모든 레이어 예측 실행
       await predictModelWithPTBOptimization(
-        modelId,
-        totalLayers,
-        layerDimensions,
+          model.id,
+          totalLayers,
+          layerDimensions,
+          parsedInput.magnitudes,
+          parsedInput.signs,
+          res => {
+            console.log("--------------------------------");
+            console.log(`Optimized PTB prediction result:`, res);
+            console.log(`Events:`, res.events);
+            console.log("--------------------------------");
+
+            if (res && res.digest) {
+              setTxDigest(res.digest);
+              processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
+            } else {
+              setInferenceStatus(
+                  `Error: No transaction digest received. The transaction might have failed.`
+              );
+              setInferenceStatusType("error");
+              setIsProcessing(false);
+            }
+          }
+      );
+    } catch (error) {
+      console.error(`Optimized PTB inference error:`, error);
+      const errorMessage =
+          error instanceof Error
+              ? error.message
+              : "An error occurred during optimized PTB inference execution. Please try again.";
+
+      setInferenceStatus(`Error: ${errorMessage}`);
+      setInferenceStatusType("error");
+      setIsProcessing(false);
+    }
+  };
+
+  /**
+   * Chunked PTB를 이용한 모든 레이어 한 번에 실행 함수
+   */
+  const runAllLayersWithChunkedPTB = async () => {
+    // Parse input vector
+    const parsedInput = parseInputVector();
+    if (!parsedInput) return;
+
+    // Reset existing results
+    setPredictResults([]);
+    setCurrentLayerIndex(0);
+    setTxDigest("");
+
+    setIsProcessing(true);
+    setInferenceStatus(`Processing: Running all ${totalLayers} layers with optimized PTB...`);
+    setInferenceStatusType("info");
+
+    try {
+      // 모델의 레이어별 출력 차원 정보
+      const layerDimensions = getLayerDimensions();
+      console.log("xxxxxx layerDimensions", layerDimensions);
+
+      // chunked PTB로 모든 레이어 예측 실행
+      await predictModelWithChunkedPTB(
+          model,
+          parsedInput.magnitudes,
+          parsedInput.signs,
+          res => {
+            console.log("--------------------------------");
+            console.log(`Optimized PTB prediction result:`, res);
+            console.log(`Events:`, res.events);
+            console.log("--------------------------------");
+
+            if (res && res.digest) {
+              setTxDigest(res.digest);
+              processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
+            } else {
+              setInferenceStatus(
+                  `Error: No transaction digest received. The transaction might have failed.`
+              );
+              setInferenceStatusType("error");
+              setIsProcessing(false);
+            }
+          }
+      );
+    } catch (error) {
+      console.error(`Optimized PTB inference error:`, error);
+      const errorMessage =
+          error instanceof Error
+              ? error.message
+              : "An error occurred during optimized PTB inference execution. Please try again.";
+
+      setInferenceStatus(`Error: ${errorMessage}`);
+      setInferenceStatusType("error");
+      setIsProcessing(false);
+    }
+  };
+
+  /**
+   * 최적화된 PTB를 이용한 모든 레이어 한 번에 실행 함수
+   */
+  const runAllLayersByInputNodes = async () => {
+    // Parse input vector
+    const parsedInput = parseInputVector();
+    if (!parsedInput) return;
+
+    // Reset existing results
+    setPredictResults([]);
+    setCurrentLayerIndex(0);
+    setTxDigest("");
+
+    setIsProcessing(true);
+    setInferenceStatus(`Processing: Running all ${totalLayers} layers with optimized PTB...`);
+    setInferenceStatusType("info");
+
+    try {
+      // 모델의 레이어별 출력 차원 정보
+      const layerDimensions = getLayerDimensions();
+      console.log("xxxxxx layerDimensions", layerDimensions);
+
+      // 최적화된 PTB로 모든 레이어 예측 실행
+      await predictModel(
+        model,
         parsedInput.magnitudes,
         parsedInput.signs,
         res => {
@@ -309,5 +427,7 @@ export function useModelInferenceState(modelId: string, totalLayers: number, mod
     setInputSigns,
     parseInputVector,
     runAllLayersWithPTBOptimization,
+    runAllLayersWithChunkedPTB,
+    runAllLayersByInputNodes,
   };
 }
