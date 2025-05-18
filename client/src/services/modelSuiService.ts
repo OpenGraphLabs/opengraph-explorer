@@ -1,8 +1,15 @@
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction, TransactionArgument } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
-import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
-import { Model } from "../types/model";
+import {
+  SUI_NETWORK,
+  SUI_CONTRACT,
+  GAS_BUDGET,
+  SUI_MAX_PARAMS_PER_TX,
+  SUI_PREDICT_COMPUTATION_BATCH_SIZE
+} from "../constants/suiConfig";
+import {Model, validateModel} from "../types/model";
+import {ModelObject} from "./modelGraphQLService.ts";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
@@ -37,20 +44,15 @@ export function useUploadModelToSui() {
 
       tx.setGasBudget(GAS_BUDGET);
 
-      tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::new_model`,
+      console.log("CREATE MODEL!")
+      // 1. create model
+      const modelObject = tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
         arguments: [
           // model metadata
           tx.pure.string(params.name),
           tx.pure.string(params.description),
           tx.pure.string(params.modelType),
-
-          // model data
-          tx.pure.vector("vector<u64>", model.layerDimensions),
-          tx.pure.vector("vector<u64>", model.weightsMagnitudes),
-          tx.pure.vector("vector<u64>", model.weightsSigns),
-          tx.pure.vector("vector<u64>", model.biasesMagnitudes),
-          tx.pure.vector("vector<u64>", model.biasesSigns),
           tx.pure.u64(BigInt(model.scale)),
 
           // dataset references
@@ -58,6 +60,117 @@ export function useUploadModelToSui() {
           tx.pure.option("vector<address>", params.testDatasetIds),
         ],
       });
+
+      // for now, only one graph is supported
+      console.log("ADD GRAPH!")
+      const numGraph = 1;
+      for (let i = 0; i < numGraph; i++) {
+        // 2. add graph
+        tx.moveCall({
+          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_graph`,
+          arguments: [modelObject],
+        });
+
+        try {
+          validateModel(model);
+        } catch (e) {
+          console.error("Model validation failed:", e);
+          if (e instanceof Error) {
+            throw new Error(e.message);
+          } else {
+            throw new Error(String(e));
+          }
+        }
+
+        console.log("ADD LAYER!")
+        for (let j = 0; j < model.layerDimensions.length; j++) {
+          const layerDimensionPair = model.layerDimensions[j];
+
+          // 3. add layers in multiple transactions, chunk by chunk
+
+          // start layer
+          tx.moveCall({
+            target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::start_layer`,
+            arguments: [
+              modelObject,
+              tx.pure.string("dense"), // layer type
+
+              // layer dimension data
+              tx.pure.u64(BigInt(layerDimensionPair[0])),
+              tx.pure.u64(BigInt(layerDimensionPair[1])),
+            ],
+          });
+
+          // add weights in chunks
+          const weightsMagnitudes = model.weightsMagnitudes[j];
+          const weightsSigns = model.weightsSigns[j];
+          const numTotalWeights = weightsMagnitudes.length;
+
+          let weightStartIdx = 0;
+          while (weightStartIdx < numTotalWeights) {
+            const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalWeights - weightStartIdx);
+            const weightMagChunk = weightsMagnitudes.slice(weightStartIdx, weightStartIdx + chunkSize);
+            const weightSignChunk = weightsSigns.slice(weightStartIdx, weightStartIdx + chunkSize);
+
+            console.log(`ADD WEIGHTS CHUNK (${weightStartIdx}:${weightStartIdx + chunkSize}/${numTotalWeights})`);
+            tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_weights_chunk`,
+              arguments: [
+                modelObject,
+                tx.pure.u64(BigInt(weightStartIdx)), // weight start index
+                tx.pure.vector("u64", weightMagChunk), // chunked weight magnitudes
+                tx.pure.vector("u64", weightSignChunk), // chunked weight signs
+                tx.pure.bool(weightStartIdx + chunkSize >= numTotalWeights), // isLastChunk
+              ],
+            });
+
+            weightStartIdx += chunkSize;
+          }
+
+          // add biases in chunks
+          const biasesMagnitudes = model.biasesMagnitudes[j];
+          const biasesSigns = model.biasesSigns[j];
+          const numTotalBiases = biasesMagnitudes.length;
+
+          let biasStartIdx = 0;
+          while (biasStartIdx < numTotalBiases) {
+            const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalBiases - biasStartIdx);
+            const biasMagChunk = biasesMagnitudes.slice(biasStartIdx, biasStartIdx + chunkSize);
+            const biasSignChunk = biasesSigns.slice(biasStartIdx, biasStartIdx + chunkSize);
+
+            console.log(`ADD BIASES CHUNK (${biasStartIdx}:${biasStartIdx + chunkSize}/${numTotalBiases})`);
+            tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_biases_chunk`,
+              arguments: [
+                modelObject,
+                tx.pure.u64(BigInt(biasStartIdx)), // bias start index
+                tx.pure.vector("u64", biasMagChunk), // chunked bias magnitudes
+                tx.pure.vector("u64", biasSignChunk), // chunked bias signs
+                tx.pure.bool(biasStartIdx + chunkSize >= numTotalBiases), // isLastChunk
+              ],
+            });
+
+            biasStartIdx += chunkSize;
+          }
+
+          // complete layer
+          console.log(`COMPLETE LAYER ${j}`);
+          tx.moveCall({
+            target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::complete_layer`,
+            arguments: [
+              modelObject,
+              tx.pure.bool(j >= model.layerDimensions.length - 1), // isFinalLayer
+            ],
+          });
+        }
+
+        console.log("COMPLETE MODEL!")
+        // 4. complete model
+        tx.moveCall({
+          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::complete_model`,
+          arguments: [modelObject],
+        });
+      }
 
       return await signAndExecuteTransaction(
         {
@@ -106,168 +219,6 @@ export function useModelInference() {
   const account = useCurrentAccount();
 
   /**
-   * 단일 레이어에 대해 inference를 수행하는 함수
-   * @param modelId 모델 객체 ID
-   * @param layerIdx 레이어 인덱스
-   * @param inputMagnitude 입력 벡터의 크기 값
-   * @param inputSign 입력 벡터의 부호 값
-   * @param onSuccess 성공 시 콜백 함수
-   */
-  const predictLayer = async (
-    modelId: string,
-    layerIdx: number,
-    inputMagnitude: number[],
-    inputSign: number[],
-    onSuccess?: (result: any) => void
-  ) => {
-    if (!account) {
-      throw new Error("Wallet account not found. Please connect your wallet first.");
-    }
-
-    try {
-      console.log("Predicting layer", layerIdx, "for model", modelId);
-      console.log("inputMagnitude", inputMagnitude);
-      console.log("inputSign", inputSign);
-
-      const tx = new Transaction();
-
-      tx.setGasBudget(GAS_BUDGET);
-
-      tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
-        arguments: [
-          tx.object(modelId),
-          tx.pure.u64(BigInt(layerIdx)),
-          tx.pure.vector("u64", inputMagnitude),
-          tx.pure.vector("u64", inputSign),
-        ],
-      });
-
-      console.log(`Predicting layer ${layerIdx} for model ${modelId}`, {
-        inputMagnitude,
-        inputSign,
-      });
-
-      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
-      return await signAndExecuteTransaction(
-        {
-          transaction: tx,
-          chain: `sui:${SUI_NETWORK.TYPE}`,
-        },
-        {
-          onSuccess: result => {
-            console.log(`Layer ${layerIdx} prediction successful:`, result);
-            console.log(`Layer ${layerIdx} prediction events:`, result.events);
-
-            if (onSuccess) {
-              onSuccess(result);
-            }
-            return result;
-          },
-        }
-      );
-    } catch (error) {
-      console.error(`Error predicting layer ${layerIdx} for model ${modelId}:`, error);
-      throw error;
-    }
-  };
-
-  /**
-   * 모델 전체에 대해 PTB inference를 수행하는 함수
-   * 모든 레이어를 한 번의 트랜잭션으로 처리
-   * @param modelId 모델 객체 ID
-   * @param layerCount 모델 레이어 수
-   * @param inputMagnitude 입력 벡터의 크기 값
-   * @param inputSign 입력 벡터의 부호 값
-   * @param onSuccess 성공 시 콜백 함수
-   * @returns 트랜잭션 실행 결과
-   */
-  const predictModelWithPTB = async (
-    modelId: string,
-    layerCount: number,
-    inputMagnitude: number[],
-    inputSign: number[],
-    onSuccess?: (result: any) => void
-  ) => {
-    if (!account) {
-      throw new Error("Wallet account not found. Please connect your wallet first.");
-    }
-
-    try {
-      console.log("Predicting full model with PTB chaining", modelId);
-      console.log("Input magnitude:", inputMagnitude);
-      console.log("Input sign:", inputSign);
-
-      const tx = new Transaction();
-      tx.setGasBudget(GAS_BUDGET);
-
-      // predict_layer는 (vector<u64>, vector<u64>, Option<u64>)를 반환
-      // 첫 번째 레이어 실행
-      let layerOutput = tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
-        arguments: [
-          tx.object(modelId),
-          tx.pure.u64(0n), // 첫 번째 레이어(인덱스 0)
-          tx.pure.vector("u64", inputMagnitude),
-          tx.pure.vector("u64", inputSign),
-        ],
-      });
-
-      // 나머지 레이어들을 연속해서 실행
-      // 각 레이어의 출력을 다음 레이어의 입력으로 사용
-      for (let i = 1; i < layerCount; i++) {
-        // layerOutput은 (magnitude, sign, argmax_option) 튜플
-        // 다음 레이어의 입력으로 이전 레이어의 magnitude와 sign만 사용
-        layerOutput = tx.moveCall({
-          target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer`,
-          arguments: [
-            tx.object(modelId),
-            tx.pure.u64(BigInt(i)),
-            // result[0]은 output_magnitude, result[1]은 output_sign
-            layerOutput[0], // magnitude vector
-            layerOutput[1], // sign vector
-          ],
-        });
-      }
-
-      // 최종 출력은 layerOutput에 저장됨
-      // layerOutput[0]: 최종 magnitude
-      // layerOutput[1]: 최종 sign
-      // layerOutput[2]: 마지막 레이어의 argmax_option (Option<u64> 타입)
-
-      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
-      return await signAndExecuteTransaction(
-        {
-          transaction: tx,
-          chain: `sui:${SUI_NETWORK.TYPE}`,
-        },
-        {
-          onSuccess: result => {
-            console.log(`Full model prediction successful:`, result);
-            console.log(`Events:`, result.events);
-
-            // 마지막 레이어의 이벤트를 파싱
-            const events = result.events || [];
-            const finalLayerEvent = parseLayerComputedEvent(events);
-            const predictionCompletedEvent = parsePredictionCompletedEvent(events);
-
-            console.log(`Final layer output:`, finalLayerEvent);
-            console.log(`Prediction completed:`, predictionCompletedEvent);
-
-            if (onSuccess) {
-              onSuccess(result);
-            }
-            return result;
-          },
-        }
-      );
-    } catch (error) {
-      console.error(`Error predicting model ${modelId} with PTB:`, error);
-      throw error;
-    }
-  };
-
-  /**
    * 최적화된 PTB inference를 수행하는 함수
    * 레이어의 각 출력 차원에 대해 별도 트랜잭션 수행
    * @param modelId 모델 객체 ID
@@ -300,7 +251,6 @@ export function useModelInference() {
       let layerResultMagnitudes = undefined;
       let layerResultSigns = undefined;
 
-      // 첫 번째 레이어 실행
       // 첫 번째 레이어 실행
       console.log(`Processing layer 0 with output dimension ${layerDimensions[0]}`);
       for (let dimIdx = 0; dimIdx < layerDimensions[0]; dimIdx++) {
@@ -343,9 +293,7 @@ export function useModelInference() {
               tx.pure.u64(BigInt(dimIdx)),
               layerResultMagnitudes as TransactionArgument,
               layerResultSigns as TransactionArgument,
-              currentLayerResultMagnitudes
-                ? currentLayerResultMagnitudes
-                : tx.pure.vector("u64", []),
+              currentLayerResultMagnitudes ? currentLayerResultMagnitudes : tx.pure.vector("u64", []),
               currentLayerResultSigns ? currentLayerResultSigns : tx.pure.vector("u64", []),
             ],
           });
@@ -388,6 +336,263 @@ export function useModelInference() {
       );
     } catch (error) {
       console.error(`Error predicting model ${modelId} with optimized PTB:`, error);
+      throw error;
+    }
+  };
+
+  /**
+   * 최적화된 PTB inference를 수행하는 함수
+   * 레이어의 각 출력 차원에 대해 별도 트랜잭션 수행
+   * @param model 모델 객체
+   * @param inputMagnitude 입력 벡터의 크기 값
+   * @param inputSign 입력 벡터의 부호 값
+   * @param onSuccess 성공 시 콜백 함수
+   * @returns 트랜잭션 실행 결과
+   */
+  const predictModelWithChunkedPTB = async (
+      model: ModelObject,
+      inputMagnitude: number[],
+      inputSign: number[],
+      onSuccess?: (result: any) => void
+  ) => {
+    if (!account) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+    if (!model.graphs[0]) {
+      throw new Error("Model graph not found.");
+    }
+    if (!model.graphs[0].layers) {
+      throw new Error("Model layers not found.");
+    }
+    const layers = model.graphs[0].layers;
+
+    try {
+      const tx = new Transaction();
+      tx.setGasBudget(GAS_BUDGET);
+
+      let resultMagnitudes = undefined;
+      let resultSigns = undefined;
+
+      // 모든 레이어를 순차적으로 처리
+      for (let layerIdx = 0; layerIdx < layers.length; layerIdx++) {
+        console.log(`레이어 ${layerIdx} 처리 중...`);
+
+        const inputDimension = layers[layerIdx].in_dimension;
+        const outputDimension = layers[layerIdx].out_dimension;
+        console.log(`입력 차원: ${inputDimension}, 출력 차원: ${outputDimension}`);
+
+        // 이 레이어에 대한 새로운 결과 벡터 초기화
+        let layerResultMagnitudes = undefined;
+        let layerResultSigns = undefined;
+
+        // 각 출력 노드별 처리
+        for (let outputDimIdx = 0; outputDimIdx < outputDimension; outputDimIdx++) {
+          // 현재 출력 차원에 대한 연산 관련 변수 초기화
+          let currentMagnitude = undefined;
+          let currentSign = undefined;
+
+          // 입력 차원을 청크 단위로 처리
+          for (let chunkStartIdx = 0; chunkStartIdx < inputDimension; chunkStartIdx += SUI_PREDICT_COMPUTATION_BATCH_SIZE) {
+            const result = tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer_partial_chunked`,
+              arguments: [
+                tx.object(model.id),
+                tx.pure.u64(BigInt(layerIdx)), // layer index
+                tx.pure.u64(BigInt(outputDimIdx)), // output node index
+
+                layerIdx === 0
+                    ? tx.pure.vector("u64", inputMagnitude) // input magnitudes
+                    : resultMagnitudes as TransactionArgument, // use previous layer result
+                layerIdx === 0
+                    ? tx.pure.vector("u64", inputSign) // input signs
+                    : resultSigns as TransactionArgument, // use previous layer result
+                tx.pure.u64(BigInt(chunkStartIdx)), // chunk start index
+                tx.pure.u64(BigInt(SUI_PREDICT_COMPUTATION_BATCH_SIZE)), // chunk size
+
+                chunkStartIdx === 0
+                  ? tx.pure.u64(BigInt(0))
+                  : currentMagnitude as TransactionArgument, // chunk accumulated magnitude
+                chunkStartIdx === 0
+                    ? tx.pure.u64(BigInt(0))
+                    : currentSign as TransactionArgument, // chunk accumulated sign
+                layerResultMagnitudes ? layerResultMagnitudes : tx.pure.vector("u64", []), // final result magnitudes
+                layerResultSigns ? layerResultSigns : tx.pure.vector("u64", []), // final result signs
+              ],
+            });
+
+            layerResultMagnitudes = result[0]; // final result magnitudes
+            layerResultSigns = result[1]; // final result signs
+            currentMagnitude = result[2]; // chunk accumulated magnitude
+            currentSign = result[3]; // chunk accumulated sign
+
+            // 로그 출력
+            const chunkEndIdx = Math.min(chunkStartIdx + SUI_PREDICT_COMPUTATION_BATCH_SIZE, inputDimension);
+            console.log(`출력 노드 ${outputDimIdx}/${outputDimension-1}, 입력 청크 ${chunkStartIdx}-${chunkEndIdx-1}/${inputDimension-1} 처리 완료`);
+          }
+
+          console.log(`출력 노드 ${outputDimIdx} 처리 완료`);
+        }
+
+        // 현재 레이어의 결과를 다음 레이어의 입력으로 사용
+        resultMagnitudes = layerResultMagnitudes;
+        resultSigns = layerResultSigns;
+        console.log(`레이어 ${layerIdx} 처리 완료`);
+      }
+
+      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
+      return await signAndExecuteTransaction(
+          {
+            transaction: tx,
+            chain: `sui:${SUI_NETWORK.TYPE}`,
+          },
+          {
+            onSuccess: result => {
+              console.log(`Optimized PTB prediction successful:`, result);
+              console.log(`Events:`, result.events);
+
+              // 결과 이벤트 파싱
+              const events = result.events || [];
+              const partialLayerEvents = parseLayerPartialComputedEvents(events);
+              const predictionCompletedEvent = parsePredictionCompletedEvent(events);
+
+              console.log(`Partial layer outputs:`, partialLayerEvents);
+              console.log(`Prediction completed:`, predictionCompletedEvent);
+
+              if (onSuccess) {
+                onSuccess(result);
+              }
+              return result;
+            },
+          }
+      );
+    } catch (error) {
+      console.error(`Error predicting model ${model.id} with optimized PTB:`, error);
+      throw error;
+    }
+  };
+
+  /**
+   * 최적화된 PTB inference를 수행하는 함수
+   * 레이어의 각 출력 차원에 대해 별도 트랜잭션 수행
+   * @param model 모델 객체
+   * @param inputMagnitude 입력 벡터의 크기 값
+   * @param inputSign 입력 벡터의 부호 값
+   * @param onSuccess 성공 시 콜백 함수
+   * @returns 트랜잭션 실행 결과
+   */
+  const predictModel = async (
+      model: ModelObject,
+      inputMagnitude: number[],
+      inputSign: number[],
+      onSuccess?: (result: any) => void
+  ) => {
+    if (!account) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+    if (!model.graphs[0]) {
+        throw new Error("Model graph not found.");
+    }
+    if (!model.graphs[0].layers) {
+      throw new Error("Model layers not found.");
+    }
+
+    const layers = model.graphs[0].layers;
+
+    try {
+      const tx = new Transaction();
+      tx.setGasBudget(GAS_BUDGET);
+
+      let resultMagnitudes = undefined;
+      let resultSigns = undefined;
+
+      // 모든 레이어를 순차적으로 처리
+      for (let layerIdx = 0; layerIdx < layers.length; layerIdx++) {
+        console.log(`레이어 ${layerIdx} 처리 중...`);
+
+        const inputDimension = layers[layerIdx].in_dimension;
+        const outputDimension = layers[layerIdx].out_dimension;
+
+        console.log(`입력 차원: ${inputDimension}, 출력 차원: ${outputDimension}`);
+
+        // 이 레이어에 대한 새로운 결과 벡터 초기화
+        let layerResultMagnitudes = undefined;
+        let layerResultSigns = undefined;
+
+        // 각 입력 노드별로 처리
+        for (let inputIdx = 0; inputIdx < inputDimension; inputIdx++) {
+          // 출력 노드는 배치로 처리
+          let outputStartIdx = 0;
+          let isLastOutputBatch = false;
+
+          // 출력 차원의 모든 노드를 배치 단위로 처리
+          while (!isLastOutputBatch) {
+            const result = tx.moveCall({
+              target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer_by_input_node`,
+              arguments: [
+                tx.object(model.id),
+                tx.pure.u64(BigInt(layerIdx)), // layer index
+                tx.pure.u64(BigInt(inputIdx)), // input node index
+
+                layerIdx === 0
+                    ? tx.pure.vector("u64", inputMagnitude) // input magnitudes
+                    : resultMagnitudes as TransactionArgument, // use previous layer result
+                layerIdx === 0
+                    ? tx.pure.vector("u64", inputSign) // input signs
+                    : resultSigns as TransactionArgument, // use previous layer resul
+                tx.pure.u64(BigInt(outputStartIdx)),
+                tx.pure.u64(BigInt(SUI_PREDICT_COMPUTATION_BATCH_SIZE)),
+                layerResultMagnitudes ? layerResultMagnitudes : tx.pure.vector("u64", []),
+                layerResultSigns ? layerResultSigns : tx.pure.vector("u64", []),
+              ],
+            });
+
+            layerResultMagnitudes = result[0]; // result_magnitudes
+            layerResultSigns = result[1]; // result_signs
+            outputStartIdx = Number(result[3]); // next_output_start_idx
+            isLastOutputBatch = Boolean(result[5]); // is_last_output_batch
+            const isLastInput = Boolean(result[4]); // is_last_input
+            console.log(`입력 노드 ${inputIdx}/${inputDimension-1}, 출력 배치 ${outputStartIdx-SUI_PREDICT_COMPUTATION_BATCH_SIZE}~${outputStartIdx-1}/${outputDimension-1} 처리 완료`);
+
+            // 마지막 입력 노드와 마지막 출력 배치면 이 레이어의 처리가 완료됨
+            if (isLastInput && isLastOutputBatch) {
+              console.log(`레이어 ${layerIdx} 처리 완료`);
+            }
+          }
+        }
+
+        // 현재 레이어의 결과를 다음 레이어의 입력으로 사용
+        resultMagnitudes = layerResultMagnitudes;
+        resultSigns = layerResultSigns;
+      }
+
+      // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
+      return await signAndExecuteTransaction(
+          {
+            transaction: tx,
+            chain: `sui:${SUI_NETWORK.TYPE}`,
+          },
+          {
+            onSuccess: result => {
+              console.log(`Optimized PTB prediction successful:`, result);
+              console.log(`Events:`, result.events);
+
+              // 결과 이벤트 파싱
+              const events = result.events || [];
+              const partialLayerEvents = parseLayerPartialComputedEvents(events);
+              const predictionCompletedEvent = parsePredictionCompletedEvent(events);
+
+              console.log(`Partial layer outputs:`, partialLayerEvents);
+              console.log(`Prediction completed:`, predictionCompletedEvent);
+
+              if (onSuccess) {
+                onSuccess(result);
+              }
+              return result;
+            },
+          }
+      );
+    } catch (error) {
+      console.error(`Error predicting model ${model.id} with optimized PTB:`, error);
       throw error;
     }
   };
@@ -535,124 +740,12 @@ export function useModelInference() {
   };
 
   return {
-    predictLayer,
-    predictModelWithPTB,
+    predictModel,
     predictModelWithPTBOptimization,
+    predictModelWithChunkedPTB,
     parseLayerComputedEvent,
     parseLayerPartialComputedEvents,
     reconstructLayerOutputs,
     parsePredictionCompletedEvent,
   };
-}
-
-/**
- * 특정 주소가 업로드한 모델 객체를 가져오는 함수
- */
-export async function getModels(ownerAddress: string) {
-  if (!ownerAddress) {
-    return {
-      models: [],
-      isLoading: false,
-      error: null,
-    };
-  }
-
-  try {
-    // 해당 주소가 소유한 객체 가져오기
-    const { data } = await suiClient.getOwnedObjects({
-      owner: ownerAddress,
-    });
-
-    // 객체 ID 추출
-    const objectIds = data
-      .map(item => item.data?.objectId)
-      .filter((id): id is string => id !== undefined);
-
-    if (!objectIds.length) {
-      return {
-        models: [],
-        isLoading: false,
-        error: null,
-      };
-    }
-
-    // 객체 상세 정보 가져오기
-    const objects = await suiClient.multiGetObjects({
-      ids: objectIds,
-      options: {
-        showContent: true,
-        showType: true,
-      },
-    });
-
-    // 모델 객체만 필터링
-    const modelObjects = objects.filter(
-      obj =>
-        obj.data?.content?.dataType === "moveObject" &&
-        obj.data?.content?.type?.includes(`${SUI_CONTRACT.MODULE_NAME}::Graph`)
-    );
-
-    // 모델 객체 파싱 (실제 구현은 컨트랙트 반환 구조에 따라 달라질 수 있음)
-    const models = modelObjects.map(obj => {
-      // const content = obj.data?.content;
-      // 여기서는 예시로 반환하지만, 실제 구현은 컨트랙트 반환 구조에 맞게 조정 필요
-      return {
-        id: obj.data?.objectId,
-        owner: obj.data?.owner?.toString() || "",
-        // 기타 모델 정보를 구조에 맞게 파싱
-      };
-    });
-
-    return {
-      models,
-      isLoading: false,
-      error: null,
-    };
-  } catch (error) {
-    console.error("Error fetching models:", error);
-    return {
-      models: [],
-      isLoading: false,
-      error,
-    };
-  }
-}
-
-/**
- * 모델 ID로 특정 모델의 상세 정보를 가져오는 함수
- */
-export async function getModelById(modelId: string) {
-  if (!modelId) {
-    throw new Error("Model ID is required");
-  }
-
-  try {
-    const object = await suiClient.getObject({
-      id: modelId,
-      options: {
-        showContent: true,
-        showType: true,
-      },
-    });
-
-    if (object.data?.content?.dataType !== "moveObject") {
-      throw new Error("Invalid model object");
-    }
-
-    // 모델 정보 파싱 (실제 구현은 컨트랙트 반환 구조에 따라 달라질 수 있음)
-    // 이 부분은 실제 컨트랙트가 반환하는 형식에 맞게 조정 필요
-    // const modelData = object.data.content;
-
-    return {
-      model: {
-        id: object.data.objectId,
-        // 기타 필요한 정보 파싱
-      },
-      isLoading: false,
-      error: null,
-    };
-  } catch (error) {
-    console.error("Error fetching model by ID:", error);
-    throw error;
-  }
 }
