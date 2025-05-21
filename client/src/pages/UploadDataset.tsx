@@ -23,13 +23,13 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
-import { calculateFileHash } from "../services/walrusService";
-import { uploadMedia } from "../services/walrusService";
+import {calculateFileHash, useWalrusService} from "../services/walrusService";
 
 export function UploadDataset() {
   const navigate = useNavigate();
   const { currentWallet } = useCurrentWallet();
   const { createDataset } = useDatasetSuiService();
+  const { uploadMedia } = useWalrusService();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);

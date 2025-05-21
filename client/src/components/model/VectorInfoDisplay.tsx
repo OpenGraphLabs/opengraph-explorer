@@ -5,9 +5,7 @@ import {
   Card,
   Badge,
   Code,
-  Tooltip,
   Heading,
-  Separator,
   Grid,
   Button,
 } from "@radix-ui/themes";

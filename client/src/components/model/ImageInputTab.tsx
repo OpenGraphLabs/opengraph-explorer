@@ -5,14 +5,13 @@ import {
   Text,
   Card,
   Button,
-  Badge,
 } from "@radix-ui/themes";
 import {
   ReloadIcon,
   ResetIcon,
   UploadIcon,
 } from "@radix-ui/react-icons";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { ImageSquare } from "phosphor-react";
 import { VectorInfoDisplay, ImageData, FormattedVector } from "./VectorInfoDisplay";
 

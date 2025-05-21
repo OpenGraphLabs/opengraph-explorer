@@ -40,7 +40,7 @@ export interface DatasetCreationResult {
  * 데이터셋 서비스 클래스
  */
 export function useDatasetSuiService() {
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const account = useCurrentAccount();
 
   /**

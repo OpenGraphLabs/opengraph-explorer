@@ -27,7 +27,7 @@ interface UploadModelParams {
  * Model 객체를 Sui 블록체인에 업로드하는 커스텀 훅
  */
 export function useUploadModelToSui() {
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const account = useCurrentAccount();
 
   const uploadModel = async (
