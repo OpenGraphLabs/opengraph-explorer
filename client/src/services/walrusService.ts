@@ -1,6 +1,8 @@
-// Walrus 스토리지 연동을 위한 서비스
-
 import { getSuiScanUrl } from "../utils/sui";
+import { suiClient } from "./modelSuiService";
+import { WalrusClient } from "@mysten/walrus";
+import { useCurrentWallet } from "@mysten/dapp-kit";
+
 
 // Walrus 네트워크 설정
 const WALRUS_NETWORK = "testnet"; // 또는 "devnet", "mainnet" 등
@@ -8,6 +10,11 @@ const WALRUS_PUBLISHER_URL = "https://publisher.testnet.walrus.atalma.io";
 export const WALRUS_AGGREGATOR_URL = "https://aggregator.testnet.walrus.atalma.io";
 const SUI_VIEW_TX_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/tx`;
 const SUI_VIEW_OBJECT_URL = `https://suiscan.xyz/${WALRUS_NETWORK}/object`;
+
+const walrusClient = new WalrusClient({
+  network: 'testnet',
+  suiClient,
+});
 
 // 저장 상태 enum
 export enum WalrusStorageStatus {
@@ -41,22 +48,21 @@ export async function uploadMedia(
   epochs?: number
 ): Promise<WalrusStorageInfo> {
   try {
+    const wallet = useCurrentWallet();
+
+
     console.log("File to upload:", file);
 
-    // 쿼리 파라미터 구성
-    let epochsParam = epochs ? `&epochs=${epochs}` : "";
-    const url = `${WALRUS_PUBLISHER_URL}/v1/blobs?send_object_to=${sendTo}${epochsParam}`;
-    console.log("Walrus 업로드 URL:", url);
+    const buffer = await file.arrayBuffer();
+    const bytesArray = new Uint8Array(buffer);
 
-    // PUT 요청으로 파일 업로드
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-        "Content-Length": file.size.toString(),
-      },
-      body: file,
-    });
+    const response = walrusClient.writeBlob({
+      blob: bytesArray,
+      owner: sendTo,
+      deletable: true,
+      epochs: epochs ? epochs : 3,
+      signer: wallet,
+    })
 
     console.log("Walrus 업로드 응답:", response);
 

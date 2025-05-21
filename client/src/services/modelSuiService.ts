@@ -11,7 +11,7 @@ import {
 import {Model, validateModel} from "../types/model";
 import {ModelObject} from "./modelGraphQLService.ts";
 
-const suiClient = new SuiClient({
+export const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
 });
 
