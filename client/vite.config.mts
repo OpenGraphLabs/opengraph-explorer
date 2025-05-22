@@ -11,23 +11,7 @@ export default defineConfig({
     wasm(),
     topLevelAwait(),
   ],
-  // optimizeDeps: {
-  //   exclude: ["@mysten/walrus"],
-  // },
   assetsInclude: ["**/*.wasm"],
-  build: {
-    rollupOptions: {
-      output: {
-        assetFileNames: (assetInfo) => {
-          let extType = assetInfo.name.split(".").pop();
-          if (/wasm/i.test(extType)) {
-            return "static/js/[name][extname]"; // wasm 파일인 경우 js 폴더 경로 안에서 참조됨.
-          }
-          return `static/${extType}/[name]-[hash][extname]`;
-        }
-      }
-    }
-  },
   server: {
     proxy: {
       '/api': {

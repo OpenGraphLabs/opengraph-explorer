@@ -23,13 +23,11 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
-import {calculateFileHash, useWalrusService} from "../services/walrusService";
 
 export function UploadDataset() {
   const navigate = useNavigate();
   const { currentWallet } = useCurrentWallet();
-  const { createDataset } = useDatasetSuiService();
-  const { uploadMedia } = useWalrusService();
+  const { createDatasetWithMultipleFiles } = useDatasetSuiService();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -51,115 +49,13 @@ export function UploadDataset() {
   // 태그 입력 상태
   const [tagInput, setTagInput] = useState("");
 
-  // 파일 업로드 상태 추가
-  const [uploadStatus, setUploadStatus] = useState<
-    Record<
-      number,
-      {
-        status: "idle" | "uploading" | "success" | "failed";
-        progress: number;
-        blobId?: string;
-        error?: string;
-        message: string;
-      }
-    >
-  >({});
-
-  const [isCreatingDataset, setIsCreatingDataset] = useState(false);
-
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 2000; // 2초
-
+  // 파일 업로드 상태 (통합 방식)
   const [uploadProgress, setUploadProgress] = useState({
     totalFiles: 0,
-    uploadedFiles: 0,
-    failedFiles: 0,
-    status: "" as "idle" | "uploading" | "creating" | "success" | "failed",
+    status: "idle" as "idle" | "uploading" | "creating" | "success" | "failed",
+    progress: 0,
+    message: "",
   });
-
-  const retryUpload = async (
-    file: File,
-    index: number,
-    retryCount = 0
-  ): Promise<{ blobId: string; fileHash: string } | null> => {
-    try {
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: {
-          status: "uploading",
-          progress: 10,
-          message:
-            retryCount > 0
-              ? `Retrying upload (${retryCount}/${MAX_RETRIES})...`
-              : `Uploading file ${file.name}`,
-        },
-      }));
-
-      const storageInfo = await uploadMedia(file, currentWallet!.accounts[0].address, 10);
-
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: {
-          status: "uploading",
-          progress: 50,
-          message: `Calculating hash for ${file.name}`,
-        },
-      }));
-
-      const fileHash = await calculateFileHash(file);
-
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: {
-          status: "success",
-          progress: 100,
-          blobId: storageInfo.blobId,
-          fileHash: fileHash,
-          message: `${file.name} uploaded successfully`,
-        },
-      }));
-
-      setUploadProgress(prev => ({
-        ...prev,
-        uploadedFiles: prev.uploadedFiles + 1,
-      }));
-
-      return { blobId: storageInfo.blobId, fileHash };
-    } catch (error) {
-      console.error(`Upload failed for ${file.name}:`, error);
-
-      if (retryCount < MAX_RETRIES) {
-        setUploadStatus(prev => ({
-          ...prev,
-          [index]: {
-            status: "uploading",
-            progress: 0,
-            message: `Upload failed, retrying in ${RETRY_DELAY / 1000}s (${retryCount + 1}/${MAX_RETRIES})`,
-          },
-        }));
-
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return retryUpload(file, index, retryCount + 1);
-      }
-
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: {
-          status: "failed",
-          progress: 0,
-          error: error instanceof Error ? error.message : "Upload failed",
-          message: `Failed to upload ${file.name} after ${MAX_RETRIES} retries`,
-        },
-      }));
-
-      setUploadProgress(prev => ({
-        ...prev,
-        failedFiles: prev.failedFiles + 1,
-      }));
-
-      return null;
-    }
-  };
 
   const handleFileSelect = (files: File[]) => {
     if (files.length === 0) return;
@@ -171,14 +67,6 @@ export function UploadDataset() {
     setSelectedFiles(newFiles);
     setAnnotations(newAnnotations);
     setError(null);
-
-    // 파일 업로드 상태 초기화 - 새로 추가된 파일만 초기화
-    const initialStatus = { ...uploadStatus };
-    const startIdx = selectedFiles.length;
-    files.forEach((_, index) => {
-      initialStatus[startIdx + index] = { status: "idle", progress: 0, message: "" };
-    });
-    setUploadStatus(initialStatus);
 
     setPreviewStep("preview");
   };
@@ -218,8 +106,13 @@ export function UploadDataset() {
     });
   };
 
+  // 새로운 통합 업로드 처리 함수
   const handleUpload = async () => {
     if (!currentWallet?.accounts[0]?.address || selectedFiles.length === 0) return;
+    if (!metadata.name.trim()) {
+      setError("Dataset name is required");
+      return;
+    }
 
     try {
       setPreviewStep("upload");
@@ -227,58 +120,37 @@ export function UploadDataset() {
       setIsLoading(true);
       setUploadProgress({
         totalFiles: selectedFiles.length,
-        uploadedFiles: 0,
-        failedFiles: 0,
         status: "uploading",
+        progress: 10,
+        message: "Uploading files to Walrus as a single blob...",
       });
 
-      // 병렬로 파일 업로드 시작
-      const uploadPromises = selectedFiles.map((file, index) => retryUpload(file, index));
-      const results = await Promise.all(uploadPromises);
-
-      // 모든 파일이 성공적으로 업로드되었는지 확인
-      const successfulUploads = results.filter(
-        (result): result is { blobId: string; fileHash: string } => result !== null
-      );
-
-      if (successfulUploads.length !== selectedFiles.length) {
-        setUploadProgress(prev => ({
-          ...prev,
-          status: "failed",
-        }));
-        setError(
-          `Failed to upload all files. ${successfulUploads.length} of ${selectedFiles.length} files uploaded successfully.`
-        );
-        return;
-      }
-
-      setUploadProgress(prev => ({
-        ...prev,
-        status: "creating",
-      }));
-
+      // 총 파일 크기 계산
       const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
 
-      // Sui 트랜잭션 호출
-      await createDataset(
+      // 파일 업로드 및 데이터셋 생성 (모든 파일을 하나의 blob으로)
+      const result = await createDatasetWithMultipleFiles(
         {
           ...metadata,
           dataSize: totalSize,
           creator: metadata.creator || currentWallet.accounts[0].address,
         },
+        selectedFiles,
         annotations,
-        successfulUploads,
-        result => {
+        10, // epochs
+        (result) => {
           console.log("Dataset created:", result);
           setUploadSuccess(true);
-          setUploadProgress(prev => ({
-            ...prev,
+          setUploadProgress({
+            ...uploadProgress,
             status: "success",
-          }));
+            progress: 100,
+            message: "Dataset created successfully!",
+          });
+
           // 성공 후 상태 초기화
           setSelectedFiles([]);
           setAnnotations([]);
-          setUploadStatus({});
           setMetadata({
             name: "",
             description: "",
@@ -295,82 +167,28 @@ export function UploadDataset() {
             navigate("/datasets");
           }, 1000);
         },
-        error => {
+        (error) => {
           console.error("Dataset creation failed:", error);
           setError(`Failed to create dataset: ${error.message}`);
-          setUploadProgress(prev => ({
-            ...prev,
+          setUploadProgress({
+            ...uploadProgress,
             status: "failed",
-          }));
+            message: `Failed to create dataset: ${error.message}`,
+          });
         }
       );
+
+      console.log("Dataset creation result:", result);
     } catch (error) {
       console.error("Error in upload process:", error);
       setError(error instanceof Error ? error.message : "Failed to process dataset");
-      setUploadProgress(prev => ({
-        ...prev,
+      setUploadProgress({
+        ...uploadProgress,
         status: "failed",
-      }));
+        message: error instanceof Error ? error.message : "Failed to process dataset",
+      });
     } finally {
       setIsLoading(false);
-      setIsCreatingDataset(false);
-    }
-  };
-
-  // 실패한 파일 재시도 함수
-  const handleRetryFile = async (index: number) => {
-    if (!currentWallet?.accounts[0]?.address) return;
-
-    const file = selectedFiles[index];
-
-    try {
-      // 상태 업데이트: 업로드 시작
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: { status: "uploading", progress: 10, message: `Uploading file ${file.name}...` },
-      }));
-
-      // 파일 업로드 시작
-      const storageInfo = await uploadMedia(file, currentWallet.accounts[0].address, 10);
-
-      // 업로드 중간 상태 표시
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: { status: "uploading", progress: 50, message: `Processing file ${file.name}...` },
-      }));
-
-      // 파일 해시 계산
-      const fileHash = await calculateFileHash(file);
-
-      // 상태 업데이트: 업로드 완료
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: {
-          status: "success",
-          progress: 100,
-          blobId: storageInfo.blobId,
-          fileHash: fileHash,
-          message: `${file.name} uploaded successfully`,
-        },
-      }));
-
-      // 성공 메시지 설정
-      setError(`File "${file.name}" uploaded successfully. You can now create the dataset.`);
-    } catch (error) {
-      // 상태 업데이트: 업로드 실패
-      setUploadStatus(prev => ({
-        ...prev,
-        [index]: {
-          status: "failed",
-          progress: 0,
-          error: error instanceof Error ? error.message : "Upload failed",
-          message: `Failed to upload ${file.name}`,
-        },
-      }));
-
-      setError(
-        `Failed to upload file "${file.name}": ${error instanceof Error ? error.message : "Unknown error"}`
-      );
     }
   };
 
@@ -510,8 +328,7 @@ export function UploadDataset() {
             </Flex>
 
             <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
-              Upload your training data files. The files will be stored on-chain and can be used for
-              model training.
+              Upload your training data files. All files will be combined into a single blob and stored on-chain.
             </Text>
 
             {previewStep === "select" && (
@@ -601,35 +418,23 @@ export function UploadDataset() {
                         <PlusIcon width={14} height={14} />
                         <span style={{ marginLeft: '4px' }}>Add More</span>
                       </Button>
-                      {selectedFiles.some(
-                        (_, idx) => uploadStatus[idx]?.status !== "uploading"
-                      ) && (
-                        <Button
-                          size="1"
-                          variant="soft"
-                          onClick={() => {
-                            const newFiles = selectedFiles.filter(
-                              (_, idx) => uploadStatus[idx]?.status === "uploading"
-                            );
-                            const newAnnotations = annotations.filter(
-                              (_, idx) => uploadStatus[idx]?.status === "uploading"
-                            );
-                            setSelectedFiles(newFiles);
-                            setAnnotations(newAnnotations);
-                            if (newFiles.length === 0) {
-                              setPreviewStep("select");
-                            }
-                          }}
-                          style={{
-                            background: "var(--red-3)",
-                            color: "var(--red-11)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <TrashIcon width={14} height={14} />
-                          <span style={{ marginLeft: '4px' }}>Clear Completed</span>
-                        </Button>
-                      )}
+                      <Button
+                        size="1"
+                        variant="soft"
+                        onClick={() => {
+                          setSelectedFiles([]);
+                          setAnnotations([]);
+                          setPreviewStep("select");
+                        }}
+                        style={{
+                          background: "var(--red-3)",
+                          color: "var(--red-11)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <TrashIcon width={14} height={14} />
+                        <span style={{ marginLeft: '4px' }}>Clear All</span>
+                      </Button>
                     </Flex>
                   </Flex>
 
@@ -663,12 +468,7 @@ export function UploadDataset() {
                         style={{
                           padding: "10px 12px",
                           borderBottom: "1px solid var(--gray-4)",
-                          background:
-                            uploadStatus[index]?.status === "failed"
-                              ? "var(--red-2)"
-                              : uploadStatus[index]?.status === "success"
-                                ? "var(--green-2)"
-                                : "white",
+                          background: "white",
                           display: "grid",
                           gridTemplateColumns: "minmax(200px, 3fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(200px, 3fr) 80px",
                           gap: "8px",
@@ -682,17 +482,6 @@ export function UploadDataset() {
                           <Text size="2" style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {file.name}
                           </Text>
-                          {uploadStatus[index]?.status === "uploading" && (
-                            <Badge color="blue" size="1" style={{ flexShrink: 0 }}>
-                              {uploadStatus[index]?.progress}%
-                            </Badge>
-                          )}
-                          {uploadStatus[index]?.status === "success" && (
-                            <CheckCircledIcon style={{ color: "var(--green-9)", width: 14, height: 14, flexShrink: 0 }} />
-                          )}
-                          {uploadStatus[index]?.status === "failed" && (
-                            <ExclamationTriangleIcon style={{ color: "var(--red-9)", width: 14, height: 14, flexShrink: 0 }} />
-                          )}
                         </Flex>
 
                         {/* 파일 크기 */}
@@ -721,24 +510,6 @@ export function UploadDataset() {
 
                         {/* 액션 버튼 */}
                         <Flex gap="2" justify="center">
-                          {/* 업로드 실패 시 재시도 버튼 */}
-                          {uploadStatus[index]?.status === "failed" && (
-                            <Button
-                              size="1"
-                              variant="soft"
-                              onClick={() => handleRetryFile(index)}
-                              style={{
-                                background: "var(--blue-3)",
-                                color: "var(--blue-11)",
-                                cursor: "pointer",
-                                padding: "0 8px",
-                                height: "26px",
-                              }}
-                            >
-                              <ReloadIcon width={12} height={12} />
-                            </Button>
-                          )}
-
                           {/* 삭제 버튼 */}
                           <Button
                             size="1"
@@ -755,38 +526,6 @@ export function UploadDataset() {
                             <TrashIcon width={12} height={12} />
                           </Button>
                         </Flex>
-
-                        {/* 업로드 진행 상태바 */}
-                        {uploadStatus[index]?.status === "uploading" && (
-                          <Box
-                            style={{
-                              gridColumn: "1 / span 5",
-                              width: "100%",
-                              height: "3px",
-                              background: "var(--gray-4)",
-                              borderRadius: "1.5px",
-                              marginTop: "4px",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <Box
-                              style={{
-                                width: `${uploadStatus[index]?.progress || 0}%`,
-                                height: "100%",
-                                background: "var(--blue-9)",
-                                borderRadius: "1.5px",
-                                transition: "width 0.3s ease",
-                              }}
-                            />
-                          </Box>
-                        )}
-
-                        {/* 업로드 실패 에러 메시지 */}
-                        {uploadStatus[index]?.status === "failed" && uploadStatus[index]?.error && (
-                          <Text size="1" style={{ color: "var(--red-11)", gridColumn: "1 / span 5", marginTop: "4px" }}>
-                            Error: {uploadStatus[index]?.error}
-                          </Text>
-                        )}
                       </Box>
                     ))}
                   </Box>
@@ -855,7 +594,7 @@ export function UploadDataset() {
               </Card>
             )}
 
-            {/* Progress Status */}
+            {/* 통합 업로드 Progress Status */}
             {uploadProgress.status !== "idle" && (
               <Card
                 style={{
@@ -882,41 +621,34 @@ export function UploadDataset() {
                               : "orange"
                       }
                     >
-                      {uploadProgress.status === "uploading" && "Uploading to Walrus..."}
-                      {uploadProgress.status === "creating" && "Creating Dataset on Sui..."}
+                      {uploadProgress.status === "uploading" && "Processing..."}
+                      {uploadProgress.status === "creating" && "Creating Dataset..."}
                       {uploadProgress.status === "success" && "Success"}
                       {uploadProgress.status === "failed" && "Failed"}
                     </Badge>
                   </Flex>
 
-                  {uploadProgress.status === "uploading" && (
-                    <>
-                      <Text size="2">
-                        Uploaded {uploadProgress.uploadedFiles} of {uploadProgress.totalFiles} files
-                        {uploadProgress.failedFiles > 0 &&
-                          ` (${uploadProgress.failedFiles} failed)`}
-                      </Text>
-                      <Box
-                        style={{
-                          width: "100%",
-                          height: "4px",
-                          background: "var(--gray-4)",
-                          borderRadius: "2px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <Box
-                          style={{
-                            width: `${(uploadProgress.uploadedFiles / uploadProgress.totalFiles) * 100}%`,
-                            height: "100%",
-                            background: "var(--blue-9)",
-                            borderRadius: "2px",
-                            transition: "width 0.3s ease",
-                          }}
-                        />
-                      </Box>
-                    </>
-                  )}
+                  <Text size="2">{uploadProgress.message}</Text>
+
+                  <Box
+                    style={{
+                      width: "100%",
+                      height: "4px",
+                      background: "var(--gray-4)",
+                      borderRadius: "2px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <Box
+                      style={{
+                        width: `${uploadProgress.progress}%`,
+                        height: "100%",
+                        background: "var(--blue-9)",
+                        borderRadius: "2px",
+                        transition: "width 0.3s ease",
+                      }}
+                    />
+                  </Box>
 
                   {uploadProgress.status === "creating" && (
                     <Flex align="center" gap="2" justify="center">
@@ -935,7 +667,7 @@ export function UploadDataset() {
                 !currentWallet?.accounts[0]?.address ||
                 !metadata.name ||
                 isLoading ||
-                isCreatingDataset
+                selectedFiles.length === 0
               }
               style={{
                 background: "#FF5733",
@@ -944,14 +676,14 @@ export function UploadDataset() {
                   !currentWallet?.accounts[0]?.address ||
                   !metadata.name ||
                   isLoading ||
-                  isCreatingDataset
+                  selectedFiles.length === 0
                     ? "not-allowed"
                     : "pointer",
                 opacity:
                   !currentWallet?.accounts[0]?.address ||
                   !metadata.name ||
                   isLoading ||
-                  isCreatingDataset
+                  selectedFiles.length === 0
                     ? 0.5
                     : 1,
                 padding: "0 24px",
@@ -962,15 +694,13 @@ export function UploadDataset() {
               }}
             >
               <Flex align="center" gap="2">
-                {isLoading || isCreatingDataset ? (
+                {isLoading ? (
                   <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
                 ) : (
                   <UploadIcon />
                 )}
                 <span>
-                  {isLoading && "Uploading to Walrus..."}
-                  {isCreatingDataset && "Creating Dataset..."}
-                  {!isLoading && !isCreatingDataset && "Upload Dataset"}
+                  {isLoading ? "Creating Dataset..." : "Upload as Single Blob"}
                 </span>
               </Flex>
             </Button>
