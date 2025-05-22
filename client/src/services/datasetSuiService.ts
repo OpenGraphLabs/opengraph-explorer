@@ -262,6 +262,7 @@ export function useDatasetSuiService() {
               tx.pure.string(fileMetadata.fileName),
               tx.pure.string(blobId),
               tx.pure.string(fileMetadata.fileHash),
+              tx.pure.string(fileMetadata.fileType),
               rangeOptionObject,
             ],
           });

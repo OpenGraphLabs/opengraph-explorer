@@ -16,11 +16,7 @@ export interface DatasetObject {
   license?: string;
   tags?: string[];
   createdAt: string;
-  data: Array<{
-    blobId: string;
-    fileHash: string;
-    annotation?: string;
-  }>;
+  data: Array<DataObject>;
 }
 
 /**
@@ -31,6 +27,7 @@ export interface DataObject {
   annotations: AnnotationObject[];
   blobId: string;
   blobHash: string;
+  dataType: string;
   range?: RangeObject;
 }
 
@@ -244,12 +241,18 @@ export class DatasetGraphQLService {
 
       // 동적 필드 데이터 추출
       const dynamicFields = node?.asMoveObject?.dynamicFields?.nodes || [];
-      const dataItems = dynamicFields.map((field: any) => {
+      const dataItems: Array<DataObject> = dynamicFields.map((field: any) => {
         const fieldData = field.value.json;
         return {
+          path: fieldData.path,
+          annotations: fieldData.annotations || [],
           blobId: fieldData.blob_id,
-          fileHash: fieldData.blob_hash,
-          annotation: fieldData.annotations?.[0]?.label || "",
+          blobHash: fieldData.blob_hash,
+          dataType: fieldData.data_type,
+          range: {
+            start: fieldData.range?.start,
+            end: fieldData.range?.end,
+          }
         };
       });
 

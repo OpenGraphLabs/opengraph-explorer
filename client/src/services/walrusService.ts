@@ -10,7 +10,7 @@ import {useSignAndExecuteTransaction} from "@mysten/dapp-kit";
 // const WALRUS_PUBLISHER_URL = "https://publisher.testnet.walrus.atalma.io";
 export const WALRUS_AGGREGATOR_URL = "https://aggregator.testnet.walrus.atalma.io";
 
-const walrusClient = new WalrusClient({
+export const walrusClient = new WalrusClient({
   network: 'testnet',
   suiClient,
   storageNodeClientOptions: {
