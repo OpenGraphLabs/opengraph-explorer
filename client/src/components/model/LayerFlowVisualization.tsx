@@ -1,8 +1,8 @@
 import React from "react";
 import { Box, Flex, Text, Card, Table, Badge, Heading, Tooltip } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import { CheckCircledIcon, CrossCircledIcon, ReloadIcon, InfoCircledIcon } from "@radix-ui/react-icons";
-import { ArrowRight, CircleNotch, ArrowsHorizontal, FlowArrow, CircleWavyCheck as CircuitBoard, CheckCircle, Trophy, NumberCircleOne, NumberCircleTwo, NumberCircleThree, NumberCircleFour, NumberCircleFive, NumberCircleSix, NumberCircleSeven, NumberCircleEight, NumberCircleNine, NumberCircleZero } from "phosphor-react";
+import { CheckCircledIcon, CrossCircledIcon, ReloadIcon } from "@radix-ui/react-icons";
+import { CircleWavyCheck as CircuitBoard, CheckCircle, Trophy, FlowArrow, ArrowsHorizontal } from "phosphor-react";
 import { PredictResult } from "../../hooks/useModelInference";
 import { formatVector, getActivationTypeName, calculateConfidenceScores } from "../../utils/modelUtils";
 import { getSuiScanUrl } from "../../utils/sui";
@@ -257,23 +257,6 @@ function InferenceResultTable({
     </Table.Root>
   );
 }
-
-// 숫자에 맞는 아이콘 반환 함수
-const getNumberIcon = (num: number) => {
-  switch(num) {
-    case 0: return <NumberCircleZero weight="fill" />;
-    case 1: return <NumberCircleOne weight="fill" />;
-    case 2: return <NumberCircleTwo weight="fill" />;
-    case 3: return <NumberCircleThree weight="fill" />;
-    case 4: return <NumberCircleFour weight="fill" />;
-    case 5: return <NumberCircleFive weight="fill" />;
-    case 6: return <NumberCircleSix weight="fill" />;
-    case 7: return <NumberCircleSeven weight="fill" />;
-    case 8: return <NumberCircleEight weight="fill" />;
-    case 9: return <NumberCircleNine weight="fill" />;
-    default: return null;
-  }
-};
 
 // Confidence Scores 상위 항목만 표시하는 함수
 const getTopConfidenceScores = (result: PredictResult, count: number = 5) => {

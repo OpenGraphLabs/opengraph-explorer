@@ -15,8 +15,8 @@ import {
 } from "@radix-ui/themes";
 import { Database, ImageSquare, FileDoc, FileZip, FileText, Download } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
-import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
-import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
+import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject} from "../services/datasetGraphQLService";
+import {WALRUS_AGGREGATOR_URL} from "../services/walrusService";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 import { getSuiScanUrl, getWalruScanUrl } from "../utils/sui";
 
@@ -40,22 +40,37 @@ const DATA_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   default: { bg: "#F3E8FD", text: "#7E22CE" },
 };
 
-interface DataItem {
-  blobId: string;
-  fileHash: string;
-  annotation?: string;
-}
-
 export function DatasetDetail() {
   const { id } = useParams<{ id: string }>();
   const [dataset, setDataset] = useState<DatasetObject | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // 전체 Blob 데이터 캐시 및 URL 관리
+  const [blobCache, setBlobCache] = useState<Record<string, ArrayBuffer>>({});
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [blobLoading, setBlobLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchDataset();
   }, [id]);
+
+  // 데이터셋이 로드되면 필요한 Blob 데이터 가져오기
+  useEffect(() => {
+    if (dataset && isImageType(dataset.dataType)) {
+      loadBlobData();
+    }
+    
+    // 컴포넌트 언마운트 시 URL 정리
+    return () => {
+      Object.values(imageUrls).forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [dataset]);
 
   const fetchDataset = async () => {
     try {
@@ -71,6 +86,136 @@ export function DatasetDetail() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 각 고유한 blobId에 대해 전체 Blob 데이터를 한 번만 가져오기
+  const loadBlobData = async () => {
+    if (!dataset || !dataset.data.length) return;
+
+    // 고유한 blobId 추출
+    const uniqueBlobIds = Array.from(new Set(dataset.data.map(item => item.blobId)));
+    console.log(`Unique blob IDs: ${uniqueBlobIds.join(", ")}`);
+    
+    // 로딩 상태 초기화
+    const newLoadingState: Record<string, boolean> = {};
+    uniqueBlobIds.forEach(blobId => {
+      newLoadingState[blobId] = true;
+    });
+    setBlobLoading(newLoadingState);
+
+    // 각 고유한 blobId에 대해 한 번만 전체 데이터 가져오기
+    for (const blobId of uniqueBlobIds) {
+      try {
+        // 이미 캐시되어 있는지 확인
+        if (blobCache[blobId]) {
+          processBlob(blobId, blobCache[blobId]);
+          continue;
+        }
+
+        console.log(`Loading blob data for ${blobId}...`);
+        const response = await fetch(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${blobId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
+        }
+        
+        // 전체 Blob 데이터를 ArrayBuffer로 변환
+        const blob = await response.blob();
+        const buffer = await blob.arrayBuffer();
+
+        // // walrusClient API를 사용하여 Blob 데이터 가져오기
+        // const uint8Array = await walrusClient.readBlob({ blobId });
+        
+        // // Uint8Array에서 ArrayBuffer 추출
+        // const buffer = uint8Array.buffer;
+        
+        // 캐시에 저장
+        setBlobCache(prev => ({
+          ...prev, 
+          [blobId]: buffer
+        }));
+        
+        console.log(`Blob ${blobId} loaded (${buffer.byteLength} bytes)`);
+        
+        // 이 Blob을 참조하는 모든 이미지 처리
+        processBlob(blobId, buffer);
+      } catch (error) {
+        console.error(`Error loading blob ${blobId}:`, error);
+      } finally {
+        // 로딩 상태 업데이트
+        setBlobLoading(prev => ({
+          ...prev,
+          [blobId]: false
+        }));
+      }
+    }
+  };
+
+  // 가져온 Blob 데이터를 처리하여 개별 이미지 URL 생성
+  const processBlob = (blobId: string, buffer: ArrayBuffer) => {
+    if (!dataset) return;
+    
+    const newImageUrls = {...imageUrls};
+    
+    // 같은 blobId를 참조하는 모든 항목 처리
+    dataset.data.forEach((item: DataObject, index: number) => {
+      if (item.blobId !== blobId) return;
+      
+      try {
+        // range 정보가 있으면 해당 부분만 추출
+        let imageBlob: Blob;
+        const itemType = item.dataType || 'image/jpeg';
+
+        if (item.range && item.range.start && item.range.end) {
+          const start = parseInt(String(item.range.start), 10);
+          const end = parseInt(String(item.range.end), 10) + 1; // end는 포함되므로 +1
+
+          // NaN 체크를 통한 유효성 검증
+          if (!isNaN(start) && !isNaN(end)) {
+            console.log("bytes buffer length: ", buffer.byteLength);
+            if (start >= 0 && end <= buffer.byteLength && start < end) {
+              // 범위 내 데이터만 추출
+              const slice = buffer.slice(start, end);
+              imageBlob = new Blob([slice], { type: itemType });
+              console.log(`Blob ${blobId} sliced from ${start} to ${end} (${slice.byteLength} bytes)`);
+            } else {
+              console.warn(`Invalid range for item ${index}: [${start}, ${end}] (buffer size: ${buffer.byteLength})`);
+              imageBlob = new Blob([buffer], { type: itemType });
+            }
+          } else {
+            console.warn(`Invalid number format for range values: start=${item.range.start}, end=${item.range.end}`);
+            imageBlob = new Blob([buffer], { type: itemType });
+          }
+        } else {
+          // range 정보가 없으면 전체 사용
+          imageBlob = new Blob([buffer], { type: itemType });
+        }
+        
+        // URL 생성
+        const url = URL.createObjectURL(imageBlob);
+        console.log(`Created URL for item ${index}: ${url}`);
+        newImageUrls[`${blobId}_${index}`] = url;
+      } catch (error) {
+        console.error(`Error creating image URL for item ${index}:`, error);
+      }
+    });
+    
+    setImageUrls(newImageUrls);
+  };
+
+  // 이미지 URL 가져오기
+  const getImageUrl = (item: DataObject, index: number) => {
+    const cacheKey = `${item.blobId}_${index}`;
+    if (imageUrls[cacheKey]) {
+      return imageUrls[cacheKey];
+    }
+    // 캐시된 URL이 없으면 기본 URL 반환
+    return `${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`;
+  };
+
+  // 로딩 상태 확인
+  const isItemLoading = (item: DataObject) => {
+    return blobLoading[item.blobId] === true;
   };
 
   const formatDataSize = (size: string | number): { value: string; unit: string } => {
@@ -356,7 +501,7 @@ export function DatasetDetail() {
           <Heading size="4">Dataset Contents</Heading>
 
           <Grid columns={{ initial: "3", sm: "4", md: "5" }} gap="3">
-            {dataset.data.map((item: DataItem, index: number) => (
+            {dataset.data.map((item: DataObject, index: number) => (
               <Card
                 key={index}
                 style={{
@@ -378,23 +523,42 @@ export function DatasetDetail() {
                         overflow: "hidden",
                         cursor: "pointer",
                       }}
-                      onClick={() =>
-                        setSelectedImage(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`)
-                      }
+                      onClick={() => setSelectedImage(getImageUrl(item, index))}
                     >
-                      <img
-                        src={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
-                        alt={`Dataset item ${index + 1}`}
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                      {item.annotation && (
+                      {isItemLoading(item) ? (
+                        <Flex 
+                          align="center" 
+                          justify="center" 
+                          style={{ 
+                            position: "absolute", 
+                            top: 0, 
+                            left: 0, 
+                            width: "100%", 
+                            height: "100%",
+                            background: "var(--gray-3)" 
+                          }}
+                        >
+                          <Text size="1" style={{ color: "var(--gray-11)" }}>Loading...</Text>
+                        </Flex>
+                      ) : (
+                        <img
+                          src={getImageUrl(item, index)}
+                          alt={`Dataset item ${index + 1}`}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                          onError={(e) => {
+                            console.error(`Error loading image ${index}:`, e);
+                            (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
+                          }}
+                        />
+                      )}
+                      {item.annotations.length > 0 && (
                         <Box
                           style={{
                             position: "absolute",
@@ -427,7 +591,7 @@ export function DatasetDetail() {
                               Annotation
                             </Text>
                             <Text size="1" style={{ fontWeight: "600" }}>
-                              {item.annotation}
+                              {item.annotations.map((annotation: AnnotationObject) => annotation.label).join(", ")}
                             </Text>
                           </Badge>
                         </Box>
@@ -488,7 +652,7 @@ export function DatasetDetail() {
                     >
                       {getDataTypeIcon(dataset.dataType)}
                     </Box>
-                    {item.annotation && (
+                    {item.annotations.length > 0 && (
                       <Flex
                         align="center"
                         gap="2"
@@ -518,7 +682,7 @@ export function DatasetDetail() {
                             fontWeight: "600",
                           }}
                         >
-                          {item.annotation}
+                          {item.annotations.map((annotation: AnnotationObject) => annotation.label).join(", ")}
                         </Badge>
                       </Flex>
                     )}

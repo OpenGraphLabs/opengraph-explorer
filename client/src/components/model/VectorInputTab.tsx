@@ -1,12 +1,10 @@
 import {
-  Box,
   Flex,
   Heading,
   Text,
   TextArea,
 } from "@radix-ui/themes";
 import { Brain as BrainCircuit } from "phosphor-react";
-import { FormattedVector } from "./VectorInfoDisplay";
 
 interface VectorInputTabProps {
   inputVector: string;

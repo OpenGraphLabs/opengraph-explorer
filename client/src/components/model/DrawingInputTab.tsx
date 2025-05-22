@@ -1,15 +1,11 @@
 import {
   Box,
   Flex,
-  Heading,
   Text,
   Card,
-  Button,
-  Badge,
   Tooltip,
   Slider,
   IconButton,
-  Grid,
   Separator,
 } from "@radix-ui/themes";
 import {
@@ -42,7 +38,7 @@ export function DrawingInputTab({
   const [isDrawing, setIsDrawing] = useState(false);
   const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null);
   const [lineThickness, setLineThickness] = useState<number>(18);
-  const [drawingColor, setDrawingColor] = useState<string>('#FFFFFF');
+  const [drawingColor] = useState<string>('#FFFFFF');
   const [brushStyle, setBrushStyle] = useState<string>('normal');
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
   const [lastPoint, setLastPoint] = useState<{x: number, y: number} | null>(null);
@@ -274,7 +270,6 @@ export function DrawingInputTab({
     if (brushStyle === 'calligraphy') {
       // 캘리그래피 효과
       const angle = Math.atan2(dy, dx);
-      const width = lineThickness / 2;
       
       canvasContext.lineWidth = lineThickness * (1 - 0.5 * Math.abs(Math.sin(angle)));
       canvasContext.lineTo(x2, y2);

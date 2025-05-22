@@ -1,7 +1,7 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Box, Card, Flex, Text, Badge, Tooltip } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import { ModelObject, Layer, Tensor } from "../../services/modelGraphQLService";
+import { ModelObject, Layer } from "../../services/modelGraphQLService";
 
 // Interface for weight connections
 interface WeightConnection {
@@ -139,13 +139,6 @@ function getSampleWeights(layer: Layer, maxConnections: number = 50): WeightConn
     return significantWeights;
   }
   
-  // Otherwise, find the indices of the significant weights in the original array
-  const significantIndices = significantWeights.map(w => 
-    allWeights.findIndex(
-      aw => aw.sourceNodeIndex === w.sourceNodeIndex && aw.targetNodeIndex === w.targetNodeIndex
-    )
-  );
-  
   // Return the significant weights
   return significantWeights;
 }
@@ -243,7 +236,6 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 5 }: Neur
       
       // Smart connection sampling to avoid visual clutter
       // Determine the number of connections based on network density
-      const totalPossibleConnections = outputNodes * inputNodesNext;
       const networkDensity = outputNodes + inputNodesNext;
       
       // Adaptive connection count based on network size
@@ -347,9 +339,9 @@ export function NeuralNetworkVisualization({ model, maxNodesPerLayer = 5 }: Neur
           const opacity = isHovered ? 1 : getWeightOpacity(weight);
           const width = isHovered ? getWeightWidth(weight) * 2 : getWeightWidth(weight);
           
-          // Add control points for curved paths for a more organic feel
-          // Use different curve styles based on the position of nodes
-          const midX = sourceX + (targetX - sourceX) / 2;
+          // // Add control points for curved paths for a more organic feel
+          // // Use different curve styles based on the position of nodes
+          // const midX = sourceX + (targetX - sourceX) / 2;
           
           // Calculate control points for a natural flow
           // Adjust control points based on whether it's going up or down

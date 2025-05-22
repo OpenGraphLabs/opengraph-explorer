@@ -67,7 +67,7 @@ export function Datasets() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showTagSelector, setShowTagSelector] = useState(false);
+  const [_, setShowTagSelector] = useState(false);
 
   // 데이터셋 가져오기
   useEffect(() => {

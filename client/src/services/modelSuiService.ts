@@ -11,7 +11,7 @@ import {
 import {Model, validateModel} from "../types/model";
 import {ModelObject} from "./modelGraphQLService.ts";
 
-const suiClient = new SuiClient({
+export const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
 });
 
@@ -27,7 +27,7 @@ interface UploadModelParams {
  * Model 객체를 Sui 블록체인에 업로드하는 커스텀 훅
  */
 export function useUploadModelToSui() {
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const account = useCurrentAccount();
 
   const uploadModel = async (
