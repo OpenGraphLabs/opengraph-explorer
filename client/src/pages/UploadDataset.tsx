@@ -129,7 +129,7 @@ export function UploadDataset() {
       const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
 
       // 파일 업로드 및 데이터셋 생성 (모든 파일을 하나의 blob으로)
-      const result = await createDatasetWithMultipleFiles(
+      await createDatasetWithMultipleFiles(
         {
           ...metadata,
           dataSize: totalSize,
@@ -177,8 +177,6 @@ export function UploadDataset() {
           });
         }
       );
-
-      console.log("Dataset creation result:", result);
     } catch (error) {
       console.error("Error in upload process:", error);
       setError(error instanceof Error ? error.message : "Failed to process dataset");

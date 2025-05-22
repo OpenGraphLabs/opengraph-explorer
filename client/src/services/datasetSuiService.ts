@@ -1,18 +1,12 @@
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { SuiClient, SuiObjectChange } from "@mysten/sui/client";
+import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
 import { useWalrusService } from "./walrusService";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
 });
-
-// 트랜잭션 실행 결과 타입 정의
-type SuiExecutionResult = {
-  digest: string;
-  [key: string]: any;
-};
 
 // 데이터셋 메타데이터 인터페이스
 export interface DatasetMetadata {
@@ -35,13 +29,6 @@ export interface Data {
     start?: number;
     end?: number;
   };
-}
-
-// 데이터셋 생성 결과 인터페이스
-export interface DatasetCreationResult {
-  datasetId: string;
-  dataIds: string[];
-  blobId: string;
 }
 
 /**
@@ -192,7 +179,7 @@ export function useDatasetSuiService() {
     files: File[],
     annotations: string[],
     epochs?: number,
-    onSuccess?: (result: DatasetCreationResult) => void,
+    onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
   ) => {
     if (!account) {
@@ -241,6 +228,8 @@ export function useDatasetSuiService() {
       const dataIds: string[] = [];
       const { blobId, filesMetadata } = blobUploadResult;
 
+      console.log("file metadata length:", filesMetadata.length);
+      console.log("file metadata:", filesMetadata);
       for (let i = 0; i < filesMetadata.length; i++) {
         const fileMetadata = filesMetadata[i];
         const annotation = annotations[i];
@@ -292,49 +281,31 @@ export function useDatasetSuiService() {
       tx.transferObjects([dataset], account.address);
 
       // 7. 트랜잭션 실행
-      const txResult: SuiExecutionResult = await signAndExecuteTransaction({
-        transaction: tx,
-        chain: `sui:${SUI_NETWORK.TYPE}`,
-      });
-
-      console.log("Dataset creation transaction result:", txResult);
-
-      // 생성된 데이터셋 객체 ID 찾기
-      let datasetId = "";
-      
-      // 트랜잭션 결과에서 생성된 객체 정보 확인
-      const effects = await suiClient.getTransactionBlock({
-        digest: txResult.digest,
-        options: {
-          showObjectChanges: true,
+      return await signAndExecuteTransaction(
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: result => {
+            console.log("Dataset creation successful:", result);
+            if (onSuccess) {
+              onSuccess(result);
+            }
+            return result;
+          },
+          onError: error => {
+            console.error("Transaction execution failed:", error);
+            if (onError) {
+              onError(
+                  new Error(
+                      `Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`
+                  )
+              );
+            }
+          },
         }
-      });
-      
-      if (effects.objectChanges) {
-        const createdObjects = effects.objectChanges.filter(
-          (change: SuiObjectChange) => 
-            change.type === "created" && 
-            change.objectType.includes("dataset::Dataset")
-        );
-        
-        if (createdObjects.length > 0) {
-          const createdObj = createdObjects[0] as SuiObjectChange & { objectId: string };
-          datasetId = createdObj.objectId;
-        }
-      }
-
-      const result: DatasetCreationResult = {
-        datasetId,
-        dataIds,
-        blobId,
-      };
-
-      console.log("Dataset creation successful:", result);
-      if (onSuccess) {
-        onSuccess(result);
-      }
-
-      return result;
+      );
     } catch (error) {
       console.error("Error creating dataset with multiple files:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";

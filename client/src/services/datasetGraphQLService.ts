@@ -82,7 +82,7 @@ export class DatasetGraphQLService {
                 contents {
                   json
                 }
-                dynamicFields {
+                dynamicFields(first: 50) {
                   nodes {
                     value {
                       ... on MoveValue {
@@ -136,7 +136,7 @@ export class DatasetGraphQLService {
               contents {
                 json
               }
-              dynamicFields {
+              dynamicFields(first: 50) {
                 nodes {
                   value {
                     ... on MoveValue {
@@ -199,7 +199,7 @@ export class DatasetGraphQLService {
                 contents {
                   json
                 }
-                dynamicFields {
+                dynamicFields(first: 50) {
                   nodes {
                     value {
                       ... on MoveValue {

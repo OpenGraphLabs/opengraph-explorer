@@ -212,6 +212,9 @@ export function useWalrusService() {
       
       // 파일 메타데이터 생성 및 바이트 배열 채우기
       for (let i = 0; i < files.length; i++) {
+        console.log(`Processing file ${i + 1}:`, files[i].name);
+        console.log("currentPosition:", currentPosition);
+        console.log("---------------------\n");
         const file = files[i];
         const buffer = fileBuffers[i];
         const bytesArray = new Uint8Array(buffer);
