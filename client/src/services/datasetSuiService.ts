@@ -320,8 +320,7 @@ export function useDatasetSuiService() {
 
   const addAnnotationLabels = async (
     dataset: DatasetObject,
-    path: string,
-    annotations: string[],
+    annotations: { path: string; label: string[] }[],
   ) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
@@ -333,14 +332,18 @@ export function useDatasetSuiService() {
 
     try {
       const tx = new Transaction();
+      tx.setGasBudget(GAS_BUDGET);
       
-      tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_labels`,
-        arguments: [
-          tx.object(dataset.id),
-          tx.pure.string(path),
-          tx.pure.vector("string", annotations),
-        ],
+      // Add a moveCall for each annotation
+      annotations.forEach(({ path, label }) => {
+        tx.moveCall({
+          target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_labels`,
+          arguments: [
+            tx.object(dataset.id),
+            tx.pure.string(path),
+            tx.pure.vector("string", label),
+          ],
+        });
       });
 
       await signAndExecuteTransaction(
@@ -356,7 +359,7 @@ export function useDatasetSuiService() {
         }
       );
     } catch (error) {
-      console.error("Error adding annotation label:", error);
+      console.error("Error adding annotation labels:", error);
       throw error;
     }
   };
