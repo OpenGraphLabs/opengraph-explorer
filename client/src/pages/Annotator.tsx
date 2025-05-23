@@ -191,11 +191,6 @@ export function Annotator() {
         return [...prev, { path: item.path, label: [label] }];
       }
     });
-
-    // Move to next image if not the last one
-    if (selectedDataset && index < selectedDataset.data.length - 1) {
-      setCurrentImageIndex(index + 1);
-    }
   };
 
   const savePendingAnnotations = async () => {
@@ -331,19 +326,21 @@ export function Annotator() {
                       onValueChange={(value) => handleAnnotationSelect(getCurrentImage()!, currentImageIndex, value)}
                     >
                       <Select.Trigger 
+                        placeholder="Select annotation..."
                         style={{ 
                           minWidth: "200px",
                           height: "40px",
-                          background: "#FF5733",
-                          color: "white",
-                          border: "none",
+                          border: "1px solid var(--gray-6)",
                           borderRadius: "8px",
                           cursor: "pointer",
+                          background: "white",
+                          color: "var(--gray-12)",
                         }} 
                       />
                       <Select.Content>
                         <Select.Group>
                           <Select.Label>Choose Animal Type</Select.Label>
+                          {/* <Select.Item value="">Select annotation...</Select.Item> */}
                           <Select.Item value="walrus">Walrus</Select.Item>
                           <Select.Item value="elephant">Elephant</Select.Item>
                         </Select.Group>
@@ -364,7 +361,9 @@ export function Annotator() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        transition: "all 0.2s ease",
                       }}
+                      className="hover:bg-[--gray-4]"
                     >
                       <ArrowLeft
                         size={24}
@@ -383,7 +382,9 @@ export function Annotator() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        transition: "all 0.2s ease",
                       }}
+                      className="hover:bg-[--gray-4]"
                     >
                       <ArrowRight
                         size={24}
