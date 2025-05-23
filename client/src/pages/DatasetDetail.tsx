@@ -81,6 +81,17 @@ export function DatasetDetail() {
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [blobLoading, setBlobLoading] = useState<Record<string, boolean>>({});
 
+  // 트랜잭션 상태 관리
+  const [confirmationStatus, setConfirmationStatus] = useState<{
+    status: 'idle' | 'pending' | 'success' | 'failed';
+    message: string;
+    txHash?: string;
+    confirmedLabels?: string[];
+  }>({
+    status: 'idle',
+    message: '',
+  });
+
   useEffect(() => {
     fetchDataset();
   }, [id]);
@@ -439,28 +450,130 @@ export function DatasetDetail() {
   // 선택된 Annotation들 승인 핸들러
   const handleConfirmSelectedAnnotations = async () => {
     if (selectedPendingLabels.size === 0) {
-      alert('Please select annotations to confirm');
+      setConfirmationStatus({
+        status: 'failed',
+        message: 'Please select annotations to confirm',
+      });
       return;
     }
 
     if (!dataset || !selectedImageData) {
-      alert('Dataset or image data not found');
+      setConfirmationStatus({
+        status: 'failed',
+        message: 'Dataset or image data not found',
+      });
       return;
     }
 
     const labels = Array.from(selectedPendingLabels);
     console.log(`Confirming annotations: ${labels.join(', ')} for image ${selectedImageIndex}`);
 
-    await addConfirmedAnnotationLabels(dataset, {
-      path: selectedImageData.path,
-      label: labels,
-    });
+    try {
+      setConfirmationStatus({
+        status: 'pending',
+        message: `Confirming ${labels.length} annotation(s) on blockchain...`,
+      });
+
+      const result = await addConfirmedAnnotationLabels(dataset, {
+        path: selectedImageData.path,
+        label: labels,
+      });
+      
+      // 성공 처리
+      setConfirmationStatus({
+        status: 'success',
+        message: `Successfully confirmed ${labels.length} annotation(s)!`,
+        txHash: (result as any)?.digest || undefined,
+        confirmedLabels: labels,
+      });
+      
+      console.log("Annotations confirmed successfully:", result);
+      
+      // 선택 상태 초기화
+      setSelectedPendingLabels(new Set());
+      
+      // 데이터 갱신 - 현재 페이지 정보를 유지하며 갱신
+      await refreshCurrentData();
+      
+      // 3초 후 상태 초기화
+      setTimeout(() => {
+        setConfirmationStatus({
+          status: 'idle',
+          message: '',
+        });
+      }, 3000);
+      
+    } catch (error) {
+      console.error("Error confirming annotations:", error);
+      setConfirmationStatus({
+        status: 'failed',
+        message: error instanceof Error ? error.message : "Failed to confirm annotations",
+      });
+    }
+  };
+
+  // 현재 데이터 갱신 함수
+  const refreshCurrentData = async () => {
+    if (!id || !dataset) return;
     
-    // 임시로 UI 피드백만 제공
-    alert(`${labels.length} annotation(s) "${labels.join(', ')}" confirmed!`);
-    
-    // 선택 상태 초기화
-    setSelectedPendingLabels(new Set());
+    try {
+      console.log('[Refresh] Refreshing current page data...');
+      
+      // 현재 페이지 옵션 구성
+      const refreshOptions: PaginationOptions = {};
+      
+      if (currentPage === 1) {
+        // 첫 페이지는 간단하게
+        refreshOptions.first = pageSize;
+      } else {
+        // 현재 페이지 위치를 유지하기 위해 현재 cursor 사용
+        if (currentCursors.startCursor) {
+          refreshOptions.first = pageSize;
+          refreshOptions.after = currentCursors.startCursor;
+        } else {
+          // fallback to first page
+          refreshOptions.first = pageSize;
+        }
+      }
+      
+      const refreshedData = await datasetGraphQLService.getDatasetData(id, refreshOptions);
+      
+      if (refreshedData && dataset) {
+        console.log('[Refresh] Successfully refreshed data');
+        
+        // 이미지 URL 초기화 후 재생성
+        Object.values(imageUrls).forEach(url => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+        setImageUrls({});
+        
+        // 데이터셋 업데이트
+        const updatedDataset = {
+          ...dataset,
+          data: refreshedData.data,
+          pageInfo: refreshedData.pageInfo,
+        };
+        setDataset(updatedDataset);
+        
+        // 커서 업데이트
+        setCurrentCursors({
+          startCursor: refreshedData.pageInfo.startCursor,
+          endCursor: refreshedData.pageInfo.endCursor,
+        });
+        
+        // 현재 선택된 이미지 데이터도 업데이트
+        if (selectedImageIndex >= 0 && refreshedData.data[selectedImageIndex]) {
+          setSelectedImageData(refreshedData.data[selectedImageIndex]);
+          setSelectedAnnotations(refreshedData.data[selectedImageIndex].annotations);
+        }
+      }
+    } catch (error) {
+      console.error('[Refresh] Error refreshing data:', error);
+      // 갱신 실패 시 전체 데이터 다시 로드
+      await fetchDataset();
+    }
   };
 
   // 모달 닫기 핸들러
@@ -470,6 +583,11 @@ export function DatasetDetail() {
     setSelectedImageData(null);
     setSelectedImageIndex(-1);
     setSelectedPendingLabels(new Set());
+    // 확인 상태도 초기화
+    setConfirmationStatus({
+      status: 'idle',
+      message: '',
+    });
   };
 
   // 고유한 Blob ID 가져오기 (WalrusScan 링크용)
@@ -676,6 +794,202 @@ export function DatasetDetail() {
                 Prev: {hasPreviousPage ? '✓' : '✗'} |
                 Cursors: {currentCursors.endCursor ? 'E✓' : 'E✗'}{currentCursors.startCursor ? 'S✓' : 'S✗'}
               </Text>
+            )}
+          </Flex>
+        </Flex>
+      </Card>
+    );
+  };
+
+  // 확인 상태 표시 컴포넌트
+  const ConfirmationStatusDisplay = () => {
+    if (confirmationStatus.status === 'idle') return null;
+
+    const getStatusConfig = () => {
+      switch (confirmationStatus.status) {
+        case 'pending':
+          return {
+            bg: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+            border: 'var(--blue-6)',
+            text: 'var(--blue-11)',
+            icon: '⏳',
+            title: 'Confirming Annotations'
+          };
+        case 'success':
+          return {
+            bg: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+            border: 'var(--green-6)',
+            text: 'var(--green-11)',
+            icon: '✅',
+            title: 'Confirmation Successful'
+          };
+        case 'failed':
+          return {
+            bg: 'linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%)',
+            border: 'var(--red-6)',
+            text: 'var(--red-11)',
+            icon: '❌',
+            title: 'Confirmation Failed'
+          };
+        default:
+          return {
+            bg: 'var(--gray-2)',
+            border: 'var(--gray-6)',
+            text: 'var(--gray-11)',
+            icon: 'ℹ️',
+            title: 'Status'
+          };
+      }
+    };
+
+    const config = getStatusConfig();
+
+    return (
+      <Card
+        style={{
+          background: config.bg,
+          border: `2px solid ${config.border}`,
+          padding: "20px",
+          borderRadius: "16px",
+          marginBottom: "20px",
+          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
+          animation: confirmationStatus.status === 'pending' ? 'pulse 2s ease-in-out infinite' : 'none',
+        }}
+      >
+        <Flex align="center" gap="4" justify="between">
+          <Flex align="center" gap="4">
+            {/* 상태 아이콘 */}
+            <Box
+              style={{
+                fontSize: "24px",
+                width: "48px",
+                height: "48px",
+                borderRadius: "50%",
+                background: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                animation: confirmationStatus.status === 'pending' ? 'spin 2s linear infinite' : 'none',
+              }}
+            >
+              {confirmationStatus.status === 'pending' ? (
+                <Box
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    border: `3px solid ${config.text}`,
+                    borderTop: "3px solid transparent",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+              ) : (
+                config.icon
+              )}
+            </Box>
+            
+            <Flex direction="column" gap="2">
+              <Heading size="4" style={{ color: config.text, fontWeight: 700 }}>
+                {config.title}
+              </Heading>
+              <Text size="3" style={{ color: config.text, opacity: 0.9 }}>
+                {confirmationStatus.message}
+              </Text>
+              
+              {/* 확인된 라벨 표시 */}
+              {confirmationStatus.status === 'success' && confirmationStatus.confirmedLabels && (
+                <Flex gap="2" wrap="wrap" style={{ marginTop: "8px" }}>
+                  {confirmationStatus.confirmedLabels.map((label, index) => (
+                    <Badge
+                      key={index}
+                      style={{
+                        background: "var(--green-9)",
+                        color: "white",
+                        padding: "4px 8px",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      ✓ {label}
+                    </Badge>
+                  ))}
+                </Flex>
+              )}
+              
+              {/* 트랜잭션 해시 */}
+              {confirmationStatus.txHash && (
+                <Text 
+                  size="1" 
+                  style={{ 
+                    color: config.text, 
+                    opacity: 0.7, 
+                    fontFamily: 'monospace',
+                    fontSize: "10px",
+                    marginTop: "4px"
+                  }}
+                >
+                  TX: {confirmationStatus.txHash.substring(0, 24)}...
+                </Text>
+              )}
+            </Flex>
+          </Flex>
+
+          {/* 액션 버튼들 */}
+          <Flex gap="2">
+            {/* 재시도 버튼 (실패 시에만) */}
+            {confirmationStatus.status === 'failed' && (
+              <Button
+                size="2"
+                variant="soft"
+                onClick={() => {
+                  setConfirmationStatus({ status: 'idle', message: '' });
+                  handleConfirmSelectedAnnotations();
+                }}
+                style={{
+                  background: config.text,
+                  color: 'white',
+                  borderRadius: "8px",
+                  padding: "0 16px",
+                }}
+              >
+                Retry
+              </Button>
+            )}
+
+            {/* 새로고침 버튼 (성공 시에만) */}
+            {confirmationStatus.status === 'success' && (
+              <Button
+                size="2"
+                variant="soft"
+                onClick={refreshCurrentData}
+                style={{
+                  background: "white",
+                  color: config.text,
+                  border: `1px solid ${config.border}`,
+                  borderRadius: "8px",
+                  padding: "0 16px",
+                }}
+              >
+                🔄 Refresh
+              </Button>
+            )}
+
+            {/* 닫기 버튼 */}
+            {(confirmationStatus.status === 'success' || confirmationStatus.status === 'failed') && (
+              <Button
+                size="1"
+                variant="ghost"
+                onClick={() => setConfirmationStatus({ status: 'idle', message: '' })}
+                style={{
+                  color: config.text,
+                  opacity: 0.7,
+                  padding: "4px",
+                }}
+              >
+                ✕
+              </Button>
             )}
           </Flex>
         </Flex>
@@ -1628,8 +1942,11 @@ export function DatasetDetail() {
                   <Box style={{ marginTop: "auto" }}>
                     <Separator size="4" style={{ marginBottom: "16px" }} />
                     
+                    {/* 확인 상태 표시 */}
+                    <ConfirmationStatusDisplay />
+                    
                     {/* 선택된 annotation 정보 */}
-                    {selectedPendingLabels.size > 0 && (
+                    {selectedPendingLabels.size > 0 && confirmationStatus.status === 'idle' && (
                       <Card style={{
                         padding: "12px 16px",
                         background: "var(--green-2)",
@@ -1662,24 +1979,42 @@ export function DatasetDetail() {
                         Close
                       </Button>
                       <Button
-                        disabled={selectedPendingLabels.size === 0}
+                        disabled={selectedPendingLabels.size === 0 || confirmationStatus.status === 'pending'}
                         style={{
                           flex: 1,
-                          background: selectedPendingLabels.size > 0 
+                          background: (selectedPendingLabels.size > 0 && confirmationStatus.status !== 'pending')
                             ? "linear-gradient(135deg, var(--green-9) 0%, var(--green-10) 100%)"
                             : "var(--gray-4)",
-                          color: selectedPendingLabels.size > 0 ? "white" : "var(--gray-8)",
+                          color: (selectedPendingLabels.size > 0 && confirmationStatus.status !== 'pending') ? "white" : "var(--gray-8)",
                           border: "none",
                           borderRadius: "8px",
                           padding: "12px",
-                          cursor: selectedPendingLabels.size > 0 ? "pointer" : "not-allowed",
+                          cursor: (selectedPendingLabels.size > 0 && confirmationStatus.status !== 'pending') ? "pointer" : "not-allowed",
                           fontWeight: 600,
-                          opacity: selectedPendingLabels.size > 0 ? 1 : 0.6,
+                          opacity: (selectedPendingLabels.size > 0 && confirmationStatus.status !== 'pending') ? 1 : 0.6,
                         }}
                         onClick={handleConfirmSelectedAnnotations}
                       >
-                        <CheckCircle size={16} weight="fill" />
-                        Confirm {selectedPendingLabels.size > 0 ? `(${selectedPendingLabels.size})` : 'Selected'}
+                        {confirmationStatus.status === 'pending' ? (
+                          <Flex align="center" gap="2">
+                            <Box
+                              style={{
+                                width: "12px",
+                                height: "12px",
+                                border: "2px solid white",
+                                borderTop: "2px solid transparent",
+                                borderRadius: "50%",
+                                animation: "spin 1s linear infinite",
+                              }}
+                            />
+                            <span>Processing...</span>
+                          </Flex>
+                        ) : (
+                          <>
+                            <CheckCircle size={16} weight="fill" />
+                            Confirm {selectedPendingLabels.size > 0 ? `(${selectedPendingLabels.size})` : 'Selected'}
+                          </>
+                        )}
                       </Button>
                     </Flex>
                   </Box>
@@ -1719,6 +2054,20 @@ export function DatasetDetail() {
             }
             100% {
               background-position: 200% 0;
+            }
+          }
+          @keyframes pulse {
+            0% { 
+              transform: scale(1);
+              opacity: 1;
+            }
+            50% { 
+              transform: scale(1.02);
+              opacity: 0.9;
+            }
+            100% { 
+              transform: scale(1);
+              opacity: 1;
             }
           }
         `}
