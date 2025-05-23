@@ -61,7 +61,11 @@ export function Annotator() {
   const [annotations, setAnnotations] = useState<Record<string, string>>({});
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [saving, setSaving] = useState(false);
-  const [pendingAnnotations, setPendingAnnotations] = useState<{ path: string; label: string[] }[]>([]);
+  const [pendingAnnotations, setPendingAnnotations] = useState<{ 
+    path: string; 
+    label: string[]; 
+    timestamp: number;
+  }[]>([]);
   const [currentInput, setCurrentInput] = useState<string>("");
   
   // Blob 데이터 관리
@@ -287,19 +291,25 @@ export function Annotator() {
           [key]: value
         }));
 
-        // Add to pending annotations
+        // Add to pending annotations with timestamp
         setPendingAnnotations(prev => {
           const existingIndex = prev.findIndex(annotation => annotation.path === item.path);
+          const now = Date.now();
           
           if (existingIndex >= 0) {
             const updated = [...prev];
             updated[existingIndex] = {
               ...updated[existingIndex],
-              label: [...updated[existingIndex].label, value]
+              label: [...updated[existingIndex].label, value],
+              timestamp: now // Update timestamp when adding new annotation
             };
             return updated;
           } else {
-            return [...prev, { path: item.path, label: [value] }];
+            return [...prev, { 
+              path: item.path, 
+              label: [value],
+              timestamp: now
+            }];
           }
         });
 
@@ -640,127 +650,135 @@ export function Annotator() {
                         width: '100%'
                       }}
                     >
-                      {pendingAnnotations.map((annotation, idx) => {
-                        const item = selectedDataset.data.find(d => d.path === annotation.path);
-                        if (!item) return null;
+                      {(() => {
+                        // 먼저 정렬된 배열을 생성
+                        const sortedAnnotations = [...pendingAnnotations].sort((a, b) => b.timestamp - a.timestamp);
                         
-                        return (
-                          <Card key={`${item.blobId}_${idx}`} style={{ 
-                            position: 'relative', 
-                            padding: '2px',
-                            marginBottom: '2px',
-                            width: '100%'
-                          }}>
-                            <Flex direction="column" gap="2">
-                              <Box style={{ 
-                                position: 'relative',
-                                width: '100%',
-                                paddingTop: '75%',
-                                background: 'var(--gray-2)',
-                                borderRadius: '2px',
-                                overflow: 'hidden'
-                              }}>
-                                {/* blob 로딩 상태 표시 */}
-                                {blobLoading[item.blobId] && (
-                                  <Flex
-                                    align="center"
-                                    justify="center"
-                                    style={{
+                        return sortedAnnotations.map((annotation) => {
+                          const item = selectedDataset.data.find(d => d.path === annotation.path);
+                          if (!item) return null;
+                          
+                          // 원본 데이터에서 이미지의 인덱스를 찾기
+                          const originalIndex = selectedDataset.data.findIndex(d => d.path === annotation.path);
+                          
+                          return (
+                            <Card key={annotation.timestamp} style={{ 
+                              position: 'relative', 
+                              padding: '2px',
+                              marginBottom: '2px',
+                              width: '100%'
+                            }}>
+                              <Flex direction="column" gap="2">
+                                <Box style={{ 
+                                  position: 'relative',
+                                  width: '100%',
+                                  paddingTop: '75%',
+                                  background: 'var(--gray-2)',
+                                  borderRadius: '2px',
+                                  overflow: 'hidden'
+                                }}>
+                                  {/* blob 로딩 상태 표시 */}
+                                  {blobLoading[item.blobId] && (
+                                    <Flex
+                                      align="center"
+                                      justify="center"
+                                      style={{
+                                        position: 'absolute',
+                                        top: '0',
+                                        left: '0',
+                                        right: '0',
+                                        bottom: '0',
+                                        background: 'var(--gray-3)',
+                                        zIndex: 1,
+                                      }}
+                                    >
+                                      <Box className="loading-icon">
+                                        <Database size={16} color="var(--gray-8)" weight="thin" />
+                                      </Box>
+                                    </Flex>
+                                  )}
+                                  
+                                  {/* 이미지 */}
+                                  {!blobLoading[item.blobId] && (
+                                    <Box style={{
                                       position: 'absolute',
                                       top: '0',
                                       left: '0',
                                       right: '0',
                                       bottom: '0',
-                                      background: 'var(--gray-3)',
-                                      zIndex: 1,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      padding: '0'
+                                    }}>
+                                      <img
+                                        src={getImageUrl(item, originalIndex)}
+                                        alt={`Annotated ${originalIndex + 1}`}
+                                        style={{
+                                          maxWidth: '100%',
+                                          maxHeight: '100%',
+                                          objectFit: 'contain',
+                                          borderRadius: '1px',
+                                        }}
+                                      />
+                                    </Box>
+                                  )}
+                                  
+                                  {/* 삭제 버튼 */}
+                                  <Box
+                                    onClick={() => removeAnnotation(annotation.path)}
+                                    style={{
+                                      position: 'absolute',
+                                      top: '2px',
+                                      right: '2px',
+                                      background: 'rgba(0,0,0,0.6)',
+                                      borderRadius: '50%',
+                                      padding: '2px',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      width: '16px',
+                                      height: '16px',
                                     }}
                                   >
-                                    <Box className="loading-icon">
-                                      <Database size={16} color="var(--gray-8)" weight="thin" />
-                                    </Box>
-                                  </Flex>
-                                )}
-                                
-                                {/* 이미지 */}
-                                {!blobLoading[item.blobId] && (
-                                  <Box style={{
-                                    position: 'absolute',
-                                    top: '0',
-                                    left: '0',
-                                    right: '0',
-                                    bottom: '0',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '0'
-                                  }}>
-                                    <img
-                                      src={getImageUrl(item, idx)}
-                                      alt={`Annotated ${idx + 1}`}
-                                      style={{
-                                        maxWidth: '100%',
-                                        maxHeight: '100%',
-                                        objectFit: 'contain',
-                                        borderRadius: '1px',
-                                      }}
-                                    />
+                                    <X size={8} color="white" />
                                   </Box>
-                                )}
-                                
-                                {/* 삭제 버튼 */}
-                                <Box
-                                  onClick={() => removeAnnotation(annotation.path)}
-                                  style={{
-                                    position: 'absolute',
-                                    top: '2px',
-                                    right: '2px',
-                                    background: 'rgba(0,0,0,0.6)',
-                                    borderRadius: '50%',
+                                </Box>
+                                <Flex 
+                                  align="start" 
+                                  style={{ 
                                     padding: '2px',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '16px',
-                                    height: '16px',
+                                    width: '100%'
                                   }}
                                 >
-                                  <X size={8} color="white" />
-                                </Box>
-                              </Box>
-                              <Flex 
-                                align="start" 
-                                style={{ 
-                                  padding: '2px',
-                                  width: '100%'
-                                }}
-                              >
-                                <Flex gap="2" wrap="wrap" style={{ 
-                                  width: '100%',
-                                  justifyContent: 'flex-start'
-                                }}>
-                                  {annotation.label.map((label, labelIdx) => (
-                                    <Text 
-                                      key={labelIdx}
-                                      size="1"
-                                      style={{ 
-                                        display: 'inline-block',
-                                        background: 'var(--gray-3)',
-                                        padding: '1px 4px',
-                                        borderRadius: '2px',
-                                        fontSize: '9px',
-                                        lineHeight: '14px'
-                                      }}
-                                    >
-                                      {label}
-                                    </Text>
-                                  ))}
+                                  <Flex gap="2" wrap="wrap" style={{ 
+                                    width: '100%',
+                                    justifyContent: 'flex-start'
+                                  }}>
+                                    {annotation.label.map((label, labelIdx) => (
+                                      <Text 
+                                        key={labelIdx}
+                                        size="1"
+                                        style={{ 
+                                          display: 'inline-block',
+                                          background: 'var(--gray-3)',
+                                          padding: '1px 4px',
+                                          borderRadius: '2px',
+                                          fontSize: '9px',
+                                          lineHeight: '14px'
+                                        }}
+                                      >
+                                        {label}
+                                      </Text>
+                                    ))}
+                                  </Flex>
                                 </Flex>
                               </Flex>
-                            </Flex>
-                          </Card>
-                        );
-                      })}
+                            </Card>
+                          );
+                        });
+                      })()}
                     </Flex>
                   </ScrollArea>
                 </Flex>
