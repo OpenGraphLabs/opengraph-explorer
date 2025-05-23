@@ -486,7 +486,7 @@ export class DatasetGraphQLService {
         const fieldData = field.value.json;
         return {
           path: fieldData.path,
-          annotations: fieldData.annotations || [],
+          annotations: fieldData.confirmed_annotations || [],
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,
@@ -570,7 +570,7 @@ export class DatasetGraphQLService {
         const fieldData = field.value.json;
         return {
           path: fieldData.path,
-          annotations: fieldData.annotations || [],
+          annotations: fieldData.confirmed_annotations || [],
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,

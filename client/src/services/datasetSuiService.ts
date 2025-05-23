@@ -358,10 +358,54 @@ export function useDatasetSuiService() {
     }
   };
 
+  const addConfirmedAnnotationLabels = async (
+      dataset: DatasetObject,
+      annotation: { path: string; label: string[] },
+  ) => {
+    if (!account) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+
+    if (!annotation) {
+      throw new Error("No annotation provided");
+    }
+
+    try {
+      const tx = new Transaction();
+      tx.setGasBudget(GAS_BUDGET);
+
+      tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_confirmed_annotations`,
+        arguments: [
+          tx.object(dataset.id),
+          tx.pure.string(annotation.path),
+          tx.pure.vector("string", annotation.label),
+        ],
+      });
+
+      await signAndExecuteTransaction(
+          {
+            transaction: tx,
+            chain: `sui:${SUI_NETWORK.TYPE}`,
+          },
+          {
+            onSuccess: result => {
+              console.log("Annotation labels added successfully:", result);
+              return result;
+            },
+          }
+      );
+    } catch (error) {
+      console.error("Error adding annotation labels:", error);
+      throw error;
+    }
+  };
+
   return { 
     createDataset,
     createDatasetWithMultipleFiles,
-    addAnnotationLabels
+    addAnnotationLabels,
+    addConfirmedAnnotationLabels
   };
 }
 

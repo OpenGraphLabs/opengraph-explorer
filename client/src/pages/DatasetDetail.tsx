@@ -14,12 +14,13 @@ import {
   Tooltip,
   Separator,
 } from "@radix-ui/themes";
-import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight, CheckCircle, Users, TrendUp } from "phosphor-react";
+import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight, CheckCircle, Users } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject, PaginationOptions} from "../services/datasetGraphQLService";
 import {WALRUS_AGGREGATOR_URL} from "../services/walrusService";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 import { getSuiScanUrl, getWalruScanUrl } from "../utils/sui";
+import {useDatasetSuiService} from "../services/datasetSuiService.ts";
 
 // 데이터 타입에 따른 아이콘 매핑
 const DATA_TYPE_ICONS: Record<string, any> = {
@@ -54,15 +55,17 @@ const ANNOTATION_COLORS = [
 ];
 
 export function DatasetDetail() {
+  const { addConfirmedAnnotationLabels } = useDatasetSuiService();
+
   const { id } = useParams<{ id: string }>();
   const [dataset, setDataset] = useState<DatasetObject | null>(null);
-  console.log("dataset: ", dataset);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedAnnotations, setSelectedAnnotations] = useState<AnnotationObject[]>([]);
   const [selectedImageData, setSelectedImageData] = useState<DataObject | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
+  const [selectedPendingLabels, setSelectedPendingLabels] = useState<Set<string>>(new Set());
   
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -391,7 +394,7 @@ export function DatasetDetail() {
 
   // 로딩 상태 확인
   const isItemLoading = (item: DataObject) => {
-    return blobLoading[item.blobId] === true;
+    return blobLoading[item.blobId];
   };
 
   // Annotation 색상 가져오기
@@ -407,14 +410,44 @@ export function DatasetDetail() {
     setSelectedImageIndex(index);
   };
 
-  // Annotation 승인 핸들러
-  const handleConfirmAnnotation = async (label: string) => {
-    console.log(`Confirming annotation: ${label} for image ${selectedImageIndex}`);
-    // TODO: API 호출하여 annotation 승인 처리
-    // await datasetGraphQLService.confirmPendingAnnotation(dataset.id, selectedImageIndex, label);
+  // Annotation 선택/해제 핸들러
+  const handleTogglePendingAnnotation = (label: string) => {
+    setSelectedPendingLabels(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
+
+  // 선택된 Annotation들 승인 핸들러
+  const handleConfirmSelectedAnnotations = async () => {
+    if (selectedPendingLabels.size === 0) {
+      alert('Please select annotations to confirm');
+      return;
+    }
+
+    if (!dataset || !selectedImageData) {
+      alert('Dataset or image data not found');
+      return;
+    }
+
+    const labels = Array.from(selectedPendingLabels);
+    console.log(`Confirming annotations: ${labels.join(', ')} for image ${selectedImageIndex}`);
+
+    await addConfirmedAnnotationLabels(dataset, {
+      path: selectedImageData.path,
+      label: labels,
+    });
     
     // 임시로 UI 피드백만 제공
-    alert(`Annotation "${label}" confirmed!`);
+    alert(`${labels.length} annotation(s) "${labels.join(', ')}" confirmed!`);
+    
+    // 선택 상태 초기화
+    setSelectedPendingLabels(new Set());
   };
 
   // 모달 닫기 핸들러
@@ -423,6 +456,7 @@ export function DatasetDetail() {
     setSelectedAnnotations([]);
     setSelectedImageData(null);
     setSelectedImageIndex(-1);
+    setSelectedPendingLabels(new Set());
   };
 
   // 고유한 Blob ID 가져오기 (WalrusScan 링크용)
@@ -1232,65 +1266,101 @@ export function DatasetDetail() {
                   <Separator size="4" />
 
                   {/* 확정된 Annotations */}
-                  {selectedAnnotations.length > 0 && (
-                    <Flex direction="column" gap="3">
-                      <Flex align="center" gap="2">
-                        <CheckCircle size={20} style={{ color: "var(--green-9)" }} weight="fill" />
-                        <Heading size="4" style={{ fontWeight: 600, color: "var(--green-11)" }}>
-                          Confirmed Annotations
-                        </Heading>
-                        <Badge style={{
-                          background: "var(--green-3)",
-                          color: "var(--green-11)",
-                          fontSize: "11px",
-                          fontWeight: "600"
-                        }}>
-                          {selectedAnnotations.length}
-                        </Badge>
-                      </Flex>
+                  <Flex direction="column" gap="4">
+                    <Flex align="center" gap="2">
+                      <CheckCircle size={20} style={{ color: "var(--green-9)" }} weight="fill" />
+                      <Heading size="4" style={{ fontWeight: 600, color: "var(--green-11)" }}>
+                        Confirmed Annotations
+                      </Heading>
+                      <Badge style={{
+                        background: "var(--green-3)",
+                        color: "var(--green-11)",
+                        fontSize: "11px",
+                        fontWeight: "600"
+                      }}>
+                        {selectedAnnotations.length} confirmed
+                      </Badge>
+                    </Flex>
+
+                    {selectedAnnotations.length > 0 ? (
                       <Grid columns="2" gap="2">
                         {selectedAnnotations.map((annotation, index) => {
-                          const colorScheme = getAnnotationColor(index);
                           return (
                             <Card key={index} style={{
-                              background: colorScheme.bg,
-                              border: `2px solid ${colorScheme.border}`,
+                              background: "linear-gradient(135deg, var(--green-2) 0%, var(--green-3) 100%)",
+                              border: "2px solid var(--green-6)",
                               padding: "12px",
                               borderRadius: "8px",
+                              transition: "all 0.2s ease",
                             }}>
                               <Flex align="center" gap="2">
-                                <CheckCircle size={16} style={{ color: colorScheme.text }} weight="fill" />
+                                <CheckCircle size={16} style={{ color: "var(--green-9)" }} weight="fill" />
                                 <Text size="2" style={{ 
-                                  color: colorScheme.text, 
+                                  color: "var(--green-11)", 
                                   fontWeight: 600 
                                 }}>
                                   {annotation.label}
                                 </Text>
+                                <Badge style={{
+                                  background: "var(--green-9)",
+                                  color: "white",
+                                  fontSize: "9px",
+                                  fontWeight: "600",
+                                  padding: "2px 4px",
+                                  marginLeft: "auto"
+                                }}>
+                                  VERIFIED
+                                </Badge>
                               </Flex>
                             </Card>
                           );
                         })}
                       </Grid>
-                    </Flex>
-                  )}
+                    ) : (
+                      <Card style={{
+                        padding: "20px",
+                        background: "var(--gray-2)",
+                        border: "1px dashed var(--gray-6)",
+                        borderRadius: "12px",
+                        textAlign: "center"
+                      }}>
+                        <Flex direction="column" align="center" gap="2">
+                          <CheckCircle size={28} style={{ color: "var(--gray-8)" }} weight="thin" />
+                          <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
+                            No confirmed annotations yet
+                          </Text>
+                          <Text size="1" style={{ color: "var(--gray-10)" }}>
+                            Promote community votes to confirmed annotations
+                          </Text>
+                        </Flex>
+                      </Card>
+                    )}
+                  </Flex>
 
                   <Separator size="4" />
 
                   {/* Pending Annotations 통계 */}
                   <Flex direction="column" gap="4">
-                    <Flex align="center" gap="2">
-                      <Users size={20} style={{ color: "var(--blue-9)" }} weight="fill" />
-                      <Heading size="4" style={{ fontWeight: 600, color: "var(--blue-11)" }}>
-                        Community Votes
-                      </Heading>
-                      <Badge style={{
-                        background: "var(--blue-3)",
-                        color: "var(--blue-11)",
-                        fontSize: "11px",
-                        fontWeight: "600"
-                      }}>
-                        {selectedImageData?.pendingAnnotationStats?.length || 0} labels
-                      </Badge>
+                    <Flex align="center" justify="between">
+                      <Flex align="center" gap="2">
+                        <Users size={20} style={{ color: "var(--blue-9)" }} weight="fill" />
+                        <Heading size="4" style={{ fontWeight: 600, color: "var(--blue-11)" }}>
+                          Community Votes
+                        </Heading>
+                        <Badge style={{
+                          background: "var(--blue-3)",
+                          color: "var(--blue-11)",
+                          fontSize: "11px",
+                          fontWeight: "600"
+                        }}>
+                          {selectedImageData?.pendingAnnotationStats?.length || 0} labels
+                        </Badge>
+                      </Flex>
+                      {selectedImageData?.pendingAnnotationStats && selectedImageData.pendingAnnotationStats.length > 0 && (
+                        <Text size="1" style={{ color: "var(--gray-10)", fontStyle: "italic" }}>
+                          Sorted by vote count (highest first)
+                        </Text>
+                      )}
                     </Flex>
 
                     {selectedImageData?.pendingAnnotationStats && selectedImageData.pendingAnnotationStats.length > 0 ? (
@@ -1298,90 +1368,189 @@ export function DatasetDetail() {
                         {/* 통계 정렬 (투표 수 기준 내림차순) */}
                         {selectedImageData.pendingAnnotationStats
                           .sort((a, b) => b.count - a.count)
-                          .map((stat, _) => {
+                          .map((stat, index) => {
                             const maxVotes = Math.max(...(selectedImageData?.pendingAnnotationStats?.map(s => s.count) || [1]));
                             const percentage = maxVotes > 0 ? (stat.count / maxVotes) * 100 : 0;
                             const isPopular = stat.count >= 3; // 3표 이상이면 인기 annotation
+                            const rank = index + 1;
+                            const isSelected = selectedPendingLabels.has(stat.label);
                             
                             return (
-                              <Card key={stat.label} style={{
-                                padding: "16px",
-                                border: isPopular 
-                                  ? "2px solid var(--orange-6)" 
-                                  : "1px solid var(--gray-4)",
-                                borderRadius: "12px",
-                                background: isPopular 
-                                  ? "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)" 
-                                  : "white",
-                                transition: "all 0.2s ease",
-                              }}>
-                                <Flex direction="column" gap="3">
-                                  <Flex align="center" justify="between">
-                                    <Flex align="center" gap="3">
+                              <Card 
+                                key={stat.label} 
+                                style={{
+                                  padding: "16px",
+                                  border: isSelected
+                                    ? "2px solid var(--green-6)"
+                                    : isPopular 
+                                      ? "2px solid var(--orange-6)" 
+                                      : rank === 1 
+                                        ? "2px solid var(--blue-6)"
+                                        : "1px solid var(--gray-4)",
+                                  borderRadius: "12px",
+                                  background: isSelected
+                                    ? "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)"
+                                    : isPopular 
+                                      ? "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)" 
+                                      : rank === 1
+                                        ? "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)"
+                                        : "white",
+                                  transition: "all 0.2s ease",
+                                  position: "relative",
+                                  cursor: "pointer",
+                                  minHeight: "100px", // 더 컴팩트한 높이
+                                }}
+                                onClick={() => handleTogglePendingAnnotation(stat.label)}
+                              >
+                                {/* 순위 표시 - 박스 안쪽 좌상단 */}
+                                <Box style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  left: "12px",
+                                  background: isSelected 
+                                    ? "var(--green-9)"
+                                    : rank === 1 ? "var(--blue-9)" : rank <= 3 ? "var(--orange-9)" : "var(--gray-8)",
+                                  color: "white",
+                                  borderRadius: "8px",
+                                  padding: "4px 6px",
+                                  fontSize: "10px",
+                                  fontWeight: "700",
+                                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                  zIndex: 1,
+                                  minWidth: "20px",
+                                  textAlign: "center",
+                                }}>
+                                  #{rank}
+                                </Box>
+
+                                {/* 선택 체크박스 - 우상단 */}
+                                <Box style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  right: "12px",
+                                  width: "18px",
+                                  height: "18px",
+                                  borderRadius: "4px",
+                                  border: isSelected 
+                                    ? "2px solid var(--green-9)" 
+                                    : "2px solid var(--gray-6)",
+                                  background: isSelected ? "var(--green-9)" : "white",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  transition: "all 0.2s ease",
+                                }}>
+                                  {isSelected && (
+                                    <CheckCircle size={12} style={{ color: "white" }} weight="fill" />
+                                  )}
+                                </Box>
+
+                                <Flex direction="column" gap="2" style={{ marginTop: "28px", height: "calc(100% - 28px)" }}>
+                                  {/* 라벨과 배지 */}
+                                  <Flex align="center" justify="between" style={{ minHeight: "24px" }}>
+                                    <Flex align="center" gap="2" style={{ flex: 1 }}>
                                       <Text size="3" style={{ 
-                                        fontWeight: 600,
-                                        color: isPopular ? "var(--orange-11)" : "var(--gray-12)"
+                                        fontWeight: 700,
+                                        color: isSelected 
+                                          ? "var(--green-11)"
+                                          : isPopular ? "var(--orange-11)" : rank === 1 ? "var(--blue-11)" : "var(--gray-12)",
+                                        lineHeight: "1.2",
+                                        wordBreak: "break-word",
                                       }}>
                                         {stat.label}
                                       </Text>
-                                      {isPopular && (
+                                      {/* 배지들 */}
+                                      {isSelected && (
+                                        <Badge style={{
+                                          background: "var(--green-9)",
+                                          color: "white",
+                                          fontSize: "9px",
+                                          fontWeight: "600",
+                                          padding: "2px 4px"
+                                        }}>
+                                          SELECTED
+                                        </Badge>
+                                      )}
+                                      {isPopular && !isSelected && (
                                         <Badge style={{
                                           background: "var(--orange-9)",
                                           color: "white",
-                                          fontSize: "10px",
+                                          fontSize: "9px",
                                           fontWeight: "600",
-                                          padding: "2px 6px"
+                                          padding: "2px 4px"
                                         }}>
-                                          <TrendUp size={10} weight="fill" />
-                                          Popular
+                                          HOT
+                                        </Badge>
+                                      )}
+                                      {rank === 1 && !isPopular && !isSelected && (
+                                        <Badge style={{
+                                          background: "var(--blue-9)",
+                                          color: "white",
+                                          fontSize: "9px",
+                                          fontWeight: "600",
+                                          padding: "2px 4px"
+                                        }}>
+                                          TOP
                                         </Badge>
                                       )}
                                     </Flex>
+                                  </Flex>
+
+                                  {/* 투표 수와 진행률 */}
+                                  <Flex align="center" justify="between" gap="3">
+                                    {/* 투표 수 */}
                                     <Flex align="center" gap="2">
-                                      <Text size="2" style={{ 
-                                        color: "var(--gray-11)",
-                                        fontWeight: 600 
+                                      <Text size="4" style={{ 
+                                        color: isSelected 
+                                          ? "var(--green-11)"
+                                          : rank === 1 ? "var(--blue-11)" : "var(--gray-11)",
+                                        fontWeight: 800,
+                                        lineHeight: "1"
                                       }}>
-                                        {stat.count} votes
+                                        {stat.count}
                                       </Text>
-                                      {isPopular && (
-                                        <Button
-                                          size="1"
-                                          style={{
-                                            background: "var(--green-9)",
-                                            color: "white",
-                                            borderRadius: "6px",
-                                            padding: "4px 8px",
-                                            fontSize: "11px",
-                                            fontWeight: "600",
-                                            cursor: "pointer",
-                                          }}
-                                          onClick={() => handleConfirmAnnotation(stat.label)}
-                                        >
-                                          Confirm
-                                        </Button>
-                                      )}
+                                      <Text size="1" style={{ 
+                                        color: "var(--gray-10)",
+                                        fontWeight: 500,
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.5px"
+                                      }}>
+                                        {stat.count === 1 ? 'vote' : 'votes'}
+                                      </Text>
                                     </Flex>
+                                    
+                                    {/* 퍼센트 */}
+                                    <Text size="1" style={{
+                                      color: "var(--gray-10)",
+                                      fontSize: "10px",
+                                      fontWeight: "500"
+                                    }}>
+                                      {Math.round(percentage)}%
+                                    </Text>
                                   </Flex>
                                   
-                                  {/* 투표 진행률 바 */}
+                                  {/* 시각적 진행률 바 */}
                                   <Box style={{ position: "relative" }}>
                                     <Box
                                       style={{
                                         width: "100%",
-                                        height: "8px",
+                                        height: "6px",
                                         background: "var(--gray-4)",
-                                        borderRadius: "4px",
+                                        borderRadius: "3px",
                                         overflow: "hidden",
                                       }}
                                     >
                                       <Box style={{
                                         width: `${percentage}%`,
                                         height: "100%",
-                                        background: isPopular 
-                                          ? "linear-gradient(90deg, var(--orange-9) 0%, var(--orange-10) 100%)"
-                                          : "linear-gradient(90deg, var(--blue-9) 0%, var(--blue-10) 100%)",
-                                        borderRadius: "4px",
+                                        background: isSelected
+                                          ? "linear-gradient(90deg, var(--green-9) 0%, var(--green-10) 100%)"
+                                          : isPopular 
+                                            ? "linear-gradient(90deg, var(--orange-9) 0%, var(--orange-10) 100%)"
+                                            : rank === 1
+                                              ? "linear-gradient(90deg, var(--blue-9) 0%, var(--blue-10) 100%)"
+                                              : "linear-gradient(90deg, var(--gray-7) 0%, var(--gray-8) 100%)",
+                                        borderRadius: "3px",
                                         transition: "width 0.3s ease",
                                       }} />
                                     </Box>
@@ -1415,6 +1584,25 @@ export function DatasetDetail() {
                   {/* 액션 버튼들 */}
                   <Box style={{ marginTop: "auto" }}>
                     <Separator size="4" style={{ marginBottom: "16px" }} />
+                    
+                    {/* 선택된 annotation 정보 */}
+                    {selectedPendingLabels.size > 0 && (
+                      <Card style={{
+                        padding: "12px 16px",
+                        background: "var(--green-2)",
+                        border: "1px solid var(--green-6)",
+                        borderRadius: "8px",
+                        marginBottom: "16px"
+                      }}>
+                        <Flex align="center" gap="2">
+                          <CheckCircle size={16} style={{ color: "var(--green-9)" }} weight="fill" />
+                          <Text size="2" style={{ color: "var(--green-11)", fontWeight: 600 }}>
+                            {selectedPendingLabels.size} annotation(s) selected for confirmation
+                          </Text>
+                        </Flex>
+                      </Card>
+                    )}
+                    
                     <Flex gap="3">
                       <Button
                         variant="soft"
@@ -1431,22 +1619,24 @@ export function DatasetDetail() {
                         Close
                       </Button>
                       <Button
+                        disabled={selectedPendingLabels.size === 0}
                         style={{
                           flex: 1,
-                          background: "linear-gradient(135deg, var(--blue-9) 0%, var(--blue-10) 100%)",
-                          color: "white",
+                          background: selectedPendingLabels.size > 0 
+                            ? "linear-gradient(135deg, var(--green-9) 0%, var(--green-10) 100%)"
+                            : "var(--gray-4)",
+                          color: selectedPendingLabels.size > 0 ? "white" : "var(--gray-8)",
                           border: "none",
                           borderRadius: "8px",
                           padding: "12px",
-                          cursor: "pointer",
+                          cursor: selectedPendingLabels.size > 0 ? "pointer" : "not-allowed",
                           fontWeight: 600,
+                          opacity: selectedPendingLabels.size > 0 ? 1 : 0.6,
                         }}
-                        onClick={() => {
-                          // TODO: 어노테이션 편집기로 이동
-                          console.log('Navigate to annotation editor');
-                        }}
+                        onClick={handleConfirmSelectedAnnotations}
                       >
-                        Edit Annotations
+                        <CheckCircle size={16} weight="fill" />
+                        Confirm {selectedPendingLabels.size > 0 ? `(${selectedPendingLabels.size})` : 'Selected'}
                       </Button>
                     </Flex>
                   </Box>
