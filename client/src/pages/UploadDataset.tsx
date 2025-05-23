@@ -32,7 +32,6 @@ export function UploadDataset() {
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [annotations, setAnnotations] = useState<string[]>([]);
   const [previewStep, setPreviewStep] = useState<"select" | "preview" | "upload">("select");
 
   // 데이터셋 메타데이터 상태
@@ -40,14 +39,16 @@ export function UploadDataset() {
     name: "",
     description: "",
     tags: [] as string[],
+    labels: [] as string[],
     dataType: "image/png",
     dataSize: 0,
     creator: "",
     license: "OpenGraph",
   });
 
-  // 태그 입력 상태
+  // 태그 및 라벨 입력 상태
   const [tagInput, setTagInput] = useState("");
+  const [labelInput, setLabelInput] = useState("");
 
   // 파일 업로드 상태 (통합 방식)
   const [uploadProgress, setUploadProgress] = useState({
@@ -62,10 +63,8 @@ export function UploadDataset() {
     
     // 기존 파일 배열에 새 파일을 추가합니다.
     const newFiles = [...selectedFiles, ...files];
-    const newAnnotations = [...annotations, ...Array(files.length).fill("")];
     
     setSelectedFiles(newFiles);
-    setAnnotations(newAnnotations);
     setError(null);
 
     setPreviewStep("preview");
@@ -73,20 +72,11 @@ export function UploadDataset() {
 
   const handleFileRemove = (index: number) => {
     const newFiles = [...selectedFiles];
-    const newAnnotations = [...annotations];
     newFiles.splice(index, 1);
-    newAnnotations.splice(index, 1);
     setSelectedFiles(newFiles);
-    setAnnotations(newAnnotations);
     if (newFiles.length === 0) {
       setPreviewStep("select");
     }
-  };
-
-  const handleAnnotationChange = (index: number, value: string) => {
-    const newAnnotations = [...annotations];
-    newAnnotations[index] = value;
-    setAnnotations(newAnnotations);
   };
 
   const handleTagAdd = () => {
@@ -103,6 +93,23 @@ export function UploadDataset() {
     setMetadata({
       ...metadata,
       tags: metadata.tags.filter(tag => tag !== tagToRemove),
+    });
+  };
+
+  const handleLabelAdd = () => {
+    if (labelInput.trim() && !metadata.labels.includes(labelInput.trim())) {
+      setMetadata({
+        ...metadata,
+        labels: [...metadata.labels, labelInput.trim()],
+      });
+      setLabelInput("");
+    }
+  };
+
+  const handleLabelRemove = (labelToRemove: string) => {
+    setMetadata({
+      ...metadata,
+      labels: metadata.labels.filter(label => label !== labelToRemove),
     });
   };
 
@@ -136,7 +143,7 @@ export function UploadDataset() {
           creator: metadata.creator || currentWallet.accounts[0].address,
         },
         selectedFiles,
-        annotations,
+        [], // annotations 배열을 빈 배열로 전달
         10, // epochs
         (result) => {
           console.log("Dataset created:", result);
@@ -150,11 +157,11 @@ export function UploadDataset() {
 
           // 성공 후 상태 초기화
           setSelectedFiles([]);
-          setAnnotations([]);
           setMetadata({
             name: "",
             description: "",
             tags: [],
+            labels: [],
             dataType: "image/png",
             dataSize: 0,
             creator: "",
@@ -191,104 +198,150 @@ export function UploadDataset() {
   };
 
   return (
-    <Box style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px" }}>
-      <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
-        Upload Dataset
-      </Heading>
+    <Box style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+      <Flex direction="column" gap="2" mb="6">
+        <Heading size={{ initial: "7", md: "8" }} style={{ fontWeight: 700 }}>
+          Upload Dataset
+        </Heading>
+        <Text size="3" style={{ color: "var(--gray-11)", maxWidth: "600px" }}>
+          Create a new dataset for machine learning training. Define annotation labels and upload your data files to get started.
+        </Text>
+      </Flex>
 
       <Flex direction="column" gap="6">
         {/* Dataset Metadata Form */}
         <Card
           style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            padding: "32px",
+            borderRadius: "16px",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
             border: "1px solid var(--gray-4)",
+            background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
           }}
         >
-          <Flex direction="column" gap="4">
-            <Flex align="center" gap="2" mb="2">
+          <Flex direction="column" gap="6">
+            <Flex align="center" gap="3" mb="2">
               <Box
                 style={{
-                  background: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)",
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   borderRadius: "50%",
-                  width: "32px",
-                  height: "32px",
+                  width: "40px",
+                  height: "40px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
                 }}
               >
-                <Text size="4" style={{ fontWeight: "700" }}>
+                <Text size="4" style={{ fontWeight: "700", color: "white" }}>
                   1
                 </Text>
               </Box>
-              <Heading size="4" style={{ fontWeight: 600 }}>
+              <Heading size="5" style={{ fontWeight: 600 }}>
                 Dataset Information
               </Heading>
             </Flex>
 
             <Card
               style={{
-                padding: "16px",
-                borderRadius: "8px",
-                border: "1px solid var(--gray-4)",
-                background: "var(--gray-1)",
+                padding: "24px",
+                borderRadius: "12px",
+                border: "1px solid var(--gray-3)",
+                background: "white",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
               }}
             >
-              <Flex direction="column" gap="3">
-                <TextField.Root
-                  placeholder="Dataset Name"
-                  value={metadata.name}
-                  onChange={e => setMetadata({ ...metadata, name: e.target.value })}
-                />
-                <TextArea
-                  placeholder="Description"
-                  value={metadata.description}
-                  onChange={e => setMetadata({ ...metadata, description: e.target.value })}
-                />
-                <TextField.Root
-                  placeholder="Creator Name (optional)"
-                  value={metadata.creator}
-                  onChange={e => setMetadata({ ...metadata, creator: e.target.value })}
-                />
-                <Text size="1" style={{ color: "var(--gray-9)", marginTop: "-8px" }}>
-                  Enter your name or organization. Leave blank to use wallet address.
-                </Text>
-                <Flex direction="column" gap="2">
-                  <Flex gap="2">
-                    <TextField.Root
-                      style={{ flex: 1 }}
-                      placeholder="Add tag"
-                      value={tagInput}
-                      onChange={e => setTagInput(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleTagAdd();
-                        }
-                      }}
-                    />
-                    <Button onClick={handleTagAdd}>
-                      <PlusIcon />
-                    </Button>
+              <Flex direction="column" gap="4">
+                <Box>
+                  <Text size="2" weight="medium" style={{ color: "var(--gray-11)", marginBottom: "8px" }}>
+                    Dataset Name *
+                  </Text>
+                  <TextField.Root
+                    placeholder="Enter a descriptive name for your dataset"
+                    value={metadata.name}
+                    onChange={e => setMetadata({ ...metadata, name: e.target.value })}
+                    style={{ borderRadius: "8px" }}
+                  />
+                </Box>
+                
+                <Box>
+                  <Text size="2" weight="medium" style={{ color: "var(--gray-11)", marginBottom: "8px" }}>
+                    Description
+                  </Text>
+                  <TextArea
+                    placeholder="Describe the dataset content, source, and intended use case"
+                    value={metadata.description}
+                    onChange={e => setMetadata({ ...metadata, description: e.target.value })}
+                    style={{ borderRadius: "8px", minHeight: "80px" }}
+                  />
+                </Box>
+
+                <Box>
+                  <Text size="2" weight="medium" style={{ color: "var(--gray-11)", marginBottom: "8px" }}>
+                    Creator Name
+                  </Text>
+                  <TextField.Root
+                    placeholder="Your name or organization (optional)"
+                    value={metadata.creator}
+                    onChange={e => setMetadata({ ...metadata, creator: e.target.value })}
+                    style={{ borderRadius: "8px" }}
+                  />
+                  <Text size="1" style={{ color: "var(--gray-9)", marginTop: "4px" }}>
+                    leave blank to use your wallet address
+                  </Text>
+                </Box>
+
+                {/* Tags Section */}
+                <Box>
+                  <Text size="2" weight="medium" style={{ color: "var(--gray-11)", marginBottom: "8px" }}>
+                    Tags
+                  </Text>
+                  <Flex direction="column" gap="3">
+                    <Flex gap="2">
+                      <TextField.Root
+                        style={{ flex: 1, borderRadius: "8px" }}
+                        placeholder="Add tag (e.g., computer-vision)"
+                        value={tagInput}
+                        onChange={e => setTagInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleTagAdd();
+                          }
+                        }}
+                      />
+                      <Button 
+                        onClick={handleTagAdd}
+                        variant="soft"
+                        style={{ borderRadius: "8px", padding: "0 16px" }}
+                      >
+                        <PlusIcon />
+                        Add
+                      </Button>
+                    </Flex>
+                    
+                    {metadata.tags.length > 0 && (
+                      <Flex gap="2" wrap="wrap">
+                        {metadata.tags.map(tag => (
+                          <Badge key={tag} color="blue" style={{ fontSize: "12px", padding: "4px 8px" }}>
+                            {tag}
+                            <Button
+                              size="1"
+                              variant="ghost"
+                              onClick={() => handleTagRemove(tag)}
+                              style={{ marginLeft: "6px" }}
+                            >
+                              <Cross2Icon width={10} height={10} />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </Flex>
+                    )}
                   </Flex>
-                  <Flex gap="2" wrap="wrap">
-                    {metadata.tags.map(tag => (
-                      <Badge key={tag} color="blue">
-                        {tag}
-                        <Button
-                          size="1"
-                          variant="ghost"
-                          onClick={() => handleTagRemove(tag)}
-                          style={{ marginLeft: "4px" }}
-                        >
-                          <Cross2Icon width={12} height={12} />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </Flex>
-                </Flex>
+                  <Text size="1" style={{ color: "var(--gray-9)", marginBottom: "12px" }}>
+                    add tags to help categorize and discover your dataset
+                  </Text>
+                </Box>
               </Flex>
             </Card>
           </Flex>
@@ -297,48 +350,52 @@ export function UploadDataset() {
         {/* File Upload Section */}
         <Card
           style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            padding: "32px",
+            borderRadius: "16px",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
             border: "1px solid var(--gray-4)",
+            background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
           }}
         >
-          <Flex direction="column" gap="4">
-            <Flex align="center" gap="2" mb="2">
+          <Flex direction="column" gap="6">
+            <Flex align="center" gap="3" mb="2">
               <Box
                 style={{
-                  background: "linear-gradient(135deg, #FFE5DC 0%, #FFCEBF 100%)",
+                  background: "linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)",
                   borderRadius: "50%",
-                  width: "32px",
-                  height: "32px",
+                  width: "40px",
+                  height: "40px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  boxShadow: "0 4px 12px rgba(255, 107, 107, 0.3)",
                 }}
               >
-                <Text size="4" style={{ fontWeight: "700" }}>
+                <Text size="4" style={{ fontWeight: "700", color: "white" }}>
                   2
                 </Text>
               </Box>
-              <Heading size="4" style={{ fontWeight: 600 }}>
-                Upload Files
+              <Heading size="5" style={{ fontWeight: 600 }}>
+                Upload Data Files
               </Heading>
             </Flex>
 
-            <Text size="2" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
-              Upload your training data files. All files will be combined into a single blob and stored on-chain.
+            <Text size="3" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
+              Upload your training data files. All files will be stored securely and combined into a single blob on Walrus.
             </Text>
 
             {previewStep === "select" && (
               <Box
                 style={{
-                  border: "2px dashed var(--gray-5)",
-                  borderRadius: "8px",
-                  padding: "24px",
+                  border: "2px dashed var(--gray-6)",
+                  borderRadius: "12px",
+                  padding: "48px 24px",
                   textAlign: "center",
-                  background: "var(--gray-1)",
+                  background: "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)",
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.3s ease",
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
                 <input
@@ -359,15 +416,34 @@ export function UploadDataset() {
                   style={{
                     cursor: !currentWallet?.accounts[0]?.address ? "not-allowed" : "pointer",
                     opacity: !currentWallet?.accounts[0]?.address ? 0.5 : 1,
+                    display: "block",
                   }}
                 >
-                  <Flex direction="column" align="center" gap="2">
-                    <UploadIcon width={24} height={24} style={{ color: "var(--gray-9)" }} />
-                    <Text size="2" style={{ color: "var(--gray-11)" }}>
-                      {!currentWallet?.accounts[0]?.address
-                        ? "Please connect your wallet first"
-                        : "Click to select dataset files"}
-                    </Text>
+                  <Flex direction="column" align="center" gap="4">
+                    <Box
+                      style={{
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        borderRadius: "50%",
+                        width: "64px",
+                        height: "64px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 8px 24px rgba(102, 126, 234, 0.3)",
+                      }}
+                    >
+                      <UploadIcon width={28} height={28} style={{ color: "white" }} />
+                    </Box>
+                    <Flex direction="column" align="center" gap="2">
+                      <Text size="4" weight="medium" style={{ color: "var(--gray-12)" }}>
+                        {!currentWallet?.accounts[0]?.address
+                          ? "Please connect your wallet first"
+                          : "Click to select your dataset files"}
+                      </Text>
+                      <Text size="2" style={{ color: "var(--gray-10)" }}>
+                        Supports images, documents, and other data formats
+                      </Text>
+                    </Flex>
                   </Flex>
                 </label>
               </Box>
@@ -393,201 +469,153 @@ export function UploadDataset() {
             {selectedFiles.length > 0 && (
               <Card
                 style={{
-                  padding: "16px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--gray-4)",
-                  background: "var(--gray-1)",
+                  padding: "24px",
+                  borderRadius: "12px",
+                  border: "1px solid var(--gray-3)",
+                  background: "white",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
                 }}
               >
-                <Flex direction="column" gap="3">
+                <Flex direction="column" gap="4">
                   <Flex justify="between" align="center">
-                    <Heading size="3">Selected Files ({selectedFiles.length})</Heading>
+                    <Flex align="center" gap="3">
+                      <Heading size="4" style={{ fontWeight: 600 }}>Selected Files</Heading>
+                      <Badge color="blue" style={{ fontSize: "12px" }}>{selectedFiles.length} files</Badge>
+                    </Flex>
                     <Flex gap="2" align="center">
                       <Button 
-                        size="1" 
+                        size="2" 
                         variant="soft" 
                         onClick={() => document.getElementById('dataset-upload-more')?.click()}
                         style={{
                           background: "var(--blue-3)",
                           color: "var(--blue-11)",
-                          cursor: "pointer",
+                          borderRadius: "8px",
+                          padding: "0 16px",
                         }}
                       >
-                        <PlusIcon width={14} height={14} />
-                        <span style={{ marginLeft: '4px' }}>Add More</span>
+                        <PlusIcon width={16} height={16} />
+                        Add More Files
                       </Button>
                       <Button
-                        size="1"
+                        size="2"
                         variant="soft"
                         onClick={() => {
                           setSelectedFiles([]);
-                          setAnnotations([]);
                           setPreviewStep("select");
                         }}
                         style={{
                           background: "var(--red-3)",
                           color: "var(--red-11)",
-                          cursor: "pointer",
+                          borderRadius: "8px",
+                          padding: "0 16px",
                         }}
                       >
-                        <TrashIcon width={14} height={14} />
-                        <span style={{ marginLeft: '4px' }}>Clear All</span>
+                        <TrashIcon width={16} height={16} />
+                        Clear All
                       </Button>
                     </Flex>
                   </Flex>
 
-                  {/* 테이블 헤더 */}
-                  <Box 
-                    style={{ 
-                      padding: "8px 12px", 
-                      background: "var(--gray-3)", 
-                      borderRadius: "8px 8px 0 0",
-                      display: "grid",
-                      gridTemplateColumns: "minmax(200px, 3fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(200px, 3fr) 80px",
-                      gap: "8px",
-                      alignItems: "center",
-                      fontWeight: 500,
-                      fontSize: "13px",
-                      color: "var(--gray-11)",
-                    }}
-                  >
-                    <Box>File Name</Box>
-                    <Box>Size</Box>
-                    <Box>Type</Box>
-                    <Box>Annotation</Box>
-                    <Box>Actions</Box>
-                  </Box>
+                  {/* 파일 목록 */}
+                  <Box style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid var(--gray-4)", borderRadius: "8px" }}>
+                    {/* 테이블 헤더 */}
+                    <Box 
+                      style={{ 
+                        padding: "12px 16px", 
+                        background: "var(--gray-2)", 
+                        borderBottom: "1px solid var(--gray-4)",
+                        display: "grid",
+                        gridTemplateColumns: "1fr auto auto auto",
+                        gap: "16px",
+                        alignItems: "center",
+                        fontWeight: 500,
+                        fontSize: "13px",
+                        color: "var(--gray-11)",
+                      }}
+                    >
+                      <Text>File Name</Text>
+                      <Text>Type</Text>
+                      <Text>Size</Text>
+                      <Text>Actions</Text>
+                    </Box>
 
-                  {/* 테이블 내용 */}
-                  <Box style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    {/* 파일 목록 */}
                     {selectedFiles.map((file, index) => (
                       <Box
                         key={index}
                         style={{
-                          padding: "10px 12px",
-                          borderBottom: "1px solid var(--gray-4)",
+                          padding: "12px 16px",
+                          borderBottom: index < selectedFiles.length - 1 ? "1px solid var(--gray-3)" : "none",
                           background: "white",
                           display: "grid",
-                          gridTemplateColumns: "minmax(200px, 3fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(200px, 3fr) 80px",
-                          gap: "8px",
+                          gridTemplateColumns: "1fr auto auto auto",
+                          gap: "16px",
                           alignItems: "center",
                           transition: "background-color 0.2s ease",
                         }}
                       >
-                        {/* 파일명 및 상태 */}
-                        <Flex align="center" gap="2" style={{ overflow: "hidden" }}>
-                          <FileIcon width={16} height={16} style={{ flexShrink: 0, color: "var(--gray-9)" }} />
+                        {/* 파일명 */}
+                        <Flex align="center" gap="3" style={{ overflow: "hidden" }}>
+                          <Box
+                            style={{
+                              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                              borderRadius: "6px",
+                              width: "24px",
+                              height: "24px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <FileIcon width={12} height={12} style={{ color: "white" }} />
+                          </Box>
                           <Text size="2" style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {file.name}
                           </Text>
                         </Flex>
 
+                        {/* 파일 타입 */}
+                        <Badge color="gray" style={{ fontSize: "11px" }}>
+                          {file.type.split('/')[1]?.toUpperCase() || "UNKNOWN"}
+                        </Badge>
+
                         {/* 파일 크기 */}
-                        <Text size="2" style={{ color: "var(--gray-9)" }}>
+                        <Text size="2" style={{ color: "var(--gray-10)" }}>
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </Text>
 
-                        {/* 파일 타입 */}
-                        <Text size="2" style={{ color: "var(--gray-9)" }}>
-                          {file.type || "Unknown"}
-                        </Text>
-
-                        {/* 애노테이션 인풋 */}
-                        <TextField.Root
-                          placeholder="Enter annotation"
-                          value={annotations[index] || ""}
-                          onChange={e => handleAnnotationChange(index, e.target.value)}
+                        {/* 액션 버튼 */}
+                        <Button
                           size="1"
                           variant="soft"
-                          style={{ 
-                            width: "100%",
-                            border: "1px solid var(--gray-4)",
-                            borderRadius: "4px",
+                          onClick={() => handleFileRemove(index)}
+                          style={{
+                            background: "var(--red-3)",
+                            color: "var(--red-11)",
+                            borderRadius: "6px",
+                            padding: "0 8px",
+                            height: "28px",
                           }}
-                        />
-
-                        {/* 액션 버튼 */}
-                        <Flex gap="2" justify="center">
-                          {/* 삭제 버튼 */}
-                          <Button
-                            size="1"
-                            variant="soft"
-                            onClick={() => handleFileRemove(index)}
-                            style={{
-                              background: "var(--red-3)",
-                              color: "var(--red-11)",
-                              cursor: "pointer",
-                              padding: "0 8px",
-                              height: "26px",
-                            }}
-                          >
-                            <TrashIcon width={12} height={12} />
-                          </Button>
-                        </Flex>
+                        >
+                          <TrashIcon width={12} height={12} />
+                        </Button>
                       </Box>
                     ))}
                   </Box>
 
-                  {/* 데이터 배치 애노테이션 도구 */}
-                  {selectedFiles.length > 0 && (
-                    <Card style={{ padding: "12px", marginTop: "8px", background: "white", border: "1px solid var(--gray-4)" }}>
-                      <Flex direction="column" gap="2">
-                        <Text size="2" weight="medium">Batch Annotation Tools</Text>
-                        <Flex gap="2" wrap="wrap">
-                          <Button 
-                            size="1" 
-                            variant="soft" 
-                            onClick={() => {
-                              // 모든 선택된 파일에 동일한 애노테이션 적용
-                              const annotationValue = window.prompt("Enter annotation to apply to all selected files:");
-                              if (annotationValue !== null) {
-                                setAnnotations(annotations.map(() => annotationValue));
-                              }
-                            }}
-                            style={{
-                              background: "var(--violet-3)",
-                              color: "var(--violet-11)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Apply to All
-                          </Button>
-                          
-                          <Button 
-                            size="1" 
-                            variant="soft" 
-                            onClick={() => {
-                              // 파일이름으로 애노테이션 자동 생성
-                              setAnnotations(selectedFiles.map(file => {
-                                const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-                                return nameWithoutExt.replace(/[_-]/g, ' ');
-                              }));
-                            }}
-                            style={{
-                              background: "var(--amber-3)",
-                              color: "var(--amber-11)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Use Filenames
-                          </Button>
-                          
-                          <Button 
-                            size="1" 
-                            variant="soft" 
-                            onClick={() => setAnnotations(annotations.map(() => ""))}
-                            style={{
-                              background: "var(--gray-3)",
-                              color: "var(--gray-11)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Clear All
-                          </Button>
-                        </Flex>
-                      </Flex>
-                    </Card>
-                  )}
+                  {/* 파일 통계 */}
+                  <Card style={{ padding: "16px", background: "var(--blue-2)", border: "1px solid var(--blue-4)", borderRadius: "8px" }}>
+                    <Flex justify="between" align="center">
+                      <Text size="2" weight="medium" style={{ color: "var(--blue-11)" }}>
+                        Total: {selectedFiles.length} files
+                      </Text>
+                      <Text size="2" style={{ color: "var(--blue-10)" }}>
+                        {(selectedFiles.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB
+                      </Text>
+                    </Flex>
+                  </Card>
                 </Flex>
               </Card>
             )}
@@ -596,16 +624,16 @@ export function UploadDataset() {
             {uploadProgress.status !== "idle" && (
               <Card
                 style={{
-                  padding: "16px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--gray-4)",
-                  background: "var(--gray-1)",
-                  marginTop: "16px",
+                  padding: "24px",
+                  borderRadius: "12px",
+                  border: "1px solid var(--gray-3)",
+                  background: "white",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
                 }}
               >
-                <Flex direction="column" gap="3">
+                <Flex direction="column" gap="4">
                   <Flex align="center" justify="between">
-                    <Text size="2" weight="bold">
+                    <Text size="3" weight="bold">
                       Upload Progress
                     </Text>
                     <Badge
@@ -618,6 +646,7 @@ export function UploadDataset() {
                               ? "blue"
                               : "orange"
                       }
+                      style={{ fontSize: "12px", padding: "4px 12px" }}
                     >
                       {uploadProgress.status === "uploading" && "Processing..."}
                       {uploadProgress.status === "creating" && "Creating Dataset..."}
@@ -626,14 +655,14 @@ export function UploadDataset() {
                     </Badge>
                   </Flex>
 
-                  <Text size="2">{uploadProgress.message}</Text>
+                  <Text size="2" style={{ color: "var(--gray-11)" }}>{uploadProgress.message}</Text>
 
                   <Box
                     style={{
                       width: "100%",
-                      height: "4px",
-                      background: "var(--gray-4)",
-                      borderRadius: "2px",
+                      height: "8px",
+                      background: "var(--gray-3)",
+                      borderRadius: "4px",
                       overflow: "hidden",
                     }}
                   >
@@ -641,8 +670,8 @@ export function UploadDataset() {
                       style={{
                         width: `${uploadProgress.progress}%`,
                         height: "100%",
-                        background: "var(--blue-9)",
-                        borderRadius: "2px",
+                        background: "linear-gradient(90deg, var(--blue-9) 0%, var(--violet-9) 100%)",
+                        borderRadius: "4px",
                         transition: "width 0.3s ease",
                       }}
                     />
@@ -651,7 +680,7 @@ export function UploadDataset() {
                   {uploadProgress.status === "creating" && (
                     <Flex align="center" gap="2" justify="center">
                       <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
-                      <Text size="2">Creating dataset on Sui blockchain...</Text>
+                      <Text size="2" style={{ color: "var(--blue-11)" }}>Creating dataset on Sui blockchain...</Text>
                     </Flex>
                   )}
                 </Flex>
@@ -668,7 +697,10 @@ export function UploadDataset() {
                 selectedFiles.length === 0
               }
               style={{
-                background: "#FF5733",
+                background: !currentWallet?.accounts[0]?.address ||
+                  !metadata.name ||
+                  isLoading ||
+                  selectedFiles.length === 0 ? "var(--gray-6)" : "linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)",
                 color: "white",
                 cursor:
                   !currentWallet?.accounts[0]?.address ||
@@ -677,28 +709,26 @@ export function UploadDataset() {
                   selectedFiles.length === 0
                     ? "not-allowed"
                     : "pointer",
-                opacity:
-                  !currentWallet?.accounts[0]?.address ||
+                padding: "0 32px",
+                height: "48px",
+                borderRadius: "12px",
+                fontSize: "16px",
+                fontWeight: "600",
+                boxShadow: !currentWallet?.accounts[0]?.address ||
                   !metadata.name ||
                   isLoading ||
-                  selectedFiles.length === 0
-                    ? 0.5
-                    : 1,
-                padding: "0 24px",
-                height: "40px",
-                borderRadius: "8px",
-                fontSize: "14px",
-                fontWeight: "600",
+                  selectedFiles.length === 0 ? "none" : "0 4px 16px rgba(255, 107, 107, 0.3)",
+                transition: "all 0.2s ease",
               }}
             >
-              <Flex align="center" gap="2">
+              <Flex align="center" gap="3">
                 {isLoading ? (
                   <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
                 ) : (
-                  <UploadIcon />
+                  <UploadIcon width={20} height={20} />
                 )}
                 <span>
-                  {isLoading ? "Creating Dataset..." : "Upload as Single Blob"}
+                  {isLoading ? "Creating Dataset..." : "Create Dataset"}
                 </span>
               </Flex>
             </Button>
@@ -706,18 +736,17 @@ export function UploadDataset() {
             {uploadSuccess && (
               <Card
                 style={{
-                  background: "#E8F5E9",
-                  padding: "14px 18px",
-                  borderRadius: "8px",
-                  marginTop: "12px",
-                  width: "100%",
-                  border: "1px solid #A5D6A7",
+                  background: "linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)",
+                  padding: "20px 24px",
+                  borderRadius: "12px",
+                  border: "1px solid #a3d9a4",
+                  boxShadow: "0 4px 12px rgba(40, 167, 69, 0.15)",
                 }}
               >
                 <Flex align="center" gap="3">
-                  <CheckCircledIcon style={{ color: "#2E7D32" }} width={18} height={18} />
-                  <Text size="2" style={{ color: "#2E7D32" }}>
-                    Dataset created successfully!
+                  <CheckCircledIcon style={{ color: "#28a745" }} width={20} height={20} />
+                  <Text size="3" weight="medium" style={{ color: "#155724" }}>
+                    Dataset created successfully! Redirecting to datasets page...
                   </Text>
                 </Flex>
               </Card>
@@ -726,17 +755,16 @@ export function UploadDataset() {
             {error && (
               <Card
                 style={{
-                  background: "#FFEBEE",
-                  padding: "14px 18px",
-                  borderRadius: "8px",
-                  marginTop: "12px",
-                  width: "100%",
-                  border: "1px solid #FFCDD2",
+                  background: "linear-gradient(135deg, #f8d7da 0%, #f1b2b7 100%)",
+                  padding: "20px 24px",
+                  borderRadius: "12px",
+                  border: "1px solid #f1b2b7",
+                  boxShadow: "0 4px 12px rgba(220, 53, 69, 0.15)",
                 }}
               >
                 <Flex align="center" gap="3">
-                  <ExclamationTriangleIcon style={{ color: "#D32F2F" }} width={18} height={18} />
-                  <Text size="2" style={{ color: "#D32F2F" }}>
+                  <ExclamationTriangleIcon style={{ color: "#dc3545" }} width={20} height={20} />
+                  <Text size="3" weight="medium" style={{ color: "#721c24" }}>
                     {error}
                   </Text>
                 </Flex>
