@@ -13,11 +13,48 @@ import {
   TextArea,
   ScrollArea,
 } from "@radix-ui/themes";
-import { Database, ArrowRight, ArrowLeft, X } from "phosphor-react";
+import { Database, ArrowRight, ArrowLeft, X, Image as ImageIcon } from "phosphor-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
 import { datasetGraphQLService, DatasetObject, DataObject } from "../services/datasetGraphQLService";
 import { useDatasetSuiService } from "../services/datasetSuiService";
+
+const styles = `
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  .loading-icon {
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes buffer {
+    0% {
+      left: -100%;
+      width: 100%;
+    }
+    50% {
+      left: 25%;
+      width: 75%;
+    }
+    75% {
+      left: 100%;
+      width: 25%;
+    }
+    100% {
+      left: 100%;
+      width: 0%;
+    }
+  }
+  .buffer-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(to right, transparent, var(--accent-9), transparent);
+    animation: buffer 2s infinite ease-in-out;
+  }
+`;
 
 export function Annotator() {
   const datasetSuiService = useDatasetSuiService();
@@ -39,6 +76,7 @@ export function Annotator() {
   const [lastAnnotatedImage, setLastAnnotatedImage] = useState<{ item: DataObject; index: number } | null>(null);
   const mainImageRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [imageLoading, setImageLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchDatasets();
@@ -60,6 +98,22 @@ export function Annotator() {
       });
     };
   }, [selectedDataset]);
+
+  useEffect(() => {
+    if (selectedDataset && getCurrentImage()) {
+      setImageLoading(true);
+    }
+  }, [currentImageIndex, selectedDataset]);
+
+  useEffect(() => {
+    const styleTag = document.createElement('style');
+    styleTag.textContent = styles;
+    document.head.appendChild(styleTag);
+
+    return () => {
+      document.head.removeChild(styleTag);
+    };
+  }, []);
 
   const fetchDatasets = async () => {
     try {
@@ -349,211 +403,209 @@ export function Annotator() {
 
         {/* Annotation Interface */}
         {selectedDataset && getCurrentImage() && (
-          <Flex gap="4">
-            {/* Main Content */}
-            <Card style={{ flex: 1 }}>
-              <Flex direction="column" gap="4">
-                {/* Navigation Header */}
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="bold">
-                    Image {currentImageIndex + 1} of {selectedDataset.data.length}
-                  </Text>
-                  <Text size="2">
-                    Pending annotations: {pendingAnnotations.length}
-                  </Text>
-                </Flex>
+          <Flex direction="column" gap="4">
+            <Flex gap="4">
+              {/* Main Content */}
+              <Card style={{ flex: 1 }}>
+                <Flex direction="column" gap="4">
+                  {/* Navigation Header */}
+                  <Flex justify="between" align="center">
+                    <Text size="3" weight="bold">
+                      Image {currentImageIndex + 1} of {selectedDataset.data.length}
+                    </Text>
+                  </Flex>
 
-                {/* Image Display */}
-                <Box 
-                  ref={mainImageRef}
-                  style={{ 
-                    position: "relative", 
-                    width: "100%", 
-                    height: "60vh",
-                  }}
-                >
-                  <img
-                    src={getImageUrl(getCurrentImage()!, currentImageIndex)}
-                    alt={`Image ${currentImageIndex + 1}`}
-                    style={{
+                  {/* Image Display */}
+                  <Box 
+                    style={{ 
+                      position: "relative", 
                       width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
+                      height: "500px",
+                      background: "var(--gray-2)",
                       borderRadius: "8px",
+                      overflow: "hidden",
                     }}
-                  />
-                </Box>
-
-                {/* Floating Animation Image */}
-                <AnimatePresence>
-                  {lastAnnotatedImage && (
-                    <motion.div
-                      initial={{ 
-                        position: "fixed",
-                        top: mainImageRef.current?.getBoundingClientRect().top || 0,
-                        left: mainImageRef.current?.getBoundingClientRect().left || 0,
-                        width: mainImageRef.current?.getBoundingClientRect().width || 0,
-                        height: mainImageRef.current?.getBoundingClientRect().height || 0,
-                        zIndex: 1000,
-                        scale: 1,
-                        opacity: 1,
-                        filter: "blur(0px)",
-                      }}
-                      animate={{ 
-                        top: sidebarRef.current?.getBoundingClientRect().top || 0,
-                        left: sidebarRef.current?.getBoundingClientRect().left || 0,
-                        width: 260,
-                        height: 195,
-                        scale: 0.3,
-                        opacity: 0,
-                        filter: "blur(10px)",
-                      }}
-                      transition={{ 
-                        duration: 0.375, // 0.25 * 1.5 = 0.375
-                        ease: [0.4, 0, 0.2, 1],
-                        scale: {
-                          duration: 0.375,
-                          ease: [0.4, 0, 0.2, 1],
-                        },
-                        opacity: {
-                          duration: 0.375,
-                          ease: "easeOut",
-                        },
-                        filter: {
-                          duration: 0.375,
-                          ease: "easeInOut",
-                        },
-                      }}
-                      style={{
-                        willChange: "transform, opacity, filter",
-                        backfaceVisibility: "hidden",
-                      }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <img
-                        src={getImageUrl(lastAnnotatedImage.item, lastAnnotatedImage.index)}
-                        alt="Animating"
+                  >
+                    {imageLoading && (
+                      <Flex
+                        direction="column"
+                        align="center"
+                        justify="center"
                         style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          borderRadius: "8px",
-                          willChange: "transform",
-                          backfaceVisibility: "hidden",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: "var(--gray-2)",
+                          zIndex: 1,
+                          overflow: "hidden",
                         }}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      >
+                        <Box className="loading-icon">
+                          <ImageIcon size={32} color="var(--gray-8)" weight="thin" />
+                        </Box>
+                        <Text
+                          size="2"
+                          style={{
+                            color: "var(--gray-11)",
+                            marginTop: "12px",
+                          }}
+                        >
+                          Loading image...
+                        </Text>
+                        <Box className="buffer-bar" />
+                      </Flex>
+                    )}
+                    <img
+                      src={getImageUrl(getCurrentImage()!, currentImageIndex)}
+                      alt={`Image ${currentImageIndex + 1}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        opacity: imageLoading ? 0 : 1,
+                        transition: "opacity 0.3s ease",
+                      }}
+                      onLoad={() => setImageLoading(false)}
+                      onError={() => setImageLoading(false)}
+                    />
+                  </Box>
 
-                {/* Annotation Controls */}
-                <Flex direction="column" gap="3">
                   {/* Annotation Input */}
-                  <Flex justify="center" gap="3" align="center">
+                  <Flex 
+                    direction="column" 
+                    gap="3" 
+                    style={{
+                      maxWidth: "600px",
+                      margin: "0 auto",
+                      width: "100%",
+                    }}
+                  >
                     <TextArea 
                       placeholder="Enter annotation..."
                       value={currentInput}
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCurrentInput(e.target.value)}
                       onKeyPress={(e) => handleKeyPress(e, getCurrentImage()!, currentImageIndex)}
                       style={{ 
-                        width: "300px",
+                        width: "100%",
                         resize: "none",
-                        height: "40px",
-                        padding: "8px 12px",
+                        height: "44px",
+                        padding: "10px 16px",
                         borderRadius: "8px",
                         border: "1px solid var(--gray-6)",
+                        fontSize: "14px",
+                        lineHeight: "24px",
                       }}
                     />
                   </Flex>
+                </Flex>
+              </Card>
 
-                  {/* Save Button */}
-                  <Flex justify="center" mt="4">
-                    <Button
-                      size="3"
-                      disabled={pendingAnnotations.length === 0 || saving}
-                      onClick={savePendingAnnotations}
-                      style={{
-                        background: "#FF5733",
-                        color: "white",
-                        opacity: pendingAnnotations.length === 0 || saving ? 0.6 : 1,
-                        padding: "0 32px",
-                        height: "44px",
+              {/* Side Panel for Completed Annotations */}
+              <Card style={{ width: "240px" }}>
+                <Flex direction="column" gap="2">
+                  <Flex justify="end" align="center" style={{ marginBottom: '-4px' }}>
+                    <Text size="2" weight="bold" style={{ 
+                      lineHeight: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      Done
+                      <Text size="1" style={{ 
+                        color: 'var(--gray-11)',
+                        background: 'var(--gray-4)',
+                        padding: '0 4px',
+                        borderRadius: '8px',
+                        fontSize: '10px'
+                      }}>
+                        {pendingAnnotations.length}
+                      </Text>
+                    </Text>
+                  </Flex>
+                  <ScrollArea style={{ height: "calc(70vh - 100px)" }}>
+                    <Flex 
+                      direction="column"
+                      align="end" 
+                      gap="2" 
+                      style={{ 
+                        width: '100%'
                       }}
                     >
-                      {saving ? "Saving..." : `Save Annotations (${pendingAnnotations.length})`}
-                    </Button>
-                  </Flex>
-                </Flex>
-              </Flex>
-            </Card>
-
-            {/* Side Panel for Completed Annotations */}
-            <Card style={{ width: "300px" }}>
-              <Flex direction="column" gap="3">
-                <Heading size="3">Completed Annotations</Heading>
-                <ScrollArea style={{ height: "calc(70vh - 40px)" }}>
-                  <Flex direction="column" gap="2">
-                    {pendingAnnotations.map((annotation, idx) => {
-                      const item = selectedDataset.data.find(d => d.path === annotation.path);
-                      if (!item) return null;
-                      
-                      return (
-                        <Card key={`${item.blobId}_${idx}`} style={{ position: 'relative', padding: '4px' }}>
-                          <Flex direction="column" gap="1">
-                            <Box style={{ 
-                              position: 'relative',
-                              width: '100%',
-                              paddingTop: '37.5%', // 2:1 aspect ratio (half of previous 75%)
-                              background: 'var(--gray-2)',
-                              borderRadius: '4px',
-                              overflow: 'hidden'
-                            }}>
-                              <Box style={{
-                                position: 'absolute',
-                                top: '0',
-                                left: '0',
-                                right: '0',
-                                bottom: '0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '4px'
+                      {pendingAnnotations.map((annotation, idx) => {
+                        const item = selectedDataset.data.find(d => d.path === annotation.path);
+                        if (!item) return null;
+                        
+                        return (
+                          <Card key={`${item.blobId}_${idx}`} style={{ 
+                            position: 'relative', 
+                            padding: '2px',
+                            marginBottom: '2px',
+                            width: '100%'
+                          }}>
+                            <Flex direction="column" gap="2">
+                              <Box style={{ 
+                                position: 'relative',
+                                width: '100%',
+                                paddingTop: '75%',
+                                background: 'var(--gray-2)',
+                                borderRadius: '2px',
+                                overflow: 'hidden'
                               }}>
-                                <img
-                                  src={getImageUrl(item, idx)}
-                                  alt={`Annotated ${idx + 1}`}
-                                  style={{
-                                    maxWidth: '100%',
-                                    maxHeight: '100%',
-                                    objectFit: 'contain',
-                                    borderRadius: '2px',
-                                  }}
-                                />
-                              </Box>
-                              <Box
-                                onClick={() => removeAnnotation(annotation.path)}
-                                style={{
+                                <Box style={{
                                   position: 'absolute',
-                                  top: '4px',
-                                  right: '4px',
-                                  background: 'rgba(0,0,0,0.6)',
-                                  borderRadius: '50%',
-                                  padding: '2px',
-                                  cursor: 'pointer',
+                                  top: '0',
+                                  left: '0',
+                                  right: '0',
+                                  bottom: '0',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
+                                  padding: '0'
+                                }}>
+                                  <img
+                                    src={getImageUrl(item, idx)}
+                                    alt={`Annotated ${idx + 1}`}
+                                    style={{
+                                      maxWidth: '100%',
+                                      maxHeight: '100%',
+                                      objectFit: 'contain',
+                                      borderRadius: '1px',
+                                    }}
+                                  />
+                                </Box>
+                                <Box
+                                  onClick={() => removeAnnotation(annotation.path)}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    background: 'rgba(0,0,0,0.6)',
+                                    borderRadius: '50%',
+                                    padding: '2px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '16px',
+                                    height: '16px',
+                                  }}
+                                >
+                                  <X size={8} color="white" />
+                                </Box>
+                              </Box>
+                              <Flex 
+                                align="start" 
+                                style={{ 
+                                  padding: '2px',
+                                  width: '100%'
                                 }}
                               >
-                                <X size={8} color="white" />
-                              </Box>
-                            </Box>
-                            <Box>
-                              <Flex align="center" gap="2">
-                                <Text size="1" style={{ color: 'var(--gray-11)' }}>
-                                  Annotations:
-                                </Text>
-                                <Flex gap="1" wrap="wrap" style={{ flex: 1 }}>
+                                <Flex gap="2" wrap="wrap" style={{ 
+                                  width: '100%',
+                                  justifyContent: 'flex-start'
+                                }}>
                                   {annotation.label.map((label, labelIdx) => (
                                     <Text 
                                       key={labelIdx}
@@ -561,8 +613,10 @@ export function Annotator() {
                                       style={{ 
                                         display: 'inline-block',
                                         background: 'var(--gray-3)',
-                                        padding: '1px 6px',
+                                        padding: '1px 4px',
                                         borderRadius: '2px',
+                                        fontSize: '9px',
+                                        lineHeight: '14px'
                                       }}
                                     >
                                       {label}
@@ -570,15 +624,53 @@ export function Annotator() {
                                   ))}
                                 </Flex>
                               </Flex>
-                            </Box>
-                          </Flex>
-                        </Card>
-                      );
-                    })}
+                            </Flex>
+                          </Card>
+                        );
+                      })}
+                    </Flex>
+                  </ScrollArea>
+                </Flex>
+              </Card>
+            </Flex>
+
+            {/* Save Button Section */}
+            {pendingAnnotations.length > 0 && (
+              <Card>
+                <Flex 
+                  justify="between" 
+                  align="center" 
+                  style={{ 
+                    padding: "12px 16px",
+                    background: "var(--gray-2)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Flex align="center" gap="3">
+                    <Text size="2" weight="bold">
+                      Ready to save all annotations
+                    </Text>
+                    <Text size="2" style={{ color: 'var(--gray-11)' }}>
+                      {pendingAnnotations.length} items will be saved
+                    </Text>
                   </Flex>
-                </ScrollArea>
-              </Flex>
-            </Card>
+                  <Button
+                    size="2"
+                    disabled={saving}
+                    onClick={savePendingAnnotations}
+                    style={{
+                      background: "#FF5733",
+                      color: "white",
+                      opacity: saving ? 0.6 : 1,
+                      transition: "all 0.2s ease",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </Button>
+                </Flex>
+              </Card>
+            )}
           </Flex>
         )}
       </Flex>
