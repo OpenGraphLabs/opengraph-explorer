@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Flex,
@@ -9,8 +9,12 @@ import {
   Grid,
   Dialog,
   Select,
+  TextField,
+  TextArea,
+  ScrollArea,
 } from "@radix-ui/themes";
-import { Database, ArrowRight, ArrowLeft } from "phosphor-react";
+import { Database, ArrowRight, ArrowLeft, X } from "phosphor-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
 import { datasetGraphQLService, DatasetObject, DataObject } from "../services/datasetGraphQLService";
 import { useDatasetSuiService } from "../services/datasetSuiService";
@@ -25,12 +29,16 @@ export function Annotator() {
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [pendingAnnotations, setPendingAnnotations] = useState<{ path: string; label: string[] }[]>([]);
+  const [currentInput, setCurrentInput] = useState<string>("");
   const [showAnnotationDialog, setShowAnnotationDialog] = useState(false);
   
   // Blob 데이터 관리
   const [blobCache, setBlobCache] = useState<Record<string, ArrayBuffer>>({});
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [blobLoading, setBlobLoading] = useState<Record<string, boolean>>({});
+  const [lastAnnotatedImage, setLastAnnotatedImage] = useState<{ item: DataObject; index: number } | null>(null);
+  const mainImageRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchDatasets();
@@ -235,6 +243,57 @@ export function Annotator() {
     return dataType.toLowerCase().includes("image");
   };
 
+  const handleKeyPress = async (e: React.KeyboardEvent<HTMLTextAreaElement>, item: DataObject, index: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const value = currentInput.trim();
+      if (value) {
+        const key = `${item.blobId}_${index}`;
+        
+        // Update annotations state
+        setAnnotations(prev => ({
+          ...prev,
+          [key]: value
+        }));
+
+        // Add to pending annotations
+        setPendingAnnotations(prev => {
+          const existingIndex = prev.findIndex(annotation => annotation.path === item.path);
+          
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              label: [...updated[existingIndex].label, value]
+            };
+            return updated;
+          } else {
+            return [...prev, { path: item.path, label: [value] }];
+          }
+        });
+
+        // Clear the input
+        setCurrentInput("");
+        
+        // Move to next image
+        if (selectedDataset && currentImageIndex < selectedDataset.data.length - 1) {
+          setCurrentImageIndex(prev => prev + 1);
+        }
+      }
+    }
+  };
+
+  const removeAnnotation = (path: string) => {
+    setPendingAnnotations(prev => prev.filter(annotation => annotation.path !== path));
+    // Also remove from annotations state
+    const key = Object.keys(annotations).find(k => k.includes(path));
+    if (key) {
+      const newAnnotations = { ...annotations };
+      delete newAnnotations[key];
+      setAnnotations(newAnnotations);
+    }
+  };
+
   if (loading) {
     return (
       <Flex align="center" justify="center" style={{ height: "80vh" }}>
@@ -272,7 +331,7 @@ export function Annotator() {
                   }}
                   onClick={() => {
                     setSelectedDataset(dataset);
-                    setShowAnnotationDialog(true);
+                    setCurrentImageIndex(0);
                   }}
                 >
                   <Flex align="center" gap="2">
@@ -288,10 +347,11 @@ export function Annotator() {
           </Flex>
         </Card>
 
-        {/* Annotation Dialog */}
-        <Dialog.Root open={showAnnotationDialog} onOpenChange={setShowAnnotationDialog}>
-          <Dialog.Content style={{ maxWidth: "90vw", maxHeight: "90vh", padding: "24px" }}>
-            {selectedDataset && getCurrentImage() && (
+        {/* Annotation Interface */}
+        {selectedDataset && getCurrentImage() && (
+          <Flex gap="4">
+            {/* Main Content */}
+            <Card style={{ flex: 1 }}>
               <Flex direction="column" gap="4">
                 {/* Navigation Header */}
                 <Flex justify="between" align="center">
@@ -304,7 +364,14 @@ export function Annotator() {
                 </Flex>
 
                 {/* Image Display */}
-                <Box style={{ position: "relative", width: "100%", height: "60vh" }}>
+                <Box 
+                  ref={mainImageRef}
+                  style={{ 
+                    position: "relative", 
+                    width: "100%", 
+                    height: "60vh",
+                  }}
+                >
                   <img
                     src={getImageUrl(getCurrentImage()!, currentImageIndex)}
                     alt={`Image ${currentImageIndex + 1}`}
@@ -317,81 +384,86 @@ export function Annotator() {
                   />
                 </Box>
 
+                {/* Floating Animation Image */}
+                <AnimatePresence>
+                  {lastAnnotatedImage && (
+                    <motion.div
+                      initial={{ 
+                        position: "fixed",
+                        top: mainImageRef.current?.getBoundingClientRect().top || 0,
+                        left: mainImageRef.current?.getBoundingClientRect().left || 0,
+                        width: mainImageRef.current?.getBoundingClientRect().width || 0,
+                        height: mainImageRef.current?.getBoundingClientRect().height || 0,
+                        zIndex: 1000,
+                        scale: 1,
+                        opacity: 1,
+                        filter: "blur(0px)",
+                      }}
+                      animate={{ 
+                        top: sidebarRef.current?.getBoundingClientRect().top || 0,
+                        left: sidebarRef.current?.getBoundingClientRect().left || 0,
+                        width: 260,
+                        height: 195,
+                        scale: 0.3,
+                        opacity: 0,
+                        filter: "blur(10px)",
+                      }}
+                      transition={{ 
+                        duration: 0.375, // 0.25 * 1.5 = 0.375
+                        ease: [0.4, 0, 0.2, 1],
+                        scale: {
+                          duration: 0.375,
+                          ease: [0.4, 0, 0.2, 1],
+                        },
+                        opacity: {
+                          duration: 0.375,
+                          ease: "easeOut",
+                        },
+                        filter: {
+                          duration: 0.375,
+                          ease: "easeInOut",
+                        },
+                      }}
+                      style={{
+                        willChange: "transform, opacity, filter",
+                        backfaceVisibility: "hidden",
+                      }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <img
+                        src={getImageUrl(lastAnnotatedImage.item, lastAnnotatedImage.index)}
+                        alt="Animating"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          borderRadius: "8px",
+                          willChange: "transform",
+                          backfaceVisibility: "hidden",
+                        }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Annotation Controls */}
                 <Flex direction="column" gap="3">
-                  {/* Annotation Select Box */}
-                  <Flex justify="center" gap="3">
-                    <Select.Root 
-                      value={getAnnotation(getCurrentImage()!, currentImageIndex)}
-                      onValueChange={(value) => handleAnnotationSelect(getCurrentImage()!, currentImageIndex, value)}
-                    >
-                      <Select.Trigger 
-                        placeholder="Select annotation..."
-                        style={{ 
-                          minWidth: "200px",
-                          height: "40px",
-                          border: "1px solid var(--gray-6)",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          background: "white",
-                          color: "var(--gray-12)",
-                        }} 
-                      />
-                      <Select.Content>
-                        <Select.Group>
-                          <Select.Label>Choose Animal Type</Select.Label>
-                          {/* <Select.Item value="">Select annotation...</Select.Item> */}
-                          <Select.Item value="walrus">Walrus</Select.Item>
-                          <Select.Item value="elephant">Elephant</Select.Item>
-                        </Select.Group>
-                      </Select.Content>
-                    </Select.Root>
-                  </Flex>
-
-                  {/* Navigation Controls */}
-                  <Flex justify="center" gap="6" align="center">
-                    <Box
-                      onClick={() => currentImageIndex > 0 && setCurrentImageIndex(prev => prev - 1)}
-                      style={{
-                        cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
-                        opacity: currentImageIndex === 0 ? 0.5 : 1,
-                        padding: "8px",
-                        borderRadius: "50%",
-                        background: "var(--gray-3)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "all 0.2s ease",
+                  {/* Annotation Input */}
+                  <Flex justify="center" gap="3" align="center">
+                    <TextArea 
+                      placeholder="Enter annotation..."
+                      value={currentInput}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCurrentInput(e.target.value)}
+                      onKeyPress={(e) => handleKeyPress(e, getCurrentImage()!, currentImageIndex)}
+                      style={{ 
+                        width: "300px",
+                        resize: "none",
+                        height: "40px",
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--gray-6)",
                       }}
-                      className="hover:bg-[--gray-4]"
-                    >
-                      <ArrowLeft
-                        size={24}
-                        weight="bold"
-                        style={{ color: "var(--gray-12)" }}
-                      />
-                    </Box>
-                    <Box
-                      onClick={() => selectedDataset && currentImageIndex < selectedDataset.data.length - 1 && setCurrentImageIndex(prev => prev + 1)}
-                      style={{
-                        cursor: selectedDataset && currentImageIndex < selectedDataset.data.length - 1 ? "pointer" : "not-allowed",
-                        opacity: selectedDataset && currentImageIndex < selectedDataset.data.length - 1 ? 1 : 0.5,
-                        padding: "8px",
-                        borderRadius: "50%",
-                        background: "var(--gray-3)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "all 0.2s ease",
-                      }}
-                      className="hover:bg-[--gray-4]"
-                    >
-                      <ArrowRight
-                        size={24}
-                        weight="bold"
-                        style={{ color: "var(--gray-12)" }}
-                      />
-                    </Box>
+                    />
                   </Flex>
 
                   {/* Save Button */}
@@ -413,9 +485,102 @@ export function Annotator() {
                   </Flex>
                 </Flex>
               </Flex>
-            )}
-          </Dialog.Content>
-        </Dialog.Root>
+            </Card>
+
+            {/* Side Panel for Completed Annotations */}
+            <Card style={{ width: "300px" }}>
+              <Flex direction="column" gap="3">
+                <Heading size="3">Completed Annotations</Heading>
+                <ScrollArea style={{ height: "calc(70vh - 40px)" }}>
+                  <Flex direction="column" gap="2">
+                    {pendingAnnotations.map((annotation, idx) => {
+                      const item = selectedDataset.data.find(d => d.path === annotation.path);
+                      if (!item) return null;
+                      
+                      return (
+                        <Card key={`${item.blobId}_${idx}`} style={{ position: 'relative', padding: '4px' }}>
+                          <Flex direction="column" gap="1">
+                            <Box style={{ 
+                              position: 'relative',
+                              width: '100%',
+                              paddingTop: '37.5%', // 2:1 aspect ratio (half of previous 75%)
+                              background: 'var(--gray-2)',
+                              borderRadius: '4px',
+                              overflow: 'hidden'
+                            }}>
+                              <Box style={{
+                                position: 'absolute',
+                                top: '0',
+                                left: '0',
+                                right: '0',
+                                bottom: '0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '4px'
+                              }}>
+                                <img
+                                  src={getImageUrl(item, idx)}
+                                  alt={`Annotated ${idx + 1}`}
+                                  style={{
+                                    maxWidth: '100%',
+                                    maxHeight: '100%',
+                                    objectFit: 'contain',
+                                    borderRadius: '2px',
+                                  }}
+                                />
+                              </Box>
+                              <Box
+                                onClick={() => removeAnnotation(annotation.path)}
+                                style={{
+                                  position: 'absolute',
+                                  top: '4px',
+                                  right: '4px',
+                                  background: 'rgba(0,0,0,0.6)',
+                                  borderRadius: '50%',
+                                  padding: '2px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <X size={8} color="white" />
+                              </Box>
+                            </Box>
+                            <Box>
+                              <Flex align="center" gap="2">
+                                <Text size="1" style={{ color: 'var(--gray-11)' }}>
+                                  Annotations:
+                                </Text>
+                                <Flex gap="1" wrap="wrap" style={{ flex: 1 }}>
+                                  {annotation.label.map((label, labelIdx) => (
+                                    <Text 
+                                      key={labelIdx}
+                                      size="1"
+                                      style={{ 
+                                        display: 'inline-block',
+                                        background: 'var(--gray-3)',
+                                        padding: '1px 6px',
+                                        borderRadius: '2px',
+                                      }}
+                                    >
+                                      {label}
+                                    </Text>
+                                  ))}
+                                </Flex>
+                              </Flex>
+                            </Box>
+                          </Flex>
+                        </Card>
+                      );
+                    })}
+                  </Flex>
+                </ScrollArea>
+              </Flex>
+            </Card>
+          </Flex>
+        )}
       </Flex>
     </Box>
   );
