@@ -7,10 +7,10 @@ import {
   Heading,
   Card,
   Grid,
-  TextArea,
   Dialog,
+  Select,
 } from "@radix-ui/themes";
-import { Database } from "phosphor-react";
+import { Database, ArrowRight, ArrowLeft } from "phosphor-react";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
 import { datasetGraphQLService, DatasetObject, DataObject } from "../services/datasetGraphQLService";
 import { useDatasetSuiService } from "../services/datasetSuiService";
@@ -22,8 +22,10 @@ export function Annotator() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDataset, setSelectedDataset] = useState<DatasetObject | null>(null);
   const [annotations, setAnnotations] = useState<Record<string, string>>({});
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+  const [pendingAnnotations, setPendingAnnotations] = useState<{ path: string; label: string[] }[]>([]);
+  const [showAnnotationDialog, setShowAnnotationDialog] = useState(false);
   
   // Blob 데이터 관리
   const [blobCache, setBlobCache] = useState<Record<string, ArrayBuffer>>({});
@@ -36,6 +38,8 @@ export function Annotator() {
 
   useEffect(() => {
     if (selectedDataset && isImageType(selectedDataset.dataType)) {
+      setCurrentImageIndex(0);
+      setPendingAnnotations([]);
       loadBlobData();
     }
     
@@ -160,6 +164,61 @@ export function Annotator() {
     setImageUrls(newImageUrls);
   };
 
+  const handleAnnotationSelect = async (item: DataObject, index: number, label: string) => {
+    const key = `${item.blobId}_${index}`;
+    
+    // Update annotations state
+    setAnnotations(prev => ({
+      ...prev,
+      [key]: label
+    }));
+
+    // Add to pending annotations
+    setPendingAnnotations(prev => {
+      // Find if we already have an entry for this path
+      const existingIndex = prev.findIndex(annotation => annotation.path === item.path);
+      
+      if (existingIndex >= 0) {
+        // Update existing entry
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          label: [...updated[existingIndex].label, label]
+        };
+        return updated;
+      } else {
+        // Add new entry
+        return [...prev, { path: item.path, label: [label] }];
+      }
+    });
+
+    // Move to next image if not the last one
+    if (selectedDataset && index < selectedDataset.data.length - 1) {
+      setCurrentImageIndex(index + 1);
+    }
+  };
+
+  const savePendingAnnotations = async () => {
+    if (!selectedDataset || pendingAnnotations.length === 0) return;
+
+    try {
+      setSaving(true);
+      await datasetSuiService.addAnnotationLabels(selectedDataset, pendingAnnotations);
+      setPendingAnnotations([]);
+      console.log("Annotations saved successfully");
+    } catch (error) {
+      console.error("Error saving annotations:", error);
+      setError(error instanceof Error ? error.message : "Failed to save annotations");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const getCurrentImage = () => {
+    if (!selectedDataset || !selectedDataset.data[currentImageIndex]) return null;
+    return selectedDataset.data[currentImageIndex];
+  };
+
   const getImageUrl = (item: DataObject, index: number) => {
     const cacheKey = `${item.blobId}_${index}`;
     if (imageUrls[cacheKey]) {
@@ -172,51 +231,13 @@ export function Annotator() {
     return blobLoading[item.blobId] === true;
   };
 
-  const handleAnnotationChange = (item: DataObject, index: number, value: string) => {
-    const key = `${item.blobId}_${index}`;
-    setAnnotations(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-
-  const saveAnnotation = async (dataset: DatasetObject, item: DataObject, index: number) => {
-    console.log("saveAnnotation", item, index);
-
-    const key = `${item.blobId}_${index}`;
-    const annotation = annotations[key];
-    
-    if (!annotation) {
-      console.error("Please enter an annotation first");
-      return;
-    }
-
-    try {
-      setSaving(prev => ({ ...prev, [key]: true }));
-      
-      const result = await datasetSuiService.addAnnotationLabels(
-        dataset,
-        item.path,
-        [annotation],
-      );
-
-      console.log("Annotation saved result:", result);
-      console.log("Annotation saved successfully!");
-    } catch (error) {
-      console.error("Error saving annotation:", error);
-      console.error(error instanceof Error ? error.message : "Failed to save annotation");
-    } finally {
-      setSaving(prev => ({ ...prev, [key]: false }));
-    }
-  };
-
   const getAnnotation = (item: DataObject, index: number) => {
     const key = `${item.blobId}_${index}`;
     return annotations[key] || "";
   };
 
   const isImageType = (dataType: string) => {
-    return dataType.startsWith("image/");
+    return dataType.toLowerCase().includes("image");
   };
 
   if (loading) {
@@ -238,193 +259,163 @@ export function Annotator() {
   }
 
   return (
-    <Box style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-      <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
-        Data Annotator
-      </Heading>
-
-      <Text size="3" style={{ color: "var(--gray-11)", marginBottom: "24px" }}>
-        Select a dataset and annotate its images.
-      </Text>
-
-      <Grid columns={{ initial: "1", md: "2" }} gap="6">
-        {/* Dataset Selection Section */}
-        <Card
-          style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
-          }}
-        >
-          <Flex direction="column" gap="4">
-            <Heading size="4" style={{ fontWeight: 600 }}>
-              Select Dataset
-            </Heading>
-            
-            <Flex direction="column" gap="3">
-              {datasets.map((dataset) => (
+    <Box p="5">
+      <Flex direction="column" gap="4">
+        <Heading size="6">Dataset Annotator</Heading>
+        
+        {/* Dataset Selection */}
+        <Card>
+          <Flex direction="column" gap="3">
+            <Heading size="3">Select Dataset</Heading>
+            <Grid columns="3" gap="3">
+              {datasets.map(dataset => (
                 <Card
                   key={dataset.id}
                   style={{
-                    padding: "12px",
-                    border: dataset.id === selectedDataset?.id ? "2px solid #FF5733" : "1px solid var(--gray-4)",
-                    borderRadius: "8px",
                     cursor: "pointer",
+                    border: selectedDataset?.id === dataset.id ? "2px solid #FF5733" : "1px solid #ddd",
                   }}
-                  onClick={() => setSelectedDataset(dataset)}
+                  onClick={() => {
+                    setSelectedDataset(dataset);
+                    setShowAnnotationDialog(true);
+                  }}
                 >
-                  <Flex align="center" gap="3">
+                  <Flex align="center" gap="2">
+                    <Database size={24} />
+                    <Box>
+                      <Text size="2" weight="bold">{dataset.name}</Text>
+                      <Text size="1" color="gray">{dataset.dataType}</Text>
+                    </Box>
+                  </Flex>
+                </Card>
+              ))}
+            </Grid>
+          </Flex>
+        </Card>
+
+        {/* Annotation Dialog */}
+        <Dialog.Root open={showAnnotationDialog} onOpenChange={setShowAnnotationDialog}>
+          <Dialog.Content style={{ maxWidth: "90vw", maxHeight: "90vh", padding: "24px" }}>
+            {selectedDataset && getCurrentImage() && (
+              <Flex direction="column" gap="4">
+                {/* Navigation Header */}
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="bold">
+                    Image {currentImageIndex + 1} of {selectedDataset.data.length}
+                  </Text>
+                  <Text size="2">
+                    Pending annotations: {pendingAnnotations.length}
+                  </Text>
+                </Flex>
+
+                {/* Image Display */}
+                <Box style={{ position: "relative", width: "100%", height: "60vh" }}>
+                  <img
+                    src={getImageUrl(getCurrentImage()!, currentImageIndex)}
+                    alt={`Image ${currentImageIndex + 1}`}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </Box>
+
+                {/* Annotation Controls */}
+                <Flex direction="column" gap="3">
+                  {/* Annotation Select Box */}
+                  <Flex justify="center" gap="3">
+                    <Select.Root 
+                      value={getAnnotation(getCurrentImage()!, currentImageIndex)}
+                      onValueChange={(value) => handleAnnotationSelect(getCurrentImage()!, currentImageIndex, value)}
+                    >
+                      <Select.Trigger 
+                        style={{ 
+                          minWidth: "200px",
+                          height: "40px",
+                          background: "#FF5733",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                        }} 
+                      />
+                      <Select.Content>
+                        <Select.Group>
+                          <Select.Label>Choose Animal Type</Select.Label>
+                          <Select.Item value="walrus">Walrus</Select.Item>
+                          <Select.Item value="elephant">Elephant</Select.Item>
+                        </Select.Group>
+                      </Select.Content>
+                    </Select.Root>
+                  </Flex>
+
+                  {/* Navigation Controls */}
+                  <Flex justify="center" gap="6" align="center">
                     <Box
+                      onClick={() => currentImageIndex > 0 && setCurrentImageIndex(prev => prev - 1)}
                       style={{
-                        background: "var(--gray-3)",
+                        cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
+                        opacity: currentImageIndex === 0 ? 0.5 : 1,
+                        padding: "8px",
                         borderRadius: "50%",
-                        width: "40px",
-                        height: "40px",
+                        background: "var(--gray-3)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <Database size={20} />
+                      <ArrowLeft
+                        size={24}
+                        weight="bold"
+                        style={{ color: "var(--gray-12)" }}
+                      />
                     </Box>
-                    <Box>
-                      <Text size="2" weight="bold">
-                        {dataset.name}
-                      </Text>
-                      <Text size="1" style={{ color: "var(--gray-11)" }}>
-                        {dataset.data.length} items
-                      </Text>
+                    <Box
+                      onClick={() => selectedDataset && currentImageIndex < selectedDataset.data.length - 1 && setCurrentImageIndex(prev => prev + 1)}
+                      style={{
+                        cursor: selectedDataset && currentImageIndex < selectedDataset.data.length - 1 ? "pointer" : "not-allowed",
+                        opacity: selectedDataset && currentImageIndex < selectedDataset.data.length - 1 ? 1 : 0.5,
+                        padding: "8px",
+                        borderRadius: "50%",
+                        background: "var(--gray-3)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <ArrowRight
+                        size={24}
+                        weight="bold"
+                        style={{ color: "var(--gray-12)" }}
+                      />
                     </Box>
                   </Flex>
-                </Card>
-              ))}
-            </Flex>
-          </Flex>
-        </Card>
 
-        {/* Annotation Section */}
-        <Card
-          style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
-          }}
-        >
-          <Flex direction="column" gap="4">
-            <Heading size="4" style={{ fontWeight: 600 }}>
-              Annotations
-            </Heading>
-
-            {!selectedDataset ? (
-              <Flex
-                align="center"
-                justify="center"
-                style={{
-                  height: "200px",
-                  border: "2px dashed var(--gray-6)",
-                  borderRadius: "8px",
-                }}
-              >
-                <Text size="2" style={{ color: "var(--gray-11)" }}>
-                  Select a dataset to start annotating
-                </Text>
-              </Flex>
-            ) : (
-              <Flex direction="column" gap="4">
-                {selectedDataset.data.map((item, index) => (
-                  <Card key={index} style={{ padding: "16px" }}>
-                    <Flex direction="column" gap="3">
-                      {isImageType(selectedDataset.dataType) && (
-                        <Box
-                          style={{
-                            width: "100%",
-                            height: "200px",
-                            background: "var(--gray-3)",
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => setSelectedImage(getImageUrl(item, index))}
-                        >
-                          {isItemLoading(item) ? (
-                            <Flex
-                              align="center"
-                              justify="center"
-                              style={{
-                                height: "100%",
-                                background: "var(--gray-3)",
-                              }}
-                            >
-                              <Text size="2" style={{ color: "var(--gray-11)" }}>
-                                Loading...
-                              </Text>
-                            </Flex>
-                          ) : (
-                            <img
-                              src={getImageUrl(item, index)}
-                              alt={`Dataset item ${index + 1}`}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "contain",
-                              }}
-                            />
-                          )}
-                        </Box>
-                      )}
-                      <Flex direction="column" gap="2">
-                        <TextArea
-                          placeholder="Enter annotation..."
-                          value={getAnnotation(item, index)}
-                          onChange={(e) => handleAnnotationChange(item, index, e.target.value)}
-                          style={{ minHeight: "100px" }}
-                        />
-                        <Button 
-                          onClick={() => saveAnnotation(selectedDataset, item, index)}
-                          disabled={saving[`${item.blobId}_${index}`]}
-                        >
-                          {saving[`${item.blobId}_${index}`] ? "Saving..." : "Save Annotation"}
-                        </Button>
-                      </Flex>
-                    </Flex>
-                  </Card>
-                ))}
+                  {/* Save Button */}
+                  <Flex justify="center" mt="4">
+                    <Button
+                      size="3"
+                      disabled={pendingAnnotations.length === 0 || saving}
+                      onClick={savePendingAnnotations}
+                      style={{
+                        background: "#FF5733",
+                        color: "white",
+                        opacity: pendingAnnotations.length === 0 || saving ? 0.6 : 1,
+                        padding: "0 32px",
+                        height: "44px",
+                      }}
+                    >
+                      {saving ? "Saving..." : `Save Annotations (${pendingAnnotations.length})`}
+                    </Button>
+                  </Flex>
+                </Flex>
               </Flex>
             )}
-          </Flex>
-        </Card>
-      </Grid>
-
-      {/* Image Preview Modal */}
-      <Dialog.Root open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <Dialog.Content style={{ maxWidth: "90vw", maxHeight: "90vh" }}>
-          <Flex direction="column" gap="3">
-            {selectedImage && (
-              <img
-                src={selectedImage}
-                alt="Preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "80vh",
-                  objectFit: "contain",
-                }}
-              />
-            )}
-            <Button
-              variant="soft"
-              style={{
-                marginTop: "16px",
-                cursor: "pointer",
-              }}
-              onClick={() => setSelectedImage(null)}
-            >
-              Close
-            </Button>
-          </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
+          </Dialog.Content>
+        </Dialog.Root>
+      </Flex>
     </Box>
   );
 } 
