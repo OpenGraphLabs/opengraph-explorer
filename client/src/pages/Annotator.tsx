@@ -50,6 +50,10 @@ const styles = `
     background: linear-gradient(to right, transparent, var(--accent-9), transparent);
     animation: buffer 2s infinite ease-in-out;
   }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 `;
 
 export function Annotator() {
@@ -74,9 +78,24 @@ export function Annotator() {
   const [blobLoading, setBlobLoading] = useState<Record<string, boolean>>({});
   const [imageLoading, setImageLoading] = useState<boolean>(true);
 
+  // 트랜잭션 상태 관리
+  const [transactionStatus, setTransactionStatus] = useState<{
+    status: 'idle' | 'pending' | 'success' | 'failed';
+    message: string;
+    txHash?: string;
+  }>({
+    status: 'idle',
+    message: '',
+  });
+
   useEffect(() => {
     fetchDatasets();
   }, []);
+
+  const getCurrentImage = () => {
+    if (!selectedDataset || !selectedDataset.data[currentImageIndex]) return null;
+    return selectedDataset.data[currentImageIndex];
+  };
 
   useEffect(() => {
     if (selectedDataset && isImageType(selectedDataset.dataType)) {
@@ -100,6 +119,23 @@ export function Annotator() {
       setImageLoading(true);
     }
   }, [currentImageIndex, selectedDataset]);
+
+  // 디버깅을 위한 useEffect
+  useEffect(() => {
+    const currentImage = getCurrentImage();
+    if (currentImage) {
+      console.log('=== Current Image Debug Info ===');
+      console.log('Index:', currentImageIndex);
+      console.log('BlobId:', currentImage.blobId);
+      console.log('Path:', currentImage.path);
+      console.log('DataType:', currentImage.dataType);
+      console.log('Range:', currentImage.range);
+      console.log('Is blob loading:', isCurrentImageBlobLoading());
+      console.log('Is image loading:', imageLoading);
+      console.log('Image URL:', getImageUrl(currentImage, currentImageIndex));
+      console.log('================================');
+    }
+  }, [currentImageIndex, selectedDataset, imageLoading]);
 
   useEffect(() => {
     const styleTag = document.createElement('style');
@@ -227,28 +263,60 @@ export function Annotator() {
 
     try {
       setSaving(true);
-      await datasetSuiService.addAnnotationLabels(selectedDataset, pendingAnnotations);
+      setTransactionStatus({
+        status: 'pending',
+        message: 'Submitting transaction to Sui blockchain...',
+      });
+
+      const result = await datasetSuiService.addAnnotationLabels(selectedDataset, pendingAnnotations);
+      
+      // 성공 처리
+      setTransactionStatus({
+        status: 'success',
+        message: `Successfully saved ${pendingAnnotations.length} annotations to blockchain!`,
+        txHash: (result as any)?.digest || undefined,
+      });
+      
       setPendingAnnotations([]);
-      console.log("Annotations saved successfully");
+      console.log("Annotations saved successfully:", result);
+      
+      // 3초 후 상태 초기화
+      setTimeout(() => {
+        setTransactionStatus({
+          status: 'idle',
+          message: '',
+        });
+      }, 3000);
+      
     } catch (error) {
       console.error("Error saving annotations:", error);
+      setTransactionStatus({
+        status: 'failed',
+        message: error instanceof Error ? error.message : "Failed to save annotations to blockchain",
+      });
       setError(error instanceof Error ? error.message : "Failed to save annotations");
     } finally {
       setSaving(false);
     }
   };
 
-  const getCurrentImage = () => {
-    if (!selectedDataset || !selectedDataset.data[currentImageIndex]) return null;
-    return selectedDataset.data[currentImageIndex];
-  };
-
   const getImageUrl = (item: DataObject, index: number) => {
-    const cacheKey = `${item.blobId}_${index}`;
-    if (imageUrls[cacheKey]) {
-      return imageUrls[cacheKey];
+    if (!item) {
+      console.warn('getImageUrl called with null/undefined item');
+      return '';
     }
-    return `${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`;
+    
+    const cacheKey = `${item.blobId}_${index}`;
+    const cachedUrl = imageUrls[cacheKey];
+    
+    if (cachedUrl) {
+      console.log(`Using cached URL for ${cacheKey}:`, cachedUrl);
+      return cachedUrl;
+    }
+    
+    const fallbackUrl = `${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`;
+    console.log(`Using fallback URL for ${cacheKey}:`, fallbackUrl);
+    return fallbackUrl;
   };
 
   const isImageType = (dataType: string) => {
@@ -335,6 +403,137 @@ export function Annotator() {
     }
   };
 
+  // 트랜잭션 상태 표시 컴포넌트
+  const TransactionStatusDisplay = () => {
+    if (transactionStatus.status === 'idle') return null;
+
+    const getStatusColor = () => {
+      switch (transactionStatus.status) {
+        case 'pending': return { bg: 'var(--blue-3)', border: 'var(--blue-6)', text: 'var(--blue-11)' };
+        case 'success': return { bg: 'var(--green-3)', border: 'var(--green-6)', text: 'var(--green-11)' };
+        case 'failed': return { bg: 'var(--red-3)', border: 'var(--red-6)', text: 'var(--red-11)' };
+        default: return { bg: 'var(--gray-3)', border: 'var(--gray-6)', text: 'var(--gray-11)' };
+      }
+    };
+
+    const colors = getStatusColor();
+
+    return (
+      <Card
+        style={{
+          background: colors.bg,
+          border: `1px solid ${colors.border}`,
+          padding: "16px",
+          borderRadius: "12px",
+          marginBottom: "16px",
+          animation: transactionStatus.status === 'pending' ? 'pulse 2s ease-in-out infinite' : 'none',
+        }}
+      >
+        <Flex align="center" gap="3" justify="between">
+          <Flex align="center" gap="3">
+            {transactionStatus.status === 'pending' && (
+              <Box
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  border: `3px solid ${colors.text}`,
+                  borderTop: "3px solid transparent",
+                  animation: "spin 1s linear infinite",
+                }}
+              />
+            )}
+            {transactionStatus.status === 'success' && (
+              <Box
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  background: colors.text,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                ✓
+              </Box>
+            )}
+            {transactionStatus.status === 'failed' && (
+              <Box
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  background: colors.text,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                }}
+              >
+                ✕
+              </Box>
+            )}
+            
+            <Flex direction="column" gap="1">
+              <Text size="3" weight="medium" style={{ color: colors.text }}>
+                {transactionStatus.status === 'pending' && 'Transaction in Progress'}
+                {transactionStatus.status === 'success' && 'Transaction Successful'}
+                {transactionStatus.status === 'failed' && 'Transaction Failed'}
+              </Text>
+              <Text size="2" style={{ color: colors.text, opacity: 0.8 }}>
+                {transactionStatus.message}
+              </Text>
+              {transactionStatus.txHash && (
+                <Text size="1" style={{ color: colors.text, opacity: 0.7, fontFamily: 'monospace' }}>
+                  TX: {transactionStatus.txHash.substring(0, 20)}...
+                </Text>
+              )}
+            </Flex>
+          </Flex>
+
+          {/* 재시도 버튼 (실패 시에만) */}
+          {transactionStatus.status === 'failed' && (
+            <Button
+              size="2"
+              variant="soft"
+              onClick={() => {
+                setTransactionStatus({ status: 'idle', message: '' });
+                savePendingAnnotations();
+              }}
+              style={{
+                background: colors.text,
+                color: 'white',
+                borderRadius: "8px",
+                padding: "0 16px",
+              }}
+            >
+              Retry
+            </Button>
+          )}
+
+          {/* 닫기 버튼 (성공/실패 시) */}
+          {(transactionStatus.status === 'success' || transactionStatus.status === 'failed') && (
+            <Button
+              size="1"
+              variant="ghost"
+              onClick={() => setTransactionStatus({ status: 'idle', message: '' })}
+              style={{
+                color: colors.text,
+                opacity: 0.7,
+                padding: "4px",
+              }}
+            >
+              ✕
+            </Button>
+          )}
+        </Flex>
+      </Card>
+    );
+  };
+
   if (loading) {
     return (
       <Flex align="center" justify="center" style={{ height: "80vh" }}>
@@ -379,7 +578,7 @@ export function Annotator() {
                     <Database size={24} />
                     <Box>
                       <Text size="2" weight="bold">{dataset.name}</Text>
-                      <Text size="1" color="gray">{dataset.dataType}</Text>
+                      <Text size="1" color="gray" style={{ marginLeft: '6px' }}>{dataset.dataType}</Text>
                     </Box>
                   </Flex>
                 </Card>
@@ -398,9 +597,44 @@ export function Annotator() {
                   {/* Navigation Header */}
                   <Flex justify="between" align="center">
                     <Flex direction="column" gap="2">
-                      <Text size="3" weight="bold">
-                        Image {currentImageIndex + 1} of {selectedDataset.data.length}
-                      </Text>
+                      <Flex align="center" gap="3">
+                        <Text size="3" weight="bold">
+                          Image {currentImageIndex + 1} of {selectedDataset.data.length}
+                        </Text>
+                        
+                        {/* Navigation Buttons */}
+                        <Flex gap="2">
+                          <Button
+                            size="1"
+                            variant="soft"
+                            disabled={currentImageIndex === 0}
+                            onClick={() => setCurrentImageIndex(prev => Math.max(0, prev - 1))}
+                            style={{
+                              cursor: "pointer",
+                              padding: "0 8px",
+                              background: currentImageIndex === 0 ? "var(--gray-3)" : "var(--blue-3)",
+                              color: currentImageIndex === 0 ? "var(--gray-8)" : "var(--blue-11)",
+                            }}
+                          >
+                            ← Previous
+                          </Button>
+                          <Button
+                            size="1"
+                            variant="soft"
+                            disabled={currentImageIndex === selectedDataset.data.length - 1}
+                            onClick={() => setCurrentImageIndex(prev => Math.min(selectedDataset.data.length - 1, prev + 1))}
+                            style={{
+                              cursor: "pointer",
+                              padding: "0 8px",
+                              background: currentImageIndex === selectedDataset.data.length - 1 ? "var(--gray-3)" : "var(--blue-3)",
+                              color: currentImageIndex === selectedDataset.data.length - 1 ? "var(--gray-8)" : "var(--blue-11)",
+                            }}
+                          >
+                            Next →
+                          </Button>
+                        </Flex>
+                      </Flex>
+                      
                       {/* 전체 로딩 진행률 표시 */}
                       {(() => {
                         const progress = getOverallLoadingProgress();
@@ -558,6 +792,15 @@ export function Annotator() {
                         >
                           Rendering image...
                         </Text>
+                        <Text
+                          size="1"
+                          style={{
+                            color: "var(--gray-9)",
+                            marginTop: "4px",
+                          }}
+                        >
+                          Image {currentImageIndex + 1} of {selectedDataset?.data.length || 0}
+                        </Text>
                       </Flex>
                     )}
 
@@ -573,8 +816,15 @@ export function Annotator() {
                           opacity: imageLoading ? 0 : 1,
                           transition: "opacity 0.3s ease",
                         }}
-                        onLoad={() => setImageLoading(false)}
-                        onError={() => setImageLoading(false)}
+                        onLoad={() => {
+                          console.log(`Image ${currentImageIndex + 1} loaded successfully`);
+                          setImageLoading(false);
+                        }}
+                        onError={(e) => {
+                          console.error(`Image ${currentImageIndex + 1} failed to load:`, e);
+                          console.log('Image URL:', getImageUrl(getCurrentImage()!, currentImageIndex));
+                          setImageLoading(false);
+                        }}
                       />
                     )}
                   </Box>
@@ -788,18 +1038,25 @@ export function Annotator() {
             {/* Save Button Section */}
             {pendingAnnotations.length > 0 && (
               <Card>
+                {/* Transaction Status Display */}
+                <TransactionStatusDisplay />
+                
                 <Flex 
                   justify="between" 
                   align="center" 
                   style={{ 
                     padding: "12px 16px",
-                    background: "var(--gray-2)",
+                    background: transactionStatus.status === 'pending' ? "var(--blue-2)" : "var(--gray-2)",
                     borderRadius: "8px",
+                    opacity: transactionStatus.status === 'pending' ? 0.8 : 1,
                   }}
                 >
                   <Flex align="center" gap="3">
                     <Text size="2" weight="bold">
-                      Ready to save all annotations
+                      {transactionStatus.status === 'pending' 
+                        ? "Submitting annotations to blockchain..."
+                        : "Ready to save all annotations"
+                      }
                     </Text>
                     <Text size="2" style={{ color: 'var(--gray-11)' }}>
                       {pendingAnnotations.length} items will be saved
@@ -807,17 +1064,36 @@ export function Annotator() {
                   </Flex>
                   <Button
                     size="2"
-                    disabled={saving}
+                    disabled={saving || transactionStatus.status === 'pending'}
                     onClick={savePendingAnnotations}
                     style={{
-                      background: "#FF5733",
+                      cursor: (saving || transactionStatus.status === 'pending') ? "not-allowed" : "pointer",
+                      background: (saving || transactionStatus.status === 'pending') ? "var(--gray-6)" : "#FF5733",
                       color: "white",
-                      opacity: saving ? 0.6 : 1,
+                      opacity: (saving || transactionStatus.status === 'pending') ? 0.6 : 1,
                       transition: "all 0.2s ease",
                       fontWeight: "500",
                     }}
                   >
-                    {saving ? "Saving..." : "Save"}
+                    {transactionStatus.status === 'pending' ? (
+                      <Flex align="center" gap="2">
+                        <Box
+                          style={{
+                            width: "12px",
+                            height: "12px",
+                            borderRadius: "50%",
+                            border: "2px solid white",
+                            borderTop: "2px solid transparent",
+                            animation: "spin 1s linear infinite",
+                          }}
+                        />
+                        <span>Processing...</span>
+                      </Flex>
+                    ) : saving ? (
+                      "Saving..."
+                    ) : (
+                      "Save to Blockchain"
+                    )}
                   </Button>
                 </Flex>
               </Card>

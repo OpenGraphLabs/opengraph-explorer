@@ -17,6 +17,7 @@ export interface DatasetMetadata {
   tags?: string[];
   dataType: string;
   dataSize: number;
+  dataCount: number;
   creator?: string;
   license?: string;
 }
@@ -68,6 +69,7 @@ export function useDatasetSuiService() {
           tx.pure.option("string", metadata.description),
           tx.pure.string(metadata.dataType),
           tx.pure.u64(BigInt(metadata.dataSize)),
+          tx.pure.u64(BigInt(metadata.dataCount)),
           tx.pure.option("string", metadata.creator),
           tx.pure.option("string", metadata.license),
           tx.pure.option("vector<string>", metadata.tags),
@@ -206,6 +208,7 @@ export function useDatasetSuiService() {
           tx.pure.option("string", metadata.description),
           tx.pure.string(metadata.dataType),
           tx.pure.u64(BigInt(blobUploadResult.totalSize)),
+          tx.pure.u64(BigInt(files.length)),
           tx.pure.option("string", metadata.creator),
           tx.pure.option("string", metadata.license),
           tx.pure.option("vector<string>", metadata.tags),

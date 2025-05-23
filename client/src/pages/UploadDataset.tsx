@@ -42,6 +42,7 @@ export function UploadDataset() {
     labels: [] as string[],
     dataType: "image/png",
     dataSize: 0,
+    dataCount: 0,
     creator: "",
     license: "OpenGraph",
   });
@@ -145,6 +146,7 @@ export function UploadDataset() {
             labels: [],
             dataType: "image/png",
             dataSize: 0,
+            dataCount: 0,
             creator: "",
             license: "OpenGraph",
           });

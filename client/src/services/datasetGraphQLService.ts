@@ -544,7 +544,7 @@ export class DatasetGraphQLService {
           dataSize: jsonData.data_size || defaultData.dataSize,
           creator: jsonData.creator || defaultData.creator,
           license: jsonData.license || defaultData.license,
-          dataCount: dataItems.length,
+          dataCount: jsonData.data_count || dataItems.length,
           data: dataItems,
           createdAt: node.createdAt || defaultData.createdAt,
           pageInfo: pageInfo || defaultData.pageInfo,
@@ -624,7 +624,7 @@ export class DatasetGraphQLService {
           dataSize: jsonData.data_size || defaultData.dataSize,
           creator: jsonData.creator || defaultData.creator,
           license: jsonData.license || defaultData.license,
-          dataCount: dataItems.length,
+          dataCount: jsonData.data_count || dataItems.length,
           data: dataItems,
           createdAt: node.createdAt || defaultData.createdAt,
         };
