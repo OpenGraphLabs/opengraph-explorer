@@ -9,6 +9,7 @@ import { UploadModel } from "./pages/UploadModel";
 import { UploadDataset } from "./pages/UploadDataset";
 import { Profile } from "./pages/Profile";
 import { Datasets } from "./pages/Datasets";
+import { Annotator } from "./pages/Annotator";
 import { HamburgerMenuIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import logoImage from "./assets/logo/logo.png";
 import { DatasetDetail } from "./pages/DatasetDetail";
@@ -82,6 +83,9 @@ export default function App() {
               </NavLink>
               <NavLink to="/upload" current={location.pathname === "/upload"}>
                 Upload Model
+              </NavLink>
+              <NavLink to="/annotator" current={location.pathname === "/annotator"}>
+                Annotator
               </NavLink>
             </Flex>
           </Flex>
@@ -202,6 +206,20 @@ export default function App() {
                 Datasets
               </Link>
               <Link
+                to="/annotator"
+                style={{
+                  textDecoration: "none",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  color: location.pathname === "/annotator" ? "#FF5733" : "#333",
+                  fontWeight: location.pathname === "/annotator" ? "bold" : "normal",
+                  background: location.pathname === "/annotator" ? "#FFF4F0" : "transparent",
+                }}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Annotator
+              </Link>
+              <Link
                 to="/upload"
                 style={{
                   textDecoration: "none",
@@ -245,6 +263,7 @@ export default function App() {
             <Route path="/datasets" element={<Datasets />} />
             <Route path="/datasets/upload" element={<UploadDataset />} />
             <Route path="/datasets/:id" element={<DatasetDetail />} />
+            <Route path="/annotator" element={<Annotator />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
         </Box>

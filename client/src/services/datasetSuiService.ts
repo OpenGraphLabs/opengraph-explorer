@@ -3,6 +3,8 @@ import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
 import { useWalrusService } from "./walrusService";
+import { type DataObject } from "./datasetGraphQLService";
+
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
@@ -316,9 +318,35 @@ export function useDatasetSuiService() {
     }
   };
 
+  const addAnnotationLabel = async (
+    dataObject: DataObject,
+    annotation: string,
+    wallet: any
+  ) => {
+    try {
+      const tx = new Transaction();
+      
+      tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_label`,
+        arguments: [tx.object(dataObject.path), tx.pure.string(annotation)],
+      });
+
+      const result = await signAndExecuteTransaction({
+        transaction: tx,
+        chain: `sui:${SUI_NETWORK.TYPE}`,
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error adding annotation label:", error);
+      throw error;
+    }
+  };
+
   return { 
     createDataset,
-    createDatasetWithMultipleFiles
+    createDatasetWithMultipleFiles,
+    addAnnotationLabel
   };
 }
 
