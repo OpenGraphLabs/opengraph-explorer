@@ -48,7 +48,6 @@ export function UploadDataset() {
 
   // 태그 및 라벨 입력 상태
   const [tagInput, setTagInput] = useState("");
-  const [labelInput, setLabelInput] = useState("");
 
   // 파일 업로드 상태 (통합 방식)
   const [uploadProgress, setUploadProgress] = useState({
@@ -96,23 +95,6 @@ export function UploadDataset() {
     });
   };
 
-  const handleLabelAdd = () => {
-    if (labelInput.trim() && !metadata.labels.includes(labelInput.trim())) {
-      setMetadata({
-        ...metadata,
-        labels: [...metadata.labels, labelInput.trim()],
-      });
-      setLabelInput("");
-    }
-  };
-
-  const handleLabelRemove = (labelToRemove: string) => {
-    setMetadata({
-      ...metadata,
-      labels: metadata.labels.filter(label => label !== labelToRemove),
-    });
-  };
-
   // 새로운 통합 업로드 처리 함수
   const handleUpload = async () => {
     if (!currentWallet?.accounts[0]?.address || selectedFiles.length === 0) return;
@@ -143,7 +125,6 @@ export function UploadDataset() {
           creator: metadata.creator || currentWallet.accounts[0].address,
         },
         selectedFiles,
-        [], // annotations 배열을 빈 배열로 전달
         10, // epochs
         (result) => {
           console.log("Dataset created:", result);

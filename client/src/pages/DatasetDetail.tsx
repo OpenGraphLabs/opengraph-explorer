@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -13,9 +13,9 @@ import {
   Dialog,
   Tooltip,
 } from "@radix-ui/themes";
-import { Database, ImageSquare, FileDoc, FileZip, FileText, Download } from "phosphor-react";
+import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
-import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject} from "../services/datasetGraphQLService";
+import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject, PaginationOptions} from "../services/datasetGraphQLService";
 import {WALRUS_AGGREGATOR_URL} from "../services/walrusService";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 import { getSuiScanUrl, getWalruScanUrl } from "../utils/sui";
@@ -40,12 +40,34 @@ const DATA_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   default: { bg: "#F3E8FD", text: "#7E22CE" },
 };
 
+// Annotation 색상 팔레트
+const ANNOTATION_COLORS = [
+  { bg: "#E3F2FD", text: "#1565C0", border: "#BBDEFB" },
+  { bg: "#E8F5E9", text: "#2E7D32", border: "#C8E6C9" },
+  { bg: "#FFF3E0", text: "#E65100", border: "#FFCC02" },
+  { bg: "#F3E5F5", text: "#7B1FA2", border: "#CE93D8" },
+  { bg: "#E0F2F1", text: "#00695C", border: "#80CBC4" },
+  { bg: "#FFF8E1", text: "#F57F17", border: "#FFF176" },
+  { bg: "#FCE4EC", text: "#C2185B", border: "#F8BBD9" },
+  { bg: "#E1F5FE", text: "#0277BD", border: "#81D4FA" },
+];
+
 export function DatasetDetail() {
   const { id } = useParams<{ id: string }>();
   const [dataset, setDataset] = useState<DatasetObject | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedAnnotations, setSelectedAnnotations] = useState<AnnotationObject[]>([]);
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [paginationLoading, setPaginationLoading] = useState(false);
+  const [currentCursors, setCurrentCursors] = useState<{
+    startCursor?: string;
+    endCursor?: string;
+  }>({});
   
   // 전체 Blob 데이터 캐시 및 URL 관리
   const [blobCache, setBlobCache] = useState<Record<string, ArrayBuffer>>({});
@@ -78,13 +100,162 @@ export function DatasetDetail() {
       setError(null);
       if (!id) throw new Error("Dataset ID is required");
 
-      const result = await datasetGraphQLService.getDatasetById(id);
+      const result = await datasetGraphQLService.getDatasetById(id, {
+        first: pageSize
+      });
       setDataset(result);
+      
+      if (result?.pageInfo) {
+        setCurrentCursors({
+          startCursor: result.pageInfo.startCursor,
+          endCursor: result.pageInfo.endCursor,
+        });
+      }
     } catch (error) {
       console.error("Error fetching dataset:", error);
       setError(error instanceof Error ? error.message : "Failed to load dataset");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPage = async (direction: 'next' | 'prev') => {
+    if (!id || !dataset) {
+      console.warn('[Pagination] Cannot load page: missing id or dataset');
+      return;
+    }
+    
+    try {
+      setPaginationLoading(true);
+      console.log(`[Pagination] Loading ${direction} page, current page: ${currentPage}`);
+      console.log(`[Pagination] Current cursors:`, {
+        startCursor: currentCursors.startCursor ? `${currentCursors.startCursor.substring(0, 20)}...` : null,
+        endCursor: currentCursors.endCursor ? `${currentCursors.endCursor.substring(0, 20)}...` : null,
+      });
+      
+      const paginationOptions: PaginationOptions = {};
+      let targetPage = currentPage;
+      
+      if (direction === 'next') {
+        if (!dataset.pageInfo?.hasNextPage) {
+          console.warn('[Pagination] No next page available');
+          return;
+        }
+        if (!currentCursors.endCursor) {
+          console.warn('[Pagination] No endCursor available for next page');
+          return;
+        }
+        paginationOptions.first = pageSize;
+        paginationOptions.after = currentCursors.endCursor;
+        targetPage = currentPage + 1;
+      } else if (direction === 'prev') {
+        if (!dataset.pageInfo?.hasPreviousPage) {
+          console.warn('[Pagination] No previous page available');
+          return;
+        }
+        if (!currentCursors.startCursor) {
+          console.warn('[Pagination] No startCursor available for previous page');
+          return;
+        }
+        paginationOptions.last = pageSize;
+        paginationOptions.before = currentCursors.startCursor;
+        targetPage = Math.max(1, currentPage - 1);
+      }
+
+      console.log(`[Pagination] Requesting page ${targetPage} with options:`, {
+        ...paginationOptions,
+        after: paginationOptions.after ? `${paginationOptions.after.substring(0, 20)}...` : undefined,
+        before: paginationOptions.before ? `${paginationOptions.before.substring(0, 20)}...` : undefined,
+      });
+
+      const paginatedData = await datasetGraphQLService.getDatasetData(id, paginationOptions);
+      
+      if (!paginatedData || !paginatedData.data) {
+        throw new Error('No data received from pagination request');
+      }
+      
+      console.log(`[Pagination] Successfully loaded ${paginatedData.data.length} items`);
+      console.log(`[Pagination] New pageInfo:`, {
+        hasNextPage: paginatedData.pageInfo.hasNextPage,
+        hasPreviousPage: paginatedData.pageInfo.hasPreviousPage,
+        startCursor: paginatedData.pageInfo.startCursor ? `${paginatedData.pageInfo.startCursor.substring(0, 20)}...` : null,
+        endCursor: paginatedData.pageInfo.endCursor ? `${paginatedData.pageInfo.endCursor.substring(0, 20)}...` : null,
+      });
+      
+      if (dataset && paginatedData) {
+        // 이미지 URL 초기화 (새 페이지 데이터이므로)
+        Object.values(imageUrls).forEach(url => {
+          if (url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+        setImageUrls({});
+        
+        // 데이터셋 객체 업데이트
+        const updatedDataset = {
+          ...dataset,
+          data: paginatedData.data,
+          pageInfo: paginatedData.pageInfo,
+        };
+        setDataset(updatedDataset);
+        
+        // 커서 및 페이지 상태 업데이트
+        setCurrentCursors({
+          startCursor: paginatedData.pageInfo.startCursor,
+          endCursor: paginatedData.pageInfo.endCursor,
+        });
+        setCurrentPage(targetPage);
+        
+        console.log(`[Pagination] Page ${targetPage} loaded successfully`);
+      }
+    } catch (error) {
+      console.error(`[Pagination] Error loading ${direction} page:`, error);
+      
+      // 특정 에러의 경우 첫 페이지로 fallback
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('outside the available range') || 
+          errorMessage.includes('invalid cursor') ||
+          errorMessage.includes('GraphQL error')) {
+        console.warn('[Pagination] Cursor error detected, falling back to first page');
+        
+        try {
+          // 첫 페이지로 fallback
+          const firstPageData = await datasetGraphQLService.getDatasetData(id, { first: pageSize });
+          
+          if (firstPageData && dataset) {
+            // 이미지 URL 초기화
+            Object.values(imageUrls).forEach(url => {
+              if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+              }
+            });
+            setImageUrls({});
+            
+            const updatedDataset = {
+              ...dataset,
+              data: firstPageData.data,
+              pageInfo: firstPageData.pageInfo,
+            };
+            setDataset(updatedDataset);
+            
+            setCurrentCursors({
+              startCursor: firstPageData.pageInfo.startCursor,
+              endCursor: firstPageData.pageInfo.endCursor,
+            });
+            setCurrentPage(1);
+            
+            console.log('[Pagination] Successfully reset to first page');
+            setError("Pagination error occurred. Returned to first page.");
+          }
+        } catch (fallbackError) {
+          console.error('[Pagination] Fallback to first page failed:', fallbackError);
+          setError("Failed to load page data. Please refresh the page.");
+        }
+      } else {
+        setError(errorMessage);
+      }
+    } finally {
+      setPaginationLoading(false);
     }
   };
 
@@ -218,6 +389,23 @@ export function DatasetDetail() {
     return blobLoading[item.blobId] === true;
   };
 
+  // Annotation 색상 가져오기
+  const getAnnotationColor = (index: number) => {
+    return ANNOTATION_COLORS[index % ANNOTATION_COLORS.length];
+  };
+
+  // 이미지 클릭 시 상세보기
+  const handleImageClick = (item: DataObject, index: number) => {
+    setSelectedImage(getImageUrl(item, index));
+    setSelectedAnnotations(item.annotations);
+  };
+
+  // 고유한 Blob ID 가져오기 (WalrusScan 링크용)
+  const getUniqueBlobId = () => {
+    if (!dataset || !dataset.data.length) return null;
+    return dataset.data[0].blobId; // 모든 데이터가 같은 Blob에 저장되므로 첫 번째 것 사용
+  };
+
   const formatDataSize = (size: string | number): { value: string; unit: string } => {
     const numSize = typeof size === "string" ? parseInt(size) : Number(size);
 
@@ -259,6 +447,165 @@ export function DatasetDetail() {
     return dataType.startsWith("image/");
   };
 
+  // 페이지네이션 컴포넌트
+  const PaginationControls = () => {
+    if (!dataset?.pageInfo) return null;
+
+    const hasNextPage = dataset.pageInfo.hasNextPage;
+    const hasPreviousPage = dataset.pageInfo.hasPreviousPage;
+    const hasValidNextCursor = hasNextPage && currentCursors.endCursor;
+    const hasValidPrevCursor = hasPreviousPage && currentCursors.startCursor;
+
+    return (
+      <Card
+        style={{
+          padding: "20px",
+          borderRadius: "12px",
+          border: "1px solid var(--gray-4)",
+          background: "white",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+          marginTop: "24px",
+        }}
+      >
+        <Flex align="center" justify="between">
+          <Flex align="center" gap="3">
+            <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
+              Page {currentPage}
+            </Text>
+            <Badge
+              style={{
+                background: "var(--blue-3)",
+                color: "var(--blue-11)",
+                padding: "4px 8px",
+                borderRadius: "6px",
+                fontSize: "11px",
+                fontWeight: "500",
+              }}
+            >
+              {dataset.data.length} items
+            </Badge>
+            {/* 페이지네이션 상태 표시 */}
+            <Badge
+              style={{
+                background: "var(--green-3)",
+                color: "var(--green-11)",
+                padding: "4px 8px",
+                borderRadius: "6px",
+                fontSize: "11px",
+                fontWeight: "500",
+              }}
+            >
+              Paginated View
+            </Badge>
+          </Flex>
+
+          <Flex align="center" gap="2">
+            <Button
+              variant="soft"
+              size="2"
+              disabled={!hasValidPrevCursor || paginationLoading}
+              onClick={() => {
+                console.log('[UI] Previous button clicked');
+                if (hasValidPrevCursor && !paginationLoading) {
+                  loadPage('prev');
+                } else {
+                  console.warn('[UI] Cannot go to previous page:', {
+                    hasValidPrevCursor,
+                    paginationLoading,
+                    hasPreviousPage,
+                    startCursor: currentCursors.startCursor ? 'present' : 'missing'
+                  });
+                }
+              }}
+              style={{
+                background: hasValidPrevCursor ? "var(--gray-3)" : "var(--gray-2)",
+                color: hasValidPrevCursor ? "var(--gray-12)" : "var(--gray-8)",
+                borderRadius: "8px",
+                cursor: hasValidPrevCursor && !paginationLoading ? "pointer" : "not-allowed",
+                opacity: hasValidPrevCursor && !paginationLoading ? 1 : 0.5,
+              }}
+            >
+              <CaretLeft size={16} />
+              Previous
+            </Button>
+
+            <Box
+              style={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                color: "white",
+                fontWeight: "600",
+                fontSize: "14px",
+                minWidth: "40px",
+                textAlign: "center",
+              }}
+            >
+              {currentPage}
+            </Box>
+
+            <Button
+              variant="soft"
+              size="2"
+              disabled={!hasValidNextCursor || paginationLoading}
+              onClick={() => {
+                console.log('[UI] Next button clicked');
+                if (hasValidNextCursor && !paginationLoading) {
+                  loadPage('next');
+                } else {
+                  console.warn('[UI] Cannot go to next page:', {
+                    hasValidNextCursor,
+                    paginationLoading,
+                    hasNextPage,
+                    endCursor: currentCursors.endCursor ? 'present' : 'missing'
+                  });
+                }
+              }}
+              style={{
+                background: hasValidNextCursor ? "var(--gray-3)" : "var(--gray-2)",
+                color: hasValidNextCursor ? "var(--gray-12)" : "var(--gray-8)",
+                borderRadius: "8px",
+                cursor: hasValidNextCursor && !paginationLoading ? "pointer" : "not-allowed",
+                opacity: hasValidNextCursor && !paginationLoading ? 1 : 0.5,
+              }}
+            >
+              Next
+              <CaretRight size={16} />
+            </Button>
+          </Flex>
+
+          <Flex align="center" gap="2">
+            {paginationLoading && (
+              <Flex align="center" gap="2">
+                <Box
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    border: "2px solid var(--gray-4)",
+                    borderTop: "2px solid var(--blue-9)",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+                <Text size="2" style={{ color: "var(--gray-11)" }}>
+                  Loading...
+                </Text>
+              </Flex>
+            )}
+            {/* 디버그 정보 (개발 환경에서만) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Text size="1" style={{ color: "var(--gray-10)", fontSize: "10px" }}>
+                Next: {hasNextPage ? '✓' : '✗'} |
+                Prev: {hasPreviousPage ? '✓' : '✗'} |
+                Cursors: {currentCursors.endCursor ? 'E✓' : 'E✗'}{currentCursors.startCursor ? 'S✓' : 'S✗'}
+              </Text>
+            )}
+          </Flex>
+        </Flex>
+      </Card>
+    );
+  };
+
   if (loading) {
     return (
       <Flex align="center" justify="center" style={{ height: "80vh" }}>
@@ -278,118 +625,145 @@ export function DatasetDetail() {
   }
 
   return (
-    <Box style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 28px" }}>
+    <Box style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 32px" }}>
       {/* 데이터셋 헤더 */}
       <Card
         style={{
-          padding: "28px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
-          marginBottom: "24px",
+          padding: "32px",
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
+          marginBottom: "32px",
           border: "1px solid var(--gray-4)",
+          background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
         }}
       >
-        <Flex direction="column" gap="4">
-          <Flex align="center" gap="3">
+        <Flex direction="column" gap="6">
+          <Flex align="center" gap="4">
             <Box
               style={{
                 background: getDataTypeColor(dataset.dataType).bg,
                 color: getDataTypeColor(dataset.dataType).text,
-                borderRadius: "8px",
-                width: "44px",
-                height: "44px",
+                borderRadius: "12px",
+                width: "56px",
+                height: "56px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
               }}
             >
               {getDataTypeIcon(dataset.dataType)}
             </Box>
-            <Box>
-              <Heading size="6" mb="1">
+            <Box style={{ flex: 1 }}>
+              <Heading size="7" mb="2" style={{ fontWeight: 700 }}>
                 {dataset.name}
               </Heading>
-              <Flex align="center" gap="2">
+              <Flex align="center" gap="3">
                 <Badge
                   style={{
                     background: getDataTypeColor(dataset.dataType).bg,
                     color: getDataTypeColor(dataset.dataType).text,
-                    padding: "4px 10px",
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    fontWeight: "600",
                   }}
                 >
                   {dataset.dataType}
                 </Badge>
-                <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
+                <Badge
+                  style={{
+                    background: "linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)",
+                    color: "white",
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                  }}
+                >
                   On-Chain Dataset
                 </Badge>
               </Flex>
             </Box>
-            <Box style={{ marginLeft: "auto" }}>
-              <Button
-                variant="soft"
-                style={{
-                  borderRadius: "8px",
-                  background: "#FFF4F2",
-                  color: "#FF5733",
-                  border: "1px solid #FFE8E2",
-                  transition: "all 0.2s ease",
-                }}
-                className="hover-effect"
-                onClick={() => window.open(getSuiScanUrl("object", dataset.id), "_blank")}
-              >
-                <Flex align="center" gap="2">
-                  <Text size="2">View on Sui Explorer</Text>
-                  <ExternalLinkIcon />
-                </Flex>
-              </Button>
-            </Box>
+            <Flex gap="3">
+              {getUniqueBlobId() && (
+                <Tooltip content="View dataset blob on WalrusScan">
+                  <Button
+                    variant="soft"
+                    style={{
+                      borderRadius: "12px",
+                      background: "#E0F7FA",
+                      color: "#00838F",
+                      border: "1px solid #B2EBF2",
+                      padding: "0 20px",
+                      height: "40px",
+                    }}
+                    onClick={() => window.open(getWalruScanUrl(getUniqueBlobId()!), "_blank")}
+                  >
+                    <Flex align="center" gap="2">
+                      <Database size={16} />
+                      <Text size="2" weight="medium">WalrusScan</Text>
+                      <ExternalLinkIcon />
+                    </Flex>
+                  </Button>
+                </Tooltip>
+              )}
+              <Tooltip content="View dataset on Sui Explorer">
+                <Button
+                  variant="soft"
+                  style={{
+                    borderRadius: "12px",
+                    background: "#FFF4F2",
+                    color: "#FF5733",
+                    border: "1px solid #FFE8E2",
+                    padding: "0 20px",
+                    height: "40px",
+                  }}
+                  onClick={() => window.open(getSuiScanUrl("object", dataset.id), "_blank")}
+                >
+                  <Flex align="center" gap="2">
+                    <Text size="2" weight="medium">Sui Explorer</Text>
+                    <ExternalLinkIcon />
+                  </Flex>
+                </Button>
+              </Tooltip>
+            </Flex>
           </Flex>
 
-          <Text size="3" style={{ color: "var(--gray-11)", marginTop: "16px" }}>
+          <Text size="4" style={{ color: "var(--gray-11)", lineHeight: "1.6" }}>
             {dataset.description || "No description provided"}
           </Text>
 
-          <Flex gap="4" mt="4">
+          <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
             <Card
               style={{
-                padding: "16px",
-                background: "var(--gray-1)",
-                border: "1px solid var(--gray-4)",
+                padding: "20px",
+                background: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)",
+                border: "1px solid #90CAF9",
                 borderRadius: "12px",
-                flex: 1,
               }}
             >
               <Flex align="center" gap="3">
                 <Box
                   style={{
-                    background: "var(--gray-3)",
-                    borderRadius: "8px",
-                    padding: "8px",
+                    background: "white",
+                    borderRadius: "10px",
+                    padding: "10px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                   }}
                 >
-                  <Database size={16} style={{ color: "var(--gray-11)" }} />
+                  <Database size={20} style={{ color: "#1565C0" }} />
                 </Box>
                 <Flex direction="column" gap="1">
-                  <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
+                  <Text size="2" style={{ color: "#0D47A1", fontWeight: 600, opacity: 0.8 }}>
                     Total Size
                   </Text>
-                  <Text
-                    size="5"
-                    style={{
-                      fontWeight: 600,
-                      color: "var(--gray-12)",
-                      display: "flex",
-                      alignItems: "baseline",
-                    }}
-                  >
+                  <Text size="5" style={{ fontWeight: 700, color: "#0D47A1" }}>
                     {formatDataSize(dataset.dataSize).value}
-                    <Text
-                      size="2"
-                      style={{ color: "var(--gray-11)", marginLeft: "4px", fontWeight: 500 }}
-                    >
+                    <Text size="2" style={{ marginLeft: "4px", fontWeight: 500, opacity: 0.8 }}>
                       {formatDataSize(dataset.dataSize).unit}
                     </Text>
                   </Text>
@@ -399,50 +773,89 @@ export function DatasetDetail() {
 
             <Card
               style={{
-                padding: "16px",
-                background: "var(--gray-1)",
-                border: "1px solid var(--gray-4)",
+                padding: "20px",
+                background: "linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)",
+                border: "1px solid #A5D6A7",
                 borderRadius: "12px",
-                flex: 1,
               }}
             >
               <Flex align="center" gap="3">
                 <Box
                   style={{
-                    background: "var(--gray-3)",
-                    borderRadius: "8px",
-                    padding: "8px",
+                    background: "white",
+                    borderRadius: "10px",
+                    padding: "10px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                   }}
                 >
-                  <ImageSquare size={16} style={{ color: "var(--gray-11)" }} />
+                  <ImageSquare size={20} style={{ color: "#2E7D32" }} />
                 </Box>
                 <Flex direction="column" gap="1">
-                  <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
+                  <Text size="2" style={{ color: "#1B5E20", fontWeight: 600, opacity: 0.8 }}>
                     Total Items
                   </Text>
-                  <Text size="5" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
+                  <Text size="5" style={{ fontWeight: 700, color: "#1B5E20" }}>
                     {dataset.dataCount}
-                    <Text size="2" style={{ color: "var(--gray-11)", marginLeft: "4px" }}>
+                    <Text size="2" style={{ marginLeft: "4px", fontWeight: 500, opacity: 0.8 }}>
                       files
                     </Text>
                   </Text>
                 </Flex>
               </Flex>
             </Card>
-          </Flex>
+
+            <Card
+              style={{
+                padding: "20px",
+                background: "linear-gradient(135deg, #F3E5F5 0%, #CE93D8 100%)",
+                border: "1px solid #BA68C8",
+                borderRadius: "12px",
+              }}
+            >
+              <Flex align="center" gap="3">
+                <Box
+                  style={{
+                    background: "white",
+                    borderRadius: "10px",
+                    padding: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  <Tag size={20} style={{ color: "#7B1FA2" }} />
+                </Box>
+                <Flex direction="column" gap="1">
+                  <Text size="2" style={{ color: "#4A148C", fontWeight: 600, opacity: 0.8 }}>
+                    Annotations
+                  </Text>
+                  <Text size="5" style={{ fontWeight: 700, color: "#4A148C" }}>
+                    {dataset.data.reduce((sum, item) => sum + item.annotations.length, 0)}
+                    <Text size="2" style={{ marginLeft: "4px", fontWeight: 500, opacity: 0.8 }}>
+                      total
+                    </Text>
+                  </Text>
+                </Flex>
+              </Flex>
+            </Card>
+          </Grid>
 
           {dataset.tags && dataset.tags.length > 0 && (
-            <Flex gap="2" wrap="wrap" mt="4">
+            <Flex gap="2" wrap="wrap">
               {dataset.tags.map((tag, index) => (
                 <Badge
                   key={index}
                   style={{
                     background: "var(--gray-3)",
                     color: "var(--gray-11)",
-                    padding: "4px 10px",
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    fontWeight: "500",
                   }}
                 >
                   {tag}
@@ -451,37 +864,38 @@ export function DatasetDetail() {
             </Flex>
           )}
 
-          <Flex align="center" gap="2" mt="4">
+          <Flex align="center" gap="3">
             <Avatar
-              size="2"
+              size="3"
               src=""
               fallback={dataset.creator ? dataset.creator[0] : "U"}
               radius="full"
               style={{
-                background: "#FF5733",
-                boxShadow: "0 3px 8px rgba(255, 87, 51, 0.2)",
+                background: "linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)",
+                boxShadow: "0 4px 12px rgba(255, 107, 107, 0.3)",
               }}
             />
             <Tooltip content="View creator on Sui Explorer">
               <Text
-                size="2"
+                size="3"
                 style={{
                   color: "var(--gray-11)",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
-                  gap: "4px",
+                  gap: "6px",
                   transition: "color 0.2s ease",
+                  fontWeight: 500,
                 }}
                 className="hover-effect"
                 onClick={() =>
                   window.open(getSuiScanUrl("account", dataset.creator || ""), "_blank")
                 }
               >
-                {dataset.creator
+                Created by {dataset.creator
                   ? `${dataset.creator.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...`
                   : "Unknown"}
-                <ExternalLinkIcon style={{ width: "12px", height: "12px", opacity: 0.7 }} />
+                <ExternalLinkIcon style={{ width: "14px", height: "14px", opacity: 0.7 }} />
               </Text>
             </Tooltip>
           </Flex>
@@ -491,24 +905,30 @@ export function DatasetDetail() {
       {/* 데이터셋 콘텐츠 */}
       <Card
         style={{
-          padding: "28px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
+          padding: "32px",
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
           border: "1px solid var(--gray-4)",
+          background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
         }}
       >
-        <Flex direction="column" gap="4">
-          <Heading size="4">Dataset Contents</Heading>
+        <Flex direction="column" gap="6">
+          <Heading size="5" style={{ fontWeight: 600 }}>Dataset Contents</Heading>
 
-          <Grid columns={{ initial: "3", sm: "4", md: "5" }} gap="3">
+          <Grid columns={{ initial: "2", sm: "3", md: "4", lg: "5" }} gap="4">
             {dataset.data.map((item: DataObject, index: number) => (
               <Card
                 key={index}
                 style={{
-                  padding: "12px",
+                  padding: "16px",
                   border: "1px solid var(--gray-4)",
-                  borderRadius: "8px",
+                  borderRadius: "12px",
+                  background: "white",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                  transition: "all 0.2s ease",
+                  cursor: "pointer",
                 }}
+                className="item-card-hover"
               >
                 {isImageType(dataset.dataType) ? (
                   <Box>
@@ -517,13 +937,12 @@ export function DatasetDetail() {
                         width: "100%",
                         paddingBottom: "100%",
                         position: "relative",
-                        marginBottom: "8px",
+                        marginBottom: "12px",
                         background: "var(--gray-3)",
-                        borderRadius: "6px",
+                        borderRadius: "8px",
                         overflow: "hidden",
-                        cursor: "pointer",
                       }}
-                      onClick={() => setSelectedImage(getImageUrl(item, index))}
+                      onClick={() => handleImageClick(item, index)}
                     >
                       {isItemLoading(item) ? (
                         <Flex 
@@ -558,93 +977,75 @@ export function DatasetDetail() {
                           }}
                         />
                       )}
+                      
+                      {/* Annotation 표시 - 새로운 디자인 */}
                       {item.annotations.length > 0 && (
                         <Box
                           style={{
                             position: "absolute",
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            background:
-                              "linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0))",
-                            padding: "20px 8px 8px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
+                            top: "8px",
+                            right: "8px",
+                            background: "rgba(255, 255, 255, 0.95)",
+                            backdropFilter: "blur(8px)",
+                            borderRadius: "8px",
+                            padding: "4px",
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                            border: "1px solid rgba(255, 255, 255, 0.2)",
                           }}
                         >
-                          <Badge
-                            style={{
-                              background: "rgba(255, 255, 255, 0.9)",
-                              color: "var(--gray-12)",
-                              padding: "2px 8px",
-                              borderRadius: "4px",
-                              fontSize: "11px",
-                              fontWeight: "500",
-                              letterSpacing: "0.3px",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            <Text size="1" style={{ opacity: 0.7 }}>
-                              Annotation
+                          <Flex align="center" gap="1">
+                            <Tag size={12} style={{ color: "var(--violet-9)" }} />
+                            <Text size="1" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
+                              {item.annotations.length}
                             </Text>
-                            <Text size="1" style={{ fontWeight: "600" }}>
-                              {item.annotations.map((annotation: AnnotationObject) => annotation.label).join(", ")}
-                            </Text>
-                          </Badge>
+                          </Flex>
                         </Box>
                       )}
                     </Box>
-                    <Flex gap="2">
-                      <Link
-                        to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ flex: 1 }}
-                      >
-                        <Button
-                          size="1"
-                          variant="soft"
-                          style={{
-                            width: "100%",
-                            cursor: "pointer",
-                            background: "var(--gray-3)",
-                            color: "var(--gray-12)",
-                          }}
-                        >
-                          <Download size={14} />
-                          Download
-                        </Button>
-                      </Link>
-                      <Tooltip content="View on WalrusScan">
-                        <Button
-                          size="1"
-                          variant="soft"
-                          style={{
-                            cursor: "pointer",
-                            background: "#FFF4F2",
-                            color: "#FF5733",
-                            border: "1px solid #FFE8E2",
-                          }}
-                          onClick={() =>
-                            window.open(getWalruScanUrl(item.blobId), "_blank")
-                          }
-                        >
-                          <ExternalLinkIcon />
-                        </Button>
-                      </Tooltip>
-                    </Flex>
+
+                    {/* Annotation 목록 - 향상된 UI */}
+                    {item.annotations.length > 0 && (
+                      <Flex direction="column" gap="2">
+                        <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                          Annotations ({item.annotations.length})
+                        </Text>
+                        <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
+                          {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
+                            const colorScheme = getAnnotationColor(annotationIndex);
+                            return (
+                              <Badge
+                                key={annotationIndex}
+                                style={{
+                                  background: colorScheme.bg,
+                                  color: colorScheme.text,
+                                  border: `1px solid ${colorScheme.border}`,
+                                  padding: "4px 8px",
+                                  borderRadius: "6px",
+                                  fontSize: "11px",
+                                  fontWeight: "500",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  transition: "all 0.2s ease",
+                                }}
+                                className="annotation-badge-hover"
+                              >
+                                {annotation.label}
+                              </Badge>
+                            );
+                          })}
+                        </Flex>
+                      </Flex>
+                    )}
                   </Box>
                 ) : (
-                  <Flex direction="column" gap="2">
+                  <Flex direction="column" gap="3">
                     <Box
                       style={{
                         background: getDataTypeColor(dataset.dataType).bg,
                         color: getDataTypeColor(dataset.dataType).text,
-                        borderRadius: "6px",
-                        padding: "12px",
+                        borderRadius: "8px",
+                        padding: "16px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -652,111 +1053,119 @@ export function DatasetDetail() {
                     >
                       {getDataTypeIcon(dataset.dataType)}
                     </Box>
+                    
+                    {/* 파일 타입 데이터의 Annotation 표시 */}
                     {item.annotations.length > 0 && (
-                      <Flex
-                        align="center"
-                        gap="2"
-                        style={{
-                          background: "var(--gray-2)",
-                          padding: "6px 10px",
-                          borderRadius: "6px",
-                          border: "1px solid var(--gray-4)",
-                        }}
-                      >
-                        <Text
-                          size="1"
-                          style={{
-                            color: "var(--gray-11)",
-                            fontWeight: "500",
-                          }}
-                        >
-                          Annotation
+                      <Flex direction="column" gap="2">
+                        <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                          Annotations ({item.annotations.length})
                         </Text>
-                        <Badge
-                          style={{
-                            background: "var(--gray-4)",
-                            color: "var(--gray-12)",
-                            padding: "2px 8px",
-                            borderRadius: "4px",
-                            fontSize: "11px",
-                            fontWeight: "600",
-                          }}
-                        >
-                          {item.annotations.map((annotation: AnnotationObject) => annotation.label).join(", ")}
-                        </Badge>
+                        <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
+                          {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
+                            const colorScheme = getAnnotationColor(annotationIndex);
+                            return (
+                              <Badge
+                                key={annotationIndex}
+                                style={{
+                                  background: colorScheme.bg,
+                                  color: colorScheme.text,
+                                  border: `1px solid ${colorScheme.border}`,
+                                  padding: "4px 8px",
+                                  borderRadius: "6px",
+                                  fontSize: "11px",
+                                  fontWeight: "500",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  transition: "all 0.2s ease",
+                                }}
+                                className="annotation-badge-hover"
+                              >
+                                {annotation.label}
+                              </Badge>
+                            );
+                          })}
+                        </Flex>
                       </Flex>
                     )}
-                    <Flex gap="2">
-                      <Link
-                        to={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ flex: 1 }}
-                      >
-                        <Button
-                          size="1"
-                          variant="soft"
-                          style={{
-                            width: "100%",
-                            cursor: "pointer",
-                            background: "var(--gray-3)",
-                            color: "var(--gray-12)",
-                          }}
-                        >
-                          <Download size={14} />
-                          Download
-                        </Button>
-                      </Link>
-                      <Tooltip content="View on WalrusScan">
-                        <Button
-                          size="1"
-                          variant="soft"
-                          style={{
-                            cursor: "pointer",
-                            background: "#FFF4F2",
-                            color: "#FF5733",
-                            border: "1px solid #FFE8E2",
-                          }}
-                          onClick={() =>
-                            window.open(getWalruScanUrl(item.blobId), "_blank")
-                          }
-                        >
-                          <ExternalLinkIcon />
-                        </Button>
-                      </Tooltip>
-                    </Flex>
                   </Flex>
                 )}
               </Card>
             ))}
           </Grid>
+
+          {/* 페이지네이션 컨트롤 */}
+          <PaginationControls />
         </Flex>
       </Card>
 
-      {/* 이미지 미리보기 모달 */}
+      {/* 이미지 미리보기 모달 - 향상된 디자인 */}
       <Dialog.Root open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <Dialog.Content style={{ maxWidth: "90vw", maxHeight: "90vh" }}>
-          <Flex direction="column" gap="3">
+        <Dialog.Content style={{ maxWidth: "95vw", maxHeight: "95vh", padding: "24px" }}>
+          <Flex direction="column" gap="4">
             {selectedImage && (
-              <img
-                src={selectedImage}
-                alt="Preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "80vh",
-                  objectFit: "contain",
-                }}
-              />
+              <Box style={{ position: "relative" }}>
+                <img
+                  src={selectedImage}
+                  alt="Preview"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "70vh",
+                    objectFit: "contain",
+                    borderRadius: "12px",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+                  }}
+                />
+              </Box>
             )}
+            
+            {/* 선택된 이미지의 Annotation 상세 정보 */}
+            {selectedAnnotations.length > 0 && (
+              <Card style={{ padding: "20px", background: "var(--gray-1)", borderRadius: "12px" }}>
+                <Flex direction="column" gap="3">
+                  <Heading size="4" style={{ fontWeight: 600 }}>
+                    Annotations ({selectedAnnotations.length})
+                  </Heading>
+                  <Grid columns={{ initial: "2", md: "3", lg: "4" }} gap="2">
+                    {selectedAnnotations.map((annotation: AnnotationObject, index: number) => {
+                      const colorScheme = getAnnotationColor(index);
+                      return (
+                        <Badge
+                          key={index}
+                          style={{
+                            background: colorScheme.bg,
+                            color: colorScheme.text,
+                            border: `1px solid ${colorScheme.border}`,
+                            padding: "8px 12px",
+                            borderRadius: "8px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            textAlign: "center",
+                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+                          }}
+                        >
+                          {annotation.label}
+                        </Badge>
+                      );
+                    })}
+                  </Grid>
+                </Flex>
+              </Card>
+            )}
+
             <Button
               variant="soft"
               style={{
                 marginTop: "16px",
                 cursor: "pointer",
+                background: "var(--gray-3)",
+                color: "var(--gray-12)",
+                borderRadius: "8px",
+                padding: "12px 24px",
               }}
               onClick={() => setSelectedImage(null)}
             >
-              Close
+              Close Preview
             </Button>
           </Flex>
         </Dialog.Content>
@@ -772,6 +1181,18 @@ export function DatasetDetail() {
           }
           .hover-effect:hover {
             color: #FF5733 !important;
+          }
+          .item-card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+          }
+          .annotation-badge-hover:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
         `}
       </style>

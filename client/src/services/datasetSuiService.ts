@@ -170,7 +170,6 @@ export function useDatasetSuiService() {
    * 여러 파일을 하나의 Blob으로 업로드하고 데이터셋 생성
    * @param metadata 데이터셋 메타데이터
    * @param files 업로드할 파일 배열
-   * @param annotations 각 파일에 대한 어노테이션 배열
    * @param epochs Walrus 저장 주기 (선택 사항)
    * @param onSuccess 성공 콜백
    * @param onError 오류 콜백
@@ -179,19 +178,12 @@ export function useDatasetSuiService() {
   const createDatasetWithMultipleFiles = async (
     metadata: DatasetMetadata,
     files: File[],
-    annotations: string[],
     epochs?: number,
     onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
   ) => {
     if (!account) {
       const error = new Error("Wallet account not found. Please connect your wallet first.");
-      if (onError) onError(error);
-      throw error;
-    }
-
-    if (files.length !== annotations.length) {
-      const error = new Error("Files count must match annotations count");
       if (onError) onError(error);
       throw error;
     }
@@ -234,7 +226,6 @@ export function useDatasetSuiService() {
       console.log("file metadata:", filesMetadata);
       for (let i = 0; i < filesMetadata.length; i++) {
         const fileMetadata = filesMetadata[i];
-        const annotation = annotations[i];
         
         try {
           // blob range 객체 생성 - 실제 start/end 값 설정
@@ -256,12 +247,6 @@ export function useDatasetSuiService() {
               tx.pure.string(fileMetadata.fileType),
               rangeOptionObject,
             ],
-          });
-
-          // 어노테이션 추가
-          tx.moveCall({
-            target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_label`,
-            arguments: [dataObject, tx.pure.string(annotation)],
           });
 
           // 데이터셋에 데이터 추가
