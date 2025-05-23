@@ -3,7 +3,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
 import { useWalrusService } from "./walrusService";
-import { type DataObject } from "./datasetGraphQLService";
+import { type DatasetObject } from "./datasetGraphQLService";
 
 
 const suiClient = new SuiClient({
@@ -318,25 +318,43 @@ export function useDatasetSuiService() {
     }
   };
 
-  const addAnnotationLabel = async (
-    dataObject: DataObject,
-    annotation: string,
-    wallet: any
+  const addAnnotationLabels = async (
+    dataset: DatasetObject,
+    path: string,
+    annotations: string[],
   ) => {
+    if (!account) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+
+    if (annotations.length === 0) {
+      throw new Error("No annotations provided");
+    }
+
     try {
       const tx = new Transaction();
       
       tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_label`,
-        arguments: [tx.object(dataObject.path), tx.pure.string(annotation)],
+        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_labels`,
+        arguments: [
+          tx.object(dataset.id),
+          tx.pure.string(path),
+          tx.pure.vector("string", annotations),
+        ],
       });
 
-      const result = await signAndExecuteTransaction({
-        transaction: tx,
-        chain: `sui:${SUI_NETWORK.TYPE}`,
-      });
-
-      return result;
+      await signAndExecuteTransaction(
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: result => {
+            console.log("Annotation labels added successfully:", result);
+            return result;
+          },
+        }
+      );
     } catch (error) {
       console.error("Error adding annotation label:", error);
       throw error;
@@ -346,7 +364,7 @@ export function useDatasetSuiService() {
   return { 
     createDataset,
     createDatasetWithMultipleFiles,
-    addAnnotationLabel
+    addAnnotationLabels
   };
 }
 

@@ -7,21 +7,15 @@ import {
   Heading,
   Card,
   Grid,
-  TextField,
   TextArea,
-  Badge,
   Dialog,
 } from "@radix-ui/themes";
-import { useNavigate } from "react-router-dom";
-import { useCurrentWallet } from "@mysten/dapp-kit";
-import { Database, ImageSquare, FileDoc, FileZip, FileText } from "phosphor-react";
+import { Database } from "phosphor-react";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
 import { datasetGraphQLService, DatasetObject, DataObject } from "../services/datasetGraphQLService";
 import { useDatasetSuiService } from "../services/datasetSuiService";
 
 export function Annotator() {
-  const navigate = useNavigate();
-  const { currentWallet } = useCurrentWallet();
   const datasetSuiService = useDatasetSuiService();
   const [datasets, setDatasets] = useState<DatasetObject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,12 +180,8 @@ export function Annotator() {
     }));
   };
 
-  const saveAnnotation = async (item: DataObject, index: number) => {
+  const saveAnnotation = async (dataset: DatasetObject, item: DataObject, index: number) => {
     console.log("saveAnnotation", item, index);
-    if (!currentWallet) {
-      console.error("Please connect your wallet first");
-      return;
-    }
 
     const key = `${item.blobId}_${index}`;
     const annotation = annotations[key];
@@ -204,10 +194,10 @@ export function Annotator() {
     try {
       setSaving(prev => ({ ...prev, [key]: true }));
       
-      const result = await datasetSuiService.addAnnotationLabel(
-        item,
-        annotation,
-        currentWallet
+      const result = await datasetSuiService.addAnnotationLabels(
+        dataset,
+        item.path,
+        [annotation],
       );
 
       console.log("Annotation saved result:", result);
@@ -392,7 +382,7 @@ export function Annotator() {
                           style={{ minHeight: "100px" }}
                         />
                         <Button 
-                          onClick={() => saveAnnotation(item, index)}
+                          onClick={() => saveAnnotation(selectedDataset, item, index)}
                           disabled={saving[`${item.blobId}_${index}`]}
                         >
                           {saving[`${item.blobId}_${index}`] ? "Saving..." : "Save Annotation"}
