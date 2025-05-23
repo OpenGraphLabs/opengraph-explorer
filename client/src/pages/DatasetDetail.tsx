@@ -492,9 +492,6 @@ export function DatasetDetail() {
       // 선택 상태 초기화
       setSelectedPendingLabels(new Set());
       
-      // 데이터 갱신 - 현재 페이지 정보를 유지하며 갱신
-      await refreshCurrentData();
-      
       // 3초 후 상태 초기화
       setTimeout(() => {
         setConfirmationStatus({
@@ -509,70 +506,6 @@ export function DatasetDetail() {
         status: 'failed',
         message: error instanceof Error ? error.message : "Failed to confirm annotations",
       });
-    }
-  };
-
-  // 현재 데이터 갱신 함수
-  const refreshCurrentData = async () => {
-    if (!id || !dataset) return;
-    
-    try {
-      console.log('[Refresh] Refreshing current page data...');
-      
-      // 현재 페이지 옵션 구성
-      const refreshOptions: PaginationOptions = {};
-      
-      if (currentPage === 1) {
-        // 첫 페이지는 간단하게
-        refreshOptions.first = pageSize;
-      } else {
-        // 현재 페이지 위치를 유지하기 위해 현재 cursor 사용
-        if (currentCursors.startCursor) {
-          refreshOptions.first = pageSize;
-          refreshOptions.after = currentCursors.startCursor;
-        } else {
-          // fallback to first page
-          refreshOptions.first = pageSize;
-        }
-      }
-      
-      const refreshedData = await datasetGraphQLService.getDatasetData(id, refreshOptions);
-      
-      if (refreshedData && dataset) {
-        console.log('[Refresh] Successfully refreshed data');
-        
-        // 이미지 URL 초기화 후 재생성
-        Object.values(imageUrls).forEach(url => {
-          if (url.startsWith('blob:')) {
-            URL.revokeObjectURL(url);
-          }
-        });
-        setImageUrls({});
-        
-        // 데이터셋 업데이트
-        const updatedDataset = {
-          ...dataset,
-          data: refreshedData.data,
-          pageInfo: refreshedData.pageInfo,
-        };
-        setDataset(updatedDataset);
-        
-        // 커서 업데이트
-        setCurrentCursors({
-          startCursor: refreshedData.pageInfo.startCursor,
-          endCursor: refreshedData.pageInfo.endCursor,
-        });
-        
-        // 현재 선택된 이미지 데이터도 업데이트
-        if (selectedImageIndex >= 0 && refreshedData.data[selectedImageIndex]) {
-          setSelectedImageData(refreshedData.data[selectedImageIndex]);
-          setSelectedAnnotations(refreshedData.data[selectedImageIndex].annotations);
-        }
-      }
-    } catch (error) {
-      console.error('[Refresh] Error refreshing data:', error);
-      // 갱신 실패 시 전체 데이터 다시 로드
-      await fetchDataset();
     }
   };
 
@@ -955,24 +888,6 @@ export function DatasetDetail() {
                 }}
               >
                 Retry
-              </Button>
-            )}
-
-            {/* 새로고침 버튼 (성공 시에만) */}
-            {confirmationStatus.status === 'success' && (
-              <Button
-                size="2"
-                variant="soft"
-                onClick={refreshCurrentData}
-                style={{
-                  background: "white",
-                  color: config.text,
-                  border: `1px solid ${config.border}`,
-                  borderRadius: "8px",
-                  padding: "0 16px",
-                }}
-              >
-                🔄 Refresh
               </Button>
             )}
 
