@@ -410,8 +410,21 @@ export function DatasetDetail() {
     setSelectedImageIndex(index);
   };
 
+  // 확정된 annotation 라벨 목록 가져오기
+  const getConfirmedLabels = (): Set<string> => {
+    return new Set(selectedAnnotations.map(annotation => annotation.label));
+  };
+
   // Annotation 선택/해제 핸들러
   const handleTogglePendingAnnotation = (label: string) => {
+    const confirmedLabels = getConfirmedLabels();
+    
+    // 이미 확정된 라벨인지 체크
+    if (confirmedLabels.has(label)) {
+      alert(`"${label}" is already confirmed and cannot be selected again.`);
+      return;
+    }
+
     setSelectedPendingLabels(prev => {
       const newSet = new Set(prev);
       if (newSet.has(label)) {
@@ -1259,7 +1272,7 @@ export function DatasetDetail() {
                       </Button>
                     </Flex>
                     <Text size="3" style={{ color: "var(--gray-11)", lineHeight: "1.5" }}>
-                      Community annotations and administrative controls for this image
+                      Pending annotations and administrative controls for this image
                     </Text>
                   </Flex>
 
@@ -1330,7 +1343,7 @@ export function DatasetDetail() {
                             No confirmed annotations yet
                           </Text>
                           <Text size="1" style={{ color: "var(--gray-10)" }}>
-                            Promote community votes to confirmed annotations
+                            Promote pending annotations to confirmed annotations
                           </Text>
                         </Flex>
                       </Card>
@@ -1345,7 +1358,7 @@ export function DatasetDetail() {
                       <Flex align="center" gap="2">
                         <Users size={20} style={{ color: "var(--blue-9)" }} weight="fill" />
                         <Heading size="4" style={{ fontWeight: 600, color: "var(--blue-11)" }}>
-                          Community Votes
+                          Pending Annotations
                         </Heading>
                         <Badge style={{
                           background: "var(--blue-3)",
@@ -1358,7 +1371,7 @@ export function DatasetDetail() {
                       </Flex>
                       {selectedImageData?.pendingAnnotationStats && selectedImageData.pendingAnnotationStats.length > 0 && (
                         <Text size="1" style={{ color: "var(--gray-10)", fontStyle: "italic" }}>
-                          Sorted by vote count (highest first)
+                          Sorted by annotation count (highest first)
                         </Text>
                       )}
                     </Flex>
@@ -1369,47 +1382,56 @@ export function DatasetDetail() {
                         {selectedImageData.pendingAnnotationStats
                           .sort((a, b) => b.count - a.count)
                           .map((stat, index) => {
-                            const maxVotes = Math.max(...(selectedImageData?.pendingAnnotationStats?.map(s => s.count) || [1]));
-                            const percentage = maxVotes > 0 ? (stat.count / maxVotes) * 100 : 0;
+                            const maxAnnotations = Math.max(...(selectedImageData?.pendingAnnotationStats?.map(s => s.count) || [1]));
+                            const percentage = maxAnnotations > 0 ? (stat.count / maxAnnotations) * 100 : 0;
                             const isPopular = stat.count >= 3; // 3표 이상이면 인기 annotation
                             const rank = index + 1;
                             const isSelected = selectedPendingLabels.has(stat.label);
+                            const confirmedLabels = getConfirmedLabels();
+                            const isAlreadyConfirmed = confirmedLabels.has(stat.label);
                             
                             return (
                               <Card 
                                 key={stat.label} 
                                 style={{
                                   padding: "16px",
-                                  border: isSelected
-                                    ? "2px solid var(--green-6)"
-                                    : isPopular 
-                                      ? "2px solid var(--orange-6)" 
-                                      : rank === 1 
-                                        ? "2px solid var(--blue-6)"
-                                        : "1px solid var(--gray-4)",
+                                  border: isAlreadyConfirmed
+                                    ? "2px solid var(--gray-4)"
+                                    : isSelected
+                                      ? "2px solid var(--green-6)"
+                                      : isPopular 
+                                        ? "2px solid var(--orange-6)" 
+                                        : rank === 1 
+                                          ? "2px solid var(--blue-6)"
+                                          : "1px solid var(--gray-4)",
                                   borderRadius: "12px",
-                                  background: isSelected
-                                    ? "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)"
-                                    : isPopular 
-                                      ? "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)" 
-                                      : rank === 1
-                                        ? "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)"
-                                        : "white",
+                                  background: isAlreadyConfirmed
+                                    ? "var(--gray-2)"
+                                    : isSelected
+                                      ? "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)"
+                                      : isPopular 
+                                        ? "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)" 
+                                        : rank === 1
+                                          ? "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)"
+                                          : "white",
                                   transition: "all 0.2s ease",
                                   position: "relative",
-                                  cursor: "pointer",
-                                  minHeight: "100px", // 더 컴팩트한 높이
+                                  cursor: isAlreadyConfirmed ? "not-allowed" : "pointer",
+                                  minHeight: "100px",
+                                  opacity: isAlreadyConfirmed ? 0.6 : 1,
                                 }}
-                                onClick={() => handleTogglePendingAnnotation(stat.label)}
+                                onClick={() => !isAlreadyConfirmed && handleTogglePendingAnnotation(stat.label)}
                               >
                                 {/* 순위 표시 - 박스 안쪽 좌상단 */}
                                 <Box style={{
                                   position: "absolute",
                                   top: "8px",
                                   left: "12px",
-                                  background: isSelected 
-                                    ? "var(--green-9)"
-                                    : rank === 1 ? "var(--blue-9)" : rank <= 3 ? "var(--orange-9)" : "var(--gray-8)",
+                                  background: isAlreadyConfirmed
+                                    ? "var(--gray-7)"
+                                    : isSelected 
+                                      ? "var(--green-9)"
+                                      : rank === 1 ? "var(--blue-9)" : rank <= 3 ? "var(--orange-9)" : "var(--gray-8)",
                                   color: "white",
                                   borderRadius: "8px",
                                   padding: "4px 6px",
@@ -1423,7 +1445,7 @@ export function DatasetDetail() {
                                   #{rank}
                                 </Box>
 
-                                {/* 선택 체크박스 - 우상단 */}
+                                {/* 확정 상태 또는 선택 체크박스 */}
                                 <Box style={{
                                   position: "absolute",
                                   top: "8px",
@@ -1431,16 +1453,20 @@ export function DatasetDetail() {
                                   width: "18px",
                                   height: "18px",
                                   borderRadius: "4px",
-                                  border: isSelected 
-                                    ? "2px solid var(--green-9)" 
-                                    : "2px solid var(--gray-6)",
-                                  background: isSelected ? "var(--green-9)" : "white",
+                                  border: isAlreadyConfirmed
+                                    ? "2px solid var(--gray-7)"
+                                    : isSelected 
+                                      ? "2px solid var(--green-9)" 
+                                      : "2px solid var(--gray-6)",
+                                  background: isAlreadyConfirmed
+                                    ? "var(--gray-7)"
+                                    : isSelected ? "var(--green-9)" : "white",
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
                                   transition: "all 0.2s ease",
                                 }}>
-                                  {isSelected && (
+                                  {(isSelected || isAlreadyConfirmed) && (
                                     <CheckCircle size={12} style={{ color: "white" }} weight="fill" />
                                   )}
                                 </Box>
@@ -1451,16 +1477,29 @@ export function DatasetDetail() {
                                     <Flex align="center" gap="2" style={{ flex: 1 }}>
                                       <Text size="3" style={{ 
                                         fontWeight: 700,
-                                        color: isSelected 
-                                          ? "var(--green-11)"
-                                          : isPopular ? "var(--orange-11)" : rank === 1 ? "var(--blue-11)" : "var(--gray-12)",
+                                        color: isAlreadyConfirmed
+                                          ? "var(--gray-8)"
+                                          : isSelected 
+                                            ? "var(--green-11)"
+                                            : isPopular ? "var(--orange-11)" : rank === 1 ? "var(--blue-11)" : "var(--gray-12)",
                                         lineHeight: "1.2",
                                         wordBreak: "break-word",
                                       }}>
                                         {stat.label}
                                       </Text>
                                       {/* 배지들 */}
-                                      {isSelected && (
+                                      {isAlreadyConfirmed && (
+                                        <Badge style={{
+                                          background: "var(--gray-7)",
+                                          color: "white",
+                                          fontSize: "9px",
+                                          fontWeight: "600",
+                                          padding: "2px 4px"
+                                        }}>
+                                          CONFIRMED
+                                        </Badge>
+                                      )}
+                                      {isSelected && !isAlreadyConfirmed && (
                                         <Badge style={{
                                           background: "var(--green-9)",
                                           color: "white",
@@ -1471,7 +1510,7 @@ export function DatasetDetail() {
                                           SELECTED
                                         </Badge>
                                       )}
-                                      {isPopular && !isSelected && (
+                                      {isPopular && !isSelected && !isAlreadyConfirmed && (
                                         <Badge style={{
                                           background: "var(--orange-9)",
                                           color: "white",
@@ -1482,7 +1521,7 @@ export function DatasetDetail() {
                                           HOT
                                         </Badge>
                                       )}
-                                      {rank === 1 && !isPopular && !isSelected && (
+                                      {rank === 1 && !isPopular && !isSelected && !isAlreadyConfirmed && (
                                         <Badge style={{
                                           background: "var(--blue-9)",
                                           color: "white",
@@ -1501,27 +1540,29 @@ export function DatasetDetail() {
                                     {/* 투표 수 */}
                                     <Flex align="center" gap="2">
                                       <Text size="4" style={{ 
-                                        color: isSelected 
-                                          ? "var(--green-11)"
-                                          : rank === 1 ? "var(--blue-11)" : "var(--gray-11)",
+                                        color: isAlreadyConfirmed
+                                          ? "var(--gray-8)"
+                                          : isSelected 
+                                            ? "var(--green-11)"
+                                            : rank === 1 ? "var(--blue-11)" : "var(--gray-11)",
                                         fontWeight: 800,
                                         lineHeight: "1"
                                       }}>
                                         {stat.count}
                                       </Text>
                                       <Text size="1" style={{ 
-                                        color: "var(--gray-10)",
+                                        color: isAlreadyConfirmed ? "var(--gray-8)" : "var(--gray-10)",
                                         fontWeight: 500,
                                         textTransform: "uppercase",
                                         letterSpacing: "0.5px"
                                       }}>
-                                        {stat.count === 1 ? 'vote' : 'votes'}
+                                        {stat.count === 1 ? 'annotation' : 'annotations'}
                                       </Text>
                                     </Flex>
                                     
                                     {/* 퍼센트 */}
                                     <Text size="1" style={{
-                                      color: "var(--gray-10)",
+                                      color: isAlreadyConfirmed ? "var(--gray-8)" : "var(--gray-10)",
                                       fontSize: "10px",
                                       fontWeight: "500"
                                     }}>
@@ -1543,13 +1584,15 @@ export function DatasetDetail() {
                                       <Box style={{
                                         width: `${percentage}%`,
                                         height: "100%",
-                                        background: isSelected
-                                          ? "linear-gradient(90deg, var(--green-9) 0%, var(--green-10) 100%)"
-                                          : isPopular 
-                                            ? "linear-gradient(90deg, var(--orange-9) 0%, var(--orange-10) 100%)"
-                                            : rank === 1
-                                              ? "linear-gradient(90deg, var(--blue-9) 0%, var(--blue-10) 100%)"
-                                              : "linear-gradient(90deg, var(--gray-7) 0%, var(--gray-8) 100%)",
+                                        background: isAlreadyConfirmed
+                                          ? "var(--gray-6)"
+                                          : isSelected
+                                            ? "linear-gradient(90deg, var(--green-9) 0%, var(--green-10) 100%)"
+                                            : isPopular 
+                                              ? "linear-gradient(90deg, var(--orange-9) 0%, var(--orange-10) 100%)"
+                                              : rank === 1
+                                                ? "linear-gradient(90deg, var(--blue-9) 0%, var(--blue-10) 100%)"
+                                                : "linear-gradient(90deg, var(--gray-7) 0%, var(--gray-8) 100%)",
                                         borderRadius: "3px",
                                         transition: "width 0.3s ease",
                                       }} />
