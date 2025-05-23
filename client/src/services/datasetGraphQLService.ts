@@ -50,6 +50,7 @@ export interface DataObject {
   blobHash: string;
   dataType: string;
   range?: RangeObject;
+  pendingAnnotationStats: PendingAnnotationStat[];
 }
 
 /**
@@ -65,6 +66,14 @@ export interface AnnotationObject {
 export interface RangeObject {
   start?: number;
   end?: number;
+}
+
+/**
+ * 대기 중인 어노테이션 통계 객체 인터페이스
+ */
+export interface PendingAnnotationStat {
+  label: string;
+  count: number;
 }
 
 /**
@@ -484,7 +493,11 @@ export class DatasetGraphQLService {
           range: {
             start: fieldData.range?.start,
             end: fieldData.range?.end,
-          }
+          },
+          pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
+            label: stat.key,
+            count: stat.value,
+          })),
         };
       });
 
@@ -564,7 +577,11 @@ export class DatasetGraphQLService {
           range: {
             start: fieldData.range?.start,
             end: fieldData.range?.end,
-          }
+          },
+          pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
+            label: stat.key,
+            count: stat.value,
+          })),
         };
       });
 

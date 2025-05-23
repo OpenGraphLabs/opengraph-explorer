@@ -318,17 +318,26 @@ export function useDatasetSuiService() {
     try {
       const tx = new Transaction();
       tx.setGasBudget(GAS_BUDGET);
-      
-      // Add a moveCall for each annotation
-      annotations.forEach(({ path, label }) => {
-        tx.moveCall({
-          target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_labels`,
-          arguments: [
-            tx.object(dataset.id),
-            tx.pure.string(path),
-            tx.pure.vector("string", label),
-          ],
-        });
+
+      let pathArr: string[] = [];
+      let labelArr: string[] = [];
+      for (let i = 0; i < annotations.length; i++) {
+        const { path, label } = annotations[i];
+        if (label.length === 0) {
+          throw new Error(`Label is required for path: ${path}`);
+        }
+
+        pathArr.push(path);
+        labelArr.push(label[0]); // Currently only the first label is used
+      }
+
+      tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::batch_add_pending_annotations`,
+        arguments: [
+          tx.object(dataset.id),
+          tx.pure.vector("string", pathArr),
+          tx.pure.vector("string", labelArr),
+        ],
       });
 
       await signAndExecuteTransaction(

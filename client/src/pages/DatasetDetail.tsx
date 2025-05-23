@@ -12,8 +12,9 @@ import {
   Avatar,
   Dialog,
   Tooltip,
+  Separator,
 } from "@radix-ui/themes";
-import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight } from "phosphor-react";
+import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight, CheckCircle, Users, TrendUp } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject, PaginationOptions} from "../services/datasetGraphQLService";
 import {WALRUS_AGGREGATOR_URL} from "../services/walrusService";
@@ -55,10 +56,13 @@ const ANNOTATION_COLORS = [
 export function DatasetDetail() {
   const { id } = useParams<{ id: string }>();
   const [dataset, setDataset] = useState<DatasetObject | null>(null);
+  console.log("dataset: ", dataset);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedAnnotations, setSelectedAnnotations] = useState<AnnotationObject[]>([]);
+  const [selectedImageData, setSelectedImageData] = useState<DataObject | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,6 +107,7 @@ export function DatasetDetail() {
       const result = await datasetGraphQLService.getDatasetById(id, {
         first: pageSize
       });
+      console.log("Fetched dataset:", result);
       setDataset(result);
       
       if (result?.pageInfo) {
@@ -398,6 +403,26 @@ export function DatasetDetail() {
   const handleImageClick = (item: DataObject, index: number) => {
     setSelectedImage(getImageUrl(item, index));
     setSelectedAnnotations(item.annotations);
+    setSelectedImageData(item);
+    setSelectedImageIndex(index);
+  };
+
+  // Annotation 승인 핸들러
+  const handleConfirmAnnotation = async (label: string) => {
+    console.log(`Confirming annotation: ${label} for image ${selectedImageIndex}`);
+    // TODO: API 호출하여 annotation 승인 처리
+    // await datasetGraphQLService.confirmPendingAnnotation(dataset.id, selectedImageIndex, label);
+    
+    // 임시로 UI 피드백만 제공
+    alert(`Annotation "${label}" confirmed!`);
+  };
+
+  // 모달 닫기 핸들러
+  const handleCloseModal = () => {
+    setSelectedImage(null);
+    setSelectedAnnotations([]);
+    setSelectedImageData(null);
+    setSelectedImageIndex(-1);
   };
 
   // 고유한 Blob ID 가져오기 (WalrusScan 링크용)
@@ -445,6 +470,11 @@ export function DatasetDetail() {
 
   const isImageType = (dataType: string) => {
     return dataType.startsWith("image/");
+  };
+
+  const isAnyBlobLoading = () => {
+    if (!dataset) return false;
+    return Object.values(blobLoading).some(loading => loading === true);
   };
 
   // 페이지네이션 컴포넌트
@@ -913,7 +943,30 @@ export function DatasetDetail() {
         }}
       >
         <Flex direction="column" gap="6">
-          <Heading size="5" style={{ fontWeight: 600 }}>Dataset Contents</Heading>
+          <Flex align="center" justify="between">
+            <Flex direction="column" gap="2">
+              <Heading size="5" style={{ fontWeight: 600 }}>Dataset Contents</Heading>
+              
+              {/* 심플한 로딩 상태 표시 */}
+              {isAnyBlobLoading() && isImageType(dataset.dataType) && (
+                <Flex align="center" gap="2">
+                  <Box
+                    style={{
+                      width: "16px",
+                      height: "16px",
+                      border: "2px solid var(--gray-4)",
+                      borderTop: "2px solid var(--blue-9)",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                    }}
+                  />
+                  <Text size="2" style={{ color: "var(--gray-11)" }}>
+                    Loading images...
+                  </Text>
+                </Flex>
+              )}
+            </Flex>
+          </Flex>
 
           <Grid columns={{ initial: "2", sm: "3", md: "4", lg: "5" }} gap="4">
             {dataset.data.map((item: DataObject, index: number) => (
@@ -942,23 +995,22 @@ export function DatasetDetail() {
                         borderRadius: "8px",
                         overflow: "hidden",
                       }}
-                      onClick={() => handleImageClick(item, index)}
+                      onClick={() => !isItemLoading(item) && handleImageClick(item, index)}
                     >
+                      {/* Blob 로딩 상태 표시 */}
                       {isItemLoading(item) ? (
-                        <Flex 
-                          align="center" 
-                          justify="center" 
-                          style={{ 
-                            position: "absolute", 
-                            top: 0, 
-                            left: 0, 
-                            width: "100%", 
+                        <Box
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
                             height: "100%",
-                            background: "var(--gray-3)" 
+                            background: "linear-gradient(90deg, var(--gray-3) 25%, var(--gray-4) 50%, var(--gray-3) 75%)",
+                            backgroundSize: "200% 100%",
+                            animation: "shimmer 1.5s infinite ease-in-out",
                           }}
-                        >
-                          <Text size="1" style={{ color: "var(--gray-11)" }}>Loading...</Text>
-                        </Flex>
+                        />
                       ) : (
                         <img
                           src={getImageUrl(item, index)}
@@ -978,8 +1030,8 @@ export function DatasetDetail() {
                         />
                       )}
                       
-                      {/* Annotation 표시 - 새로운 디자인 */}
-                      {item.annotations.length > 0 && (
+                      {/* Annotation 표시 */}
+                      {!isItemLoading(item) && item.annotations.length > 0 && (
                         <Box
                           style={{
                             position: "absolute",
@@ -1099,75 +1151,309 @@ export function DatasetDetail() {
         </Flex>
       </Card>
 
-      {/* 이미지 미리보기 모달 - 향상된 디자인 */}
-      <Dialog.Root open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <Dialog.Content style={{ maxWidth: "95vw", maxHeight: "95vh", padding: "24px" }}>
-          <Flex direction="column" gap="4">
-            {selectedImage && (
-              <Box style={{ position: "relative" }}>
+      {/* 풍부한 이미지 분석 모달 */}
+      <Dialog.Root open={!!selectedImage} onOpenChange={handleCloseModal}>
+        <Dialog.Content style={{ 
+          maxWidth: "1200px", 
+          maxHeight: "90vh", 
+          padding: "0",
+          borderRadius: "16px",
+          overflow: "hidden",
+          background: "white",
+          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.15)",
+        }}>
+          {selectedImage && selectedImageData && (
+            <Grid columns="2" style={{ height: "80vh" }}>
+              {/* 왼쪽: 이미지 뷰 */}
+              <Box style={{ 
+                background: "var(--gray-2)", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                position: "relative"
+              }}>
                 <img
                   src={selectedImage}
-                  alt="Preview"
+                  alt="Dataset Image Analysis"
                   style={{
                     maxWidth: "100%",
-                    maxHeight: "70vh",
+                    maxHeight: "100%",
                     objectFit: "contain",
-                    borderRadius: "12px",
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+                    borderRadius: "0",
                   }}
                 />
+                {/* 이미지 정보 오버레이 */}
+                <Box style={{
+                  position: "absolute",
+                  top: "16px",
+                  left: "16px",
+                  background: "rgba(0, 0, 0, 0.8)",
+                  backdropFilter: "blur(8px)",
+                  color: "white",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  fontWeight: "500"
+                }}>
+                  Image #{selectedImageIndex + 1}
+                </Box>
               </Box>
-            )}
-            
-            {/* 선택된 이미지의 Annotation 상세 정보 */}
-            {selectedAnnotations.length > 0 && (
-              <Card style={{ padding: "20px", background: "var(--gray-1)", borderRadius: "12px" }}>
-                <Flex direction="column" gap="3">
-                  <Heading size="4" style={{ fontWeight: 600 }}>
-                    Annotations ({selectedAnnotations.length})
-                  </Heading>
-                  <Grid columns={{ initial: "2", md: "3", lg: "4" }} gap="2">
-                    {selectedAnnotations.map((annotation: AnnotationObject, index: number) => {
-                      const colorScheme = getAnnotationColor(index);
-                      return (
-                        <Badge
-                          key={index}
-                          style={{
-                            background: colorScheme.bg,
-                            color: colorScheme.text,
-                            border: `1px solid ${colorScheme.border}`,
-                            padding: "8px 12px",
-                            borderRadius: "8px",
-                            fontSize: "13px",
-                            fontWeight: "500",
-                            textAlign: "center",
-                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-                          }}
-                        >
-                          {annotation.label}
-                        </Badge>
-                      );
-                    })}
-                  </Grid>
-                </Flex>
-              </Card>
-            )}
 
-            <Button
-              variant="soft"
-              style={{
-                marginTop: "16px",
-                cursor: "pointer",
-                background: "var(--gray-3)",
-                color: "var(--gray-12)",
-                borderRadius: "8px",
-                padding: "12px 24px",
-              }}
-              onClick={() => setSelectedImage(null)}
-            >
-              Close Preview
-            </Button>
-          </Flex>
+              {/* 오른쪽: Annotation 분석 및 관리 패널 */}
+              <Box style={{ 
+                padding: "32px", 
+                background: "white",
+                overflow: "auto"
+              }}>
+                <Flex direction="column" gap="6" style={{ height: "100%" }}>
+                  {/* 헤더 */}
+                  <Flex direction="column" gap="3">
+                    <Flex align="center" justify="between">
+                      <Heading size="6" style={{ fontWeight: 700 }}>
+                        Image Analysis
+                      </Heading>
+                      <Button
+                        variant="ghost"
+                        size="2"
+                        onClick={handleCloseModal}
+                        style={{
+                          borderRadius: "8px",
+                          color: "var(--gray-11)",
+                        }}
+                      >
+                        ✕
+                      </Button>
+                    </Flex>
+                    <Text size="3" style={{ color: "var(--gray-11)", lineHeight: "1.5" }}>
+                      Community annotations and administrative controls for this image
+                    </Text>
+                  </Flex>
+
+                  <Separator size="4" />
+
+                  {/* 확정된 Annotations */}
+                  {selectedAnnotations.length > 0 && (
+                    <Flex direction="column" gap="3">
+                      <Flex align="center" gap="2">
+                        <CheckCircle size={20} style={{ color: "var(--green-9)" }} weight="fill" />
+                        <Heading size="4" style={{ fontWeight: 600, color: "var(--green-11)" }}>
+                          Confirmed Annotations
+                        </Heading>
+                        <Badge style={{
+                          background: "var(--green-3)",
+                          color: "var(--green-11)",
+                          fontSize: "11px",
+                          fontWeight: "600"
+                        }}>
+                          {selectedAnnotations.length}
+                        </Badge>
+                      </Flex>
+                      <Grid columns="2" gap="2">
+                        {selectedAnnotations.map((annotation, index) => {
+                          const colorScheme = getAnnotationColor(index);
+                          return (
+                            <Card key={index} style={{
+                              background: colorScheme.bg,
+                              border: `2px solid ${colorScheme.border}`,
+                              padding: "12px",
+                              borderRadius: "8px",
+                            }}>
+                              <Flex align="center" gap="2">
+                                <CheckCircle size={16} style={{ color: colorScheme.text }} weight="fill" />
+                                <Text size="2" style={{ 
+                                  color: colorScheme.text, 
+                                  fontWeight: 600 
+                                }}>
+                                  {annotation.label}
+                                </Text>
+                              </Flex>
+                            </Card>
+                          );
+                        })}
+                      </Grid>
+                    </Flex>
+                  )}
+
+                  <Separator size="4" />
+
+                  {/* Pending Annotations 통계 */}
+                  <Flex direction="column" gap="4">
+                    <Flex align="center" gap="2">
+                      <Users size={20} style={{ color: "var(--blue-9)" }} weight="fill" />
+                      <Heading size="4" style={{ fontWeight: 600, color: "var(--blue-11)" }}>
+                        Community Votes
+                      </Heading>
+                      <Badge style={{
+                        background: "var(--blue-3)",
+                        color: "var(--blue-11)",
+                        fontSize: "11px",
+                        fontWeight: "600"
+                      }}>
+                        {selectedImageData?.pendingAnnotationStats?.length || 0} labels
+                      </Badge>
+                    </Flex>
+
+                    {selectedImageData?.pendingAnnotationStats && selectedImageData.pendingAnnotationStats.length > 0 ? (
+                      <Flex direction="column" gap="3">
+                        {/* 통계 정렬 (투표 수 기준 내림차순) */}
+                        {selectedImageData.pendingAnnotationStats
+                          .sort((a, b) => b.count - a.count)
+                          .map((stat, _) => {
+                            const maxVotes = Math.max(...(selectedImageData?.pendingAnnotationStats?.map(s => s.count) || [1]));
+                            const percentage = maxVotes > 0 ? (stat.count / maxVotes) * 100 : 0;
+                            const isPopular = stat.count >= 3; // 3표 이상이면 인기 annotation
+                            
+                            return (
+                              <Card key={stat.label} style={{
+                                padding: "16px",
+                                border: isPopular 
+                                  ? "2px solid var(--orange-6)" 
+                                  : "1px solid var(--gray-4)",
+                                borderRadius: "12px",
+                                background: isPopular 
+                                  ? "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)" 
+                                  : "white",
+                                transition: "all 0.2s ease",
+                              }}>
+                                <Flex direction="column" gap="3">
+                                  <Flex align="center" justify="between">
+                                    <Flex align="center" gap="3">
+                                      <Text size="3" style={{ 
+                                        fontWeight: 600,
+                                        color: isPopular ? "var(--orange-11)" : "var(--gray-12)"
+                                      }}>
+                                        {stat.label}
+                                      </Text>
+                                      {isPopular && (
+                                        <Badge style={{
+                                          background: "var(--orange-9)",
+                                          color: "white",
+                                          fontSize: "10px",
+                                          fontWeight: "600",
+                                          padding: "2px 6px"
+                                        }}>
+                                          <TrendUp size={10} weight="fill" />
+                                          Popular
+                                        </Badge>
+                                      )}
+                                    </Flex>
+                                    <Flex align="center" gap="2">
+                                      <Text size="2" style={{ 
+                                        color: "var(--gray-11)",
+                                        fontWeight: 600 
+                                      }}>
+                                        {stat.count} votes
+                                      </Text>
+                                      {isPopular && (
+                                        <Button
+                                          size="1"
+                                          style={{
+                                            background: "var(--green-9)",
+                                            color: "white",
+                                            borderRadius: "6px",
+                                            padding: "4px 8px",
+                                            fontSize: "11px",
+                                            fontWeight: "600",
+                                            cursor: "pointer",
+                                          }}
+                                          onClick={() => handleConfirmAnnotation(stat.label)}
+                                        >
+                                          Confirm
+                                        </Button>
+                                      )}
+                                    </Flex>
+                                  </Flex>
+                                  
+                                  {/* 투표 진행률 바 */}
+                                  <Box style={{ position: "relative" }}>
+                                    <Box
+                                      style={{
+                                        width: "100%",
+                                        height: "8px",
+                                        background: "var(--gray-4)",
+                                        borderRadius: "4px",
+                                        overflow: "hidden",
+                                      }}
+                                    >
+                                      <Box style={{
+                                        width: `${percentage}%`,
+                                        height: "100%",
+                                        background: isPopular 
+                                          ? "linear-gradient(90deg, var(--orange-9) 0%, var(--orange-10) 100%)"
+                                          : "linear-gradient(90deg, var(--blue-9) 0%, var(--blue-10) 100%)",
+                                        borderRadius: "4px",
+                                        transition: "width 0.3s ease",
+                                      }} />
+                                    </Box>
+                                  </Box>
+                                </Flex>
+                              </Card>
+                            );
+                          })}
+                      </Flex>
+                    ) : (
+                      <Card style={{
+                        padding: "24px",
+                        background: "var(--gray-2)",
+                        border: "1px dashed var(--gray-6)",
+                        borderRadius: "12px",
+                        textAlign: "center"
+                      }}>
+                        <Flex direction="column" align="center" gap="2">
+                          <Users size={32} style={{ color: "var(--gray-8)" }} weight="thin" />
+                          <Text size="3" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
+                            No community annotations yet
+                          </Text>
+                          <Text size="2" style={{ color: "var(--gray-10)" }}>
+                            Be the first to annotate this image
+                          </Text>
+                        </Flex>
+                      </Card>
+                    )}
+                  </Flex>
+
+                  {/* 액션 버튼들 */}
+                  <Box style={{ marginTop: "auto" }}>
+                    <Separator size="4" style={{ marginBottom: "16px" }} />
+                    <Flex gap="3">
+                      <Button
+                        variant="soft"
+                        style={{
+                          flex: 1,
+                          background: "var(--gray-3)",
+                          color: "var(--gray-12)",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          cursor: "pointer",
+                        }}
+                        onClick={handleCloseModal}
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        style={{
+                          flex: 1,
+                          background: "linear-gradient(135deg, var(--blue-9) 0%, var(--blue-10) 100%)",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                        }}
+                        onClick={() => {
+                          // TODO: 어노테이션 편집기로 이동
+                          console.log('Navigate to annotation editor');
+                        }}
+                      >
+                        Edit Annotations
+                      </Button>
+                    </Flex>
+                  </Box>
+                </Flex>
+              </Box>
+            </Grid>
+          )}
         </Dialog.Content>
       </Dialog.Root>
 
@@ -1193,6 +1479,14 @@ export function DatasetDetail() {
           @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+          }
+          @keyframes shimmer {
+            0% {
+              background-position: -200% 0;
+            }
+            100% {
+              background-position: 200% 0;
+            }
           }
         `}
       </style>

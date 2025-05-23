@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -7,14 +7,10 @@ import {
   Heading,
   Card,
   Grid,
-  Dialog,
-  Select,
-  TextField,
   TextArea,
   ScrollArea,
 } from "@radix-ui/themes";
-import { Database, ArrowRight, ArrowLeft, X, Image as ImageIcon } from "phosphor-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Database, X, Image as ImageIcon } from "phosphor-react";
 import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
 import { datasetGraphQLService, DatasetObject, DataObject } from "../services/datasetGraphQLService";
 import { useDatasetSuiService } from "../services/datasetSuiService";
@@ -67,15 +63,11 @@ export function Annotator() {
   const [saving, setSaving] = useState(false);
   const [pendingAnnotations, setPendingAnnotations] = useState<{ path: string; label: string[] }[]>([]);
   const [currentInput, setCurrentInput] = useState<string>("");
-  const [showAnnotationDialog, setShowAnnotationDialog] = useState(false);
   
   // Blob 데이터 관리
   const [blobCache, setBlobCache] = useState<Record<string, ArrayBuffer>>({});
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [blobLoading, setBlobLoading] = useState<Record<string, boolean>>({});
-  const [lastAnnotatedImage, setLastAnnotatedImage] = useState<{ item: DataObject; index: number } | null>(null);
-  const mainImageRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
   const [imageLoading, setImageLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -226,35 +218,6 @@ export function Annotator() {
     setImageUrls(newImageUrls);
   };
 
-  const handleAnnotationSelect = async (item: DataObject, index: number, label: string) => {
-    const key = `${item.blobId}_${index}`;
-    
-    // Update annotations state
-    setAnnotations(prev => ({
-      ...prev,
-      [key]: label
-    }));
-
-    // Add to pending annotations
-    setPendingAnnotations(prev => {
-      // Find if we already have an entry for this path
-      const existingIndex = prev.findIndex(annotation => annotation.path === item.path);
-      
-      if (existingIndex >= 0) {
-        // Update existing entry
-        const updated = [...prev];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          label: [...updated[existingIndex].label, label]
-        };
-        return updated;
-      } else {
-        // Add new entry
-        return [...prev, { path: item.path, label: [label] }];
-      }
-    });
-  };
-
   const savePendingAnnotations = async () => {
     if (!selectedDataset || pendingAnnotations.length === 0) return;
 
@@ -284,17 +247,31 @@ export function Annotator() {
     return `${WALRUS_AGGREGATOR_URL}/v1/blobs/${item.blobId}`;
   };
 
-  const isItemLoading = (item: DataObject) => {
-    return blobLoading[item.blobId] === true;
-  };
-
-  const getAnnotation = (item: DataObject, index: number) => {
-    const key = `${item.blobId}_${index}`;
-    return annotations[key] || "";
-  };
-
   const isImageType = (dataType: string) => {
     return dataType.toLowerCase().includes("image");
+  };
+
+  // blob 로딩 상태 확인 헬퍼 함수들
+  const isCurrentImageBlobLoading = () => {
+    const currentImage = getCurrentImage();
+    if (!currentImage) return false;
+    return blobLoading[currentImage.blobId] === true;
+  };
+
+  const getOverallLoadingProgress = () => {
+    if (!selectedDataset) return { loaded: 0, total: 0, percentage: 0 };
+    
+    const uniqueBlobIds = Array.from(new Set(selectedDataset.data.map(item => item.blobId)));
+    const loadedBlobs = uniqueBlobIds.filter(blobId => blobLoading[blobId] === false || blobCache[blobId]);
+    const totalBlobs = uniqueBlobIds.length;
+    const percentage = totalBlobs > 0 ? (loadedBlobs.length / totalBlobs) * 100 : 0;
+    
+    return { loaded: loadedBlobs.length, total: totalBlobs, percentage };
+  };
+
+  const isImageUrlReady = (item: DataObject, index: number) => {
+    const cacheKey = `${item.blobId}_${index}`;
+    return imageUrls[cacheKey] && !blobLoading[item.blobId];
   };
 
   const handleKeyPress = async (e: React.KeyboardEvent<HTMLTextAreaElement>, item: DataObject, index: number) => {
@@ -410,9 +387,82 @@ export function Annotator() {
                 <Flex direction="column" gap="4">
                   {/* Navigation Header */}
                   <Flex justify="between" align="center">
-                    <Text size="3" weight="bold">
-                      Image {currentImageIndex + 1} of {selectedDataset.data.length}
-                    </Text>
+                    <Flex direction="column" gap="2">
+                      <Text size="3" weight="bold">
+                        Image {currentImageIndex + 1} of {selectedDataset.data.length}
+                      </Text>
+                      {/* 전체 로딩 진행률 표시 */}
+                      {(() => {
+                        const progress = getOverallLoadingProgress();
+                        if (progress.total > 0 && progress.percentage < 100) {
+                          return (
+                            <Flex align="center" gap="2">
+                              <Text size="1" style={{ color: "var(--gray-11)" }}>
+                                Loading dataset: {progress.loaded}/{progress.total} blobs
+                              </Text>
+                              <Box
+                                style={{
+                                  width: "100px",
+                                  height: "4px",
+                                  background: "var(--gray-4)",
+                                  borderRadius: "2px",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <Box
+                                  style={{
+                                    width: `${progress.percentage}%`,
+                                    height: "100%",
+                                    background: "var(--blue-9)",
+                                    borderRadius: "2px",
+                                    transition: "width 0.3s ease",
+                                  }}
+                                />
+                              </Box>
+                              <Text size="1" style={{ color: "var(--blue-11)", fontWeight: "500" }}>
+                                {Math.round(progress.percentage)}%
+                              </Text>
+                            </Flex>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </Flex>
+                    
+                    {/* 현재 이미지 상태 인디케이터 */}
+                    <Flex align="center" gap="2">
+                      {isCurrentImageBlobLoading() && (
+                        <Flex align="center" gap="2">
+                          <Box
+                            style={{
+                              width: "8px",
+                              height: "8px",
+                              background: "var(--orange-9)",
+                              borderRadius: "50%",
+                              animation: "pulse 1.5s infinite",
+                            }}
+                          />
+                          <Text size="1" style={{ color: "var(--orange-11)" }}>
+                            Loading blob data
+                          </Text>
+                        </Flex>
+                      )}
+                      {!isCurrentImageBlobLoading() && isImageUrlReady(getCurrentImage()!, currentImageIndex) && (
+                        <Flex align="center" gap="2">
+                          <Box
+                            style={{
+                              width: "8px",
+                              height: "8px",
+                              background: "var(--green-9)",
+                              borderRadius: "50%",
+                            }}
+                          />
+                          <Text size="1" style={{ color: "var(--green-11)" }}>
+                            Ready
+                          </Text>
+                        </Flex>
+                      )}
+                    </Flex>
                   </Flex>
 
                   {/* Image Display */}
@@ -426,7 +476,51 @@ export function Annotator() {
                       overflow: "hidden",
                     }}
                   >
-                    {imageLoading && (
+                    {/* Blob 로딩 상태 표시 */}
+                    {isCurrentImageBlobLoading() && (
+                      <Flex
+                        direction="column"
+                        align="center"
+                        justify="center"
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: "var(--gray-2)",
+                          zIndex: 2,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Box className="loading-icon">
+                          <Database size={40} color="var(--blue-9)" weight="thin" />
+                        </Box>
+                        <Text
+                          size="3"
+                          style={{
+                            color: "var(--blue-11)",
+                            marginTop: "16px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          Loading image data from Walrus...
+                        </Text>
+                        <Text
+                          size="2"
+                          style={{
+                            color: "var(--gray-11)",
+                            marginTop: "8px",
+                          }}
+                        >
+                          This may take a moment for large datasets
+                        </Text>
+                        <Box className="buffer-bar" />
+                      </Flex>
+                    )}
+
+                    {/* 이미지 로딩 상태 표시 (blob은 로드되었지만 이미지가 렌더링 중) */}
+                    {!isCurrentImageBlobLoading() && imageLoading && (
                       <Flex
                         direction="column"
                         align="center"
@@ -452,24 +546,27 @@ export function Annotator() {
                             marginTop: "12px",
                           }}
                         >
-                          Loading image...
+                          Rendering image...
                         </Text>
-                        <Box className="buffer-bar" />
                       </Flex>
                     )}
-                    <img
-                      src={getImageUrl(getCurrentImage()!, currentImageIndex)}
-                      alt={`Image ${currentImageIndex + 1}`}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                        opacity: imageLoading ? 0 : 1,
-                        transition: "opacity 0.3s ease",
-                      }}
-                      onLoad={() => setImageLoading(false)}
-                      onError={() => setImageLoading(false)}
-                    />
+
+                    {/* 실제 이미지 */}
+                    {!isCurrentImageBlobLoading() && (
+                      <img
+                        src={getImageUrl(getCurrentImage()!, currentImageIndex)}
+                        alt={`Image ${currentImageIndex + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          opacity: imageLoading ? 0 : 1,
+                          transition: "opacity 0.3s ease",
+                        }}
+                        onLoad={() => setImageLoading(false)}
+                        onError={() => setImageLoading(false)}
+                      />
+                    )}
                   </Box>
 
                   {/* Annotation Input */}
@@ -483,10 +580,13 @@ export function Annotator() {
                     }}
                   >
                     <TextArea 
-                      placeholder="Enter annotation..."
+                      placeholder={isCurrentImageBlobLoading() 
+                        ? "Loading image data..." 
+                        : "Enter annotation..."}
                       value={currentInput}
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCurrentInput(e.target.value)}
                       onKeyPress={(e) => handleKeyPress(e, getCurrentImage()!, currentImageIndex)}
+                      disabled={isCurrentImageBlobLoading()}
                       style={{ 
                         width: "100%",
                         resize: "none",
@@ -496,8 +596,15 @@ export function Annotator() {
                         border: "1px solid var(--gray-6)",
                         fontSize: "14px",
                         lineHeight: "24px",
+                        opacity: isCurrentImageBlobLoading() ? 0.6 : 1,
+                        cursor: isCurrentImageBlobLoading() ? "not-allowed" : "text",
                       }}
                     />
+                    {isCurrentImageBlobLoading() && (
+                      <Text size="1" style={{ color: "var(--gray-11)", textAlign: "center" }}>
+                        Please wait for the image data to load before annotating
+                      </Text>
+                    )}
                   </Flex>
                 </Flex>
               </Card>
@@ -553,28 +660,54 @@ export function Annotator() {
                                 borderRadius: '2px',
                                 overflow: 'hidden'
                               }}>
-                                <Box style={{
-                                  position: 'absolute',
-                                  top: '0',
-                                  left: '0',
-                                  right: '0',
-                                  bottom: '0',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  padding: '0'
-                                }}>
-                                  <img
-                                    src={getImageUrl(item, idx)}
-                                    alt={`Annotated ${idx + 1}`}
+                                {/* blob 로딩 상태 표시 */}
+                                {blobLoading[item.blobId] && (
+                                  <Flex
+                                    align="center"
+                                    justify="center"
                                     style={{
-                                      maxWidth: '100%',
-                                      maxHeight: '100%',
-                                      objectFit: 'contain',
-                                      borderRadius: '1px',
+                                      position: 'absolute',
+                                      top: '0',
+                                      left: '0',
+                                      right: '0',
+                                      bottom: '0',
+                                      background: 'var(--gray-3)',
+                                      zIndex: 1,
                                     }}
-                                  />
-                                </Box>
+                                  >
+                                    <Box className="loading-icon">
+                                      <Database size={16} color="var(--gray-8)" weight="thin" />
+                                    </Box>
+                                  </Flex>
+                                )}
+                                
+                                {/* 이미지 */}
+                                {!blobLoading[item.blobId] && (
+                                  <Box style={{
+                                    position: 'absolute',
+                                    top: '0',
+                                    left: '0',
+                                    right: '0',
+                                    bottom: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '0'
+                                  }}>
+                                    <img
+                                      src={getImageUrl(item, idx)}
+                                      alt={`Annotated ${idx + 1}`}
+                                      style={{
+                                        maxWidth: '100%',
+                                        maxHeight: '100%',
+                                        objectFit: 'contain',
+                                        borderRadius: '1px',
+                                      }}
+                                    />
+                                  </Box>
+                                )}
+                                
+                                {/* 삭제 버튼 */}
                                 <Box
                                   onClick={() => removeAnnotation(annotation.path)}
                                   style={{
