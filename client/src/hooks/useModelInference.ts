@@ -28,6 +28,7 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
   >("info");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [txDigest, setTxDigest] = useState<string>("");
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false); // 이미지 분석 상태
 
   // Get SUI inference hook
   const {
@@ -108,6 +109,7 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
     setTxDigest("");
 
     setIsProcessing(true);
+    setIsAnalyzing(true);
     setInferenceStatus(`Processing: Running all ${totalLayers} layers with optimized PTB...`);
     setInferenceStatusType("info");
 
@@ -407,6 +409,7 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
       setInferenceStatusType("error");
     } finally {
       setIsProcessing(false);
+      setIsAnalyzing(false);
     }
   };
 
@@ -421,6 +424,7 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
     inferenceStatusType,
     isProcessing,
     txDigest,
+    isAnalyzing,
     // Actions
     setInputVector,
     setInputValues,

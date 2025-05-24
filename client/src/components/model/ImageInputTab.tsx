@@ -18,7 +18,7 @@ import { VectorInfoDisplay, ImageData, FormattedVector } from "./VectorInfoDispl
 interface ImageInputTabProps {
   getFirstLayerDimension: () => number;
   getModelScale: () => number;
-  onVectorGenerated: (vector: number[]) => void;
+  onVectorGenerated: (vector: number[], imageUrl?: string) => void;
 }
 
 export function ImageInputTab({
@@ -142,7 +142,7 @@ export function ImageInputTab({
               setImageData({ dataUrl, vector });
 
               // 부모 컴포넌트로 생성된 벡터 전달
-              onVectorGenerated(vector);
+              onVectorGenerated(vector, dataUrl);
               
               setIsProcessingImage(false);
             })
@@ -213,7 +213,7 @@ export function ImageInputTab({
                 onClick={() => {
                   setImageData({ dataUrl: null, vector: null });
                   // 이미지 제거 시 빈 벡터 전달
-                  onVectorGenerated([]);
+                  onVectorGenerated([], "");
                 }}
               >
                 <ResetIcon /> Remove
@@ -339,13 +339,40 @@ export function ImageInputTab({
               }}
             />
             <Text size="1" style={{ color: "#666", textAlign: "center" }}>
-              Supported formats: JPG, PNG
+              Supported formats: JPG, PNG (Walrus or Elephant photos work best)
             </Text>
           </Box>
         )}
       </Card>
 
-      {/* Show vector info if image is processed */}
+      {/* Show simple confirmation if image is processed */}
+      {imageData.vector && imageData.vector.length > 0 && (
+        <Card style={{ 
+          padding: "12px", 
+          background: "#F0FDF4", 
+          border: "1px solid #BBF7D0",
+          borderRadius: "8px"
+        }}>
+          <Flex align="center" gap="2">
+            <Box style={{ 
+              width: "20px", 
+              height: "20px", 
+              borderRadius: "50%", 
+              background: "#22C55E",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              <Text style={{ color: "white", fontSize: "12px" }}>✓</Text>
+            </Box>
+            <Text size="2" style={{ color: "#15803D", fontWeight: 500 }}>
+              Image processed successfully! Ready for classification.
+            </Text>
+          </Flex>
+        </Card>
+      )}
+
+      {/* Hidden: Technical vector details 
       {imageData.vector && imageData.vector.length > 0 && (
         <VectorInfoDisplay
           imageData={imageData}
@@ -353,6 +380,7 @@ export function ImageInputTab({
           formatVectorForPrediction={formatVectorForPrediction}
         />
       )}
+      */}
     </Flex>
   );
 } 

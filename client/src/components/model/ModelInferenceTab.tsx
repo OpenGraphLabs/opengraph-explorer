@@ -28,6 +28,7 @@ import { ImageInputTab } from "./ImageInputTab";
 import { DrawingInputTab } from "./DrawingInputTab";
 import { FormattedVector } from "./VectorInfoDisplay";
 import { LayerFlowVisualization } from "./LayerFlowVisualization";
+import { AnimalClassificationResult } from "./AnimalClassificationResult";
 
 // Constants for vector conversion
 const DEFAULT_VECTOR_SCALE = 6; // 10^6 for precision
@@ -48,6 +49,9 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   const [vectorTabVector, setVectorTabVector] = useState<number[]>([]);
   const [imageTabVector, setImageTabVector] = useState<number[]>([]);
   const [drawingTabVector, setDrawingTabVector] = useState<number[]>([]);
+  
+  // 업로드된 이미지 URL 추적
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
 
   // Get layer count
   const getLayerCount = () => {
@@ -64,12 +68,13 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     predictResults,
     isProcessing,
     txDigest,
+    isAnalyzing,
     setInputVector,
     setInputValues,
     setInputSigns,
     runAllLayersWithPTBOptimization,
-    runAllLayersByInputNodes,
-    runAllLayersWithChunkedPTB,
+    // runAllLayersByInputNodes,
+    // runAllLayersWithChunkedPTB,
   } = useModelInferenceState(model, getLayerCount());
 
   // Get model scale
@@ -148,8 +153,11 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   };
 
   // 이미지 탭에서 벡터 생성 시
-  const handleImageTabVectorGenerated = (vector: number[]) => {
+  const handleImageTabVectorGenerated = (vector: number[], imageUrl?: string) => {
     setImageTabVector(vector);
+    if (imageUrl) {
+      setUploadedImageUrl(imageUrl);
+    }
     if (activeInputTab === "imageUpload" && vector.length > 0) {
       handleVectorChange(vector);
     }
@@ -266,7 +274,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
           >
             <Flex>
               <Text size="2" style={{ fontWeight: 500, lineHeight: "1.6" }}>
-                Choose how to input data for the model. Each layer's output will be automatically passed as input to the next layer.
+                Upload an image of a walrus or elephant, and our AI will classify it for you. The neural network analyzes the features and provides a confident prediction.
               </Text>
             </Flex>
 
@@ -379,93 +387,93 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 </Button>
               </Flex>
 
-              <Flex gap="3" mt="4" wrap="wrap">
-                <Button
-                    onClick={runAllLayersWithChunkedPTB}
-                    disabled={isProcessing || !inputVector.trim()}
-                    style={{
-                      cursor: "pointer",
-                      background: "#FF5733",
-                      color: "white",
-                      borderRadius: "8px",
-                      opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
-                      transition: "all 0.2s ease",
-                      padding: "12px 25px",
-                      fontSize: "16px",
-                      transform: "translateY(0)",
-                      border: "none",
-                      width: "180px",
-                      height: "50px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
-                    }}
-                >
-                  {isProcessing ? (
-                      <Flex align="center" gap="2">
-                        <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />
-                        <span>Processing...</span>
-                      </Flex>
-                  ) : (
-                      <Flex align="center" gap="3">
-                        <TreeStructure size={20} weight="fill" />
-                        <span>Predict By Chunked PTB</span>
-                      </Flex>
-                  )}
-                </Button>
-              </Flex>
+              {/*<Flex gap="3" mt="4" wrap="wrap">*/}
+              {/*  <Button*/}
+              {/*      onClick={runAllLayersWithChunkedPTB}*/}
+              {/*      disabled={isProcessing || !inputVector.trim()}*/}
+              {/*      style={{*/}
+              {/*        cursor: "pointer",*/}
+              {/*        background: "#FF5733",*/}
+              {/*        color: "white",*/}
+              {/*        borderRadius: "8px",*/}
+              {/*        opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,*/}
+              {/*        transition: "all 0.2s ease",*/}
+              {/*        padding: "12px 25px",*/}
+              {/*        fontSize: "16px",*/}
+              {/*        transform: "translateY(0)",*/}
+              {/*        border: "none",*/}
+              {/*        width: "180px",*/}
+              {/*        height: "50px",*/}
+              {/*        display: "flex",*/}
+              {/*        justifyContent: "center",*/}
+              {/*        alignItems: "center",*/}
+              {/*      }}*/}
+              {/*      onMouseOver={(e) => {*/}
+              {/*        e.currentTarget.style.transform = "translateY(-2px)";*/}
+              {/*        e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";*/}
+              {/*      }}*/}
+              {/*      onMouseOut={(e) => {*/}
+              {/*        e.currentTarget.style.transform = "translateY(0)";*/}
+              {/*        e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";*/}
+              {/*      }}*/}
+              {/*  >*/}
+              {/*    {isProcessing ? (*/}
+              {/*        <Flex align="center" gap="2">*/}
+              {/*          <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />*/}
+              {/*          <span>Processing...</span>*/}
+              {/*        </Flex>*/}
+              {/*    ) : (*/}
+              {/*        <Flex align="center" gap="3">*/}
+              {/*          <TreeStructure size={20} weight="fill" />*/}
+              {/*          <span>Predict By Chunked PTB</span>*/}
+              {/*        </Flex>*/}
+              {/*    )}*/}
+              {/*  </Button>*/}
+              {/*</Flex>*/}
 
-              <Flex gap="3" mt="4" wrap="wrap">
-                <Button
-                    onClick={runAllLayersByInputNodes}
-                    disabled={isProcessing || !inputVector.trim()}
-                    style={{
-                      cursor: "pointer",
-                      background: "#FF5733",
-                      color: "white",
-                      borderRadius: "8px",
-                      opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
-                      transition: "all 0.2s ease",
-                      padding: "12px 25px",
-                      fontSize: "16px",
-                      transform: "translateY(0)",
-                      border: "none",
-                      width: "180px",
-                      height: "50px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
-                    }}
-                >
-                  {isProcessing ? (
-                      <Flex align="center" gap="2">
-                        <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />
-                        <span>Processing...</span>
-                      </Flex>
-                  ) : (
-                      <Flex align="center" gap="3">
-                        <TreeStructure size={20} weight="fill" />
-                        <span>Predict By Input Nodes</span>
-                      </Flex>
-                  )}
-                </Button>
-              </Flex>
+              {/*<Flex gap="3" mt="4" wrap="wrap">*/}
+              {/*  <Button*/}
+              {/*      onClick={runAllLayersByInputNodes}*/}
+              {/*      disabled={isProcessing || !inputVector.trim()}*/}
+              {/*      style={{*/}
+              {/*        cursor: "pointer",*/}
+              {/*        background: "#FF5733",*/}
+              {/*        color: "white",*/}
+              {/*        borderRadius: "8px",*/}
+              {/*        opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,*/}
+              {/*        transition: "all 0.2s ease",*/}
+              {/*        padding: "12px 25px",*/}
+              {/*        fontSize: "16px",*/}
+              {/*        transform: "translateY(0)",*/}
+              {/*        border: "none",*/}
+              {/*        width: "180px",*/}
+              {/*        height: "50px",*/}
+              {/*        display: "flex",*/}
+              {/*        justifyContent: "center",*/}
+              {/*        alignItems: "center",*/}
+              {/*      }}*/}
+              {/*      onMouseOver={(e) => {*/}
+              {/*        e.currentTarget.style.transform = "translateY(-2px)";*/}
+              {/*        e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";*/}
+              {/*      }}*/}
+              {/*      onMouseOut={(e) => {*/}
+              {/*        e.currentTarget.style.transform = "translateY(0)";*/}
+              {/*        e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";*/}
+              {/*      }}*/}
+              {/*  >*/}
+              {/*    {isProcessing ? (*/}
+              {/*        <Flex align="center" gap="2">*/}
+              {/*          <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />*/}
+              {/*          <span>Processing...</span>*/}
+              {/*        </Flex>*/}
+              {/*    ) : (*/}
+              {/*        <Flex align="center" gap="3">*/}
+              {/*          <TreeStructure size={20} weight="fill" />*/}
+              {/*          <span>Predict By Input Nodes</span>*/}
+              {/*        </Flex>*/}
+              {/*    )}*/}
+              {/*  </Button>*/}
+              {/*</Flex>*/}
             </Flex>
           </Box>
         </motion.div>
@@ -478,35 +486,73 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
             ref={resultsContainerRef}
           >
             <Box style={{ marginTop: "16px" }}>
-              <Flex align="center" gap="3" mb="4">
-                <Box
-                  style={{
-                    background: "#FFF4F2",
-                    borderRadius: "8px",
-                    width: "28px",
-                    height: "28px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#FF5733",
-                  }}
-                >
-                  <CircuitBoard size={16} weight="bold" />
-                </Box>
-                <Heading size="3" style={{ color: "#333" }}>
-                  Layer-by-Layer Inference Results
-                </Heading>
-              </Flex>
-
-              {/* Add Layer Flow Visualization */}
-              <LayerFlowVisualization
+              {/* Animal Classification Result - Primary UI */}
+              <AnimalClassificationResult 
                 predictResults={predictResults}
-                currentLayerIndex={currentLayerIndex}
+                uploadedImageUrl={uploadedImageUrl}
                 isProcessing={isProcessing}
-                totalLayers={getLayerCount()}
-                inferenceTableRef={inferenceTableRef}
-                txDigest={txDigest}
+                isAnalyzing={isAnalyzing}
               />
+              
+              {/* Technical Details Section - Collapsible */}
+              {predictResults.length > 0 && !isProcessing && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  style={{ marginTop: "24px" }}
+                >
+                  <Card style={{ 
+                    border: "1px solid #E5E7EB", 
+                    background: "#FAFAFA",
+                    padding: "16px"
+                  }}>
+                    <details>
+                      <summary style={{ 
+                        cursor: "pointer", 
+                        userSelect: "none",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#6B7280",
+                        marginBottom: "12px"
+                      }}>
+                        🔬 View Technical Details (Layer-by-Layer Analysis)
+                      </summary>
+                      
+                      <Box style={{ marginTop: "16px" }}>
+                        <Flex align="center" gap="3" mb="4">
+                          <Box
+                            style={{
+                              background: "#FFF4F2",
+                              borderRadius: "8px",
+                              width: "28px",
+                              height: "28px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#FF5733",
+                            }}
+                          >
+                            <CircuitBoard size={16} weight="bold" />
+                          </Box>
+                          <Heading size="3" style={{ color: "#333" }}>
+                            Layer-by-Layer Inference Results
+                          </Heading>
+                        </Flex>
+
+                        <LayerFlowVisualization
+                          predictResults={predictResults}
+                          currentLayerIndex={currentLayerIndex}
+                          isProcessing={isProcessing}
+                          totalLayers={getLayerCount()}
+                          inferenceTableRef={inferenceTableRef}
+                          txDigest={txDigest}
+                        />
+                      </Box>
+                    </details>
+                  </Card>
+                </motion.div>
+              )}
             </Box>
           </motion.div>
         )}
