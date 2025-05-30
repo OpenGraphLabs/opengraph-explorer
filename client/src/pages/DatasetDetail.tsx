@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Box,
@@ -91,6 +91,24 @@ export function DatasetDetail() {
     status: 'idle',
     message: '',
   });
+
+  // Add new state for bounding box
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
+  const [boundingBoxes, setBoundingBoxes] = useState<BoundingBox[]>([]);
+  const [currentBoundingBox, setCurrentBoundingBox] = useState<BoundingBox | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Add new state for bounding box mode
+  const [isDrawingMode, setIsDrawingMode] = useState<boolean>(false);
+
+  // Add interface for BoundingBox
+  interface BoundingBox {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
 
   useEffect(() => {
     fetchDataset();
@@ -511,17 +529,162 @@ export function DatasetDetail() {
 
   // 모달 닫기 핸들러
   const handleCloseModal = () => {
+    console.log("Closing modal");
     setSelectedImage(null);
     setSelectedAnnotations([]);
     setSelectedImageData(null);
     setSelectedImageIndex(-1);
     setSelectedPendingLabels(new Set());
+    setIsDrawingMode(false);
+    setBoundingBoxes([]);
     // 확인 상태도 초기화
     setConfirmationStatus({
       status: 'idle',
       message: '',
     });
   };
+
+  // Add function to check if image has confirmed annotations
+  const hasConfirmedAnnotations = (item: DataObject): boolean => {
+    console.log("Checking if image has confirmed annotations:", item);
+    const confirmedCount = item.annotations.length;
+    console.log("Confirmed annotations count:", confirmedCount);
+    return confirmedCount > 0;
+  };
+
+  // Add function to handle drawing mode toggle
+  const handleDrawingModeToggle = (enabled: boolean) => {
+    console.log("Toggling drawing mode:", enabled);
+    if (!selectedImageData) {
+      console.log("No image selected");
+      return;
+    }
+
+    const isConfirmed = hasConfirmedAnnotations(selectedImageData);
+    console.log("Has confirmed annotations:", isConfirmed);
+    
+    if (!isConfirmed) {
+      console.log("Cannot enter drawing mode: no confirmed annotations");
+      return;
+    }
+    
+    setIsDrawingMode(enabled);
+    if (!enabled) {
+      setBoundingBoxes([]);
+    }
+  };
+
+  // Add effect to monitor state changes
+  useEffect(() => {
+    console.log("State changed - isDrawingMode:", isDrawingMode);
+    console.log("State changed - boundingBoxes:", boundingBoxes);
+  }, [isDrawingMode, boundingBoxes]);
+
+  // Add function to draw bounding box on canvas
+  const drawBoundingBox = (ctx: CanvasRenderingContext2D, box: BoundingBox, isTemp: boolean = false) => {
+    ctx.strokeStyle = isTemp ? 'rgba(255, 87, 51, 0.8)' : 'rgb(255, 87, 51)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(box.x, box.y, box.width, box.height);
+  };
+
+  // Add function to handle mouse events for drawing
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setIsDrawing(true);
+    setStartPoint({ x, y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !startPoint || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const width = x - startPoint.x;
+    const height = y - startPoint.y;
+
+    const box = {
+      x: width > 0 ? startPoint.x : x,
+      y: height > 0 ? startPoint.y : y,
+      width: Math.abs(width),
+      height: Math.abs(height)
+    };
+
+    setCurrentBoundingBox(box);
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw image
+    const img = new Image();
+    img.src = selectedImage || '';
+    ctx.drawImage(img, 0, 0);
+    
+    // Draw all existing boxes
+    boundingBoxes.forEach(existingBox => drawBoundingBox(ctx, existingBox));
+    
+    // Draw current box
+    drawBoundingBox(ctx, box, true);
+  };
+
+  const handleMouseUp = () => {
+    if (!isDrawing || !currentBoundingBox || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    setBoundingBoxes([...boundingBoxes, currentBoundingBox]);
+    setIsDrawing(false);
+    setStartPoint(null);
+    setCurrentBoundingBox(null);
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw image
+    const img = new Image();
+    img.src = selectedImage || '';
+    ctx.drawImage(img, 0, 0);
+    
+    // Draw all boxes including the new one
+    [...boundingBoxes, currentBoundingBox].forEach(box => drawBoundingBox(ctx, box));
+  };
+
+  // Add effect to initialize canvas when drawing mode changes
+  useEffect(() => {
+    if (selectedImage && canvasRef.current && isDrawingMode) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const img = new Image();
+      img.src = selectedImage;
+      
+      img.onload = () => {
+        // Set canvas dimensions to match image dimensions
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        // Clear canvas and draw image
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        // Draw existing bounding boxes
+        boundingBoxes.forEach(box => drawBoundingBox(ctx, box));
+      };
+    }
+  }, [selectedImage, isDrawingMode]);
 
   // 고유한 Blob ID 가져오기 (WalrusScan 링크용)
   const getUniqueBlobId = () => {
@@ -910,6 +1073,26 @@ export function DatasetDetail() {
         </Flex>
       </Card>
     );
+  };
+
+  // Add clearBoundingBoxes function
+  const clearBoundingBoxes = () => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear all bounding boxes from state
+    setBoundingBoxes([]);
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw only the image
+    const img = new Image();
+    img.src = selectedImage || '';
+    ctx.drawImage(img, 0, 0);
   };
 
   if (loading) {
@@ -1428,7 +1611,13 @@ export function DatasetDetail() {
       </Card>
 
       {/* 풍부한 이미지 분석 모달 */}
-      <Dialog.Root open={!!selectedImage} onOpenChange={handleCloseModal}>
+      <Dialog.Root 
+        open={!!selectedImage} 
+        onOpenChange={(open) => {
+          console.log("Dialog open state changed:", open);
+          if (!open) handleCloseModal();
+        }}
+      >
         <Dialog.Content style={{ 
           maxWidth: "1200px", 
           maxHeight: "95vh", 
@@ -1438,26 +1627,96 @@ export function DatasetDetail() {
           background: "white",
           boxShadow: "0 20px 60px rgba(0, 0, 0, 0.15)",
         }}>
+          <Dialog.Title className="visually-hidden">
+            Image Analysis
+          </Dialog.Title>
+          <Dialog.Description className="visually-hidden">
+            Analyze and annotate dataset images. For verified images, you can draw bounding boxes.
+          </Dialog.Description>
           {selectedImage && selectedImageData && (
             <Grid columns="2" style={{ height: "90vh" }}>
               {/* 왼쪽: 이미지 뷰 */}
-              <Box style={{ 
-                background: "var(--gray-2)", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                position: "relative"
-              }}>
-                <img
-                  src={selectedImage}
-                  alt="Dataset Image Analysis"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    objectFit: "contain",
-                    borderRadius: "0",
-                  }}
-                />
+              <Box 
+                className={hasConfirmedAnnotations(selectedImageData) ? "image-container verified" : "image-container"}
+                style={{ 
+                  background: "var(--gray-2)", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  position: "relative",
+                  cursor: hasConfirmedAnnotations(selectedImageData) ? "pointer" : "default",
+                }}
+              >
+                {!isDrawingMode ? (
+                  <Box 
+                    style={{ 
+                      width: "100%", 
+                      height: "100%", 
+                      position: "relative",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center" 
+                    }}
+                  >
+                    <img
+                      src={selectedImage}
+                      alt="Dataset Image Analysis"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        objectFit: "contain",
+                        borderRadius: "0",
+                        position: "relative",
+                        zIndex: 1
+                      }}
+                    />
+                    {hasConfirmedAnnotations(selectedImageData) && (
+                      <Box 
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 2,
+                          cursor: "pointer",
+                          background: "transparent"
+                        }}
+                        onClick={(e) => {
+                          console.log("Overlay clicked");
+                          e.stopPropagation();
+                          e.preventDefault();
+                          handleDrawingModeToggle(true);
+                        }}
+                      />
+                    )}
+                  </Box>
+                ) : (
+                  <Box style={{ 
+                    position: "relative", 
+                    width: "100%", 
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
+                    <canvas
+                      ref={canvasRef}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseUp}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        width: "auto",
+                        height: "auto",
+                        objectFit: "contain"
+                      }}
+                    />
+                  </Box>
+                )}
+
                 {/* 이미지 정보 오버레이 */}
                 <Box style={{
                   position: "absolute",
@@ -1469,10 +1728,36 @@ export function DatasetDetail() {
                   padding: "8px 12px",
                   borderRadius: "8px",
                   fontSize: "12px",
-                  fontWeight: "500"
+                  fontWeight: "500",
+                  zIndex: 3
                 }}>
-                  Image #{selectedImageIndex + 1}
+                  {isDrawingMode ? "Drawing Mode - Click and drag to draw boxes" : `Image #${selectedImageIndex + 1}`}
                 </Box>
+                {hasConfirmedAnnotations(selectedImageData) && !isDrawingMode && (
+                  <Box 
+                    className="click-overlay"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      background: "rgba(0, 0, 0, 0.8)",
+                      backdropFilter: "blur(8px)",
+                      color: "white",
+                      padding: "16px 24px",
+                      borderRadius: "12px",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      textAlign: "center",
+                      opacity: 0,
+                      transition: "opacity 0.2s ease",
+                      pointerEvents: "none",
+                      zIndex: 3
+                    }}
+                  >
+                    Click to Draw Bounding Boxes
+                  </Box>
+                )}
               </Box>
 
               {/* 오른쪽: Annotation 분석 및 관리 패널 */}
@@ -1959,6 +2244,61 @@ export function DatasetDetail() {
               </Box>
             </Grid>
           )}
+
+          {/* Drawing mode controls */}
+          {isDrawingMode && (
+            <Box style={{
+              position: "absolute",
+              bottom: "24px",
+              left: "24px",
+              right: "24px",
+              background: "rgba(255, 255, 255, 0.9)",
+              backdropFilter: "blur(8px)",
+              padding: "16px",
+              borderRadius: "12px",
+              boxShadow: "0 4px 24px rgba(0, 0, 0, 0.1)",
+            }}>
+              <Flex gap="3" align="center" justify="between">
+                <Flex align="center" gap="3">
+                  <Badge style={{
+                    background: "var(--green-3)",
+                    color: "var(--green-11)",
+                    padding: "4px 8px",
+                  }}>
+                    {boundingBoxes.length} boxes drawn
+                  </Badge>
+                  {boundingBoxes.length > 0 && (
+                    <Button 
+                      size="2" 
+                      variant="soft" 
+                      color="red"
+                      onClick={clearBoundingBoxes}
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </Flex>
+                <Flex gap="3">
+                  <Button 
+                    variant="soft" 
+                    color="gray"
+                    onClick={() => setIsDrawingMode(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="solid" 
+                    style={{
+                      background: "var(--green-9)",
+                      color: "white",
+                    }}
+                  >
+                    Save Boxes
+                  </Button>
+                </Flex>
+              </Flex>
+            </Box>
+          )}
         </Dialog.Content>
       </Dialog.Root>
 
@@ -2006,6 +2346,34 @@ export function DatasetDetail() {
               transform: scale(1);
               opacity: 1;
             }
+          }
+          .click-overlay {
+            opacity: 0;
+          }
+          
+          [style*="cursor: pointer"]:hover .click-overlay {
+            opacity: 1;
+          }
+          .image-container {
+            transition: all 0.2s ease;
+          }
+
+          .image-container.verified:hover {
+            background: var(--gray-3) !important;
+          }
+
+          .image-container.verified:hover .click-overlay {
+            opacity: 1 !important;
+          }
+          .visually-hidden {
+            border: 0;
+            clip: rect(0 0 0 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            width: 1px;
           }
         `}
       </style>
