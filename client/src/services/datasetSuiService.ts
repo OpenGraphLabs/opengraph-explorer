@@ -4,6 +4,7 @@ import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
 import { useWalrusService } from "./walrusService";
 import { type DatasetObject } from "./datasetGraphQLService";
+import {encrypt, encrypt_range_option} from "./sealService.ts";
 
 
 const suiClient = new SuiClient({
@@ -231,12 +232,17 @@ export function useDatasetSuiService() {
         const fileMetadata = filesMetadata[i];
         
         try {
+          const encryptedRangeOption = await encrypt_range_option(
+            account.address,
+            fileMetadata.startPosition,
+            fileMetadata.endPosition,
+          )
+
           // blob range 객체 생성 - 실제 start/end 값 설정
           const rangeOptionObject = tx.moveCall({
             target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_range_option`,
             arguments: [
-              tx.pure.option("u64", BigInt(fileMetadata.startPosition)), // range start
-              tx.pure.option("u64", BigInt(fileMetadata.endPosition)),   // range end
+              tx.pure.vector("u8", encryptedRangeOption),
             ],
           });
 

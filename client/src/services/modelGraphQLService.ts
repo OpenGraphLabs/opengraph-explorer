@@ -12,7 +12,6 @@ export interface ModelObject {
   description: string;
   task_type: string;
   graphs: GraphObject[];
-  partial_denses: PartialDenseObject[];
   scale: string | number;
   // UI에 필요한 추가 필드
   creator: string;
@@ -42,19 +41,6 @@ export interface Tensor {
   shape: number[];
   magnitude: number[];
   sign: number[];
-  scale: number;
-}
-
-export interface PartialDenseObject {
-  id?: string;
-  partials: PartialDense[];
-}
-
-export interface PartialDense {
-  accum_mag: number[];
-  accum_sign: number[];
-  out_dim: number;
-  in_dim: number;
   scale: number;
 }
 

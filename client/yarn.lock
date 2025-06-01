@@ -306,7 +306,7 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.4.2.tgz#1860473de7dfa1546767448f333db80cb0ff2161"
   integrity sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==
 
-"@mysten/bcs@1.6.1":
+"@mysten/bcs@1.6.1", "@mysten/bcs@^1.6.1":
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@mysten/bcs/-/bcs-1.6.1.tgz#2e0a2e3f5b4afdb678b2a874cec4c4f341565b1e"
   integrity sha512-pywsl2+jxbib5CbteAjMpmJpnj1pcUco2ff+lXCK3hfppPbkyWEMbZDQn1jNngV6ADQ3IFIvPs0FaS7fKWPOLA==
@@ -332,6 +332,17 @@
     clsx "^2.1.1"
     zustand "^4.5.4"
 
+"@mysten/seal@^0.4.6":
+  version "0.4.6"
+  resolved "https://registry.yarnpkg.com/@mysten/seal/-/seal-0.4.6.tgz#e7b6c38c715e7972fc0b64c3257269e5e564937a"
+  integrity sha512-EZKLG8zC6m+1FuqGPsG8CLQ4P6Rr0aqp+3hW0qsqWt7W4/DUNP7y1YJd26MIgH1eurxc3VmpIxXl9B1ppjVDGw==
+  dependencies:
+    "@mysten/bcs" "1.6.1"
+    "@mysten/sui" "1.30.2"
+    "@noble/curves" "^1.8.1"
+    "@noble/hashes" "^1.7.1"
+    shamir-secret-sharing "0.0.3"
+
 "@mysten/slush-wallet@0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@mysten/slush-wallet/-/slush-wallet-0.1.4.tgz#ae17f9a19e2144d1eaf42702441a67652ab57233"
@@ -344,10 +355,28 @@
     mitt "^3.0.1"
     valibot "^0.36.0"
 
-"@mysten/sui@1.30.0", "@mysten/sui@^1.30.0":
+"@mysten/sui@1.30.0":
   version "1.30.0"
   resolved "https://registry.yarnpkg.com/@mysten/sui/-/sui-1.30.0.tgz#b7dfa9b27fbe7d548bdb8d14458712e1ea583161"
   integrity sha512-mVEq3HQQTqw/ieiyoNbg7WDieFzUuBIKaTBvJaPKMOmjhrQutZiqJWXyHt8V+8iLEeAzhRg83eae8eHDOhklsQ==
+  dependencies:
+    "@graphql-typed-document-node/core" "^3.2.0"
+    "@mysten/bcs" "1.6.1"
+    "@mysten/utils" "0.0.0"
+    "@noble/curves" "^1.8.1"
+    "@noble/hashes" "^1.7.1"
+    "@scure/base" "^1.2.4"
+    "@scure/bip32" "^1.6.2"
+    "@scure/bip39" "^1.5.4"
+    gql.tada "^1.8.2"
+    graphql "^16.9.0"
+    poseidon-lite "^0.2.0"
+    valibot "^0.36.0"
+
+"@mysten/sui@1.30.2", "@mysten/sui@^1.30.2":
+  version "1.30.2"
+  resolved "https://registry.yarnpkg.com/@mysten/sui/-/sui-1.30.2.tgz#17579ae6272d04c43f6e7c0479e1446b3ed670b3"
+  integrity sha512-eIeFbMGHnTjAj+ZnTVXNU9ruu456cT7D+carwXCs4QTVITTjsYF91JUyGcsAAiZ3L+SzEbZPhUGVpZPT2Jt+0g==
   dependencies:
     "@graphql-typed-document-node/core" "^3.2.0"
     "@mysten/bcs" "1.6.1"
@@ -4060,6 +4089,11 @@ set-cookie-parser@^2.6.0:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/set-cookie-parser/-/set-cookie-parser-2.7.1.tgz#3016f150072202dfbe90fadee053573cc89d2943"
   integrity sha512-IOc8uWeOZgnb3ptbCURJWNjWUPcO3ZnTTdzsurqERrP6nPyv+paC55vJM0LpOlT2ne+Ix+9+CRG1MNLlyZ4GjQ==
+
+shamir-secret-sharing@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/shamir-secret-sharing/-/shamir-secret-sharing-0.0.3.tgz#94f63288ce7c37d899dfaf5f0c77af377f65dd30"
+  integrity sha512-GPIb+QZDyjwwKSlVXEjHoOaBeevmdWz2IM2tz07nQvd0L9eMfLhzEqr7imajjjXCAO/cWgzXCCj0yFNMx6+miQ==
 
 shebang-command@^2.0.0:
   version "2.0.0"

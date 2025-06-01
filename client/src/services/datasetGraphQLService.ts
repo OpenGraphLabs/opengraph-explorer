@@ -50,6 +50,7 @@ export interface DataObject {
   blobHash: string;
   dataType: string;
   range?: RangeObject;
+  encryptedRange?: EncryptedRangeObject;
   pendingAnnotationStats: PendingAnnotationStat[];
 }
 
@@ -58,6 +59,13 @@ export interface DataObject {
  */
 export interface AnnotationObject {
   label: string;
+}
+
+/**
+ * 범위 객체 인터페이스
+ */
+export interface EncryptedRangeObject {
+  range: Uint8Array
 }
 
 /**
@@ -388,9 +396,8 @@ export class DatasetGraphQLService {
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,
-          range: {
-            start: fieldData.range?.start,
-            end: fieldData.range?.end,
+          encryptedRange: {
+            range: fieldData.range ? new Uint8Array(fieldData.range) : new Uint8Array(),
           }
         };
       });
@@ -490,9 +497,8 @@ export class DatasetGraphQLService {
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,
-          range: {
-            start: fieldData.range?.start,
-            end: fieldData.range?.end,
+          encryptedRange: {
+            range: fieldData.range ? new Uint8Array(fieldData.range) : new Uint8Array(),
           },
           pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
             label: stat.key,
@@ -574,9 +580,8 @@ export class DatasetGraphQLService {
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,
-          range: {
-            start: fieldData.range?.start,
-            end: fieldData.range?.end,
+          encryptedRange: {
+            range: fieldData.range ? new Uint8Array(fieldData.range) : new Uint8Array(),
           },
           pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
             label: stat.key,
