@@ -112,12 +112,35 @@ export function DatasetDetail() {
   const [confirmedItems, setConfirmedItems] = useState<DataObject[]>([]);
   const [pendingItems, setPendingItems] = useState<DataObject[]>([]);
 
+  // Add new state for selected annotation
+  const [selectedConfirmedAnnotation, setSelectedConfirmedAnnotation] = useState<string | null>(null);
+
+  // Add new state for annotation colors
+  const [annotationColors, setAnnotationColors] = useState<Record<string, { stroke: string, bg: string, text: string }>>({});
+
+  // Add useEffect to initialize annotation colors
+  useEffect(() => {
+    if (selectedAnnotations.length > 0) {
+      const newColors: Record<string, { stroke: string, bg: string, text: string }> = {};
+      selectedAnnotations.forEach((annotation, index) => {
+        const hue = (360 / selectedAnnotations.length) * index;
+        newColors[annotation.label] = {
+          stroke: `hsla(${hue}, 80%, 45%, 1)`,
+          bg: `hsla(${hue}, 80%, 95%, 1)`,
+          text: `hsla(${hue}, 80%, 25%, 1)`
+        };
+      });
+      setAnnotationColors(newColors);
+    }
+  }, [selectedAnnotations]);
+
   // Add interface for BoundingBox
   interface BoundingBox {
     x: number;
     y: number;
     width: number;
     height: number;
+    annotation: string; // Add annotation label to track which annotation this box belongs to
   }
 
   useEffect(() => {
@@ -580,7 +603,12 @@ export function DatasetDetail() {
 
   // Add function to draw bounding box on canvas
   const drawBoundingBox = (ctx: CanvasRenderingContext2D, box: BoundingBox, isTemp: boolean = false) => {
-    ctx.strokeStyle = isTemp ? 'rgba(255, 87, 51, 0.8)' : 'rgb(255, 87, 51)';
+    if (!selectedConfirmedAnnotation) return;
+    
+    const color = annotationColors[selectedConfirmedAnnotation];
+    if (!color) return;
+
+    ctx.strokeStyle = isTemp ? `${color.stroke}80` : color.stroke; // 80 is for 50% opacity
     ctx.lineWidth = 2;
     ctx.strokeRect(box.x, box.y, box.width, box.height);
   };
@@ -598,7 +626,7 @@ export function DatasetDetail() {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !startPoint || !canvasRef.current) return;
+    if (!isDrawing || !startPoint || !canvasRef.current || !selectedConfirmedAnnotation) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -615,38 +643,48 @@ export function DatasetDetail() {
       x: width > 0 ? startPoint.x : x,
       y: height > 0 ? startPoint.y : y,
       width: Math.abs(width),
-      height: Math.abs(height)
+      height: Math.abs(height),
+      annotation: selectedConfirmedAnnotation
     };
 
     setCurrentBoundingBox(box);
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Redraw canvas and all existing boxes
+    redrawCanvas(canvas, ctx);
     
-    // Redraw image
-    const img = new Image();
-    img.src = selectedImage || '';
-    ctx.drawImage(img, 0, 0);
-    
-    // Draw all existing boxes
-    boundingBoxes.forEach(existingBox => drawBoundingBox(ctx, existingBox));
-    
-    // Draw current box
-    drawBoundingBox(ctx, box, true);
+    // Draw current box with the same color as the selected annotation
+    const color = annotationColors[selectedConfirmedAnnotation];
+    if (color) {
+      ctx.strokeStyle = color.stroke; // Use the same color without opacity
+      ctx.lineWidth = 2;
+      ctx.strokeRect(box.x, box.y, box.width, box.height);
+    }
   };
 
   const handleMouseUp = () => {
-    if (!isDrawing || !currentBoundingBox || !canvasRef.current) return;
+    if (!isDrawing || !currentBoundingBox || !canvasRef.current || !selectedConfirmedAnnotation) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    setBoundingBoxes([...boundingBoxes, currentBoundingBox]);
+    // Add annotation information to the box
+    const boxWithAnnotation = {
+      ...currentBoundingBox,
+      annotation: selectedConfirmedAnnotation
+    };
+    
+    setBoundingBoxes([...boundingBoxes, boxWithAnnotation]);
     setIsDrawing(false);
     setStartPoint(null);
     setCurrentBoundingBox(null);
 
+    // Redraw all boxes
+    redrawCanvas(canvas, ctx);
+  };
+
+  // Add function to redraw canvas
+  const redrawCanvas = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -655,8 +693,15 @@ export function DatasetDetail() {
     img.src = selectedImage || '';
     ctx.drawImage(img, 0, 0);
     
-    // Draw all boxes including the new one
-    [...boundingBoxes, currentBoundingBox].forEach(box => drawBoundingBox(ctx, box));
+    // Draw all boxes with their original colors
+    boundingBoxes.forEach(box => {
+      const color = annotationColors[box.annotation];
+      if (color) {
+        ctx.strokeStyle = color.stroke;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+      }
+    });
   };
 
   // Add effect to initialize canvas when drawing mode changes
@@ -674,15 +719,11 @@ export function DatasetDetail() {
         canvas.width = img.width;
         canvas.height = img.height;
         
-        // Clear canvas and draw image
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        
-        // Draw existing bounding boxes
-        boundingBoxes.forEach(box => drawBoundingBox(ctx, box));
+        // Draw image and all boxes
+        redrawCanvas(canvas, ctx);
       };
     }
-  }, [selectedImage, isDrawingMode]);
+  }, [selectedImage, isDrawingMode, boundingBoxes, annotationColors]);
 
   // 고유한 Blob ID 가져오기 (WalrusScan 링크용)
   const getUniqueBlobId = () => {
@@ -1038,13 +1079,10 @@ export function DatasetDetail() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear all bounding boxes from state
     setBoundingBoxes([]);
     
-    // Clear canvas
+    // Clear canvas and redraw only the image
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Redraw only the image
     const img = new Image();
     img.src = selectedImage || '';
     ctx.drawImage(img, 0, 0);
@@ -1910,32 +1948,55 @@ export function DatasetDetail() {
                         {selectedAnnotations.length > 0 ? (
                           <Grid columns="2" gap="2">
                             {selectedAnnotations.map((annotation, index) => {
+                              const color = annotationColors[annotation.label] || { stroke: "var(--gray-8)", bg: "var(--gray-3)", text: "var(--gray-11)" };
+                              const isSelected = selectedConfirmedAnnotation === annotation.label;
+                              
                               return (
-                                <Card key={index} style={{
-                                  background: "linear-gradient(135deg, var(--green-2) 0%, var(--green-3) 100%)",
-                                  border: "2px solid var(--green-6)",
-                                  padding: "12px",
-                                  borderRadius: "8px",
-                                  transition: "all 0.2s ease",
-                                }}>
+                                <Card 
+                                  key={index} 
+                                  style={{
+                                    background: isSelected ? color.bg : "white",
+                                    border: `2px solid ${isSelected ? color.stroke : "var(--gray-4)"}`,
+                                    padding: "12px",
+                                    borderRadius: "8px",
+                                    transition: "all 0.2s ease",
+                                    cursor: isDrawingMode ? "pointer" : "default",
+                                    opacity: isDrawingMode && !isSelected ? 0.6 : 1,
+                                  }}
+                                  onClick={() => {
+                                    if (isDrawingMode) {
+                                      setSelectedConfirmedAnnotation(isSelected ? null : annotation.label);
+                                    }
+                                  }}
+                                >
                                   <Flex align="center" gap="2">
-                                    <CheckCircle size={16} style={{ color: "var(--green-9)" }} weight="fill" />
+                                    <Box
+                                      style={{
+                                        width: "12px",
+                                        height: "12px",
+                                        borderRadius: "3px",
+                                        background: color.stroke,
+                                        flexShrink: 0
+                                      }}
+                                    />
                                     <Text size="2" style={{ 
-                                      color: "var(--green-11)", 
-                                      fontWeight: 600 
+                                      color: isSelected ? color.text : "var(--gray-12)", 
+                                      fontWeight: isSelected ? 600 : 500,
+                                      flex: 1
                                     }}>
                                       {annotation.label}
                                     </Text>
-                                    <Badge style={{
-                                      background: "var(--green-9)",
-                                      color: "white",
-                                      fontSize: "9px",
-                                      fontWeight: "600",
-                                      padding: "2px 4px",
-                                      marginLeft: "auto"
-                                    }}>
-                                      VERIFIED
-                                    </Badge>
+                                    {isDrawingMode && (
+                                      <Badge style={{
+                                        background: isSelected ? color.stroke : "var(--gray-4)",
+                                        color: isSelected ? "white" : "var(--gray-11)",
+                                        fontSize: "9px",
+                                        fontWeight: "600",
+                                        padding: "2px 4px",
+                                      }}>
+                                        {isSelected ? "SELECTED" : "CLICK TO SELECT"}
+                                      </Badge>
+                                    )}
                                   </Flex>
                                 </Card>
                               );
@@ -2342,43 +2403,59 @@ export function DatasetDetail() {
               boxShadow: "0 4px 24px rgba(0, 0, 0, 0.1)",
             }}>
               <Flex gap="3" align="center" justify="between">
-                <Flex align="center" gap="3">
+                {selectedConfirmedAnnotation ? (
                   <Badge style={{
-                    background: "var(--green-3)",
-                    color: "var(--green-11)",
+                    background: annotationColors[selectedConfirmedAnnotation]?.bg || "var(--gray-3)",
+                    color: annotationColors[selectedConfirmedAnnotation]?.text || "var(--gray-11)",
+                    border: `1px solid ${annotationColors[selectedConfirmedAnnotation]?.stroke || "var(--gray-6)"}`,
                     padding: "4px 8px",
                   }}>
-                    {boundingBoxes.length} boxes drawn
+                    Drawing: {selectedConfirmedAnnotation} (total {boundingBoxes.length} boxes)
                   </Badge>
-                  {boundingBoxes.length > 0 && (
-                    <Button 
-                      size="2" 
-                      variant="soft" 
-                      color="red"
-                      onClick={clearBoundingBoxes}
-                    >
-                      Clear All
-                    </Button>
-                  )}
-                </Flex>
-                <Flex gap="3">
+                ) : (
+                  <Badge style={{
+                    background: "var(--orange-3)",
+                    color: "var(--orange-11)",
+                    padding: "4px 8px",
+                  }}>
+                    Please select an annotation first
+                  </Badge>
+                )}
+                {boundingBoxes.length > 0 && (
                   <Button 
+                    size="2" 
                     variant="soft" 
-                    color="gray"
-                    onClick={() => setIsDrawingMode(false)}
+                    color="red"
+                    onClick={clearBoundingBoxes}
                   >
-                    Cancel
+                    Clear All
                   </Button>
-                  <Button 
-                    variant="solid" 
-                    style={{
-                      background: "var(--green-9)",
-                      color: "white",
-                    }}
-                  >
-                    Save Boxes
-                  </Button>
-                </Flex>
+                )}
+              </Flex>
+              <Flex gap="3">
+                <Button 
+                  variant="soft" 
+                  color="gray"
+                  onClick={() => {
+                    setIsDrawingMode(false);
+                    setSelectedConfirmedAnnotation(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="solid" 
+                  disabled={!selectedConfirmedAnnotation || boundingBoxes.length === 0}
+                  style={{
+                    background: selectedConfirmedAnnotation 
+                      ? annotationColors[selectedConfirmedAnnotation]?.stroke 
+                      : "var(--gray-8)",
+                    color: "white",
+                    opacity: (!selectedConfirmedAnnotation || boundingBoxes.length === 0) ? 0.5 : 1,
+                  }}
+                >
+                  Save Boxes
+                </Button>
               </Flex>
             </Box>
           )}
