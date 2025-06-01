@@ -94,6 +94,11 @@ export interface PaginationOptions {
   before?: string;
 }
 
+export interface AllowlistObject {
+  id: string;
+  dataset_id?: string;
+}
+
 /**
  * 데이터셋 GraphQL 서비스
  */
@@ -392,13 +397,17 @@ export class DatasetGraphQLService {
         const fieldData = field.value.json;
         return {
           path: fieldData.path,
-          annotations: fieldData.annotations || [],
+          annotations: fieldData.confirmed_annotations || [],
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,
-          encryptedRange: {
-            range: fieldData.range ? new Uint8Array(fieldData.range) : new Uint8Array(),
-          }
+          encryptedRange: fieldData.range ? {
+            range: new Uint8Array(fieldData.range.range)
+          } : undefined,
+          pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
+            label: stat.key,
+            count: stat.value,
+          })) || []
         };
       });
 
@@ -497,13 +506,13 @@ export class DatasetGraphQLService {
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,
-          encryptedRange: {
-            range: fieldData.range ? new Uint8Array(fieldData.range) : new Uint8Array(),
-          },
+          encryptedRange: fieldData.range ? {
+            range: new Uint8Array(fieldData.range.range)
+          } : undefined,
           pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
             label: stat.key,
             count: stat.value,
-          })),
+          })) || [],
         };
       });
 
@@ -580,13 +589,13 @@ export class DatasetGraphQLService {
           blobId: fieldData.blob_id,
           blobHash: fieldData.blob_hash,
           dataType: fieldData.data_type,
-          encryptedRange: {
-            range: fieldData.range ? new Uint8Array(fieldData.range) : new Uint8Array(),
-          },
+          encryptedRange: fieldData.range ? {
+            range: new Uint8Array(fieldData.range.range)
+          } : undefined,
           pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
             label: stat.key,
             count: stat.value,
-          })),
+          })) || [],
         };
       });
 
@@ -632,6 +641,82 @@ export class DatasetGraphQLService {
           dataCount: jsonData.data_count || dataItems.length,
           data: dataItems,
           createdAt: node.createdAt || defaultData.createdAt,
+        };
+      }
+
+      return defaultData;
+    });
+  }
+
+  async getAllowlistsByDatasetId(datasetId: string): Promise<AllowlistObject[]> {
+    const allowlists = await this.getAllAllowlists();
+    console.log("Allowlists fetched:", allowlists);
+    return allowlists.filter(allowlist => allowlist.dataset_id === datasetId);
+  }
+
+  /**
+   * 모든 Allowlist 객체 가져오기
+   */
+  async getAllAllowlists(): Promise<AllowlistObject[]> {
+    try {
+      const query = graphql(`
+        query GetDatasets {
+          objects(filter: {
+            type: "${SUI_CONTRACT.PACKAGE_ID}::allowlist::Allowlist"
+          }) {
+            nodes {
+              address
+              version
+              asMoveObject {
+                contents {
+                  json
+                }
+              }
+            }
+          }
+        }
+      `);
+
+      const result = await this.gqlClient.query({
+        query: query,
+      });
+
+      if (result.errors && result.errors.length > 0) {
+        throw new Error(`GraphQL error: ${result.errors[0].message}`);
+      }
+
+      console.log("graphQL data: \n", result.data);
+
+      const objectNodes = result.data?.objects?.nodes || [];
+      return this.transformAllowlistNodes(objectNodes as any[]);
+    } catch (error) {
+      console.error("Error fetching datasets:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GraphQL 응답 노드를 AllowlistObject 배열로 변환
+   */
+  private transformAllowlistNodes(nodes: any[]): AllowlistObject[] {
+    return nodes.map(node => {
+      const jsonData = node?.asMoveObject?.contents?.json;
+
+      if (!jsonData) {
+        console.warn(`No JSON data found for allowlist with ID ${node.address}`);
+      }
+
+      // 기본값 설정
+      const defaultData: AllowlistObject = {
+        id: node.address,
+        dataset_id: undefined,
+      };
+
+      // JSON 데이터가 있으면 해당 데이터 사용
+      if (jsonData) {
+        return {
+          id: jsonData.id || defaultData.id,
+          dataset_id: jsonData.dataset_id || defaultData.dataset_id,
         };
       }
 

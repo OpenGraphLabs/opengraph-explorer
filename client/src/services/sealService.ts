@@ -3,6 +3,7 @@ import {suiClient} from "./modelSuiService.ts";
 import {SUI_CONTRACT} from "../constants/suiConfig.ts";
 import {fromHex, toHex} from "@mysten/bcs";
 import {Transaction} from "@mysten/sui/transactions";
+import { useSignPersonalMessage } from "@mysten/dapp-kit";
 
 const sealClient = new SealClient({
     suiClient,
@@ -18,7 +19,7 @@ interface RangeOption {
     endPosition: number;
 }
 
-export const encrypt_range_option = async (
+export const encryptRangeOption = async (
     signerAddress: string,
     startPosition: number,
     endPosition: number,
@@ -44,34 +45,69 @@ export const encrypt_range_option = async (
     return encryptedBytes;
 }
 
-export const decrypt_range_option = async (
-    signerAddress: string,
-    allowlistId: string,
-    encryptedBytes: Uint8Array,
-): Promise<RangeOption> => {
-    const sessionKey = new SessionKey({
-        address: signerAddress,
-        packageId: SUI_CONTRACT.PACKAGE_ID,
-        ttlMin: 10, // TTL of 10 minutes
-        suiClient,
-    });
+export function useSealService() {
+    const { mutate: signPersonalMessage } = useSignPersonalMessage();
 
-    const tx = new Transaction();
-    tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::allowlist::seal_approve`,
-        arguments: [
-            tx.pure.vector("u8", fromHex(signerAddress)),
-            tx.object(allowlistId),
-        ]
-    });
-    const txBytes = await tx.build( { client: suiClient, onlyTransactionKind: true })
-    const decryptedBytes = await sealClient.decrypt({
-        data: encryptedBytes,
-        sessionKey,
-        txBytes,
-    });
+    const decryptRangeOption = async (
+        signerAddress: string,
+        allowlistId: string,
+        encryptedBytes: Uint8Array,
+    ): Promise<RangeOption> => {
+        console.log("encryptedBytes: ", encryptedBytes);
 
-    const rangeOption: RangeOption = JSON.parse(new TextDecoder().decode(decryptedBytes));
+        const sessionKey = new SessionKey({
+            address: signerAddress,
+            packageId: SUI_CONTRACT.PACKAGE_ID,
+            ttlMin: 10, // TTL of 10 minutes
+            suiClient,
+        });
+        // const message = sessionKey.getPersonalMessage();
+        // const { signature } = await signPersonalMessage(message); // User confirms in wallet
+        // console.log("signature: ", signature);
+        // await sessionKey.setPersonalMessageSignature(signature); // Initialization complete
+        // console.log("xxxxxxxxxxxxxxxx")
 
-    return rangeOption;
+        try {
+            signPersonalMessage(
+                {
+                    message: sessionKey.getPersonalMessage(),
+                },
+                {
+                    onSuccess: async (result: { signature: string }) => {
+                        await sessionKey.setPersonalMessageSignature(result.signature);
+                        // set('sessionKey', sessionKey.export());
+
+                        const tx = new Transaction();
+                        tx.moveCall({
+                            target: `${SUI_CONTRACT.PACKAGE_ID}::allowlist::seal_approve`,
+                            arguments: [
+                                tx.pure.vector("u8", fromHex(signerAddress)),
+                                tx.object(allowlistId),
+                            ]
+                        });
+                        console.log("xxxxxxxxxxxxxxxx")
+                        const txBytes = await tx.build( { client: suiClient, onlyTransactionKind: true })
+                        const decryptedBytes = await sealClient.decrypt({
+                            data: encryptedBytes,
+                            sessionKey,
+                            txBytes,
+                        });
+
+                        console.log("decryptedBytes: ", decryptedBytes);
+                        const rangeOption: RangeOption = JSON.parse(new TextDecoder().decode(decryptedBytes));
+
+                        console.log("rangeOption: ", rangeOption);
+
+                        return rangeOption;
+                    },
+                },
+            );
+        }   catch (error: any) {
+            console.error("Error decrypting range option:", error);
+        }
+    }
+
+    return {
+        decryptRangeOption,
+    };
 }

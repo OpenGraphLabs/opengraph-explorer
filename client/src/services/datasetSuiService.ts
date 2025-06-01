@@ -4,7 +4,7 @@ import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
 import { useWalrusService } from "./walrusService";
 import { type DatasetObject } from "./datasetGraphQLService";
-import {encrypt, encrypt_range_option} from "./sealService.ts";
+import {encryptRangeOption} from "./sealService.ts";
 
 
 const suiClient = new SuiClient({
@@ -232,7 +232,7 @@ export function useDatasetSuiService() {
         const fileMetadata = filesMetadata[i];
         
         try {
-          const encryptedRangeOption = await encrypt_range_option(
+          const encryptedRangeOption = await encryptRangeOption(
             account.address,
             fileMetadata.startPosition,
             fileMetadata.endPosition,

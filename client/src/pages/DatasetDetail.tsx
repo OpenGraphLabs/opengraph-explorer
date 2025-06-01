@@ -14,13 +14,15 @@ import {
   Tooltip,
   Separator,
 } from "@radix-ui/themes";
-import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight, CheckCircle, Users } from "phosphor-react";
+import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight, CheckCircle, Users, Lock, LockOpen } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject, PaginationOptions} from "../services/datasetGraphQLService";
 import {WALRUS_AGGREGATOR_URL} from "../services/walrusService";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
 import { getSuiScanUrl, getWalruScanUrl } from "../utils/sui";
 import {useDatasetSuiService} from "../services/datasetSuiService.ts";
+import {useSealService} from "../services/sealService";
 
 // 데이터 타입에 따른 아이콘 매핑
 const DATA_TYPE_ICONS: Record<string, any> = {
@@ -56,6 +58,8 @@ const ANNOTATION_COLORS = [
 
 export function DatasetDetail() {
   const { addConfirmedAnnotationLabels } = useDatasetSuiService();
+  const { decryptRangeOption } = useSealService();
+  const account = useCurrentAccount();
 
   const { id } = useParams<{ id: string }>();
   const [dataset, setDataset] = useState<DatasetObject | null>(null);
@@ -80,6 +84,11 @@ export function DatasetDetail() {
   const [blobCache, setBlobCache] = useState<Record<string, ArrayBuffer>>({});
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [blobLoading, setBlobLoading] = useState<Record<string, boolean>>({});
+  
+  // 암호화 상태 관리
+  const [decryptedRanges, setDecryptedRanges] = useState<Record<string, { start: number; end: number }>>({});
+  const [decryptionLoading, setDecryptionLoading] = useState<Record<string, boolean>>({});
+  const [decryptionError, setDecryptionError] = useState<Record<string, string>>({});;
 
   // 트랜잭션 상태 관리
   const [confirmationStatus, setConfirmationStatus] = useState<{
@@ -129,6 +138,90 @@ export function DatasetDetail() {
       });
     };
   }, [dataset]);
+
+  // 암호화 상태 확인 함수
+  const isDataEncrypted = (item: DataObject): boolean => {
+    return !!(item.encryptedRange?.range && item.encryptedRange.range.length > 0);
+  };
+
+  // 해독된 range 정보 가져오기
+  const getDataRange = (item: DataObject, index: number): { start: number; end: number } | null => {
+    const cacheKey = `${item.blobId}_${index}`;
+    
+    // 해독된 range가 있으면 사용
+    if (decryptedRanges[cacheKey]) {
+      return decryptedRanges[cacheKey];
+    }
+    
+    // 암호화되지 않은 range가 있으면 사용
+    if (item.range && item.range.start !== undefined && item.range.end !== undefined) {
+      return {
+        start: Number(item.range.start),
+        end: Number(item.range.end)
+      };
+    }
+    
+    return null;
+  };
+
+  // 암호화 해제 함수
+  const handleDecryptData = async (item: DataObject, index: number) => {
+    if (!isDataEncrypted(item)) {
+      console.warn("Data is not encrypted");
+      return;
+    }
+
+    if (!account || !account.address) {
+      throw new Error("Wallet account not found. Please connect your wallet first.");
+    }
+
+    const cacheKey = `${item.blobId}_${index}`;
+    
+    try {
+      setDecryptionLoading(prev => ({ ...prev, [cacheKey]: true }));
+      setDecryptionError(prev => ({ ...prev, [cacheKey]: "" }));
+
+      if (!dataset) {
+        throw new Error("Dataset not loaded. Please try again later.");
+      }
+
+      const allowlists = await datasetGraphQLService.getAllowlistsByDatasetId(dataset.id);
+      if (!allowlists || allowlists.length === 0) {
+        throw new Error("No allowlists found for this dataset");
+      }
+
+      const decryptedRange = await decryptRangeOption(
+        account.address,
+        allowlists[0].id,
+        item.encryptedRange!.range
+      );
+
+      console.log(`Decrypted range for item ${index}:`, decryptedRange);
+
+      // 해독된 range 저장
+      setDecryptedRanges(prev => ({
+        ...prev,
+        [cacheKey]: {
+          start: decryptedRange?.startPosition,
+          end: decryptedRange?.endPosition
+        }
+      }));
+
+      // 해독 후 이미지 다시 로드
+      if (dataset && isImageType(dataset.dataType)) {
+        loadBlobData();
+      }
+
+    } catch (error) {
+      console.error(`Error decrypting data for item ${index}:`, error);
+      setDecryptionError(prev => ({
+        ...prev,
+        [cacheKey]: error instanceof Error ? error.message : "Failed to decrypt data"
+      }));
+    } finally {
+      setDecryptionLoading(prev => ({ ...prev, [cacheKey]: false }));
+    }
+  };
 
   const fetchDataset = async () => {
     try {
@@ -370,28 +463,24 @@ export function DatasetDetail() {
       if (item.blobId !== blobId) return;
       
       try {
-        // range 정보가 있으면 해당 부분만 추출
+        // 암호화된 데이터인 경우 해독된 range 정보 사용
+        const dataRange = getDataRange(item, index);
+        
         let imageBlob: Blob;
         const itemType = item.dataType || 'image/jpeg';
 
-        if (item.range && item.range.start && item.range.end) {
-          const start = parseInt(String(item.range.start), 10);
-          const end = parseInt(String(item.range.end), 10) + 1; // end는 포함되므로 +1
+        if (dataRange) {
+          const start = dataRange.start;
+          const end = dataRange.end + 1; // end는 포함되므로 +1
 
-          // NaN 체크를 통한 유효성 검증
-          if (!isNaN(start) && !isNaN(end)) {
-            console.log("bytes buffer length: ", buffer.byteLength);
-            if (start >= 0 && end <= buffer.byteLength && start < end) {
-              // 범위 내 데이터만 추출
-              const slice = buffer.slice(start, end);
-              imageBlob = new Blob([slice], { type: itemType });
-              console.log(`Blob ${blobId} sliced from ${start} to ${end} (${slice.byteLength} bytes)`);
-            } else {
-              console.warn(`Invalid range for item ${index}: [${start}, ${end}] (buffer size: ${buffer.byteLength})`);
-              imageBlob = new Blob([buffer], { type: itemType });
-            }
+          console.log("bytes buffer length: ", buffer.byteLength);
+          if (start >= 0 && end <= buffer.byteLength && start < end) {
+            // 범위 내 데이터만 추출
+            const slice = buffer.slice(start, end);
+            imageBlob = new Blob([slice], { type: itemType });
+            console.log(`Blob ${blobId} sliced from ${start} to ${end} (${slice.byteLength} bytes)`);
           } else {
-            console.warn(`Invalid number format for range values: start=${item.range.start}, end=${item.range.end}`);
+            console.warn(`Invalid range for item ${index}: [${start}, ${end}] (buffer size: ${buffer.byteLength})`);
             imageBlob = new Blob([buffer], { type: itemType });
           }
         } else {
@@ -1428,181 +1517,428 @@ export function DatasetDetail() {
           </Flex>
 
           <Grid columns={{ initial: "2", sm: "3", md: "4", lg: "5" }} gap="4">
-            {dataset.data.map((item: DataObject, index: number) => (
-              <Card
-                key={index}
-                style={{
-                  padding: "16px",
-                  border: "1px solid var(--gray-4)",
-                  borderRadius: "12px",
-                  background: "white",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-                  transition: "all 0.2s ease",
-                  cursor: "pointer",
-                }}
-                className="item-card-hover"
-              >
-                {isImageType(dataset.dataType) ? (
-                  <Box>
+            {dataset.data.map((item: DataObject, index: number) => {
+              const isEncrypted = isDataEncrypted(item);
+              const cacheKey = `${item.blobId}_${index}`;
+              const isDecrypting = decryptionLoading[cacheKey];
+              const decryptionErr = decryptionError[cacheKey];
+              const hasDecryptedRange = !!decryptedRanges[cacheKey];
+              
+              return (
+                <Card
+                  key={index}
+                  style={{
+                    padding: "16px",
+                    border: isEncrypted && !hasDecryptedRange 
+                      ? "1px solid var(--gray-6)" 
+                      : "1px solid var(--gray-4)",
+                    borderRadius: "12px",
+                    background: isEncrypted && !hasDecryptedRange 
+                      ? "linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)" 
+                      : "white",
+                    boxShadow: isEncrypted && !hasDecryptedRange
+                      ? "0 4px 12px rgba(0, 0, 0, 0.08)"
+                      : "0 2px 8px rgba(0, 0, 0, 0.04)",
+                    transition: "all 0.2s ease",
+                    cursor: "pointer",
+                    position: "relative",
+                    opacity: isEncrypted && !hasDecryptedRange ? 0.85 : 1,
+                  }}
+                  className="item-card-hover"
+                >
+                  {/* 암호화 상태 표시 */}
+                  {isEncrypted && (
                     <Box
                       style={{
-                        width: "100%",
-                        paddingBottom: "100%",
-                        position: "relative",
-                        marginBottom: "12px",
-                        background: "var(--gray-3)",
-                        borderRadius: "8px",
-                        overflow: "hidden",
+                        position: "absolute",
+                        top: "8px",
+                        left: "8px",
+                        background: hasDecryptedRange 
+                          ? "rgba(34, 197, 94, 0.9)"
+                          : "rgba(100, 116, 139, 0.85)",
+                        backdropFilter: "blur(8px)",
+                        color: "white",
+                        borderRadius: "6px",
+                        padding: "3px 6px",
+                        fontSize: "9px",
+                        fontWeight: "600",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "3px",
+                        zIndex: 10,
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
                       }}
-                      onClick={() => !isItemLoading(item) && handleImageClick(item, index)}
                     >
-                      {/* Blob 로딩 상태 표시 */}
-                      {isItemLoading(item) ? (
-                        <Box
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            background: "linear-gradient(90deg, var(--gray-3) 25%, var(--gray-4) 50%, var(--gray-3) 75%)",
-                            backgroundSize: "200% 100%",
-                            animation: "shimmer 1.5s infinite ease-in-out",
-                          }}
-                        />
+                      {hasDecryptedRange ? (
+                        <>
+                          <LockOpen size={8} />
+                          <span>UNLOCKED</span>
+                        </>
                       ) : (
-                        <img
-                          src={getImageUrl(item, index)}
-                          alt={`Dataset item ${index + 1}`}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                          onError={(e) => {
-                            console.error(`Error loading image ${index}:`, e);
-                            (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
-                          }}
-                        />
-                      )}
-                      
-                      {/* Annotation 표시 */}
-                      {!isItemLoading(item) && item.annotations.length > 0 && (
-                        <Box
-                          style={{
-                            position: "absolute",
-                            top: "8px",
-                            right: "8px",
-                            background: "rgba(255, 255, 255, 0.95)",
-                            backdropFilter: "blur(8px)",
-                            borderRadius: "8px",
-                            padding: "4px",
-                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                            border: "1px solid rgba(255, 255, 255, 0.2)",
-                          }}
-                        >
-                          <Flex align="center" gap="1">
-                            <Tag size={12} style={{ color: "var(--violet-9)" }} />
-                            <Text size="1" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
-                              {item.annotations.length}
-                            </Text>
-                          </Flex>
-                        </Box>
+                        <>
+                          <Lock size={8} />
+                          <span>PRIVATE</span>
+                        </>
                       )}
                     </Box>
+                  )}
 
-                    {/* Annotation 목록 - 향상된 UI */}
-                    {item.annotations.length > 0 && (
-                      <Flex direction="column" gap="2">
-                        <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                          Annotations ({item.annotations.length})
-                        </Text>
-                        <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
-                          {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
-                            const colorScheme = getAnnotationColor(annotationIndex);
-                            return (
-                              <Badge
-                                key={annotationIndex}
+                  {isImageType(dataset.dataType) ? (
+                    <Box>
+                      <Box
+                        style={{
+                          width: "100%",
+                          paddingBottom: "100%",
+                          position: "relative",
+                          marginBottom: "12px",
+                          background: "var(--gray-3)",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                        }}
+                        onClick={() => !isItemLoading(item) && (!isEncrypted || hasDecryptedRange) && handleImageClick(item, index)}
+                      >
+                        {/* 암호화된 상태에서 해제되지 않은 경우 오버레이 */}
+                        {isEncrypted && !hasDecryptedRange ? (
+                          <Box
+                            className="sealed-overlay"
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              background: "rgba(255, 255, 255, 0.95)",
+                              backdropFilter: "blur(12px)",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "var(--gray-11)",
+                              fontSize: "12px",
+                              fontWeight: "500",
+                              textAlign: "center",
+                              zIndex: 5,
+                              border: "1px solid rgba(229, 231, 235, 0.8)",
+                            }}
+                          >
+                            <Box
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                borderRadius: "50%",
+                                background: "linear-gradient(135deg, var(--gray-3) 0%, var(--gray-4) 100%)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                marginBottom: "8px",
+                                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                              }}
+                            >
+                              <Lock size={18} style={{ color: "var(--gray-9)" }} />
+                            </Box>
+                            <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 600, marginBottom: "2px" }}>
+                              Private Content
+                            </Text>
+                            <Text size="1" style={{ color: "var(--gray-10)", opacity: 0.8 }}>
+                              Unlock to view
+                            </Text>
+                          </Box>
+                        ) : (
+                          <>
+                            {/* Blob 로딩 상태 표시 */}
+                            {isItemLoading(item) ? (
+                              <Box
                                 style={{
-                                  background: colorScheme.bg,
-                                  color: colorScheme.text,
-                                  border: `1px solid ${colorScheme.border}`,
-                                  padding: "4px 8px",
-                                  borderRadius: "6px",
-                                  fontSize: "11px",
-                                  fontWeight: "500",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  transition: "all 0.2s ease",
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  width: "100%",
+                                  height: "100%",
+                                  background: "linear-gradient(90deg, var(--gray-3) 25%, var(--gray-4) 50%, var(--gray-3) 75%)",
+                                  backgroundSize: "200% 100%",
+                                  animation: "shimmer 1.5s infinite ease-in-out",
                                 }}
-                                className="annotation-badge-hover"
-                              >
-                                {annotation.label}
-                              </Badge>
-                            );
-                          })}
-                        </Flex>
+                              />
+                            ) : (
+                              <img
+                                src={getImageUrl(item, index)}
+                                alt={`Dataset item ${index + 1}`}
+                                style={{
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                                onError={(e) => {
+                                  console.error(`Error loading image ${index}:`, e);
+                                  (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
+                                }}
+                              />
+                            )}
+                          </>
+                        )}
+                        
+                        {/* Annotation 표시 - 해제된 데이터에만 */}
+                        {!isItemLoading(item) && (!isEncrypted || hasDecryptedRange) && item.annotations.length > 0 && (
+                          <Box
+                            style={{
+                              position: "absolute",
+                              top: "8px",
+                              right: "8px",
+                              background: "rgba(255, 255, 255, 0.95)",
+                              backdropFilter: "blur(8px)",
+                              borderRadius: "8px",
+                              padding: "4px",
+                              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                              border: "1px solid rgba(255, 255, 255, 0.2)",
+                              zIndex: 6,
+                            }}
+                          >
+                            <Flex align="center" gap="1">
+                              <Tag size={12} style={{ color: "var(--violet-9)" }} />
+                              <Text size="1" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
+                                {item.annotations.length}
+                              </Text>
+                            </Flex>
+                          </Box>
+                        )}
+                      </Box>
+
+                    {/* 암호화 상태에 따른 컨텐츠 */}
+                    {isEncrypted && !hasDecryptedRange ? (
+                      <Flex direction="column" gap="3" align="center">
+                        {/* 해제 버튼 */}
+                        <Button
+                          size="1"
+                          disabled={isDecrypting}
+                          className={!isDecrypting ? "unseal-button" : ""}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDecryptData(item, index);
+                          }}
+                          style={{
+                            background: isDecrypting 
+                              ? "var(--gray-4)" 
+                              : "linear-gradient(135deg, var(--gray-12) 0%, var(--gray-11) 100%)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            padding: "8px 16px",
+                            cursor: isDecrypting ? "not-allowed" : "pointer",
+                            width: "100%",
+                            transition: "all 0.2s ease",
+                            boxShadow: isDecrypting ? "none" : "0 2px 8px rgba(0, 0, 0, 0.15)",
+                          }}
+                        >
+                          {isDecrypting ? (
+                            <Flex align="center" gap="2" justify="center">
+                              <Box
+                                style={{
+                                  width: "10px",
+                                  height: "10px",
+                                  border: "2px solid var(--gray-8)",
+                                  borderTop: "2px solid transparent",
+                                  borderRadius: "50%",
+                                  animation: "spin 1s linear infinite",
+                                }}
+                              />
+                              <span>Unsealing...</span>
+                            </Flex>
+                          ) : (
+                            <Flex align="center" gap="2" justify="center">
+                              <LockOpen size={12} />
+                              <span>Unlock</span>
+                            </Flex>
+                          )}
+                        </Button>
+
+                        {/* 해제 에러 표시 */}
+                        {decryptionErr && (
+                          <Text size="1" style={{ color: "var(--red-9)", textAlign: "center", marginTop: "4px" }}>
+                            {decryptionErr}
+                          </Text>
+                        )}
                       </Flex>
+                    ) : (
+                      <>
+                        {/* Annotation 목록 - 향상된 UI */}
+                        {item.annotations.length > 0 && (
+                          <Flex direction="column" gap="2">
+                            <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                              Annotations ({item.annotations.length})
+                            </Text>
+                            <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
+                              {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
+                                const colorScheme = getAnnotationColor(annotationIndex);
+                                return (
+                                  <Badge
+                                    key={annotationIndex}
+                                    style={{
+                                      background: colorScheme.bg,
+                                      color: colorScheme.text,
+                                      border: `1px solid ${colorScheme.border}`,
+                                      padding: "4px 8px",
+                                      borderRadius: "6px",
+                                      fontSize: "11px",
+                                      fontWeight: "500",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      transition: "all 0.2s ease",
+                                    }}
+                                    className="annotation-badge-hover"
+                                  >
+                                    {annotation.label}
+                                  </Badge>
+                                );
+                              })}
+                            </Flex>
+                          </Flex>
+                        )}
+                      </>
                     )}
                   </Box>
                 ) : (
                   <Flex direction="column" gap="3">
+                    {/* 파일 타입 아이콘 */}
                     <Box
                       style={{
-                        background: getDataTypeColor(dataset.dataType).bg,
-                        color: getDataTypeColor(dataset.dataType).text,
+                        background: isEncrypted && !hasDecryptedRange 
+                          ? "linear-gradient(135deg, var(--gray-3) 0%, var(--gray-4) 100%)" 
+                          : getDataTypeColor(dataset.dataType).bg,
+                        color: isEncrypted && !hasDecryptedRange 
+                          ? "var(--gray-9)" 
+                          : getDataTypeColor(dataset.dataType).text,
                         borderRadius: "8px",
                         padding: "16px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        position: "relative",
+                        opacity: isEncrypted && !hasDecryptedRange ? 0.8 : 1,
                       }}
                     >
-                      {getDataTypeIcon(dataset.dataType)}
+                      {isEncrypted && !hasDecryptedRange ? (
+                        <Lock size={24} />
+                      ) : (
+                        getDataTypeIcon(dataset.dataType)
+                      )}
                     </Box>
                     
-                    {/* 파일 타입 데이터의 Annotation 표시 */}
-                    {item.annotations.length > 0 && (
-                      <Flex direction="column" gap="2">
-                        <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                          Annotations ({item.annotations.length})
-                        </Text>
-                        <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
-                          {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
-                            const colorScheme = getAnnotationColor(annotationIndex);
-                            return (
-                              <Badge
-                                key={annotationIndex}
-                                style={{
-                                  background: colorScheme.bg,
-                                  color: colorScheme.text,
-                                  border: `1px solid ${colorScheme.border}`,
-                                  padding: "4px 8px",
-                                  borderRadius: "6px",
-                                  fontSize: "11px",
-                                  fontWeight: "500",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  transition: "all 0.2s ease",
-                                }}
-                                className="annotation-badge-hover"
-                              >
-                                {annotation.label}
-                              </Badge>
-                            );
-                          })}
+                    {/* 암호화 상태에 따른 컨텐츠 */}
+                    {isEncrypted && !hasDecryptedRange ? (
+                      <Flex direction="column" gap="3" align="center">
+                        <Flex direction="column" gap="2" align="center">
+                          <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 600, textAlign: "center" }}>
+                            Private File
+                          </Text>
+                          <Text size="1" style={{ color: "var(--gray-10)", textAlign: "center", opacity: 0.8 }}>
+                            Unlock to view
+                          </Text>
                         </Flex>
+                        
+                                                 {/* 해제 버튼 */}
+                         <Button
+                           size="1"
+                           disabled={isDecrypting}
+                           className={!isDecrypting ? "unseal-button" : ""}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleDecryptData(item, index);
+                           }}
+                           style={{
+                             background: isDecrypting 
+                               ? "var(--gray-4)" 
+                               : "linear-gradient(135deg, var(--gray-12) 0%, var(--gray-11) 100%)",
+                             color: "white",
+                             border: "none",
+                             borderRadius: "8px",
+                             fontSize: "11px",
+                             fontWeight: "600",
+                             padding: "8px 16px",
+                             cursor: isDecrypting ? "not-allowed" : "pointer",
+                             width: "100%",
+                             transition: "all 0.2s ease",
+                             boxShadow: isDecrypting ? "none" : "0 2px 8px rgba(0, 0, 0, 0.15)",
+                           }}
+                         >
+                           {isDecrypting ? (
+                             <Flex align="center" gap="2" justify="center">
+                               <Box
+                                 style={{
+                                   width: "10px",
+                                   height: "10px",
+                                   border: "2px solid var(--gray-8)",
+                                   borderTop: "2px solid transparent",
+                                   borderRadius: "50%",
+                                   animation: "spin 1s linear infinite",
+                                 }}
+                               />
+                               <span>Unsealing...</span>
+                             </Flex>
+                           ) : (
+                             <Flex align="center" gap="2" justify="center">
+                               <LockOpen size={12} />
+                               <span>Unlock</span>
+                             </Flex>
+                           )}
+                         </Button>
+
+                        {/* 해제 에러 표시 */}
+                        {decryptionErr && (
+                          <Text size="1" style={{ color: "var(--red-9)", textAlign: "center", marginTop: "4px" }}>
+                            {decryptionErr}
+                          </Text>
+                        )}
                       </Flex>
+                    ) : (
+                      <>
+                        {/* 파일 타입 데이터의 Annotation 표시 */}
+                        {item.annotations.length > 0 && (
+                          <Flex direction="column" gap="2">
+                            <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                              Annotations ({item.annotations.length})
+                            </Text>
+                            <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
+                              {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
+                                const colorScheme = getAnnotationColor(annotationIndex);
+                                return (
+                                  <Badge
+                                    key={annotationIndex}
+                                    style={{
+                                      background: colorScheme.bg,
+                                      color: colorScheme.text,
+                                      border: `1px solid ${colorScheme.border}`,
+                                      padding: "4px 8px",
+                                      borderRadius: "6px",
+                                      fontSize: "11px",
+                                      fontWeight: "500",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      transition: "all 0.2s ease",
+                                    }}
+                                    className="annotation-badge-hover"
+                                  >
+                                    {annotation.label}
+                                  </Badge>
+                                );
+                              })}
+                            </Flex>
+                          </Flex>
+                        )}
+                      </>
                     )}
                   </Flex>
                 )}
               </Card>
-            ))}
+              );
+            })}
           </Grid>
 
           {/* 페이지네이션 컨트롤 */}
@@ -2313,10 +2649,6 @@ export function DatasetDetail() {
           .hover-effect:hover {
             color: #FF5733 !important;
           }
-          .item-card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
-          }
           .annotation-badge-hover:hover {
             transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -2365,6 +2697,27 @@ export function DatasetDetail() {
           .image-container.verified:hover .click-overlay {
             opacity: 1 !important;
           }
+          
+          .sealed-overlay {
+            animation: gentlePulse 4s ease-in-out infinite;
+          }
+          
+          @keyframes gentlePulse {
+            0% { opacity: 0.95; }
+            50% { opacity: 1; }
+            100% { opacity: 0.95; }
+          }
+          
+          .unseal-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+          }
+          
+          .item-card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+          }
+          
           .visually-hidden {
             border: 0;
             clip: rect(0 0 0 0);

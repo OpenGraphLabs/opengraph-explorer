@@ -314,15 +314,15 @@
     "@mysten/utils" "0.0.0"
     "@scure/base" "^1.2.4"
 
-"@mysten/dapp-kit@^0.16.4":
-  version "0.16.4"
-  resolved "https://registry.yarnpkg.com/@mysten/dapp-kit/-/dapp-kit-0.16.4.tgz#942bf238de7ed51f312ab1aa2c2e936bc78680c4"
-  integrity sha512-5f/Ts/wiBLG2chg/M2oioakEEVVMO0d6HXXJh9EopixSsvLw5K9Ydo11E0pCXGMx0iYvEHWvTa0VgrLviKm2fQ==
+"@mysten/dapp-kit@^0.16.6":
+  version "0.16.6"
+  resolved "https://registry.yarnpkg.com/@mysten/dapp-kit/-/dapp-kit-0.16.6.tgz#01ac0e63eba2720709dd4a76278fbfbf02d6466a"
+  integrity sha512-s5WFQr2qJVKIhI0V4xPBaXNmph2So0l51K8pscpdEqEDNCunxyWy3eT7aPAgoHVVPmHm+eAa5gReZ4Zez3wlQw==
   dependencies:
-    "@mysten/slush-wallet" "0.1.4"
-    "@mysten/sui" "1.30.0"
+    "@mysten/slush-wallet" "0.1.6"
+    "@mysten/sui" "1.30.2"
     "@mysten/utils" "0.0.0"
-    "@mysten/wallet-standard" "0.15.1"
+    "@mysten/wallet-standard" "0.15.3"
     "@radix-ui/react-dialog" "^1.1.6"
     "@radix-ui/react-dropdown-menu" "^2.1.6"
     "@radix-ui/react-slot" "^1.1.2"
@@ -343,14 +343,14 @@
     "@noble/hashes" "^1.7.1"
     shamir-secret-sharing "0.0.3"
 
-"@mysten/slush-wallet@0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@mysten/slush-wallet/-/slush-wallet-0.1.4.tgz#ae17f9a19e2144d1eaf42702441a67652ab57233"
-  integrity sha512-D8Etje5GiDwI0Lvmx8+THgXE5OfPqxSSyHuhDV4qecAR+fszW4syj40RuMi98mxMciE7keHNQMnpdASd5VS/Mg==
+"@mysten/slush-wallet@0.1.6":
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@mysten/slush-wallet/-/slush-wallet-0.1.6.tgz#cc1fec83a4bf58e3c15fe62587e719c0892a00d6"
+  integrity sha512-Gvuff2o/0q5GXBKqMcWJ1ToJwd/saxsIIIMAAmaps1tIyVvr6GxPvDz81ly+zTyAiY6fCQnjinIMhMlODYyFGQ==
   dependencies:
-    "@mysten/sui" "1.30.0"
+    "@mysten/sui" "1.30.2"
     "@mysten/utils" "0.0.0"
-    "@mysten/wallet-standard" "0.15.1"
+    "@mysten/wallet-standard" "0.15.3"
     "@mysten/window-wallet-core" "0.0.3"
     mitt "^3.0.1"
     valibot "^0.36.0"
@@ -398,12 +398,12 @@
   dependencies:
     "@scure/base" "^1.2.4"
 
-"@mysten/wallet-standard@0.15.1":
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/@mysten/wallet-standard/-/wallet-standard-0.15.1.tgz#9fb925dabb6c58e7cb2d2e2abb415b6364063c1f"
-  integrity sha512-fMy2zg7chSjh+KsXiz98IW8NlYLft58BLrpjqbIyMJw1y5jM0FrcPlzdFUifwc8lXm8T3hft83e5gzm6x+rGYw==
+"@mysten/wallet-standard@0.15.3":
+  version "0.15.3"
+  resolved "https://registry.yarnpkg.com/@mysten/wallet-standard/-/wallet-standard-0.15.3.tgz#d5eb9594f874ca93844758a1a016de5c0043459c"
+  integrity sha512-/hgDEmWWFaGQppYxb1/Q45JZudYYkiPPQ17HS6MZmdIiTwv9vfx4ttoI5SOLYQhsm7uTj3G5IwbPApuVe6/VPQ==
   dependencies:
-    "@mysten/sui" "1.30.0"
+    "@mysten/sui" "1.30.2"
     "@wallet-standard/core" "1.1.0"
 
 "@mysten/walrus-wasm@0.0.6":
