@@ -1097,6 +1097,22 @@ export function DatasetDetail() {
     });
   };
 
+  // Add function to handle undo
+  const handleUndo = () => {
+    if (boundingBoxes.length > 0) {
+      const newBoxes = boundingBoxes.slice(0, -1); // Remove the last box
+      setBoundingBoxes(newBoxes);
+      
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          redrawCanvas(canvas, ctx);
+        }
+      }
+    }
+  };
+
   if (loading) {
     return (
       <Flex align="center" justify="center" style={{ height: "80vh" }}>
@@ -2403,59 +2419,85 @@ export function DatasetDetail() {
               boxShadow: "0 4px 24px rgba(0, 0, 0, 0.1)",
             }}>
               <Flex gap="3" align="center" justify="between">
-                {selectedConfirmedAnnotation ? (
-                  <Badge style={{
-                    background: annotationColors[selectedConfirmedAnnotation]?.bg || "var(--gray-3)",
-                    color: annotationColors[selectedConfirmedAnnotation]?.text || "var(--gray-11)",
-                    border: `1px solid ${annotationColors[selectedConfirmedAnnotation]?.stroke || "var(--gray-6)"}`,
-                    padding: "4px 8px",
-                  }}>
-                    Drawing: {selectedConfirmedAnnotation} (total {boundingBoxes.length} boxes)
-                  </Badge>
-                ) : (
-                  <Badge style={{
-                    background: "var(--orange-3)",
-                    color: "var(--orange-11)",
-                    padding: "4px 8px",
-                  }}>
-                    Please select an annotation first
-                  </Badge>
-                )}
-                {boundingBoxes.length > 0 && (
+                <Flex align="center" gap="3" style={{ minHeight: "32px" }}>
+                  {selectedConfirmedAnnotation ? (
+                    <Badge style={{
+                      background: annotationColors[selectedConfirmedAnnotation]?.bg || "var(--gray-3)",
+                      color: annotationColors[selectedConfirmedAnnotation]?.text || "var(--gray-11)",
+                      border: `1px solid ${annotationColors[selectedConfirmedAnnotation]?.stroke || "var(--gray-6)"}`,
+                      padding: "4px 8px",
+                    }}>
+                      Drawing: {selectedConfirmedAnnotation} (total {boundingBoxes.length} boxes)
+                    </Badge>
+                  ) : (
+                    <Badge style={{
+                      background: "var(--orange-3)",
+                      color: "var(--orange-11)",
+                      padding: "4px 8px",
+                    }}>
+                      Please select an annotation first
+                    </Badge>
+                  )}
+                  <Box>
+                    {boundingBoxes.length > 0 ? (
+                      <Flex gap="2">
+                        <Button 
+                          size="2" 
+                          variant="soft" 
+                          color="red"
+                          onClick={clearBoundingBoxes}
+                        >
+                          Clear All
+                        </Button>
+                        <Button
+                          size="2"
+                          variant="soft"
+                          onClick={handleUndo}
+                          style={{
+                            background: "var(--gray-3)",
+                            color: "var(--gray-12)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 7h6a3 3 0 0 1 3 3v11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M3 7l4-4M3 7l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          Undo
+                        </Button>
+                      </Flex>
+                    ) : (
+                      <Box style={{ width: "146px" }} />
+                    )}
+                  </Box>
+                </Flex>
+                <Flex gap="3">
                   <Button 
-                    size="2" 
                     variant="soft" 
-                    color="red"
-                    onClick={clearBoundingBoxes}
+                    color="gray"
+                    onClick={() => {
+                      setIsDrawingMode(false);
+                      setSelectedConfirmedAnnotation(null);
+                    }}
                   >
-                    Clear All
+                    Cancel
                   </Button>
-                )}
-              </Flex>
-              <Flex gap="3">
-                <Button 
-                  variant="soft" 
-                  color="gray"
-                  onClick={() => {
-                    setIsDrawingMode(false);
-                    setSelectedConfirmedAnnotation(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  variant="solid" 
-                  disabled={!selectedConfirmedAnnotation || boundingBoxes.length === 0}
-                  style={{
-                    background: selectedConfirmedAnnotation 
-                      ? annotationColors[selectedConfirmedAnnotation]?.stroke 
-                      : "var(--gray-8)",
-                    color: "white",
-                    opacity: (!selectedConfirmedAnnotation || boundingBoxes.length === 0) ? 0.5 : 1,
-                  }}
-                >
-                  Save Boxes
-                </Button>
+                  <Button 
+                    variant="solid" 
+                    disabled={!selectedConfirmedAnnotation || boundingBoxes.length === 0}
+                    style={{
+                      background: selectedConfirmedAnnotation 
+                        ? annotationColors[selectedConfirmedAnnotation]?.stroke 
+                        : "var(--gray-8)",
+                      color: "white",
+                      opacity: (!selectedConfirmedAnnotation || boundingBoxes.length === 0) ? 0.5 : 1,
+                    }}
+                  >
+                    Save Boxes
+                  </Button>
+                </Flex>
               </Flex>
             </Box>
           )}
