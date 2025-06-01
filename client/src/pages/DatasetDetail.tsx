@@ -13,6 +13,7 @@ import {
   Dialog,
   Tooltip,
   Separator,
+  Tabs,
 } from "@radix-ui/themes";
 import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight, CheckCircle, Users } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
@@ -102,6 +103,15 @@ export function DatasetDetail() {
   // Add new state for bounding box mode
   const [isDrawingMode, setIsDrawingMode] = useState<boolean>(false);
 
+  // Add new state for active tab
+  const [activeTab, setActiveTab] = useState<'confirmed' | 'pending'>('confirmed');
+
+  // Add new states for separate pagination
+  const [confirmedPage, setConfirmedPage] = useState(1);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [confirmedItems, setConfirmedItems] = useState<DataObject[]>([]);
+  const [pendingItems, setPendingItems] = useState<DataObject[]>([]);
+
   // Add interface for BoundingBox
   interface BoundingBox {
     x: number;
@@ -136,8 +146,9 @@ export function DatasetDetail() {
       setError(null);
       if (!id) throw new Error("Dataset ID is required");
 
+      // 첫 페이지 로드 시 더 많은 데이터를 가져옴
       const result = await datasetGraphQLService.getDatasetById(id, {
-        first: pageSize
+        first: pageSize * 2
       });
       console.log("Fetched dataset:", result);
       setDataset(result);
@@ -148,6 +159,15 @@ export function DatasetDetail() {
           endCursor: result.pageInfo.endCursor,
         });
       }
+
+      // 데이터 분리 및 상태 업데이트
+      if (result?.data) {
+        const confirmed = result.data.filter(item => hasConfirmedAnnotations(item));
+        const pending = result.data.filter(item => !hasConfirmedAnnotations(item));
+        console.log(`Initial data - Confirmed: ${confirmed.length}, Pending: ${pending.length}`);
+        setConfirmedItems(confirmed);
+        setPendingItems(pending);
+      }
     } catch (error) {
       console.error("Error fetching dataset:", error);
       setError(error instanceof Error ? error.message : "Failed to load dataset");
@@ -156,6 +176,24 @@ export function DatasetDetail() {
     }
   };
 
+  // Add helper function to get paginated items
+  const getPaginatedItems = (items: DataObject[], page: number, itemsPerPage: number) => {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return items.slice(start, end);
+  };
+
+  // Add effect to separate and update items when dataset changes
+  useEffect(() => {
+    if (dataset) {
+      const confirmed = dataset.data.filter(item => hasConfirmedAnnotations(item));
+      const pending = dataset.data.filter(item => !hasConfirmedAnnotations(item));
+      setConfirmedItems(confirmed);
+      setPendingItems(pending);
+    }
+  }, [dataset]);
+
+  // Modify the loadPage function
   const loadPage = async (direction: 'next' | 'prev') => {
     if (!id || !dataset) {
       console.warn('[Pagination] Cannot load page: missing id or dataset');
@@ -164,137 +202,97 @@ export function DatasetDetail() {
     
     try {
       setPaginationLoading(true);
-      console.log(`[Pagination] Loading ${direction} page, current page: ${currentPage}`);
-      console.log(`[Pagination] Current cursors:`, {
-        startCursor: currentCursors.startCursor ? `${currentCursors.startCursor.substring(0, 20)}...` : null,
-        endCursor: currentCursors.endCursor ? `${currentCursors.endCursor.substring(0, 20)}...` : null,
-      });
       
-      const paginationOptions: PaginationOptions = {};
-      let targetPage = currentPage;
+      const currentItems = activeTab === 'confirmed' ? confirmedItems : pendingItems;
+      const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
+      const setPage = activeTab === 'confirmed' ? setConfirmedPage : setPendingPage;
+      
+      const totalItems = currentItems.length;
+      const totalPages = Math.ceil(totalItems / pageSize);
+      
+      console.log(`[Pagination] ${activeTab} - Total Items: ${totalItems}, Pages: ${totalPages}, Current: ${currentPage}`);
       
       if (direction === 'next') {
-        if (!dataset.pageInfo?.hasNextPage) {
-          console.warn('[Pagination] No next page available');
-          return;
-        }
-        if (!currentCursors.endCursor) {
-          console.warn('[Pagination] No endCursor available for next page');
-          return;
-        }
-        paginationOptions.first = pageSize;
-        paginationOptions.after = currentCursors.endCursor;
-        targetPage = currentPage + 1;
-      } else if (direction === 'prev') {
-        if (!dataset.pageInfo?.hasPreviousPage) {
-          console.warn('[Pagination] No previous page available');
-          return;
-        }
-        if (!currentCursors.startCursor) {
-          console.warn('[Pagination] No startCursor available for previous page');
-          return;
-        }
-        paginationOptions.last = pageSize;
-        paginationOptions.before = currentCursors.startCursor;
-        targetPage = Math.max(1, currentPage - 1);
-      }
+        // 현재 페이지의 아이템이 pageSize보다 적거나 마지막 페이지인 경우
+        const currentPageItems = getPaginatedItems(currentItems, currentPage, pageSize);
+        if (currentPageItems.length < pageSize || currentPage >= totalPages) {
+          if (dataset.pageInfo?.hasNextPage) {
+            console.log('[Pagination] Loading more data...');
+            const paginationOptions: PaginationOptions = {
+              first: pageSize * 2,
+              after: currentCursors.endCursor
+            };
+            
+            const paginatedData = await datasetGraphQLService.getDatasetData(id, paginationOptions);
+            
+            if (paginatedData && paginatedData.data) {
+              // 이미지 URL 초기화
+              Object.values(imageUrls).forEach(url => {
+                if (url.startsWith('blob:')) {
+                  URL.revokeObjectURL(url);
+                }
+              });
+              setImageUrls({});
+              
+              // 새로운 데이터 분리
+              const newConfirmed = paginatedData.data.filter(item => hasConfirmedAnnotations(item));
+              const newPending = paginatedData.data.filter(item => !hasConfirmedAnnotations(item));
+              
+              // 기존 데이터와 새 데이터 병합
+              const updatedDataset = {
+                ...dataset,
+                data: [...dataset.data, ...paginatedData.data],
+                pageInfo: paginatedData.pageInfo,
+              };
+              setDataset(updatedDataset);
+              
+              // 커서 업데이트
+              setCurrentCursors({
+                startCursor: paginatedData.pageInfo.startCursor,
+                endCursor: paginatedData.pageInfo.endCursor,
+              });
 
-      console.log(`[Pagination] Requesting page ${targetPage} with options:`, {
-        ...paginationOptions,
-        after: paginationOptions.after ? `${paginationOptions.after.substring(0, 20)}...` : undefined,
-        before: paginationOptions.before ? `${paginationOptions.before.substring(0, 20)}...` : undefined,
-      });
-
-      const paginatedData = await datasetGraphQLService.getDatasetData(id, paginationOptions);
-      
-      if (!paginatedData || !paginatedData.data) {
-        throw new Error('No data received from pagination request');
-      }
-      
-      console.log(`[Pagination] Successfully loaded ${paginatedData.data.length} items`);
-      console.log(`[Pagination] New pageInfo:`, {
-        hasNextPage: paginatedData.pageInfo.hasNextPage,
-        hasPreviousPage: paginatedData.pageInfo.hasPreviousPage,
-        startCursor: paginatedData.pageInfo.startCursor ? `${paginatedData.pageInfo.startCursor.substring(0, 20)}...` : null,
-        endCursor: paginatedData.pageInfo.endCursor ? `${paginatedData.pageInfo.endCursor.substring(0, 20)}...` : null,
-      });
-      
-      if (dataset && paginatedData) {
-        // 이미지 URL 초기화 (새 페이지 데이터이므로)
-        Object.values(imageUrls).forEach(url => {
-          if (url.startsWith('blob:')) {
-            URL.revokeObjectURL(url);
+              // 상태 업데이트
+              if (activeTab === 'confirmed') {
+                setConfirmedItems(prev => [...prev, ...newConfirmed]);
+              } else {
+                setPendingItems(prev => [...prev, ...newPending]);
+              }
+              
+              console.log(`[Pagination] Loaded new items - Confirmed: ${newConfirmed.length}, Pending: ${newPending.length}`);
+            }
           }
-        });
-        setImageUrls({});
+        }
         
-        // 데이터셋 객체 업데이트
-        const updatedDataset = {
-          ...dataset,
-          data: paginatedData.data,
-          pageInfo: paginatedData.pageInfo,
-        };
-        setDataset(updatedDataset);
-        
-        // 커서 및 페이지 상태 업데이트
-        setCurrentCursors({
-          startCursor: paginatedData.pageInfo.startCursor,
-          endCursor: paginatedData.pageInfo.endCursor,
-        });
-        setCurrentPage(targetPage);
-        
-        console.log(`[Pagination] Page ${targetPage} loaded successfully`);
+        // 다음 페이지로 이동
+        if (currentPage < totalPages) {
+          const nextPage = currentPage + 1;
+          console.log(`[Pagination] Moving to next page: ${nextPage}`);
+          setPage(nextPage);
+        }
+      } else if (direction === 'prev') {
+        if (currentPage > 1) {
+          const prevPage = currentPage - 1;
+          console.log(`[Pagination] Moving to previous page: ${prevPage}`);
+          setPage(prevPage);
+        }
       }
     } catch (error) {
       console.error(`[Pagination] Error loading ${direction} page:`, error);
-      
-      // 특정 에러의 경우 첫 페이지로 fallback
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('outside the available range') || 
-          errorMessage.includes('invalid cursor') ||
-          errorMessage.includes('GraphQL error')) {
-        console.warn('[Pagination] Cursor error detected, falling back to first page');
-        
-        try {
-          // 첫 페이지로 fallback
-          const firstPageData = await datasetGraphQLService.getDatasetData(id, { first: pageSize });
-          
-          if (firstPageData && dataset) {
-            // 이미지 URL 초기화
-            Object.values(imageUrls).forEach(url => {
-              if (url.startsWith('blob:')) {
-                URL.revokeObjectURL(url);
-              }
-            });
-            setImageUrls({});
-            
-            const updatedDataset = {
-              ...dataset,
-              data: firstPageData.data,
-              pageInfo: firstPageData.pageInfo,
-            };
-            setDataset(updatedDataset);
-            
-            setCurrentCursors({
-              startCursor: firstPageData.pageInfo.startCursor,
-              endCursor: firstPageData.pageInfo.endCursor,
-            });
-            setCurrentPage(1);
-            
-            console.log('[Pagination] Successfully reset to first page');
-            setError("Pagination error occurred. Returned to first page.");
-          }
-        } catch (fallbackError) {
-          console.error('[Pagination] Fallback to first page failed:', fallbackError);
-          setError("Failed to load page data. Please refresh the page.");
-        }
-      } else {
-        setError(errorMessage);
-      }
+      setError(error instanceof Error ? error.message : "Failed to load page data");
     } finally {
       setPaginationLoading(false);
     }
   };
+
+  // Add effect to reset pagination when tab changes
+  useEffect(() => {
+    if (activeTab === 'confirmed') {
+      setConfirmedPage(1);
+    } else {
+      setPendingPage(1);
+    }
+  }, [activeTab]);
 
   // 각 고유한 blobId에 대해 전체 Blob 데이터를 한 번만 가져오기
   const loadBlobData = async () => {
@@ -738,14 +736,17 @@ export function DatasetDetail() {
     return Object.values(blobLoading).some(loading => loading === true);
   };
 
-  // 페이지네이션 컴포넌트
+  // Modify the PaginationControls component to show loading state
   const PaginationControls = () => {
-    if (!dataset?.pageInfo) return null;
+    const currentItems = activeTab === 'confirmed' ? confirmedItems : pendingItems;
+    const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
+    const totalItems = currentItems.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const hasNextPage = currentPage < totalPages || dataset?.pageInfo?.hasNextPage;
+    const hasPreviousPage = currentPage > 1;
 
-    const hasNextPage = dataset.pageInfo.hasNextPage;
-    const hasPreviousPage = dataset.pageInfo.hasPreviousPage;
-    const hasValidNextCursor = hasNextPage && currentCursors.endCursor;
-    const hasValidPrevCursor = hasPreviousPage && currentCursors.startCursor;
+    const startIndex = (currentPage - 1) * pageSize + 1;
+    const endIndex = Math.min(currentPage * pageSize, totalItems);
 
     return (
       <Card
@@ -761,59 +762,37 @@ export function DatasetDetail() {
         <Flex align="center" justify="between">
           <Flex align="center" gap="3">
             <Text size="2" style={{ color: "var(--gray-11)", fontWeight: 500 }}>
-              Page {currentPage}
+              Page {currentPage} of {totalPages}
             </Text>
             <Badge
               style={{
-                background: "var(--blue-3)",
-                color: "var(--blue-11)",
+                background: activeTab === 'confirmed' ? "var(--green-3)" : "var(--orange-3)",
+                color: activeTab === 'confirmed' ? "var(--green-11)" : "var(--orange-11)",
                 padding: "4px 8px",
                 borderRadius: "6px",
                 fontSize: "11px",
                 fontWeight: "500",
               }}
             >
-              {dataset.data.length} items
+              {totalItems} {activeTab} items
             </Badge>
-            {/* 페이지네이션 상태 표시 */}
-            <Badge
-              style={{
-                background: "var(--green-3)",
-                color: "var(--green-11)",
-                padding: "4px 8px",
-                borderRadius: "6px",
-                fontSize: "11px",
-                fontWeight: "500",
-              }}
-            >
-              Paginated View
-            </Badge>
+            <Text size="2" style={{ color: "var(--gray-11)" }}>
+              Showing {startIndex}-{endIndex}
+            </Text>
           </Flex>
 
           <Flex align="center" gap="2">
             <Button
               variant="soft"
               size="2"
-              disabled={!hasValidPrevCursor || paginationLoading}
-              onClick={() => {
-                console.log('[UI] Previous button clicked');
-                if (hasValidPrevCursor && !paginationLoading) {
-                  loadPage('prev');
-                } else {
-                  console.warn('[UI] Cannot go to previous page:', {
-                    hasValidPrevCursor,
-                    paginationLoading,
-                    hasPreviousPage,
-                    startCursor: currentCursors.startCursor ? 'present' : 'missing'
-                  });
-                }
-              }}
+              disabled={!hasPreviousPage || paginationLoading}
+              onClick={() => loadPage('prev')}
               style={{
-                background: hasValidPrevCursor ? "var(--gray-3)" : "var(--gray-2)",
-                color: hasValidPrevCursor ? "var(--gray-12)" : "var(--gray-8)",
+                background: hasPreviousPage ? "var(--gray-3)" : "var(--gray-2)",
+                color: hasPreviousPage ? "var(--gray-12)" : "var(--gray-8)",
                 borderRadius: "8px",
-                cursor: hasValidPrevCursor && !paginationLoading ? "pointer" : "not-allowed",
-                opacity: hasValidPrevCursor && !paginationLoading ? 1 : 0.5,
+                cursor: hasPreviousPage && !paginationLoading ? "pointer" : "not-allowed",
+                opacity: hasPreviousPage && !paginationLoading ? 1 : 0.5,
               }}
             >
               <CaretLeft size={16} />
@@ -822,7 +801,9 @@ export function DatasetDetail() {
 
             <Box
               style={{
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: activeTab === 'confirmed' 
+                  ? "linear-gradient(135deg, var(--green-9) 0%, var(--green-10) 100%)"
+                  : "linear-gradient(135deg, var(--orange-9) 0%, var(--orange-10) 100%)",
                 borderRadius: "8px",
                 padding: "8px 12px",
                 color: "white",
@@ -838,58 +819,32 @@ export function DatasetDetail() {
             <Button
               variant="soft"
               size="2"
-              disabled={!hasValidNextCursor || paginationLoading}
-              onClick={() => {
-                console.log('[UI] Next button clicked');
-                if (hasValidNextCursor && !paginationLoading) {
-                  loadPage('next');
-                } else {
-                  console.warn('[UI] Cannot go to next page:', {
-                    hasValidNextCursor,
-                    paginationLoading,
-                    hasNextPage,
-                    endCursor: currentCursors.endCursor ? 'present' : 'missing'
-                  });
-                }
-              }}
+              disabled={!hasNextPage || paginationLoading}
+              onClick={() => loadPage('next')}
               style={{
-                background: hasValidNextCursor ? "var(--gray-3)" : "var(--gray-2)",
-                color: hasValidNextCursor ? "var(--gray-12)" : "var(--gray-8)",
+                background: hasNextPage ? "var(--gray-3)" : "var(--gray-2)",
+                color: hasNextPage ? "var(--gray-12)" : "var(--gray-8)",
                 borderRadius: "8px",
-                cursor: hasValidNextCursor && !paginationLoading ? "pointer" : "not-allowed",
-                opacity: hasValidNextCursor && !paginationLoading ? 1 : 0.5,
+                cursor: hasNextPage && !paginationLoading ? "pointer" : "not-allowed",
+                opacity: hasNextPage && !paginationLoading ? 1 : 0.5,
               }}
             >
               Next
               <CaretRight size={16} />
             </Button>
-          </Flex>
 
-          <Flex align="center" gap="2">
             {paginationLoading && (
-              <Flex align="center" gap="2">
-                <Box
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    border: "2px solid var(--gray-4)",
-                    borderTop: "2px solid var(--blue-9)",
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                  }}
-                />
-                <Text size="2" style={{ color: "var(--gray-11)" }}>
-                  Loading...
-                </Text>
-              </Flex>
-            )}
-            {/* 디버그 정보 (개발 환경에서만) */}
-            {process.env.NODE_ENV === 'development' && (
-              <Text size="1" style={{ color: "var(--gray-10)", fontSize: "10px" }}>
-                Next: {hasNextPage ? '✓' : '✗'} |
-                Prev: {hasPreviousPage ? '✓' : '✗'} |
-                Cursors: {currentCursors.endCursor ? 'E✓' : 'E✗'}{currentCursors.startCursor ? 'S✓' : 'S✗'}
-              </Text>
+              <Box
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  border: "2px solid var(--gray-4)",
+                  borderTop: "2px solid var(--blue-9)",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                  marginLeft: "8px",
+                }}
+              />
             )}
           </Flex>
         </Flex>
@@ -1093,6 +1048,15 @@ export function DatasetDetail() {
     const img = new Image();
     img.src = selectedImage || '';
     ctx.drawImage(img, 0, 0);
+  };
+
+  // Add helper function to filter confirmed and pending items
+  const getFilteredItems = (type: 'confirmed' | 'pending') => {
+    if (!dataset) return [];
+    return dataset.data.filter(item => {
+      const isConfirmed = hasConfirmedAnnotations(item);
+      return type === 'confirmed' ? isConfirmed : !isConfirmed;
+    });
   };
 
   if (loading) {
@@ -1427,183 +1391,264 @@ export function DatasetDetail() {
             </Flex>
           </Flex>
 
-          <Grid columns={{ initial: "2", sm: "3", md: "4", lg: "5" }} gap="4">
-            {dataset.data.map((item: DataObject, index: number) => (
-              <Card
-                key={index}
-                style={{
-                  padding: "16px",
-                  border: "1px solid var(--gray-4)",
-                  borderRadius: "12px",
-                  background: "white",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-                  transition: "all 0.2s ease",
-                  cursor: "pointer",
-                }}
-                className="item-card-hover"
-              >
-                {isImageType(dataset.dataType) ? (
-                  <Box>
-                    <Box
-                      style={{
-                        width: "100%",
-                        paddingBottom: "100%",
-                        position: "relative",
-                        marginBottom: "12px",
-                        background: "var(--gray-3)",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                      }}
-                      onClick={() => !isItemLoading(item) && handleImageClick(item, index)}
-                    >
-                      {/* Blob 로딩 상태 표시 */}
-                      {isItemLoading(item) ? (
-                        <Box
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            background: "linear-gradient(90deg, var(--gray-3) 25%, var(--gray-4) 50%, var(--gray-3) 75%)",
-                            backgroundSize: "200% 100%",
-                            animation: "shimmer 1.5s infinite ease-in-out",
-                          }}
-                        />
-                      ) : (
-                        <img
-                          src={getImageUrl(item, index)}
-                          alt={`Dataset item ${index + 1}`}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                          onError={(e) => {
-                            console.error(`Error loading image ${index}:`, e);
-                            (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
-                          }}
-                        />
-                      )}
-                      
-                      {/* Annotation 표시 */}
-                      {!isItemLoading(item) && item.annotations.length > 0 && (
-                        <Box
-                          style={{
-                            position: "absolute",
-                            top: "8px",
-                            right: "8px",
-                            background: "rgba(255, 255, 255, 0.95)",
-                            backdropFilter: "blur(8px)",
-                            borderRadius: "8px",
-                            padding: "4px",
-                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                            border: "1px solid rgba(255, 255, 255, 0.2)",
-                          }}
-                        >
-                          <Flex align="center" gap="1">
-                            <Tag size={12} style={{ color: "var(--violet-9)" }} />
-                            <Text size="1" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
-                              {item.annotations.length}
-                            </Text>
-                          </Flex>
-                        </Box>
-                      )}
-                    </Box>
+          <Tabs.Root value={activeTab} onValueChange={(value) => setActiveTab(value as 'confirmed' | 'pending')}>
+            <Tabs.List>
+              <Tabs.Trigger value="confirmed" style={{
+                padding: "12px 24px",
+                borderRadius: "8px 8px 0 0",
+                border: "none",
+                background: activeTab === 'confirmed' ? "var(--green-3)" : "transparent",
+                color: activeTab === 'confirmed' ? "var(--green-11)" : "var(--gray-11)",
+                fontWeight: "600",
+                position: "relative",
+              }}>
+                <Flex align="center" gap="2">
+                  <CheckCircle size={16} weight={activeTab === 'confirmed' ? "fill" : "regular"} />
+                  Confirmed
+                  <Badge style={{
+                    background: activeTab === 'confirmed' ? "var(--green-9)" : "var(--gray-5)",
+                    color: activeTab === 'confirmed' ? "white" : "var(--gray-11)",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                  }}>
+                    {getFilteredItems('confirmed').length}
+                  </Badge>
+                </Flex>
+              </Tabs.Trigger>
+              <Tabs.Trigger value="pending" style={{
+                padding: "12px 24px",
+                borderRadius: "8px 8px 0 0",
+                border: "none",
+                background: activeTab === 'pending' ? "var(--orange-3)" : "transparent",
+                color: activeTab === 'pending' ? "var(--orange-11)" : "var(--gray-11)",
+                fontWeight: "600",
+                position: "relative",
+              }}>
+                <Flex align="center" gap="2">
+                  <Users size={16} weight={activeTab === 'pending' ? "fill" : "regular"} />
+                  Pending
+                  <Badge style={{
+                    background: activeTab === 'pending' ? "var(--orange-9)" : "var(--gray-5)",
+                    color: activeTab === 'pending' ? "white" : "var(--gray-11)",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                  }}>
+                    {getFilteredItems('pending').length}
+                  </Badge>
+                </Flex>
+              </Tabs.Trigger>
+            </Tabs.List>
 
-                    {/* Annotation 목록 - 향상된 UI */}
-                    {item.annotations.length > 0 && (
-                      <Flex direction="column" gap="2">
-                        <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                          Annotations ({item.annotations.length})
-                        </Text>
-                        <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
-                          {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
-                            const colorScheme = getAnnotationColor(annotationIndex);
-                            return (
-                              <Badge
-                                key={annotationIndex}
-                                style={{
-                                  background: colorScheme.bg,
-                                  color: colorScheme.text,
-                                  border: `1px solid ${colorScheme.border}`,
-                                  padding: "4px 8px",
-                                  borderRadius: "6px",
-                                  fontSize: "11px",
-                                  fontWeight: "500",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  transition: "all 0.2s ease",
-                                }}
-                                className="annotation-badge-hover"
-                              >
-                                {annotation.label}
-                              </Badge>
-                            );
-                          })}
-                        </Flex>
-                      </Flex>
-                    )}
-                  </Box>
-                ) : (
-                  <Flex direction="column" gap="3">
-                    <Box
+            <Box style={{ marginTop: "24px" }}>
+              <Grid columns={{ initial: "2", sm: "3", md: "4", lg: "5" }} gap="4">
+                {(() => {
+                  const currentItems = activeTab === 'confirmed' ? confirmedItems : pendingItems;
+                  const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
+                  const paginatedItems = getPaginatedItems(currentItems, currentPage, pageSize);
+                  
+                  console.log(`[Render] ${activeTab} - Page ${currentPage}, Items: ${paginatedItems.length}`);
+                  
+                  return paginatedItems.map((item: DataObject, index: number) => (
+                    <Card
+                      key={index}
                       style={{
-                        background: getDataTypeColor(dataset.dataType).bg,
-                        color: getDataTypeColor(dataset.dataType).text,
-                        borderRadius: "8px",
                         padding: "16px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        border: "1px solid var(--gray-4)",
+                        borderRadius: "12px",
+                        background: "white",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                        transition: "all 0.2s ease",
+                        cursor: "pointer",
                       }}
+                      className="item-card-hover"
                     >
-                      {getDataTypeIcon(dataset.dataType)}
-                    </Box>
-                    
-                    {/* 파일 타입 데이터의 Annotation 표시 */}
-                    {item.annotations.length > 0 && (
-                      <Flex direction="column" gap="2">
-                        <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                          Annotations ({item.annotations.length})
-                        </Text>
-                        <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
-                          {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
-                            const colorScheme = getAnnotationColor(annotationIndex);
-                            return (
-                              <Badge
-                                key={annotationIndex}
+                      {isImageType(dataset.dataType) ? (
+                        <Box>
+                          <Box
+                            style={{
+                              width: "100%",
+                              paddingBottom: "100%",
+                              position: "relative",
+                              marginBottom: "12px",
+                              background: "var(--gray-3)",
+                              borderRadius: "8px",
+                              overflow: "hidden",
+                            }}
+                            onClick={() => !isItemLoading(item) && handleImageClick(item, index)}
+                          >
+                            {/* Blob 로딩 상태 표시 */}
+                            {isItemLoading(item) ? (
+                              <Box
                                 style={{
-                                  background: colorScheme.bg,
-                                  color: colorScheme.text,
-                                  border: `1px solid ${colorScheme.border}`,
-                                  padding: "4px 8px",
-                                  borderRadius: "6px",
-                                  fontSize: "11px",
-                                  fontWeight: "500",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  transition: "all 0.2s ease",
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  width: "100%",
+                                  height: "100%",
+                                  background: "linear-gradient(90deg, var(--gray-3) 25%, var(--gray-4) 50%, var(--gray-3) 75%)",
+                                  backgroundSize: "200% 100%",
+                                  animation: "shimmer 1.5s infinite ease-in-out",
                                 }}
-                                className="annotation-badge-hover"
+                              />
+                            ) : (
+                              <img
+                                src={getImageUrl(item, index)}
+                                alt={`Dataset item ${index + 1}`}
+                                style={{
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                                onError={(e) => {
+                                  console.error(`Error loading image ${index}:`, e);
+                                  (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
+                                }}
+                              />
+                            )}
+                            
+                            {/* Annotation 표시 */}
+                            {!isItemLoading(item) && item.annotations.length > 0 && (
+                              <Box
+                                style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  right: "8px",
+                                  background: "rgba(255, 255, 255, 0.95)",
+                                  backdropFilter: "blur(8px)",
+                                  borderRadius: "8px",
+                                  padding: "4px",
+                                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                                }}
                               >
-                                {annotation.label}
-                              </Badge>
-                            );
-                          })}
+                                <Flex align="center" gap="1">
+                                  <Tag size={12} style={{ color: activeTab === 'confirmed' ? "var(--green-9)" : "var(--violet-9)" }} />
+                                  <Text size="1" style={{ fontWeight: 600, color: "var(--gray-12)" }}>
+                                    {item.annotations.length}
+                                  </Text>
+                                </Flex>
+                              </Box>
+                            )}
+
+                            {/* Verified 배지 (confirmed 탭에서는 제외) */}
+                            {activeTab === 'confirmed' ? null : (
+                              hasConfirmedAnnotations(item) && (
+                                <Box
+                                  style={{
+                                    position: "absolute",
+                                    top: "8px",
+                                    left: "8px",
+                                    background: "var(--green-9)",
+                                    color: "white",
+                                    borderRadius: "6px",
+                                    padding: "4px 8px",
+                                    fontSize: "10px",
+                                    fontWeight: "600",
+                                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                                  }}
+                                >
+                                  VERIFIED
+                                </Box>
+                              )
+                            )}
+                          </Box>
+
+                          {/* Annotation 목록 - 향상된 UI */}
+                          {item.annotations.length > 0 && (
+                            <Flex direction="column" gap="2">
+                              <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Annotations ({item.annotations.length})
+                              </Text>
+                              <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
+                                {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
+                                  const colorScheme = getAnnotationColor(annotationIndex);
+                                  return (
+                                    <Badge
+                                      key={annotationIndex}
+                                      style={{
+                                        background: colorScheme.bg,
+                                        color: colorScheme.text,
+                                        border: `1px solid ${colorScheme.border}`,
+                                        padding: "4px 8px",
+                                        borderRadius: "6px",
+                                        fontSize: "11px",
+                                        fontWeight: "500",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        transition: "all 0.2s ease",
+                                      }}
+                                      className="annotation-badge-hover"
+                                    >
+                                      {annotation.label}
+                                    </Badge>
+                                  );
+                                })}
+                              </Flex>
+                            </Flex>
+                          )}
+                        </Box>
+                      ) : (
+                        <Flex direction="column" gap="3">
+                          <Box
+                            style={{
+                              background: getDataTypeColor(dataset.dataType).bg,
+                              color: getDataTypeColor(dataset.dataType).text,
+                              borderRadius: "8px",
+                              padding: "16px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {getDataTypeIcon(dataset.dataType)}
+                          </Box>
+                          
+                          {/* 파일 타입 데이터의 Annotation 표시 */}
+                          {item.annotations.length > 0 && (
+                            <Flex direction="column" gap="2">
+                              <Text size="1" style={{ color: "var(--gray-10)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Annotations ({item.annotations.length})
+                              </Text>
+                              <Flex direction="column" gap="1" style={{ maxHeight: "80px", overflowY: "auto" }}>
+                                {item.annotations.map((annotation: AnnotationObject, annotationIndex: number) => {
+                                  const colorScheme = getAnnotationColor(annotationIndex);
+                                  return (
+                                    <Badge
+                                      key={annotationIndex}
+                                      style={{
+                                        background: colorScheme.bg,
+                                        color: colorScheme.text,
+                                        border: `1px solid ${colorScheme.border}`,
+                                        padding: "4px 8px",
+                                        borderRadius: "6px",
+                                        fontSize: "11px",
+                                        fontWeight: "500",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        transition: "all 0.2s ease",
+                                      }}
+                                      className="annotation-badge-hover"
+                                    >
+                                      {annotation.label}
+                                    </Badge>
+                                  );
+                                })}
+                              </Flex>
+                            </Flex>
+                          )}
                         </Flex>
-                      </Flex>
-                    )}
-                  </Flex>
-                )}
-              </Card>
-            ))}
-          </Grid>
+                      )}
+                    </Card>
+                  ));
+                })()}
+              </Grid>
+            </Box>
+          </Tabs.Root>
 
           {/* 페이지네이션 컨트롤 */}
           <PaginationControls />
@@ -1972,7 +2017,7 @@ export function DatasetDetail() {
                                       textAlign: "center",
                                     }}>
                                       #{rank}
-                                    </Box>
+                                   ㅋ </Box>
 
                                     {/* 확정 상태 또는 선택 체크박스 */}
                                     <Box style={{
