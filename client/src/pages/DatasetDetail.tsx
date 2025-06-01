@@ -55,6 +55,12 @@ const ANNOTATION_COLORS = [
   { bg: "#E1F5FE", text: "#0277BD", border: "#81D4FA" },
 ];
 
+interface TotalCounts {
+  total: number;
+  confirmed: number;
+  pending: number;
+}
+
 export function DatasetDetail() {
   const { addConfirmedAnnotationLabels } = useDatasetSuiService();
 
@@ -68,9 +74,16 @@ export function DatasetDetail() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [selectedPendingLabels, setSelectedPendingLabels] = useState<Set<string>>(new Set());
   
+  // Add totalCounts state with type
+  const [totalCounts, setTotalCounts] = useState<TotalCounts>({
+    total: 0,
+    confirmed: 0,
+    pending: 0
+  });
+  
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(25);  // 한 페이지당 25개 아이템
   const [paginationLoading, setPaginationLoading] = useState(false);
   const [currentCursors, setCurrentCursors] = useState<{
     startCursor?: string;
@@ -169,9 +182,8 @@ export function DatasetDetail() {
       setError(null);
       if (!id) throw new Error("Dataset ID is required");
 
-      // 첫 페이지 로드 시 더 많은 데이터를 가져옴
       const result = await datasetGraphQLService.getDatasetById(id, {
-        first: pageSize * 2
+        first: 50
       });
       console.log("Fetched dataset:", result);
       setDataset(result);
@@ -183,13 +195,28 @@ export function DatasetDetail() {
         });
       }
 
-      // 데이터 분리 및 상태 업데이트
       if (result?.data) {
+        const totalDataCount = result.dataCount || 0;
+        
+        // 현재 배치에서 confirmed/pending 아이템 분리
         const confirmed = result.data.filter(item => hasConfirmedAnnotations(item));
-        const pending = result.data.filter(item => !hasConfirmedAnnotations(item));
-        console.log(`Initial data - Confirmed: ${confirmed.length}, Pending: ${pending.length}`);
-        setConfirmedItems(confirmed);
-        setPendingItems(pending);
+        const confirmedCount = confirmed.length;
+        const pendingCount = totalDataCount - confirmedCount;
+        
+        // Update total counts
+        setTotalCounts({
+          total: totalDataCount,
+          confirmed: confirmedCount,
+          pending: pendingCount
+        });
+
+        // 현재 탭에 맞는 아이템들을 캐시에 저장
+        updateCachedItems(result.data);
+
+        // Blob 데이터 로드
+        if (isImageType(result.dataType)) {
+          await loadBlobData();
+        }
       }
     } catch (error) {
       console.error("Error fetching dataset:", error);
@@ -199,11 +226,34 @@ export function DatasetDetail() {
     }
   };
 
-  // Add helper function to get paginated items
-  const getPaginatedItems = (items: DataObject[], page: number, itemsPerPage: number) => {
-    const start = (page - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return items.slice(start, end);
+  // Add helper function to update cached items
+  const updateCachedItems = (items: DataObject[]) => {
+    const filteredItems = activeTab === 'confirmed'
+      ? items.filter(item => hasConfirmedAnnotations(item))
+      : items.filter(item => !hasConfirmedAnnotations(item));
+    
+    console.log(`[Cache] Updating ${activeTab} items:`, {
+      totalItems: items.length,
+      filteredItems: filteredItems.length
+    });
+    
+    setCachedItems(filteredItems);
+  };
+
+  // Modify getPaginatedItems function
+  const getPaginatedItems = (page: number) => {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    
+    console.log(`[Pagination] Getting items for page ${page}:`, {
+      start,
+      end,
+      pageSize,
+      totalCachedItems: cachedItems.length,
+      currentPageItems: cachedItems.slice(start, end).length
+    });
+    
+    return cachedItems.slice(start, end);
   };
 
   // Add effect to separate and update items when dataset changes
@@ -226,79 +276,63 @@ export function DatasetDetail() {
     try {
       setPaginationLoading(true);
       
-      const currentItems = activeTab === 'confirmed' ? confirmedItems : pendingItems;
       const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
       const setPage = activeTab === 'confirmed' ? setConfirmedPage : setPendingPage;
       
-      const totalItems = currentItems.length;
+      const totalItems = activeTab === 'confirmed' ? totalCounts.confirmed : totalCounts.pending;
       const totalPages = Math.ceil(totalItems / pageSize);
       
-      console.log(`[Pagination] ${activeTab} - Total Items: ${totalItems}, Pages: ${totalPages}, Current: ${currentPage}`);
-      
       if (direction === 'next') {
-        // 현재 페이지의 아이템이 pageSize보다 적거나 마지막 페이지인 경우
-        const currentPageItems = getPaginatedItems(currentItems, currentPage, pageSize);
-        if (currentPageItems.length < pageSize || currentPage >= totalPages) {
-          if (dataset.pageInfo?.hasNextPage) {
-            console.log('[Pagination] Loading more data...');
-            const paginationOptions: PaginationOptions = {
-              first: pageSize * 2,
-              after: currentCursors.endCursor
+        const nextPageStart = currentPage * pageSize;
+        const nextPageEnd = nextPageStart + pageSize;
+        const needsMoreData = nextPageEnd > cachedItems.length;
+        
+        if (needsMoreData && dataset.pageInfo?.hasNextPage) {
+          console.log('[Pagination] Loading more data...', {
+            cachedItemsLength: cachedItems.length,
+            nextPageStart,
+            nextPageEnd,
+          });
+          
+          const paginationOptions: PaginationOptions = {
+            first: 50,
+            after: currentCursors.endCursor
+          };
+          
+          const paginatedData = await datasetGraphQLService.getDatasetData(id, paginationOptions);
+          
+          if (paginatedData && paginatedData.data) {
+            // 데이터셋 업데이트
+            const updatedDataset = {
+              ...dataset,
+              data: [...dataset.data, ...paginatedData.data],
+              pageInfo: paginatedData.pageInfo,
             };
+            setDataset(updatedDataset);
             
-            const paginatedData = await datasetGraphQLService.getDatasetData(id, paginationOptions);
-            
-            if (paginatedData && paginatedData.data) {
-              // 이미지 URL 초기화
-              Object.values(imageUrls).forEach(url => {
-                if (url.startsWith('blob:')) {
-                  URL.revokeObjectURL(url);
-                }
-              });
-              setImageUrls({});
-              
-              // 새로운 데이터 분리
-              const newConfirmed = paginatedData.data.filter(item => hasConfirmedAnnotations(item));
-              const newPending = paginatedData.data.filter(item => !hasConfirmedAnnotations(item));
-              
-              // 기존 데이터와 새 데이터 병합
-              const updatedDataset = {
-                ...dataset,
-                data: [...dataset.data, ...paginatedData.data],
-                pageInfo: paginatedData.pageInfo,
-              };
-              setDataset(updatedDataset);
-              
-              // 커서 업데이트
-              setCurrentCursors({
-                startCursor: paginatedData.pageInfo.startCursor,
-                endCursor: paginatedData.pageInfo.endCursor,
-              });
+            // 커서 업데이트
+            setCurrentCursors({
+              startCursor: paginatedData.pageInfo.startCursor,
+              endCursor: paginatedData.pageInfo.endCursor,
+            });
 
-              // 상태 업데이트
-              if (activeTab === 'confirmed') {
-                setConfirmedItems(prev => [...prev, ...newConfirmed]);
-              } else {
-                setPendingItems(prev => [...prev, ...newPending]);
-              }
-              
-              console.log(`[Pagination] Loaded new items - Confirmed: ${newConfirmed.length}, Pending: ${newPending.length}`);
+            // 전체 데이터셋에서 현재 탭에 맞는 아이템들을 다시 필터링하여 캐시 업데이트
+            updateCachedItems([...dataset.data, ...paginatedData.data]);
+
+            // 새로운 데이터에 대한 Blob 로드
+            if (isImageType(dataset.dataType)) {
+              await loadBlobData();
             }
           }
         }
         
-        // 다음 페이지로 이동
         if (currentPage < totalPages) {
           const nextPage = currentPage + 1;
-          console.log(`[Pagination] Moving to next page: ${nextPage}`);
           setPage(nextPage);
         }
-      } else if (direction === 'prev') {
-        if (currentPage > 1) {
-          const prevPage = currentPage - 1;
-          console.log(`[Pagination] Moving to previous page: ${prevPage}`);
-          setPage(prevPage);
-        }
+      } else if (direction === 'prev' && currentPage > 1) {
+        const prevPage = currentPage - 1;
+        setPage(prevPage);
       }
     } catch (error) {
       console.error(`[Pagination] Error loading ${direction} page:`, error);
@@ -308,14 +342,12 @@ export function DatasetDetail() {
     }
   };
 
-  // Add effect to reset pagination when tab changes
+  // Add effect to update cached items when tab changes
   useEffect(() => {
-    if (activeTab === 'confirmed') {
-      setConfirmedPage(1);
-    } else {
-      setPendingPage(1);
+    if (dataset) {
+      updateCachedItems(dataset.data);
     }
-  }, [activeTab]);
+  }, [activeTab, dataset]);
 
   // 각 고유한 blobId에 대해 전체 Blob 데이터를 한 번만 가져오기
   const loadBlobData = async () => {
@@ -435,6 +467,13 @@ export function DatasetDetail() {
   // 이미지 URL 가져오기
   const getImageUrl = (item: DataObject, index: number) => {
     const cacheKey = `${item.blobId}_${index}`;
+    console.log(`[GetImageUrl] Getting URL for item:`, {
+      blobId: item.blobId,
+      index,
+      cacheKey,
+      hasCache: !!imageUrls[cacheKey]
+    });
+    
     if (imageUrls[cacheKey]) {
       return imageUrls[cacheKey];
     }
@@ -454,10 +493,20 @@ export function DatasetDetail() {
 
   // 이미지 클릭 시 상세보기
   const handleImageClick = (item: DataObject, index: number) => {
-    setSelectedImage(getImageUrl(item, index));
+    const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
+    const absoluteIndex = (currentPage - 1) * pageSize + index;
+    console.log(`[ImageClick] Showing image at absolute index ${absoluteIndex}:`, {
+      currentPage,
+      pageSize,
+      relativeIndex: index,
+      absoluteIndex,
+      itemPath: item.path
+    });
+    
+    setSelectedImage(getImageUrl(item, absoluteIndex));
     setSelectedAnnotations(item.annotations);
     setSelectedImageData(item);
-    setSelectedImageIndex(index);
+    setSelectedImageIndex(absoluteIndex);
   };
 
   // 확정된 annotation 라벨 목록 가져오기
@@ -1113,6 +1162,9 @@ export function DatasetDetail() {
     }
   };
 
+  // Add new state for cached items
+  const [cachedItems, setCachedItems] = useState<DataObject[]>([]);
+
   if (loading) {
     return (
       <Flex align="center" justify="center" style={{ height: "80vh" }}>
@@ -1465,7 +1517,7 @@ export function DatasetDetail() {
                     fontSize: "11px",
                     fontWeight: "600",
                   }}>
-                    {getFilteredItems('confirmed').length}
+                    {totalCounts.confirmed}
                   </Badge>
                 </Flex>
               </Tabs.Trigger>
@@ -1487,7 +1539,7 @@ export function DatasetDetail() {
                     fontSize: "11px",
                     fontWeight: "600",
                   }}>
-                    {getFilteredItems('pending').length}
+                    {totalCounts.pending}
                   </Badge>
                 </Flex>
               </Tabs.Trigger>
@@ -1496,15 +1548,21 @@ export function DatasetDetail() {
             <Box style={{ marginTop: "24px" }}>
               <Grid columns={{ initial: "2", sm: "3", md: "4", lg: "5" }} gap="4">
                 {(() => {
-                  const currentItems = activeTab === 'confirmed' ? confirmedItems : pendingItems;
                   const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
-                  const paginatedItems = getPaginatedItems(currentItems, currentPage, pageSize);
+                  const paginatedItems = getPaginatedItems(currentPage);
                   
-                  console.log(`[Render] ${activeTab} - Page ${currentPage}, Items: ${paginatedItems.length}`);
+                  console.log(`[Render] ${activeTab} - Page ${currentPage}:`, {
+                    pageSize,
+                    totalCachedItems: cachedItems.length,
+                    currentPageItems: paginatedItems.length,
+                    itemsRange: `${(currentPage - 1) * pageSize + 1} - ${(currentPage - 1) * pageSize + paginatedItems.length}`,
+                    firstItemPath: paginatedItems[0]?.path,
+                    lastItemPath: paginatedItems[paginatedItems.length - 1]?.path
+                  });
                   
                   return paginatedItems.map((item: DataObject, index: number) => (
                     <Card
-                      key={index}
+                      key={`${item.blobId}_${item.path}_${index}`}
                       style={{
                         padding: "16px",
                         border: "1px solid var(--gray-4)",
@@ -1515,6 +1573,7 @@ export function DatasetDetail() {
                         cursor: "pointer",
                       }}
                       className="item-card-hover"
+                      onClick={() => !isItemLoading(item) && handleImageClick(item, (currentPage - 1) * pageSize + index)}
                     >
                       {isImageType(dataset.dataType) ? (
                         <Box>
@@ -1546,8 +1605,8 @@ export function DatasetDetail() {
                               />
                             ) : (
                               <img
-                                src={getImageUrl(item, index)}
-                                alt={`Dataset item ${index + 1}`}
+                                src={getImageUrl(item, (currentPage - 1) * pageSize + index)}
+                                alt={`Dataset item ${(currentPage - 1) * pageSize + index + 1}`}
                                 style={{
                                   position: "absolute",
                                   top: 0,
