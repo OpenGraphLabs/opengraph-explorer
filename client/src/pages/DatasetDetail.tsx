@@ -1783,24 +1783,62 @@ export function DatasetDetail() {
                     className="click-overlay"
                     style={{
                       position: "absolute",
-                      top: "50%",
+                      bottom: "24px",
                       left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      background: "rgba(0, 0, 0, 0.8)",
+                      transform: "translateX(-50%)",
+                      background: "rgba(0, 0, 0, 0.85)",
                       backdropFilter: "blur(8px)",
                       color: "white",
-                      padding: "16px 24px",
+                      padding: "12px 20px",
                       borderRadius: "12px",
                       fontSize: "14px",
                       fontWeight: "500",
                       textAlign: "center",
-                      opacity: 0,
-                      transition: "opacity 0.2s ease",
+                      opacity: 1,
+                      transition: "all 0.2s ease",
                       pointerEvents: "none",
-                      zIndex: 3
+                      zIndex: 3,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      whiteSpace: "nowrap"
                     }}
                   >
-                    Click to Draw Bounding Boxes
+                    <Box
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "6px",
+                        background: "rgba(255, 255, 255, 0.15)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3h18v18H3V3z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 9h6v6H9V9z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </Box>
+                    <Text style={{ whiteSpace: "nowrap" }}>
+                      Click to Draw Bounding Boxes
+                    </Text>
+                    <Box
+                      style={{
+                        background: "rgba(255, 255, 255, 0.15)",
+                        padding: "4px 8px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        marginLeft: "4px",
+                        flexShrink: 0
+                      }}
+                    >
+                      Ready
+                    </Box>
                   </Box>
                 )}
               </Box>
@@ -2393,11 +2431,13 @@ export function DatasetDetail() {
             }
           }
           .click-overlay {
-            opacity: 0;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
           }
           
           [style*="cursor: pointer"]:hover .click-overlay {
             opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
           }
           .image-container {
             transition: all 0.2s ease;
