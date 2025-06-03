@@ -811,12 +811,14 @@ export function DatasetDetail() {
       };
 
       setCurrentBoundingBox(box);
+
+      // Redraw canvas with all existing boxes
       redrawCanvas(canvas, ctx);
-      
-      // Draw current box with its own annotation color
+
+      // Draw current box with selected annotation color
       const color = annotationColors[selectedConfirmedAnnotation];
       if (color) {
-        ctx.strokeStyle = `${color.stroke}80`; // Use semi-transparent color while drawing
+        ctx.strokeStyle = color.stroke;
         ctx.lineWidth = 2;
         ctx.strokeRect(box.x, box.y, box.width, box.height);
       }
