@@ -153,8 +153,39 @@ export function DatasetDetail() {
     y: number;
     width: number;
     height: number;
-    annotation: string; // Add annotation label to track which annotation this box belongs to
+    annotation: string;
+    id: string;
   }
+
+  // Add new states for resizing
+  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [originalBox, setOriginalBox] = useState<BoundingBox | null>(null);
+  const [resizeStartPoint, setResizeStartPoint] = useState<{ x: number; y: number } | null>(null);
+
+  // Add constant for edge detection threshold
+  const EDGE_THRESHOLD = 8; // Pixels from edge to detect resize area
+
+  // Add function to get resize handle at point
+  const getResizeHandleAtPoint = (x: number, y: number, box: BoundingBox): string | null => {
+    const isNearX = (x: number, targetX: number) => Math.abs(x - targetX) <= EDGE_THRESHOLD;
+    const isNearY = (y: number, targetY: number) => Math.abs(y - targetY) <= EDGE_THRESHOLD;
+
+    // Check corners first (they take priority over edges)
+    if (isNearX(x, box.x) && isNearY(y, box.y)) return 'nw';
+    if (isNearX(x, box.x + box.width) && isNearY(y, box.y)) return 'ne';
+    if (isNearX(x, box.x) && isNearY(y, box.y + box.height)) return 'sw';
+    if (isNearX(x, box.x + box.width) && isNearY(y, box.y + box.height)) return 'se';
+
+    // Then check edges
+    if (isNearY(y, box.y)) return 'n';
+    if (isNearX(x, box.x + box.width)) return 'e';
+    if (isNearY(y, box.y + box.height)) return 's';
+    if (isNearX(x, box.x)) return 'w';
+
+    return null;
+  };
 
   useEffect(() => {
     fetchDataset();
@@ -664,18 +695,33 @@ export function DatasetDetail() {
 
   // Add function to handle mouse events for drawing
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !selectedConfirmedAnnotation) return;
     
-    const rect = canvasRef.current.getBoundingClientRect();
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
+    // Check if clicking near an edge or corner of an existing box
+    for (const box of boundingBoxes) {
+      const handle = getResizeHandleAtPoint(x, y, box);
+      if (handle) {
+        setIsResizing(true);
+        setResizeHandle(handle);
+        setSelectedBoxId(box.id);
+        setOriginalBox({...box});
+        setResizeStartPoint({ x, y });
+        return;
+      }
+    }
+
+    // If not resizing, start drawing new box
     setIsDrawing(true);
     setStartPoint({ x, y });
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !startPoint || !canvasRef.current || !selectedConfirmedAnnotation) return;
+    if (!canvasRef.current || !selectedConfirmedAnnotation) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -685,50 +731,148 @@ export function DatasetDetail() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const width = x - startPoint.x;
-    const height = y - startPoint.y;
+    if (isResizing && selectedBoxId && resizeHandle && resizeStartPoint && originalBox) {
+      // Handle resizing
+      const dx = x - resizeStartPoint.x;
+      const dy = y - resizeStartPoint.y;
+      
+      let newBox = { ...originalBox };
+      
+      switch (resizeHandle) {
+        case 'nw':
+          newBox.x += dx;
+          newBox.y += dy;
+          newBox.width -= dx;
+          newBox.height -= dy;
+          break;
+        case 'ne':
+          newBox.y += dy;
+          newBox.width += dx;
+          newBox.height -= dy;
+          break;
+        case 'sw':
+          newBox.x += dx;
+          newBox.width -= dx;
+          newBox.height += dy;
+          break;
+        case 'se':
+          newBox.width += dx;
+          newBox.height += dy;
+          break;
+        case 'n':
+          newBox.y += dy;
+          newBox.height -= dy;
+          break;
+        case 'e':
+          newBox.width += dx;
+          break;
+        case 's':
+          newBox.height += dy;
+          break;
+        case 'w':
+          newBox.x += dx;
+          newBox.width -= dx;
+          break;
+      }
 
-    const box = {
-      x: width > 0 ? startPoint.x : x,
-      y: height > 0 ? startPoint.y : y,
-      width: Math.abs(width),
-      height: Math.abs(height),
-      annotation: selectedConfirmedAnnotation
-    };
+      // Ensure minimum size
+      const minSize = EDGE_THRESHOLD * 2;
+      if (newBox.width < minSize) {
+        newBox.width = minSize;
+        if (resizeHandle.includes('w')) {
+          newBox.x = originalBox.x + originalBox.width - minSize;
+        }
+      }
+      if (newBox.height < minSize) {
+        newBox.height = minSize;
+        if (resizeHandle.includes('n')) {
+          newBox.y = originalBox.y + originalBox.height - minSize;
+        }
+      }
 
-    setCurrentBoundingBox(box);
+      // Update the box in boundingBoxes
+      setBoundingBoxes(boxes => boxes.map(box => 
+        box.id === selectedBoxId ? newBox : box
+      ));
 
-    // Redraw canvas and all existing boxes
-    redrawCanvas(canvas, ctx);
-    
-    // Draw current box with the same color as the selected annotation
-    const color = annotationColors[selectedConfirmedAnnotation];
-    if (color) {
-      ctx.strokeStyle = color.stroke; // Use the same color without opacity
-      ctx.lineWidth = 2;
-      ctx.strokeRect(box.x, box.y, box.width, box.height);
+      // Redraw canvas
+      redrawCanvas(canvas, ctx);
+    } else if (isDrawing && startPoint) {
+      const width = x - startPoint.x;
+      const height = y - startPoint.y;
+
+      const box = {
+        x: width > 0 ? startPoint.x : x,
+        y: height > 0 ? startPoint.y : y,
+        width: Math.abs(width),
+        height: Math.abs(height),
+        annotation: selectedConfirmedAnnotation,
+        id: `${selectedConfirmedAnnotation}_${Date.now()}`
+      };
+
+      setCurrentBoundingBox(box);
+      redrawCanvas(canvas, ctx);
+      
+      // Draw current box with its own annotation color
+      const color = annotationColors[selectedConfirmedAnnotation];
+      if (color) {
+        ctx.strokeStyle = `${color.stroke}80`; // Use semi-transparent color while drawing
+        ctx.lineWidth = 2;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+      }
     }
+
+    // Update cursor based on edge/corner proximity
+    let cursor = 'crosshair';
+    if (!isDrawing) {
+      for (const box of boundingBoxes) {
+        const handle = getResizeHandleAtPoint(x, y, box);
+        if (handle) {
+          switch (handle) {
+            case 'nw':
+            case 'se':
+              cursor = 'nwse-resize';
+              break;
+            case 'ne':
+            case 'sw':
+              cursor = 'nesw-resize';
+              break;
+            case 'n':
+            case 's':
+              cursor = 'ns-resize';
+              break;
+            case 'e':
+            case 'w':
+              cursor = 'ew-resize';
+              break;
+          }
+          break;
+        }
+      }
+    }
+    canvas.style.cursor = cursor;
   };
 
   const handleMouseUp = () => {
-    if (!isDrawing || !currentBoundingBox || !canvasRef.current || !selectedConfirmedAnnotation) return;
-    
+    if (!canvasRef.current) return;
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
-    // Add annotation information to the box
-    const boxWithAnnotation = {
-      ...currentBoundingBox,
-      annotation: selectedConfirmedAnnotation
-    };
-    
-    setBoundingBoxes([...boundingBoxes, boxWithAnnotation]);
-    setIsDrawing(false);
-    setStartPoint(null);
-    setCurrentBoundingBox(null);
 
-    // Redraw all boxes
+    if (isResizing) {
+      setIsResizing(false);
+      setResizeHandle(null);
+      setSelectedBoxId(null);
+      setOriginalBox(null);
+      setResizeStartPoint(null);
+    } else if (isDrawing && currentBoundingBox) {
+      setBoundingBoxes([...boundingBoxes, currentBoundingBox]);
+      setIsDrawing(false);
+      setStartPoint(null);
+      setCurrentBoundingBox(null);
+    }
+
     redrawCanvas(canvas, ctx);
   };
 
