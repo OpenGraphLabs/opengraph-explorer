@@ -12,10 +12,7 @@ import { useCurrentWallet } from "@mysten/dapp-kit";
 import { Link } from "react-router-dom";
 
 import { datasetGraphQLService, DatasetObject } from "../shared/api/datasetGraphQLService";
-import { DatasetCard } from "../features/dataset-card";
-import { DatasetFilters } from "../features/dataset-filters";
-import { DatasetSort } from "../features/dataset-sort";
-import { DatasetSummary } from "../features/dataset-summary";
+import { DatasetCard, DatasetFilters, DatasetSort, DatasetSummary } from "../features/datasets";
 
 type SortOption = "newest" | "oldest" | "name" | "size";
 

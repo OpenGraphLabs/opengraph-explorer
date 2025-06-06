@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Box, Flex, Text, Heading } from "@radix-ui/themes";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import { useDatasetSuiService } from "../shared/api/datasetSuiService";
-import { DatasetMetadataForm } from "../features/dataset-metadata-form";
-import { FileUploadInterface } from "../features/file-upload-interface";
-import { FileManager } from "../features/file-manager";
-import { UploadProgress } from "../features/upload-progress";
+import { DatasetMetadataForm } from "../features/datasets";
+import { FileUploadInterface, FileManager, UploadProgress } from "../features/upload";
 
 interface DatasetMetadata {
   name: string;

@@ -1,1 +1,0 @@
-export { AnnotationInterface } from "./AnnotationInterface"; 

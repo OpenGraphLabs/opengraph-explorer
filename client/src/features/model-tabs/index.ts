@@ -1,1 +1,0 @@
-export { ModelTabs } from "./ui/ModelTabs"; 

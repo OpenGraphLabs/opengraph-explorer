@@ -3,8 +3,8 @@ import { Box, Text } from "@radix-ui/themes";
 import { getWalruScanUrl } from "../shared/lib/sui";
 
 // Feature imports
-import { useDatasetDetail, DatasetHeader } from "../features/dataset-detail";
-import { ImageGallery, PaginationControls } from "../features/image-gallery/ui";
+import { DatasetHeader, useDatasetDetail } from "../features/datasets";
+import { ImageGallery } from "../features/annotation";
 import { LoadingSpinner, ErrorMessage } from "../shared/ui";
 
 export function DatasetDetail() {
@@ -69,15 +69,17 @@ export function DatasetDetail() {
           />
           
           {/* Pagination Controls */}
+          {/* TODO: Implement PaginationControls component
           <PaginationControls
             onPrevious={() => console.log('Previous page')}
             onNext={() => console.log('Next page')}
-            hasNext={false} // TODO: Implement pagination logic
-            hasPrevious={false} // TODO: Implement pagination logic
+            hasNext={false}
+            hasPrevious={false}
             loading={false}
             currentCount={dataset.data.length}
             totalCount={dataset.data.length}
           />
+          */}
         </>
       )}
 

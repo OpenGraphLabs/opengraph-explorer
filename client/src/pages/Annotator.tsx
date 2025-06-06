@@ -15,10 +15,9 @@ import { datasetGraphQLService, DatasetObject, DataObject } from "../shared/api/
 
 
 // Feature components
-import { ImageViewer, ImageNavigation } from "../features/image-viewer/ui";
-import { AnnotationInterface } from "../features/annotation-interface/ui";
-import { TransactionStatusDisplay } from "../features/transaction-status/ui";
-import { AnnotationData, TransactionStatus } from "../features/annotation-interface/types";
+import { ImageViewer, ImageNavigation, AnnotationInterface } from "../features/annotation";
+import { TransactionStatusDisplay } from "../features/transaction";
+import { AnnotationData, TransactionStatus } from "../features/annotation";
 
 const styles = `
   @keyframes pulse {
@@ -255,7 +254,7 @@ export function Annotator() {
                               {annotation.path}
                             </Text>
                             <Flex gap="1" wrap="wrap">
-                              {annotation.label.map((label, idx) => (
+                              {annotation.label.map((label: string, idx: number) => (
                                 <Text 
                                   key={idx}
                                   size="1"

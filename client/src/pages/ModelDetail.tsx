@@ -4,10 +4,7 @@ import { Box, Flex, Text, Button } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import { useModelById } from "../shared/hooks";
 import { datasetGraphQLService, DatasetObject } from "../shared/api/datasetGraphQLService";
-import { ModelHeader } from "../features/model-header";
-import { ModelMetadata } from "../features/model-metadata";
-import { ModelDatasets } from "../features/model-datasets";
-import { ModelTabs } from "../features/model-tabs";
+import { ModelHeader, ModelMetadata, ModelDatasets, ModelTabs } from "../features/models";
 import { EmptyState } from "../shared/ui";
 
 export function ModelDetail() {

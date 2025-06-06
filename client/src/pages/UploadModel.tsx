@@ -12,9 +12,9 @@ import {
 import { RocketIcon, ReloadIcon } from "@radix-ui/react-icons";
 
 // Feature imports
-import { useModelUploadFlow } from "../features/model-upload";
-import { DatasetCard } from "../features/dataset-selection";
-import { ProgressIndicator } from "../features/progress-tracking/ui";
+import { useModelUploadFlow } from "../features/models";
+import { DatasetSelectionCard } from "../features/datasets";
+import { ProgressIndicator } from "../features/upload";
 import { ModelUploader } from "../components/ModelUploader";
 
 export function UploadModel() {
@@ -251,7 +251,7 @@ export function UploadModel() {
                   Training Dataset
                 </Text>
                 {datasetInfo.selectedTrainingDataset ? (
-                  <DatasetCard
+                  <DatasetSelectionCard
                     dataset={datasetInfo.selectedTrainingDataset}
                     onRemove={() => handleTrainingDatasetSelect(null as any)}
                     isSelected={true}
@@ -268,8 +268,8 @@ export function UploadModel() {
                 </Text>
                 {datasetInfo.selectedTestDatasets.length > 0 ? (
                   <Flex direction="column" gap="2">
-                    {datasetInfo.selectedTestDatasets.map((dataset) => (
-                      <DatasetCard
+                    {datasetInfo.selectedTestDatasets.map((dataset: any) => (
+                      <DatasetSelectionCard
                         key={dataset.id}
                         dataset={dataset}
                         onRemove={() => handleTestDatasetRemove(dataset)}
