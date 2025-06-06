@@ -226,8 +226,6 @@ export function useDatasetSuiService() {
       const dataIds: string[] = [];
       const { blobId, filesMetadata } = blobUploadResult;
 
-      console.log("file metadata length:", filesMetadata.length);
-      console.log("file metadata:", filesMetadata);
       for (let i = 0; i < filesMetadata.length; i++) {
         const fileMetadata = filesMetadata[i];
         
