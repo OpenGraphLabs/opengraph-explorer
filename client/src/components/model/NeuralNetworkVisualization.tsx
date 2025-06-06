@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Box, Card, Flex, Text, Badge, Tooltip } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import { ModelObject, Layer } from "../../services/modelGraphQLService";
+import { ModelObject, Layer } from "../../shared/api/modelGraphQLService";
 
 // Interface for weight connections
 interface WeightConnection {
