@@ -13,7 +13,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useModelInferenceState } from "../../hooks/useModelInference";
+import { useModelInferenceState } from "@/shared/hooks/useModelInference";
 import {
   Rocket,
   CircleWavyCheck as CircuitBoard,
@@ -22,7 +22,7 @@ import {
   ImageSquare,
   PencilSimple,
 } from "phosphor-react";
-import { ModelObject } from "../../services/modelGraphQLService";
+import { ModelObject } from "@/shared/api/graphql/modelGraphQLService";
 import { VectorInputTab } from "./VectorInputTab";
 import { ImageInputTab } from "./ImageInputTab";
 import { DrawingInputTab } from "./DrawingInputTab";

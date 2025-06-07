@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Model } from "../types/model";
-import { ModelConversionError, modelService } from "../services/modelService";
+import { ModelConversionError, modelService } from "../api/modelService";
 
 interface ModelUploadState {
   selectedFile: File | null;

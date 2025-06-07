@@ -1,0 +1,133 @@
+/* Theme animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Base body styles that respond to theme */
+body {
+  background-color: var(--og-bg-primary, #ffffff);
+  color: var(--og-text-primary, #212529);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark theme specific styles */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Utility classes for common patterns */
+.theme-bg-primary {
+  background-color: var(--og-bg-primary);
+}
+
+.theme-bg-secondary {
+  background-color: var(--og-bg-secondary);
+}
+
+.theme-bg-card {
+  background-color: var(--og-bg-card);
+}
+
+.theme-text-primary {
+  color: var(--og-text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--og-text-secondary);
+}
+
+.theme-text-brand {
+  color: var(--og-text-brand);
+}
+
+.theme-border-primary {
+  border-color: var(--og-border-primary);
+}
+
+.theme-gradient-primary {
+  background: var(--og-gradient-primary);
+}
+
+.theme-gradient-warm {
+  background: var(--og-gradient-warm);
+}
+
+/* Interactive states */
+.theme-interactive-primary {
+  background-color: var(--og-interactive-primary);
+  transition: background-color 0.2s ease;
+}
+
+.theme-interactive-primary:hover {
+  background-color: var(--og-interactive-primary-hover);
+}
+
+.theme-interactive-primary:active {
+  background-color: var(--og-interactive-primary-active);
+}
+
+/* Focus styles */
+.theme-focus {
+  outline: 2px solid var(--og-interactive-primary);
+  outline-offset: 2px;
+}
+
+/* Scrollbar theming */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--og-bg-secondary, #f8f9fa);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--og-border-primary, #dee2e6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--og-text-tertiary, #adb5bd);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--og-bg-tertiary, #343a40);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--og-border-primary, #495057);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--og-text-tertiary, #6c757d);
+} 

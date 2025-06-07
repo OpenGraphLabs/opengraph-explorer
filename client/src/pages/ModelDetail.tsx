@@ -14,11 +14,11 @@ import {
 } from "@radix-ui/themes";
 import { HeartIcon, DownloadIcon, Share1Icon, ExternalLinkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useModelById } from "../hooks/useModels";
-import { ModelOverviewTab, ModelInferenceTab } from "../components/model";
-import { getSuiScanUrl } from "../utils/sui";
-import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
-import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
+import { useModelById } from "@/shared/hooks/useModels";
+import { ModelOverviewTab, ModelInferenceTab } from "@/components/model";
+import { getSuiScanUrl } from "@/shared/utils/sui";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
+import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 import { Image, TextT, Database } from "phosphor-react";
 
 // Style for creator link hover effect

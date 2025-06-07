@@ -14,9 +14,9 @@ import {
   Cube,
 } from "phosphor-react";
 
-import { ModelObject } from "../../services/modelGraphQLService";
-import { getSuiScanUrl } from "../../utils/sui";
-import { SUI_ADDRESS_DISPLAY_LENGTH } from "../../constants/suiConfig";
+import { ModelObject } from "@/shared/api/graphql/modelGraphQLService";
+import { getSuiScanUrl } from "@/shared/utils/sui";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
 
 interface ModelOverviewTabProps {
   model: ModelObject;

@@ -12,7 +12,7 @@ import {
   Separator,
 } from "@radix-ui/themes";
 import { CheckCircle } from "phosphor-react";
-import { DataObject, AnnotationObject } from "../services/datasetGraphQLService";
+import { DataObject, AnnotationObject } from "@/shared/api/graphql/datasetGraphQLService";
 
 interface BoundingBox {
   x: number;

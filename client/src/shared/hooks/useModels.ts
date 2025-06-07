@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { modelGraphQLService, ModelObject } from "../services/modelGraphQLService";
+import { modelGraphQLService, ModelObject } from "../api/graphql/modelGraphQLService";
 
 /**
  * 모델 목록 훅 반환 타입

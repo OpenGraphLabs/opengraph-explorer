@@ -1,7 +1,7 @@
 import { getFullnodeUrl } from "@mysten/sui/client";
 import { createNetworkConfig } from "@mysten/dapp-kit";
 import { SuiClient } from "@mysten/sui/client";
-import { SUI_NETWORK } from "./constants/suiConfig";
+import { SUI_NETWORK } from "@/shared/constants/suiConfig";
 
 const { networkConfig, useNetworkVariable, useNetworkVariables } = createNetworkConfig({
   devnet: {

@@ -17,11 +17,11 @@ import {
 } from "@radix-ui/themes";
 import { Database, ImageSquare, FileDoc, FileZip, FileText, Tag, CaretLeft, CaretRight, CheckCircle, Users } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
-import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject, PaginationOptions} from "../services/datasetGraphQLService";
-import {WALRUS_AGGREGATOR_URL} from "../services/walrusService";
-import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
-import { getSuiScanUrl, getWalruScanUrl } from "../utils/sui";
-import {useDatasetSuiService} from "../services/datasetSuiService.ts";
+import {DataObject, datasetGraphQLService, DatasetObject, AnnotationObject, PaginationOptions} from "@/shared/api/graphql/datasetGraphQLService";
+import {WALRUS_AGGREGATOR_URL} from "@/shared/api/walrus/walrusService";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
+import { getSuiScanUrl, getWalruScanUrl } from "@/shared/utils/sui";
+import {useDatasetSuiService} from "@/shared/api/sui/datasetSuiService";
 
 // 데이터 타입에 따른 아이콘 매핑
 const DATA_TYPE_ICONS: Record<string, any> = {
@@ -82,7 +82,6 @@ export function DatasetDetail() {
   });
   
   // 페이지네이션 상태
-  const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(25);  // 한 페이지당 25개 아이템
   const [paginationLoading, setPaginationLoading] = useState(false);
   const [currentCursors, setCurrentCursors] = useState<{
@@ -681,17 +680,17 @@ export function DatasetDetail() {
     console.log("State changed - boundingBoxes:", boundingBoxes);
   }, [isDrawingMode, boundingBoxes]);
 
-  // Add function to draw bounding box on canvas
-  const drawBoundingBox = (ctx: CanvasRenderingContext2D, box: BoundingBox, isTemp: boolean = false) => {
-    if (!selectedConfirmedAnnotation) return;
+  // // Add function to draw bounding box on canvas
+  // const drawBoundingBox = (ctx: CanvasRenderingContext2D, box: BoundingBox, isTemp: boolean = false) => {
+  //   if (!selectedConfirmedAnnotation) return;
     
-    const color = annotationColors[selectedConfirmedAnnotation];
-    if (!color) return;
+  //   const color = annotationColors[selectedConfirmedAnnotation];
+  //   if (!color) return;
 
-    ctx.strokeStyle = isTemp ? `${color.stroke}80` : color.stroke; // 80 is for 50% opacity
-    ctx.lineWidth = 2;
-    ctx.strokeRect(box.x, box.y, box.width, box.height);
-  };
+  //   ctx.strokeStyle = isTemp ? `${color.stroke}80` : color.stroke; // 80 is for 50% opacity
+  //   ctx.lineWidth = 2;
+  //   ctx.strokeRect(box.x, box.y, box.width, box.height);
+  // };
 
   // Add function to handle mouse events for drawing
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1283,14 +1282,14 @@ export function DatasetDetail() {
     ctx.drawImage(img, 0, 0);
   };
 
-  // Add helper function to filter confirmed and pending items
-  const getFilteredItems = (type: 'confirmed' | 'pending') => {
-    if (!dataset) return [];
-    return dataset.data.filter(item => {
-      const isConfirmed = hasConfirmedAnnotations(item);
-      return type === 'confirmed' ? isConfirmed : !isConfirmed;
-    });
-  };
+  // // Add helper function to filter confirmed and pending items
+  // const getFilteredItems = (type: 'confirmed' | 'pending') => {
+  //   if (!dataset) return [];
+  //   return dataset.data.filter(item => {
+  //     const isConfirmed = hasConfirmedAnnotations(item);
+  //     return type === 'confirmed' ? isConfirmed : !isConfirmed;
+  //   });
+  // };
 
   // Add function to handle undo
   const handleUndo = () => {

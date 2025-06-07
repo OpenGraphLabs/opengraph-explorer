@@ -1,5 +1,5 @@
-import { getSuiScanUrl } from "../utils/sui";
-import { suiClient } from "./modelSuiService";
+import { getSuiScanUrl } from "../../utils/sui";
+import { suiClient } from "../sui/modelSuiService";
 import { WalrusClient } from "@mysten/walrus";
 import {useCurrentAccount} from "@mysten/dapp-kit";
 import {useSignAndExecuteTransaction} from "@mysten/dapp-kit";

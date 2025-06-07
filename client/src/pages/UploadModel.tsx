@@ -13,10 +13,10 @@ import {
   Badge,
 } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
-import { ModelUploader } from "../components/ModelUploader";
-import { useModelUpload } from "../hooks/useModelUpload";
-import { useUploadModelToSui } from "../services/modelSuiService";
-import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
+import { ModelUploader } from "@/components/ModelUploader";
+import { useModelUpload } from "@/shared/hooks/useModelUpload";
+import { useUploadModelToSui } from "@/shared/api/sui/modelSuiService";
+import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import {
   RocketIcon,

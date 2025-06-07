@@ -7,9 +7,9 @@ import {
   GAS_BUDGET,
   SUI_MAX_PARAMS_PER_TX,
   SUI_PREDICT_COMPUTATION_BATCH_SIZE
-} from "../constants/suiConfig";
-import {Model, validateModel} from "../types/model";
-import {ModelObject} from "./modelGraphQLService.ts";
+} from "../../constants/suiConfig";
+import {Model, validateModel} from "../../types/model";
+import {ModelObject} from "../graphql/modelGraphQLService";
 
 export const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,

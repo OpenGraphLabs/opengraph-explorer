@@ -1,7 +1,7 @@
-import { SUI_NETWORK, SUI_CONTRACT } from "../constants/suiConfig";
+import { SUI_NETWORK, SUI_CONTRACT } from "../../constants/suiConfig";
 import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { graphql } from "@mysten/sui/graphql/schemas/latest";
-import { WALRUS_AGGREGATOR_URL } from "./walrusService";
+import { WALRUS_AGGREGATOR_URL } from "../walrus/walrusService";
 
 /**
  * 모델 객체 인터페이스

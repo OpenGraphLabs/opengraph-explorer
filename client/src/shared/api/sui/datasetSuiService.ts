@@ -1,9 +1,9 @@
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
-import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../constants/suiConfig";
-import { useWalrusService } from "./walrusService";
-import { type DatasetObject } from "./datasetGraphQLService";
+import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../../constants/suiConfig";
+import { useWalrusService } from "../walrus/walrusService";
+import { type DatasetObject } from "../graphql/datasetGraphQLService";
 
 
 const suiClient = new SuiClient({

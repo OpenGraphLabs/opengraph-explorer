@@ -23,8 +23,8 @@ import {
   Cross2Icon,
 } from "@radix-ui/react-icons";
 import { Link, useNavigate } from "react-router-dom";
-import { datasetGraphQLService, DatasetObject } from "../services/datasetGraphQLService";
-import { SUI_ADDRESS_DISPLAY_LENGTH } from "../constants/suiConfig";
+import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import { Database, ImageSquare, FileDoc, FileZip, FileText } from "phosphor-react";
 

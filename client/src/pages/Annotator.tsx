@@ -11,9 +11,9 @@ import {
   ScrollArea,
 } from "@radix-ui/themes";
 import { Database, X, Image as ImageIcon } from "phosphor-react";
-import { WALRUS_AGGREGATOR_URL } from "../services/walrusService";
-import { datasetGraphQLService, DatasetObject, DataObject } from "../services/datasetGraphQLService";
-import { useDatasetSuiService } from "../services/datasetSuiService";
+import { WALRUS_AGGREGATOR_URL } from "@/shared/api/walrus/walrusService";
+import { datasetGraphQLService, DatasetObject, DataObject } from "@/shared/api/graphql/datasetGraphQLService";
+import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 
 const styles = `
   @keyframes pulse {

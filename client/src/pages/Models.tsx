@@ -22,14 +22,14 @@ import {
   ChevronUpIcon,
 } from "@radix-ui/react-icons";
 import { Link } from "react-router-dom";
-import styles from "../styles/Card.module.css";
-import { useModels } from "../hooks/useModels";
+import styles from "@/styles/Card.module.css";
+import { useModels } from "@/shared/hooks/useModels";
 import {
   SUI_ADDRESS_DISPLAY_LENGTH,
   TASK_COLORS,
   TASK_NAMES,
   TASK_TYPES,
-} from "../constants/suiConfig";
+} from "@/shared/constants/suiConfig";
 
 export function Models() {
   const [searchQuery, setSearchQuery] = useState("");

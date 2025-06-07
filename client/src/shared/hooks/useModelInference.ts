@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useModelInference as useSuiModelInference } from "../services/modelSuiService";
-import { ModelObject, Layer } from "../services/modelGraphQLService";
+import { useModelInference as useSuiModelInference } from "../api/sui/modelSuiService";
+import { ModelObject, Layer } from "../api/graphql/modelGraphQLService";
 
 export interface PredictResult {
   layerIdx: number;

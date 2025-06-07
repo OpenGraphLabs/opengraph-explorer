@@ -3,9 +3,9 @@ import { Box, Flex, Text, Card, Table, Badge, Heading, Tooltip } from "@radix-ui
 import { motion } from "framer-motion";
 import { CheckCircledIcon, CrossCircledIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { CircleWavyCheck as CircuitBoard, CheckCircle, Trophy, FlowArrow, ArrowsHorizontal } from "phosphor-react";
-import { PredictResult } from "../../hooks/useModelInference";
-import { formatVector, getActivationTypeName, calculateConfidenceScores } from "../../utils/modelUtils";
-import { getSuiScanUrl } from "../../utils/sui";
+import { PredictResult } from "@/shared/hooks/useModelInference";
+import { formatVector, getActivationTypeName, calculateConfidenceScores } from "@/shared/utils/modelUtils";
+import { getSuiScanUrl } from "@/shared/utils/sui";
 
 // Status summary component
 interface StatusSummaryProps {

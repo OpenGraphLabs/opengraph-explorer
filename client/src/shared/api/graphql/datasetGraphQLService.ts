@@ -1,4 +1,4 @@
-import { SUI_NETWORK, SUI_CONTRACT } from "../constants/suiConfig";
+import { SUI_NETWORK, SUI_CONTRACT } from "../../constants/suiConfig";
 import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { graphql } from "@mysten/sui/graphql/schemas/latest";
 

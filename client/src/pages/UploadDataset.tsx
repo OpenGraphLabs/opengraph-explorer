@@ -12,7 +12,7 @@ import {
   Badge,
 } from "@radix-ui/themes";
 import { useCurrentWallet } from "@mysten/dapp-kit";
-import { useDatasetSuiService } from "../services/datasetSuiService";
+import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 import {
   ReloadIcon,
   CheckCircledIcon,
