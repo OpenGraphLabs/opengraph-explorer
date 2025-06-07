@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Grid, Flex, Text, Spinner, Box, Button } from "@radix-ui/themes";
-import { MagnifyingGlassIcon, CodeIcon } from "@radix-ui/react-icons";
+import { MagnifyingGlassIcon, ExclamationTriangleIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { Link } from "react-router-dom";
 import { Model } from "../types";
 import { ModelCard } from "@/features/model";
-import styles from "@/styles/Card.module.css";
 
 interface ModelListProps {
   models: Model[];
@@ -15,179 +14,227 @@ interface ModelListProps {
 }
 
 export function ModelList({ models, loading, error, onRetry, onModelClick }: ModelListProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !error) {
-      setTimeout(() => setIsLoaded(true), 100);
-    }
-  }, [loading, error]);
-
   if (loading) {
     return (
-      <Flex
-        direction="column"
-        align="center"
-        gap="4"
-        py="9"
-        style={{ minHeight: "60vh", justifyContent: "center" }}
+      <Box
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "300px",
+          backgroundColor: "white",
+          borderRadius: "8px",
+          border: "1px solid #e5e7eb",
+        }}
       >
-        <Spinner size="3" className={styles.loadingPulse} />
-        <Text size="3" style={{ fontWeight: 500 }}>
-          Loading amazing models...
+        <Spinner
+          size="3"
+          style={{
+            color: "#6b7280",
+            marginBottom: "12px",
+          }}
+        />
+        <Text
+          style={{
+            fontSize: "14px",
+            color: "#6b7280",
+            fontWeight: "500",
+          }}
+        >
+          Loading models...
         </Text>
-      </Flex>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <Flex
-        direction="column"
-        align="center"
-        gap="4"
-        py="9"
+      <Box
         style={{
-          minHeight: "60vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           justifyContent: "center",
-          background: "white",
-          borderRadius: "16px",
-          padding: "40px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-          border: "1px solid var(--gray-4)",
+          minHeight: "300px",
+          backgroundColor: "white",
+          borderRadius: "8px",
+          border: "1px solid #e5e7eb",
+          padding: "32px 24px",
         }}
       >
         <Box
-          className={styles.emptyState}
           style={{
-            width: "80px",
-            height: "80px",
+            backgroundColor: "#fef2f2",
+            border: "1px solid #fecaca",
             borderRadius: "50%",
-            background: "var(--gray-3)",
+            width: "48px",
+            height: "48px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            marginBottom: "16px",
           }}
         >
-          <CodeIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
+          <ExclamationTriangleIcon width="24" height="24" style={{ color: "#dc2626" }} />
         </Box>
-        <Text size="6" style={{ fontWeight: 600 }}>
-          Error Loading Models
+        
+        <Text
+          style={{
+            fontSize: "16px",
+            fontWeight: "600",
+            color: "#111827",
+            marginBottom: "6px",
+          }}
+        >
+          Unable to Load Models
         </Text>
-        <Text size="3" color="gray" align="center" style={{ maxWidth: "400px" }}>
-          {error}
+        
+        <Text
+          style={{
+            fontSize: "13px",
+            color: "#6b7280",
+            textAlign: "center",
+            marginBottom: "20px",
+            maxWidth: "350px",
+            lineHeight: "1.4",
+          }}
+        >
+          {error || "There was an error loading the models. Please try again."}
         </Text>
+
         {onRetry && (
-          <Button
+          <button
             onClick={onRetry}
             style={{
-              background: "#FF5733",
+              backgroundColor: "#111827",
               color: "white",
-              marginTop: "14px",
-              borderRadius: "8px",
-              fontWeight: 500,
-              padding: "10px 16px",
+              border: "none",
+              borderRadius: "6px",
+              padding: "8px 16px",
+              fontSize: "13px",
+              fontWeight: "500",
               cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#1f2937";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#111827";
             }}
           >
-            Retry
-          </Button>
+            <ReloadIcon width="14" height="14" />
+            Try Again
+          </button>
         )}
-      </Flex>
+      </Box>
     );
   }
 
   if (models.length === 0) {
     return (
-      <Flex
-        direction="column"
-        align="center"
-        gap="4"
-        py="9"
+      <Box
         style={{
-          minHeight: "60vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           justifyContent: "center",
-          background: "white",
-          borderRadius: "16px",
-          padding: "40px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-          border: "1px solid var(--gray-4)",
+          minHeight: "300px",
+          backgroundColor: "white",
+          borderRadius: "8px",
+          border: "1px solid #e5e7eb",
+          padding: "32px 24px",
         }}
       >
         <Box
-          className={styles.emptyState}
           style={{
-            width: "80px",
-            height: "80px",
+            backgroundColor: "#f9fafb",
+            border: "1px solid #e5e7eb",
             borderRadius: "50%",
-            background: "var(--gray-3)",
+            width: "48px",
+            height: "48px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            marginBottom: "16px",
           }}
         >
-          <MagnifyingGlassIcon width="32" height="32" style={{ color: "var(--gray-9)" }} />
+          <MagnifyingGlassIcon width="24" height="24" style={{ color: "#9ca3af" }} />
         </Box>
-        <Text size="6" style={{ fontWeight: 600 }}>
+        
+        <Text
+          style={{
+            fontSize: "16px",
+            fontWeight: "600",
+            color: "#111827",
+            marginBottom: "6px",
+          }}
+        >
           No Models Found
         </Text>
+        
         <Text
-          size="3"
-          color="gray"
-          align="center"
-          style={{ maxWidth: "400px", lineHeight: 1.6, letterSpacing: "0.01em" }}
+          style={{
+            fontSize: "13px",
+            color: "#6b7280",
+            textAlign: "center",
+            marginBottom: "20px",
+            maxWidth: "350px",
+            lineHeight: "1.4",
+          }}
         >
-          No models match your search criteria. Try changing your search terms or filters.
+          No models match your current search criteria. Try adjusting your filters or search terms.
         </Text>
-        <Link to="/upload">
-          <Button
-            style={{
-              background: "#FF5733",
-              color: "white",
-              marginTop: "14px",
-              borderRadius: "8px",
-              fontWeight: 500,
-              padding: "10px 16px",
-              cursor: "pointer",
-            }}
-          >
-            Upload Model
-          </Button>
+
+        <Link
+          to="/upload"
+          style={{
+            backgroundColor: "#111827",
+            color: "white",
+            textDecoration: "none",
+            border: "none",
+            borderRadius: "6px",
+            padding: "8px 16px",
+            fontSize: "13px",
+            fontWeight: "500",
+            cursor: "pointer",
+            transition: "background-color 0.2s ease",
+          }}
+          onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.currentTarget.style.backgroundColor = "#1f2937";
+          }}
+          onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.currentTarget.style.backgroundColor = "#111827";
+          }}
+        >
+          Deploy Your First Model
         </Link>
-      </Flex>
+      </Box>
     );
   }
 
   return (
-    <Grid
-      columns={{ initial: "1", sm: "2", lg: "3" }}
-      gap="5"
-      className={styles.modelGrid}
-      style={{
-        maxWidth: "100%",
-        margin: "0 auto",
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-      }}
-    >
-      {models.map((model, index) => (
-        <div
-          key={model.id}
-          style={{
-            animationDelay: `${index * 50}ms`,
-            opacity: isLoaded ? 1 : 0,
-            transform: isLoaded ? "translateY(0)" : "translateY(10px)",
-            transition: "opacity 0.5s ease, transform 0.5s ease",
-            height: "100%",
-          }}
-        >
+    <Box>
+      {/* 3-Column Grid Layout */}
+      <Grid
+        columns={{ initial: "1", sm: "2", md: "3" }}
+        gap="16px"
+        style={{
+          marginBottom: "32px",
+        }}
+      >
+        {models.map(model => (
           <ModelCard
+            key={model.id}
             model={model}
             onClick={() => onModelClick(model)}
-            onViewDetails={() => onModelClick(model)}
           />
-        </div>
-      ))}
-    </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
 }

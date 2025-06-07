@@ -1,10 +1,15 @@
 import { Flex, Select } from "@radix-ui/themes";
+import { useTheme } from "@/shared/ui/design-system";
 import {
-  ChevronUpIcon,
-  ChevronDownIcon,
-  TextAlignLeftIcon,
-  StackIcon,
-} from "@radix-ui/react-icons";
+  SortAscending,
+  SortDescending,
+  ArrowUp,
+  ArrowDown,
+  TextAa,
+  Archive,
+  CaretDown,
+  Check
+} from "phosphor-react";
 
 interface SortOption {
   value: string;
@@ -22,97 +27,89 @@ export const DatasetSortSelector = ({
   onSortChange,
   options,
 }: DatasetSortSelectorProps) => {
+  const { theme } = useTheme();
+
   const getSortIcon = (sortValue: string) => {
     switch (sortValue) {
       case "newest":
-        return <ChevronUpIcon />;
+        return <ArrowDown size={10} style={{ color: theme.colors.text.tertiary }} />;
       case "oldest":
-        return <ChevronDownIcon />;
+        return <ArrowUp size={10} style={{ color: theme.colors.text.tertiary }} />;
       case "name":
-        return <TextAlignLeftIcon />;
+        return <TextAa size={10} style={{ color: theme.colors.text.tertiary }} />;
       case "size":
-        return <StackIcon />;
+        return <Archive size={10} style={{ color: theme.colors.text.tertiary }} />;
       default:
-        return <ChevronUpIcon />;
+        return <SortAscending size={10} style={{ color: theme.colors.text.tertiary }} />;
     }
   };
 
-  const getSortLabel = (sortValue: string) => {
-    const option = options.find(opt => opt.value === sortValue);
-    return option?.label || "Sort";
+  const getCurrentSortLabel = () => {
+    const currentOption = options.find(option => option.value === selectedSort);
+    return currentOption?.label || "Sort";
   };
 
   return (
     <Select.Root value={selectedSort} onValueChange={onSortChange}>
       <Select.Trigger
         style={{
-          padding: "8px 12px",
-          border: "1px solid var(--gray-5)",
-          borderRadius: "8px",
-          background: "white",
-          fontSize: "13px",
+          background: theme.colors.background.primary,
+          border: `1px solid ${theme.colors.border.primary}`,
+          borderRadius: theme.borders.radius.sm,
+          padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+          color: theme.colors.text.primary,
+          fontSize: "12px",
+          fontWeight: 500,
+          cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          transition: "all 0.2s ease",
-          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
-          cursor: "pointer",
-          minWidth: "180px",
-          whiteSpace: "nowrap",
+          gap: "4px",
+          minWidth: "100px",
+          height: "28px",
         }}
       >
-        <Flex align="center" gap="2" style={{ overflow: "hidden" }}>
+        <Flex align="center" gap="1">
           {getSortIcon(selectedSort)}
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", marginLeft: "6px" }}>
-            {getSortLabel(selectedSort)}
-          </span>
+          <span>{getCurrentSortLabel()}</span>
         </Flex>
+        <CaretDown size={10} style={{ color: theme.colors.text.tertiary, marginLeft: "auto" }} />
       </Select.Trigger>
-
+      
       <Select.Content
         position="popper"
         style={{
-          zIndex: 999,
-          borderRadius: "8px",
-          overflow: "hidden",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-          border: "1px solid var(--gray-4)",
-          background: "white",
-          animation: "slideDown 0.2s ease",
+          background: theme.colors.background.card,
+          border: `1px solid ${theme.colors.border.primary}`,
+          borderRadius: theme.borders.radius.sm,
+          boxShadow: theme.shadows.semantic.overlay.dropdown,
+          padding: theme.spacing.semantic.component.xs,
+          minWidth: "140px",
+          zIndex: 50,
         }}
       >
         <Select.Group>
-          <Select.Label
-            style={{
-              padding: "8px 22px",
-              color: "var(--gray-9)",
-              fontSize: "12px",
-              fontWeight: 600,
-            }}
-          >
-            Sort by
-          </Select.Label>
-
           {options.map(option => (
             <Select.Item
               key={option.value}
               value={option.value}
               style={{
-                padding: "8px 22px",
-                cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                gap: "8px",
-                fontSize: "13px",
-                transition: "background 0.1s ease",
-                whiteSpace: "nowrap",
+                gap: "6px",
+                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                borderRadius: theme.borders.radius.sm,
+                fontSize: "12px",
+                fontWeight: 500,
+                cursor: "pointer",
+                color: theme.colors.text.primary,
+                margin: "1px 0",
               }}
             >
-              <Flex align="center" gap="2">
-                {getSortIcon(option.value)}
-                <span>{option.label}</span>
-              </Flex>
+              {getSortIcon(option.value)}
+              <span>{option.label}</span>
+              {selectedSort === option.value && (
+                <Check size={10} style={{ color: theme.colors.interactive.primary, marginLeft: "auto" }} />
+              )}
             </Select.Item>
           ))}
         </Select.Group>

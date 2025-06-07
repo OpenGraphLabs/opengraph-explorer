@@ -21,9 +21,9 @@ export function AppLayout({ children }: AppLayoutProps) {
     >
       <Box
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1400px",
           margin: "0 auto",
-          padding: `0 ${theme.spacing.semantic.container.md}`,
+          padding: `0 ${theme.spacing.base[4]}`,
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
@@ -33,8 +33,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         <Box
           style={{
             flex: 1,
-            paddingTop: theme.spacing.semantic.layout.md,
-            paddingBottom: theme.spacing.semantic.layout.lg,
+            paddingTop: theme.spacing.base[4],
+            paddingBottom: theme.spacing.base[6],
           }}
         >
           {children}

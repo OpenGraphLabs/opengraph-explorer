@@ -117,7 +117,7 @@ export function ModelDetail() {
               padding: theme.spacing.semantic.container.lg,
               marginBottom: theme.spacing.semantic.layout.lg,
               borderRadius: theme.borders.radius.xl,
-              background: theme.gradients.primaryLight,
+              background: theme.gradients.primary,
               boxShadow: theme.shadows.semantic.card.medium,
               border: `1px solid ${theme.colors.border.brand}`,
             }}
