@@ -2,22 +2,25 @@ import { useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import { Theme, Box, Flex, Text, Button, Avatar } from "@radix-ui/themes";
 import { ConnectButton, useCurrentWallet } from "@mysten/dapp-kit";
-import { Home } from "./pages/Home";
-import { Models } from "./pages/Models";
-import { ModelDetail } from "./pages/ModelDetail";
-import { UploadModel } from "./pages/UploadModel";
-import { UploadDataset } from "./pages/UploadDataset";
-import { Profile } from "./pages/Profile";
-import { Datasets } from "./pages/Datasets";
-import { Annotator } from "./pages/Annotator";
-import { HamburgerMenuIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
-import logoImage from "./assets/logo/logo.png";
-import { DatasetDetail } from "./pages/DatasetDetail";
+import { Home } from "@/pages/Home";
+import { Models } from "@/pages/Models";
+import { ModelDetail } from "@/pages/ModelDetail";
+import { UploadModel } from "@/pages/UploadModel";
+import { UploadDataset } from "@/pages/UploadDataset";
+import { Profile } from "@/pages/Profile";
+import { Datasets } from "@/pages/Datasets";
+import { Annotator } from "@/pages/Annotator";
+import { HamburgerMenuIcon, GitHubLogoIcon, SunIcon, MoonIcon } from "@radix-ui/react-icons";
+import logoImage from "@/assets/logo/logo.png";
+import { DatasetDetail } from "@/pages/DatasetDetail";
+import { useTheme, useThemeColors } from "@/shared/ui/theme";
 
 export default function App() {
   const location = useLocation();
   const { isConnected, currentWallet } = useCurrentWallet();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { mode, toggleTheme } = useTheme();
+  const colors = useThemeColors();
 
   return (
     <Theme appearance="light" accentColor="orange">
@@ -61,7 +64,7 @@ export default function App() {
                   size="5"
                   weight="bold"
                   style={{
-                    color: "#FF5500",
+                    color: colors.text.brand,
                   }}
                   className="sm:block"
                 >
@@ -103,6 +106,23 @@ export default function App() {
               </Button>
             </Box>
 
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              onClick={toggleTheme}
+              style={{
+                padding: "8px",
+                background: "transparent",
+                color: colors.text.secondary,
+              }}
+            >
+              {mode === "light" ? (
+                <MoonIcon width="20" height="20" />
+              ) : (
+                <SunIcon width="20" height="20" />
+              )}
+            </Button>
+
             {/* GitHub Link */}
             <a
               href="https://github.com/yourusername/huggingface-3.0"
@@ -111,7 +131,7 @@ export default function App() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                color: "#333",
+                color: colors.text.secondary,
                 textDecoration: "none",
               }}
             >
@@ -123,9 +143,9 @@ export default function App() {
               connectText="Connect Wallet"
               style={{
                 borderRadius: "8px",
-                background: isConnected ? "white" : "#FF5733",
-                color: isConnected ? "#333" : "white",
-                border: isConnected ? "1px solid var(--gray-5)" : "none",
+                background: isConnected ? colors.background.card : colors.interactive.primary,
+                color: isConnected ? colors.text.primary : colors.text.inverse,
+                border: isConnected ? `1px solid ${colors.border.primary}` : "none",
                 fontWeight: 500,
                 padding: "8px 16px",
               }}
@@ -138,7 +158,7 @@ export default function App() {
                   size="2"
                   fallback={currentWallet?.accounts[0]?.address[0] || "U"}
                   style={{
-                    background: "#FF5733",
+                    background: colors.interactive.primary,
                     cursor: "pointer",
                   }}
                 />
