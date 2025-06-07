@@ -171,10 +171,11 @@ export const useDatasetDetail = (id: string | undefined) => {
     }
   };
 
-  const handleImageClick = (item: any, index: number) => {
+  const handleImageClick = (item: any, index: number, getImageUrl: (item: any, index: number) => string) => {
     const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
     const absoluteIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE + index;
     
+    setSelectedImage(getImageUrl(item, absoluteIndex));
     setSelectedImageData(item);
     setSelectedImageIndex(absoluteIndex);
     setSelectedAnnotations(item.annotations);

@@ -9,17 +9,18 @@ import {
   Badge,
 } from "@radix-ui/themes";
 import { CheckCircle, Users } from "phosphor-react";
-import { 
+import {
   useDatasetDetail,
   useBlobData,
   DatasetHeader, 
   DatasetStats, 
   DatasetImageGallery, 
-  DatasetPagination, 
-  DatasetImageModal,
+  DatasetPagination,
   isImageType,
   getAnnotationColor,
+  DEFAULT_PAGE_SIZE,
 } from "@/features/dataset";
+import { DatasetImageModal } from "@/features/dataset/components/DatasetImageModal/DatasetImageModal";
 import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 
 export function DatasetDetail() {
@@ -39,6 +40,7 @@ export function DatasetDetail() {
     selectedImage,
     selectedAnnotations,
     selectedImageData,
+    selectedImageIndex,
     selectedPendingLabels,
     confirmationStatus,
     setActiveTab,
@@ -139,15 +141,26 @@ export function DatasetDetail() {
   return (
     <Box style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 32px" }}>
       {/* 데이터셋 헤더 */}
-      <DatasetHeader
-        dataset={dataset}
-        uniqueBlobId={getUniqueBlobId() || undefined}
-      />
-
-      {/* 데이터셋 통계 */}
-      <DatasetStats
-        dataset={dataset}
-      />
+      <Card
+        style={{
+          padding: "32px",
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
+          marginBottom: "32px",
+          border: "1px solid var(--gray-4)",
+          background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
+        }}
+      >
+        <DatasetHeader
+          dataset={dataset}
+          uniqueBlobId={getUniqueBlobId() || undefined}
+        />
+        
+        {/* 데이터셋 통계 */}
+        <DatasetStats
+          dataset={dataset}
+        />
+      </Card>
 
       {/* 데이터셋 콘텐츠 */}
       <Card
@@ -239,7 +252,7 @@ export function DatasetDetail() {
                 loading={isAnyBlobLoading()}
                 activeTab={activeTab}
                 onTabChange={(tab) => setActiveTab(tab)}
-                onImageClick={handleImageClick}
+                onImageClick={(item, index) => handleImageClick(item, index, getImageUrl)}
                 getImageUrl={getImageUrl}
                 isItemLoading={isItemLoading}
                 hasConfirmedAnnotations={hasConfirmedAnnotations}
@@ -254,13 +267,13 @@ export function DatasetDetail() {
             hasNextPage={(() => {
               const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
               const totalItems = activeTab === 'confirmed' ? totalCounts.confirmed : totalCounts.pending;
-              const totalPages = Math.ceil(totalItems / 25); // DEFAULT_PAGE_SIZE
+              const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
               return currentPage < totalPages || !!dataset?.pageInfo?.hasNextPage;
             })()}
             hasPrevPage={(activeTab === 'confirmed' ? confirmedPage : pendingPage) > 1}
             loading={paginationLoading}
             totalItems={activeTab === 'confirmed' ? totalCounts.confirmed : totalCounts.pending}
-            pageSize={25} // DEFAULT_PAGE_SIZE
+            pageSize={DEFAULT_PAGE_SIZE}
             onLoadPage={loadPage}
           />
         </Flex>
@@ -273,6 +286,7 @@ export function DatasetDetail() {
         selectedImage={selectedImage}
         selectedImageData={selectedImageData}
         selectedAnnotations={selectedAnnotations}
+        selectedImageIndex={selectedImageIndex}
         selectedPendingLabels={selectedPendingLabels}
         confirmationStatus={confirmationStatus}
         onTogglePendingAnnotation={handleTogglePendingAnnotation}
