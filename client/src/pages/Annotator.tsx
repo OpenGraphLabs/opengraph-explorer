@@ -1,21 +1,14 @@
 import { useState, useEffect } from "react";
-import { Box, Flex, Text, Badge, Card, Separator } from "@radix-ui/themes";
+import { Box, Flex, Text, Badge, Card } from "@radix-ui/themes";
 import { 
   ArrowLeft, 
   ArrowRight, 
-  Database, 
-  Image as ImageIcon, 
-  Tag, 
-  Keyboard,
+  Database,
+  Tag,
   CheckCircle,
   Clock,
-  Info,
-  FloppyDisk,
-  Lightning,
-  Activity,
-  CaretDown
+  FloppyDisk
 } from "phosphor-react";
-import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
 import { useTheme } from "@/shared/ui/design-system";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 import {
@@ -24,6 +17,7 @@ import {
   useAnnotationState,
   ImageViewer,
 } from "@/features/annotation";
+import { Spinner} from "@/shared/ui/design-system/components";
 
 export function Annotator() {
   const { theme } = useTheme();
@@ -160,49 +154,130 @@ export function Annotator() {
 
   if (loading || error) {
     return (
-      <Box
-        style={{
-          minHeight: "100vh",
-          background: theme.colors.background.primary,
-          padding: theme.spacing.semantic.layout.md,
-        }}
-      >
-        <Box style={{ maxWidth: "1400px", margin: "0 auto" }}>
-          <Flex direction="column" gap={theme.spacing.semantic.section.sm}>
-            {/* Compact Header */}
-            <Flex align="center" gap={theme.spacing.semantic.component.sm}>
+        <Box
+            style={{
+              background: theme.colors.background.primary,
+              minHeight: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: theme.spacing.semantic.layout.lg,
+            }}
+        >
+          <Flex
+              direction="column"
+              align="center"
+              gap="4"
+              style={{
+                background: theme.colors.background.card,
+                padding: theme.spacing.semantic.layout.lg,
+                borderRadius: theme.borders.radius.lg,
+                border: `1px solid ${theme.colors.border.primary}`,
+                boxShadow: theme.shadows.semantic.card.low,
+                maxWidth: "400px",
+              }}
+          >
+            <Box
+                style={{
+                  position: "relative",
+                  width: "48px",
+                  height: "48px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+            >
               <Box
-                style={{
-                  padding: theme.spacing.semantic.component.xs,
-                  borderRadius: theme.borders.radius.sm,
-                  background: `${theme.colors.interactive.primary}15`,
-                  border: `1px solid ${theme.colors.interactive.primary}30`,
-                }}
-              >
-                <Tag size={16} style={{ color: theme.colors.interactive.primary }} />
-              </Box>
+                  style={{
+                    position: "absolute",
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "50%",
+                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}20, ${theme.colors.interactive.accent}20)`,
+                    animation: "pulse 2s infinite",
+                  }}
+              />
+              <Spinner />
+            </Box>
+            <Box style={{ textAlign: "center" }}>
               <Text
-                size="4"
-                style={{
-                  fontWeight: "600",
-                  color: theme.colors.text.primary,
-                  letterSpacing: "-0.01em",
-                }}
+                  size="4"
+                  style={{
+                    fontWeight: 600,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.semantic.component.xs,
+                  }}
               >
-                Dataset Annotator
+                Loading Annotator
               </Text>
-            </Flex>
-
-            <DatasetSelector
-              datasets={datasets}
-              selectedDataset={selectedDataset}
-              onDatasetSelect={handleDatasetSelect}
-              loading={loading}
-              error={error}
-            />
+            </Box>
           </Flex>
         </Box>
-      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+        <Box
+            style={{
+              background: theme.colors.background.primary,
+              minHeight: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: theme.spacing.semantic.layout.lg,
+            }}
+        >
+          <Flex
+              direction="column"
+              align="center"
+              gap="4"
+              style={{
+                background: theme.colors.background.card,
+                padding: theme.spacing.semantic.layout.lg,
+                borderRadius: theme.borders.radius.lg,
+                border: `1px solid ${theme.colors.status.error}40`,
+                boxShadow: theme.shadows.semantic.card.medium,
+                maxWidth: "400px",
+              }}
+          >
+            <Box
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "50%",
+                  background: `${theme.colors.status.error}15`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+            >
+              <Database size={24} style={{ color: theme.colors.status.error }} />
+            </Box>
+            <Box style={{ textAlign: "center" }}>
+              <Text
+                  size="4"
+                  style={{
+                    fontWeight: 600,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.semantic.component.xs,
+                  }}
+              >
+                Annotator Error
+              </Text>
+              <Text
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    lineHeight: 1.5,
+                    marginBottom: theme.spacing.semantic.component.md,
+                  }}
+              >
+                {error}
+              </Text>
+            </Box>
+          </Flex>
+        </Box>
     );
   }
 
@@ -222,10 +297,10 @@ export function Annotator() {
           padding: `${theme.spacing.semantic.component.md} 0`,
         }}
       >
-        <Box style={{ maxWidth: "1600px", margin: "0 auto", padding: `0 ${theme.spacing.semantic.component.lg}` }}>
+        <Box style={{ maxWidth: "1600px", margin: "0 auto", padding: `0 ${theme.spacing.semantic.component.md}` }}>
           <Flex justify="between" align="center">
             {/* Left Section: Branding + Dataset Selector */}
-            <Flex align="center" gap={theme.spacing.semantic.component.lg}>
+            <Flex align="center" gap={theme.spacing.semantic.component.md}>
               {/* Title Section */}
               <Flex align="center" gap={theme.spacing.semantic.component.sm}>
                 <Box
@@ -239,7 +314,7 @@ export function Annotator() {
                     boxShadow: `0 2px 8px ${theme.colors.interactive.primary}30`,
                   }}
                 >
-                  <Tag size={18} style={{ color: theme.colors.text.inverse }} />
+                  <Tag size={16} style={{ color: theme.colors.text.inverse }} />
                 </Box>
                 <Box>
                   <Text
@@ -255,127 +330,74 @@ export function Annotator() {
                 </Box>
               </Flex>
 
-              {/* Enhanced Dataset Selector */}
-              <Box style={{ position: "relative" }}>
-                <select
-                  value={selectedDataset?.id || ""}
-                  onChange={(e) => {
-                    const dataset = datasets.find(d => d.id === e.target.value);
-                    if (dataset) handleDatasetSelect(dataset);
-                  }}
-                  style={{
-                    appearance: "none",
-                    background: `linear-gradient(135deg, ${theme.colors.background.primary}, ${theme.colors.background.card})`,
-                    border: `2px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.lg,
-                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-                    paddingRight: `${theme.spacing.semantic.component.xl}`,
-                    color: theme.colors.text.primary,
-                    fontSize: "15px",
-                    fontWeight: "600",
-                    minWidth: "280px",
-                    cursor: "pointer",
-                    outline: "none",
-                    boxShadow: `0 2px 4px ${theme.colors.background.primary}30`,
-                    transition: "all 0.2s ease",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = theme.colors.interactive.primary;
-                    e.target.style.boxShadow = `0 0 0 3px ${theme.colors.interactive.primary}20`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = theme.colors.border.primary;
-                    e.target.style.boxShadow = `0 2px 4px ${theme.colors.background.primary}30`;
-                  }}
-                >
-                  <option value="" disabled>
-                    {loading ? "Loading datasets..." : "Choose dataset to annotate..."}
-                  </option>
-                  {datasets.map(dataset => (
-                    <option key={dataset.id} value={dataset.id}>
-                      {dataset.name} • {dataset.dataCount} items • {dataset.dataType}
-                    </option>
-                  ))}
-                </select>
-                <Box
-                  style={{
-                    position: "absolute",
-                    right: theme.spacing.semantic.component.md,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: `${theme.colors.interactive.primary}15`,
-                    borderRadius: theme.borders.radius.sm,
-                    padding: "4px",
-                    pointerEvents: "none",
-                  }}
-                >
-                  <CaretDown 
-                    size={12} 
-                    style={{ 
-                      color: theme.colors.interactive.primary,
-                    }} 
-                  />
-                </Box>
-              </Box>
+              {/* Dataset Selector */}
+              <DatasetSelector
+                datasets={datasets}
+                selectedDataset={selectedDataset}
+                onDatasetSelect={handleDatasetSelect}
+                loading={loading}
+                error={error}
+              />
             </Flex>
             
             {/* Right Section: Progress Dashboard */}
             {selectedDataset && (
-              <Flex align="center" gap={theme.spacing.semantic.component.lg}>
+              <Flex align="center" gap={theme.spacing.semantic.component.md}>
                 <Flex 
                   align="center" 
-                  gap={theme.spacing.semantic.component.md}
+                  gap={theme.spacing.semantic.component.sm}
                   style={{
                     background: theme.colors.background.primary,
                     padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                    borderRadius: theme.borders.radius.lg,
+                    borderRadius: theme.borders.radius.md,
                     border: `1px solid ${theme.colors.border.primary}`,
                     boxShadow: `0 2px 4px ${theme.colors.background.primary}30`,
+                    height: "36px",
                   }}
                 >
                   <Flex direction="column" align="center">
-                    <Text size="3" style={{ color: theme.colors.text.primary, fontWeight: "700" }}>
+                    <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: "700", lineHeight: "1.2" }}>
                       {annotationManager.pendingAnnotations.length}
                     </Text>
-                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500" }}>
+                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500", fontSize: "10px" }}>
                       Annotated
                     </Text>
                   </Flex>
                   
                   <Box
                     style={{
-                      width: "2px",
-                      height: "32px",
+                      width: "1px",
+                      height: "24px",
                       background: theme.colors.border.secondary,
                       borderRadius: "1px",
                     }}
                   />
                   
                   <Flex direction="column" align="center">
-                    <Text size="3" style={{ color: theme.colors.text.primary, fontWeight: "700" }}>
+                    <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: "700", lineHeight: "1.2" }}>
                       {selectedDataset.data.length}
                     </Text>
-                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500" }}>
+                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500", fontSize: "10px" }}>
                       Total
                     </Text>
                   </Flex>
                   
                   <Box
                     style={{
-                      width: "2px",
-                      height: "32px",
+                      width: "1px",
+                      height: "24px",
                       background: theme.colors.border.secondary,
                       borderRadius: "1px",
                     }}
                   />
                   
-                  <Flex direction="column" align="center" gap={theme.spacing.semantic.component.xs}>
-                    <Text size="3" style={{ color: theme.colors.interactive.primary, fontWeight: "700" }}>
+                  <Flex direction="column" align="center">
+                    <Text size="2" style={{ color: theme.colors.interactive.primary, fontWeight: "700", lineHeight: "1.2" }}>
                       {getProgressPercentage()}%
                     </Text>
                     <Box
                       style={{
-                        width: "60px",
+                        width: "50px",
                         height: "4px",
                         background: theme.colors.background.secondary,
                         borderRadius: "2px",
@@ -404,8 +426,8 @@ export function Annotator() {
       <Box style={{ 
         maxWidth: "1600px", 
         margin: "0 auto", 
-        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.lg}`,
-        height: "calc(100vh - 80px)",
+        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+        height: "calc(100vh - 70px)",
         overflow: "hidden"
       }}>
         <Flex direction="column" gap={theme.spacing.semantic.component.xs} style={{ height: "100%" }}>
@@ -871,6 +893,15 @@ export function Annotator() {
           )}
         </Flex>
       </Box>
+
+      <style>
+        {`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        `}
+      </style>
     </Box>
   );
 }
