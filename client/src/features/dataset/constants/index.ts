@@ -58,4 +58,12 @@ export const SORT_OPTIONS = [
   { value: "oldest", label: "Oldest First" },
   { value: "name", label: "Name" },
   { value: "size", label: "Size" },
-]; 
+];
+
+// Re-export upload constants
+export {
+  DEFAULT_DATASET_METADATA,
+  DEFAULT_UPLOAD_PROGRESS,
+  UPLOAD_CONFIG,
+  UPLOAD_MESSAGES,
+} from './upload'; 
