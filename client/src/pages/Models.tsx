@@ -11,7 +11,7 @@ import {
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/widgets/layout/AppLayout";
 import { 
-  Robot, 
+  Brain, 
   UploadSimple, 
   MagnifyingGlass,
   Circle,
@@ -138,7 +138,7 @@ export function Models() {
               justifyContent: "center",
             }}
           >
-            <Robot size={24} style={{ color: theme.colors.status.error }} />
+            <Brain size={24} style={{ color: theme.colors.status.error }} />
           </Box>
           <Box style={{ textAlign: "center" }}>
             <Text
@@ -253,7 +253,7 @@ export function Models() {
   // Sidebar configuration
   const sidebarConfig = {
     section: {
-      icon: <Robot size={16} style={{ color: theme.colors.text.inverse }} />,
+      icon: <Brain size={16} style={{ color: theme.colors.text.inverse }} />,
       title: "AI Model Registry",
       actionButton: {
         text: "Deploy Model",
@@ -310,7 +310,7 @@ export function Models() {
               justifyContent: "center",
             }}
           >
-            <Robot size={28} style={{ color: theme.colors.text.tertiary }} />
+            <Brain size={28} style={{ color: theme.colors.text.tertiary }} />
           </Box>
           <Box style={{ textAlign: "center", maxWidth: "320px" }}>
             <Text

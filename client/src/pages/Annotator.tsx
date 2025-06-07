@@ -102,7 +102,7 @@ export function Annotator() {
     return selectedDataset.data[currentImageIndex];
   };
 
-  const handleDatasetSelect = (dataset: DatasetObject) => {
+  const handleDatasetSelect = (dataset: DatasetObject | null) => {
     setSelectedDataset(dataset);
     setCurrentImageIndex(0);
   };
@@ -325,7 +325,7 @@ export function Annotator() {
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    Dataset Annotator
+                    Annotator
                   </Text>
                 </Box>
               </Flex>

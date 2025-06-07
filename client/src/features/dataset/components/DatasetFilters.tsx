@@ -1,12 +1,11 @@
 import React from "react";
-import { Box, Flex, Text, Button, Select, Badge } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Button, Badge, Dropdown, DropdownOption } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { 
   MagnifyingGlass, 
   X, 
   FunnelSimple,
   Tag,
-  CaretDown,
   Check
 } from "phosphor-react";
 import { DatasetFilters } from "../types";
@@ -120,70 +119,20 @@ export const DatasetFiltersComponent = ({
         >
           Data Type
         </Text>
-        <Select.Root
+        <Dropdown
+          options={TYPE_FILTERS.map(type => ({
+            value: type.value,
+            label: type.label,
+            icon: <span style={{ fontSize: "14px" }}>{type.icon}</span>,
+          }))}
           value={filters.selectedType}
-          onValueChange={value => onUpdateFilter("selectedType", value)}
-        >
-          <Select.Trigger
-            style={{
-              width: "100%",
-              background: theme.colors.background.primary,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.sm,
-              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.sm}`,
-              color: theme.colors.text.primary,
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>
-              {TYPE_FILTERS.find(type => type.value === filters.selectedType)?.label || "All Types"}
-            </span>
-            <CaretDown size={12} style={{ color: theme.colors.text.tertiary }} />
-          </Select.Trigger>
-          <Select.Content
-            position="popper"
-            style={{
-              background: theme.colors.background.card,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.sm,
-              boxShadow: theme.shadows.semantic.overlay.dropdown,
-              padding: theme.spacing.semantic.component.xs,
-              minWidth: "200px",
-            }}
-          >
-            <Select.Group>
-              {TYPE_FILTERS.map(type => (
-                <Select.Item
-                  key={type.value}
-                  value={type.value}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.semantic.component.xs,
-                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                    borderRadius: theme.borders.radius.sm,
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    color: theme.colors.text.primary,
-                    margin: "1px 0",
-                  }}
-                >
-                  <span style={{ fontSize: "14px" }}>{type.icon}</span>
-                  <span>{type.label}</span>
-                  {filters.selectedType === type.value && (
-                    <Check size={12} style={{ color: theme.colors.interactive.primary, marginLeft: "auto" }} />
-                  )}
-                </Select.Item>
-              ))}
-            </Select.Group>
-          </Select.Content>
-        </Select.Root>
+          onValueChange={(value: string) => onUpdateFilter("selectedType", value)}
+          placeholder="All Types"
+          size="md"
+          variant="default"
+          fullWidth
+          clearable={filters.selectedType !== "all"}
+        />
       </Box>
 
       {/* Separator */}

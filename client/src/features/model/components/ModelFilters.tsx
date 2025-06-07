@@ -1,13 +1,11 @@
 import React from "react";
-import { Box, Flex, Text, Button, Select, Badge } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Button, Badge, Dropdown, DropdownOption } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { 
   MagnifyingGlass, 
   X, 
   FunnelSimple,
   Tag,
-  CaretDown,
-  Check,
   Robot,
   Brain,
   Eye,
@@ -136,73 +134,20 @@ export const ModelFiltersComponent = ({
         >
           Task Type
         </Text>
-        <Select.Root
+        <Dropdown
+          options={TASK_FILTERS.map(task => ({
+            value: task.value,
+            label: task.label,
+            icon: task.icon,
+          }))}
           value={filters.selectedTask}
-          onValueChange={value => onUpdateFilter("selectedTask", value)}
-        >
-          <Select.Trigger
-            style={{
-              width: "100%",
-              background: theme.colors.background.primary,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.sm,
-              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.sm}`,
-              color: theme.colors.text.primary,
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Flex align="center" gap="2">
-              {TASK_FILTERS.find(task => task.value === filters.selectedTask)?.icon}
-              <span>
-                {TASK_FILTERS.find(task => task.value === filters.selectedTask)?.label || "All Tasks"}
-              </span>
-            </Flex>
-            <CaretDown size={12} style={{ color: theme.colors.text.tertiary }} />
-          </Select.Trigger>
-          <Select.Content
-            position="popper"
-            style={{
-              background: theme.colors.background.card,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.sm,
-              boxShadow: theme.shadows.semantic.overlay.dropdown,
-              padding: theme.spacing.semantic.component.xs,
-              minWidth: "200px",
-            }}
-          >
-            <Select.Group>
-              {TASK_FILTERS.map(task => (
-                <Select.Item
-                  key={task.value}
-                  value={task.value}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.semantic.component.xs,
-                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                    borderRadius: theme.borders.radius.sm,
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    color: theme.colors.text.primary,
-                    margin: "1px 0",
-                  }}
-                >
-                  {task.icon}
-                  <span>{task.label}</span>
-                  {filters.selectedTask === task.value && (
-                    <Check size={12} style={{ color: theme.colors.interactive.primary, marginLeft: "auto" }} />
-                  )}
-                </Select.Item>
-              ))}
-            </Select.Group>
-          </Select.Content>
-        </Select.Root>
+          onValueChange={(value: string) => onUpdateFilter("selectedTask", value)}
+          placeholder="All Tasks"
+          size="md"
+          variant="default"
+          fullWidth
+          clearable={filters.selectedTask !== "all"}
+        />
       </Box>
 
       {/* Separator */}
@@ -227,69 +172,18 @@ export const ModelFiltersComponent = ({
         >
           Sort By
         </Text>
-        <Select.Root
+        <Dropdown
+          options={SORT_OPTIONS.map(sort => ({
+            value: sort.value,
+            label: sort.label,
+          }))}
           value={filters.selectedSort}
-          onValueChange={value => onUpdateFilter("selectedSort", value)}
-        >
-          <Select.Trigger
-            style={{
-              width: "100%",
-              background: theme.colors.background.primary,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.sm,
-              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.sm}`,
-              color: theme.colors.text.primary,
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>
-              {SORT_OPTIONS.find(sort => sort.value === filters.selectedSort)?.label || "Sort"}
-            </span>
-            <CaretDown size={12} style={{ color: theme.colors.text.tertiary }} />
-          </Select.Trigger>
-          <Select.Content
-            position="popper"
-            style={{
-              background: theme.colors.background.card,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.sm,
-              boxShadow: theme.shadows.semantic.overlay.dropdown,
-              padding: theme.spacing.semantic.component.xs,
-              minWidth: "160px",
-            }}
-          >
-            <Select.Group>
-              {SORT_OPTIONS.map(sort => (
-                <Select.Item
-                  key={sort.value}
-                  value={sort.value}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.semantic.component.xs,
-                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                    borderRadius: theme.borders.radius.sm,
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    color: theme.colors.text.primary,
-                    margin: "1px 0",
-                  }}
-                >
-                  <span>{sort.label}</span>
-                  {filters.selectedSort === sort.value && (
-                    <Check size={12} style={{ color: theme.colors.interactive.primary, marginLeft: "auto" }} />
-                  )}
-                </Select.Item>
-              ))}
-            </Select.Group>
-          </Select.Content>
-        </Select.Root>
+          onValueChange={(value: string) => onUpdateFilter("selectedSort", value)}
+          placeholder="Sort by..."
+          size="md"
+          variant="default"
+          fullWidth
+        />
       </Box>
     </Box>
   );

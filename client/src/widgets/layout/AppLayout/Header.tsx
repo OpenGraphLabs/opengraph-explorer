@@ -113,7 +113,7 @@ export function Header() {
 
           {/* Compact GitHub Link */}
           <a
-            href="https://github.com/yourusername/opengraph-explorer"
+            href="https://github.com/OpenGraphLabs/opengraph-explorer"
             target="_blank"
             rel="noopener noreferrer"
             style={{
