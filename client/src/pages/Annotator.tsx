@@ -213,97 +213,199 @@ export function Annotator() {
         background: theme.colors.background.primary,
       }}
     >
-      {/* Ultra Compact Header */}
+      {/* Professional Header Bar */}
       <Box 
         style={{ 
-          background: theme.colors.background.secondary,
-          borderBottom: `1px solid ${theme.colors.border.secondary}`,
-          padding: `${theme.spacing.semantic.component.xs} 0`,
+          background: `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.secondary})`,
+          borderBottom: `1px solid ${theme.colors.border.primary}`,
+          boxShadow: `0 1px 3px ${theme.colors.background.primary}40`,
+          padding: `${theme.spacing.semantic.component.md} 0`,
         }}
       >
-        <Box style={{ maxWidth: "1600px", margin: "0 auto", padding: `0 ${theme.spacing.semantic.component.md}` }}>
+        <Box style={{ maxWidth: "1600px", margin: "0 auto", padding: `0 ${theme.spacing.semantic.component.lg}` }}>
           <Flex justify="between" align="center">
-            {/* Dataset Selector Only */}
-            <Box style={{ position: "relative" }}>
-              <select
-                value={selectedDataset?.id || ""}
-                onChange={(e) => {
-                  const dataset = datasets.find(d => d.id === e.target.value);
-                  if (dataset) handleDatasetSelect(dataset);
-                }}
-                style={{
-                  appearance: "none",
-                  background: theme.colors.background.primary,
-                  border: `1px solid ${theme.colors.border.primary}`,
-                  borderRadius: theme.borders.radius.sm,
-                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                  paddingRight: `${theme.spacing.semantic.component.md}`,
-                  color: theme.colors.text.primary,
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  minWidth: "180px",
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-              >
-                <option value="" disabled>
-                  {loading ? "Loading..." : "Select dataset..."}
-                </option>
-                {datasets.map(dataset => (
-                  <option key={dataset.id} value={dataset.id}>
-                    {dataset.name}
-                  </option>
-                ))}
-              </select>
-              <CaretDown 
-                size={10} 
-                style={{ 
-                  position: "absolute",
-                  right: theme.spacing.semantic.component.xs,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: theme.colors.text.secondary,
-                  pointerEvents: "none"
-                }} 
-              />
-            </Box>
-            
-            {/* Minimal Progress */}
-            {selectedDataset && (
-              <Flex gap={theme.spacing.semantic.component.sm} align="center">
-                <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500" }}>
-                  {annotationManager.pendingAnnotations.length}/{selectedDataset.data.length}
-                </Text>
+            {/* Left Section: Branding + Dataset Selector */}
+            <Flex align="center" gap={theme.spacing.semantic.component.lg}>
+              {/* Title Section */}
+              <Flex align="center" gap={theme.spacing.semantic.component.sm}>
                 <Box
                   style={{
-                    width: "60px",
-                    height: "4px",
-                    background: theme.colors.background.primary,
-                    borderRadius: "2px",
-                    overflow: "hidden",
+                    padding: theme.spacing.semantic.component.sm,
+                    borderRadius: theme.borders.radius.md,
+                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: `0 2px 8px ${theme.colors.interactive.primary}30`,
                   }}
                 >
-                  <Box
+                  <Tag size={18} style={{ color: theme.colors.text.inverse }} />
+                </Box>
+                <Box>
+                  <Text
+                    size="3"
                     style={{
-                      height: "100%",
-                      width: `${getProgressPercentage()}%`,
-                      background: theme.colors.interactive.primary,
-                      transition: "width 0.3s ease",
+                      fontWeight: "700",
+                      color: theme.colors.text.primary,
+                      letterSpacing: "-0.01em",
                     }}
+                  >
+                    Dataset Annotator
+                  </Text>
+                </Box>
+              </Flex>
+
+              {/* Enhanced Dataset Selector */}
+              <Box style={{ position: "relative" }}>
+                <select
+                  value={selectedDataset?.id || ""}
+                  onChange={(e) => {
+                    const dataset = datasets.find(d => d.id === e.target.value);
+                    if (dataset) handleDatasetSelect(dataset);
+                  }}
+                  style={{
+                    appearance: "none",
+                    background: `linear-gradient(135deg, ${theme.colors.background.primary}, ${theme.colors.background.card})`,
+                    border: `2px solid ${theme.colors.border.primary}`,
+                    borderRadius: theme.borders.radius.lg,
+                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                    paddingRight: `${theme.spacing.semantic.component.xl}`,
+                    color: theme.colors.text.primary,
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    minWidth: "280px",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: `0 2px 4px ${theme.colors.background.primary}30`,
+                    transition: "all 0.2s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = theme.colors.interactive.primary;
+                    e.target.style.boxShadow = `0 0 0 3px ${theme.colors.interactive.primary}20`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = theme.colors.border.primary;
+                    e.target.style.boxShadow = `0 2px 4px ${theme.colors.background.primary}30`;
+                  }}
+                >
+                  <option value="" disabled>
+                    {loading ? "Loading datasets..." : "Choose dataset to annotate..."}
+                  </option>
+                  {datasets.map(dataset => (
+                    <option key={dataset.id} value={dataset.id}>
+                      {dataset.name} • {dataset.dataCount} items • {dataset.dataType}
+                    </option>
+                  ))}
+                </select>
+                <Box
+                  style={{
+                    position: "absolute",
+                    right: theme.spacing.semantic.component.md,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: `${theme.colors.interactive.primary}15`,
+                    borderRadius: theme.borders.radius.sm,
+                    padding: "4px",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <CaretDown 
+                    size={12} 
+                    style={{ 
+                      color: theme.colors.interactive.primary,
+                    }} 
                   />
                 </Box>
+              </Box>
+            </Flex>
+            
+            {/* Right Section: Progress Dashboard */}
+            {selectedDataset && (
+              <Flex align="center" gap={theme.spacing.semantic.component.lg}>
+                <Flex 
+                  align="center" 
+                  gap={theme.spacing.semantic.component.md}
+                  style={{
+                    background: theme.colors.background.primary,
+                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                    borderRadius: theme.borders.radius.lg,
+                    border: `1px solid ${theme.colors.border.primary}`,
+                    boxShadow: `0 2px 4px ${theme.colors.background.primary}30`,
+                  }}
+                >
+                  <Flex direction="column" align="center">
+                    <Text size="3" style={{ color: theme.colors.text.primary, fontWeight: "700" }}>
+                      {annotationManager.pendingAnnotations.length}
+                    </Text>
+                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500" }}>
+                      Annotated
+                    </Text>
+                  </Flex>
+                  
+                  <Box
+                    style={{
+                      width: "2px",
+                      height: "32px",
+                      background: theme.colors.border.secondary,
+                      borderRadius: "1px",
+                    }}
+                  />
+                  
+                  <Flex direction="column" align="center">
+                    <Text size="3" style={{ color: theme.colors.text.primary, fontWeight: "700" }}>
+                      {selectedDataset.data.length}
+                    </Text>
+                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500" }}>
+                      Total
+                    </Text>
+                  </Flex>
+                  
+                  <Box
+                    style={{
+                      width: "2px",
+                      height: "32px",
+                      background: theme.colors.border.secondary,
+                      borderRadius: "1px",
+                    }}
+                  />
+                  
+                  <Flex direction="column" align="center" gap={theme.spacing.semantic.component.xs}>
+                    <Text size="3" style={{ color: theme.colors.interactive.primary, fontWeight: "700" }}>
+                      {getProgressPercentage()}%
+                    </Text>
+                    <Box
+                      style={{
+                        width: "60px",
+                        height: "4px",
+                        background: theme.colors.background.secondary,
+                        borderRadius: "2px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Box
+                        style={{
+                          height: "100%",
+                          width: `${getProgressPercentage()}%`,
+                          background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.status.success})`,
+                          transition: "width 0.3s ease",
+                          borderRadius: "2px",
+                        }}
+                      />
+                    </Box>
+                  </Flex>
+                </Flex>
               </Flex>
             )}
           </Flex>
         </Box>
       </Box>
 
-      {/* Main Content - Full Screen */}
+      {/* Main Content */}
       <Box style={{ 
         maxWidth: "1600px", 
         margin: "0 auto", 
-        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-        height: "calc(100vh - 50px)",
+        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.lg}`,
+        height: "calc(100vh - 80px)",
         overflow: "hidden"
       }}>
         <Flex direction="column" gap={theme.spacing.semantic.component.xs} style={{ height: "100%" }}>
@@ -312,103 +414,154 @@ export function Annotator() {
             <Flex gap={theme.spacing.semantic.component.md} style={{ height: "100%" }}>
               {/* Main Content Area */}
               <Box style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                {/* Image Section */}
-                <Card
+                {/* Image Canvas */}
+                <Box
                   style={{
-                    padding: 0,
                     background: theme.colors.background.card,
                     border: `1px solid ${theme.colors.border.primary}`,
                     borderRadius: theme.borders.radius.lg,
                     overflow: "hidden",
                     flex: 1,
-                    position: "relative",
                     display: "flex",
                     flexDirection: "column",
+                    minHeight: 0,
                   }}
                 >
-                  {/* Image Viewer - Maximum Space */}
+                  {/* Full-Width Image Viewer */}
                   <Box style={{ 
-                    padding: theme.spacing.semantic.component.xs,
                     flex: 1,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     minHeight: 0,
-                    position: "relative"
+                    width: "100%",
+                    height: "100%",
                   }}>
-                    <ImageViewer
-                      dataset={selectedDataset}
-                      currentImageIndex={currentImageIndex}
-                      blobLoading={blobManager.blobLoading}
-                      imageUrls={blobManager.imageUrls}
-                      imageLoading={blobManager.imageLoading}
-                      onImageLoadingChange={blobManager.setImageLoading}
-                      getImageUrl={blobManager.getImageUrl}
-                      onNavigate={handleNavigation}
-                    />
-
-                    {/* Minimal Navigation Overlay */}
                     <Box
                       style={{
-                        position: "absolute",
-                        top: theme.spacing.semantic.component.xs,
-                        right: theme.spacing.semantic.component.xs,
+                        width: "100%",
+                        height: "100%",
                         display: "flex",
                         alignItems: "center",
-                        gap: "2px",
-                        background: `${theme.colors.background.card}90`,
-                        padding: `${theme.spacing.semantic.component.xs}`,
-                        borderRadius: theme.borders.radius.sm,
-                        backdropFilter: "blur(4px)",
+                        justifyContent: "center",
+                        background: `${theme.colors.background.secondary}50`,
                       }}
+                    >
+                      <ImageViewer
+                        dataset={selectedDataset}
+                        currentImageIndex={currentImageIndex}
+                        blobLoading={blobManager.blobLoading}
+                        imageUrls={blobManager.imageUrls}
+                        imageLoading={blobManager.imageLoading}
+                        onImageLoadingChange={blobManager.setImageLoading}
+                        getImageUrl={blobManager.getImageUrl}
+                        onNavigate={handleNavigation}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* Bottom Navigation Bar */}
+                  <Box
+                    style={{
+                      padding: theme.spacing.semantic.component.sm,
+                      background: `linear-gradient(135deg, ${theme.colors.background.secondary}, ${theme.colors.background.card})`,
+                      borderTop: `1px solid ${theme.colors.border.primary}`,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Flex
+                      align="center"
+                      justify="center"
+                      gap={theme.spacing.semantic.component.sm}
                     >
                       <button
                         onClick={() => handleNavigation("prev")}
                         disabled={currentImageIndex === 0}
                         style={{
-                          padding: "4px",
-                          background: currentImageIndex === 0 ? "transparent" : theme.colors.interactive.primary,
-                          border: "none",
-                          borderRadius: "3px",
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          background: currentImageIndex === 0 
+                            ? theme.colors.background.secondary
+                            : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                          border: `1px solid ${currentImageIndex === 0 ? theme.colors.border.secondary : 'transparent'}`,
                           cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
-                          opacity: currentImageIndex === 0 ? 0.3 : 1,
+                          justifyContent: "center",
+                          opacity: currentImageIndex === 0 ? 0.5 : 1,
+                          transition: "all 0.2s ease",
+                          boxShadow: currentImageIndex === 0 ? "none" : `0 2px 8px ${theme.colors.interactive.primary}30`,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (currentImageIndex > 0) {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "scale(1)";
                         }}
                       >
-                        <ArrowLeft size={12} style={{ 
+                        <ArrowLeft size={16} style={{ 
                           color: currentImageIndex === 0 ? theme.colors.text.muted : theme.colors.text.inverse 
                         }} />
                       </button>
-                      <Text size="1" style={{ 
-                        fontWeight: "500", 
-                        color: theme.colors.text.primary,
-                        fontSize: "10px",
-                        padding: "0 4px"
-                      }}>
-                        {currentImageIndex + 1}/{selectedDataset.data.length}
-                      </Text>
+                      
+                      <Box
+                        style={{
+                          background: theme.colors.background.primary,
+                          border: `1px solid ${theme.colors.border.primary}`,
+                          borderRadius: theme.borders.radius.lg,
+                          padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                          minWidth: "100px",
+                          textAlign: "center",
+                          boxShadow: `inset 0 1px 2px ${theme.colors.background.primary}40`,
+                        }}
+                      >
+                        <Text size="3" style={{ 
+                          fontWeight: "700", 
+                          color: theme.colors.text.primary,
+                          fontFamily: "monospace",
+                        }}>
+                          {currentImageIndex + 1}/{selectedDataset.data.length}
+                        </Text>
+                      </Box>
+                      
                       <button
                         onClick={() => handleNavigation("next")}
                         disabled={currentImageIndex === selectedDataset.data.length - 1}
                         style={{
-                          padding: "4px",
-                          background: currentImageIndex === selectedDataset.data.length - 1 ? "transparent" : theme.colors.interactive.primary,
-                          border: "none",
-                          borderRadius: "3px",
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          background: currentImageIndex === selectedDataset.data.length - 1 
+                            ? theme.colors.background.secondary
+                            : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                          border: `1px solid ${currentImageIndex === selectedDataset.data.length - 1 ? theme.colors.border.secondary : 'transparent'}`,
                           cursor: currentImageIndex === selectedDataset.data.length - 1 ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
-                          opacity: currentImageIndex === selectedDataset.data.length - 1 ? 0.3 : 1,
+                          justifyContent: "center",
+                          opacity: currentImageIndex === selectedDataset.data.length - 1 ? 0.5 : 1,
+                          transition: "all 0.2s ease",
+                          boxShadow: currentImageIndex === selectedDataset.data.length - 1 ? "none" : `0 2px 8px ${theme.colors.interactive.primary}30`,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (currentImageIndex < selectedDataset.data.length - 1) {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "scale(1)";
                         }}
                       >
-                        <ArrowRight size={12} style={{ 
+                        <ArrowRight size={16} style={{ 
                           color: currentImageIndex === selectedDataset.data.length - 1 ? theme.colors.text.muted : theme.colors.text.inverse 
                         }} />
                       </button>
-                    </Box>
+                    </Flex>
                   </Box>
-                </Card>
+                </Box>
 
                 {/* Minimal Annotation Input */}
                 <Box
@@ -702,6 +855,7 @@ export function Annotator() {
                   >
                     Select a Dataset to Start
                   </Text>
+                  <br />
                   <Text
                     size="3"
                     style={{

@@ -100,15 +100,6 @@ export function Datasets() {
             >
               Loading Datasets
             </Text>
-            <Text
-              size="2"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: 1.5,
-              }}
-            >
-              Fetching from blockchain...
-            </Text>
           </Box>
         </Flex>
       </Box>
