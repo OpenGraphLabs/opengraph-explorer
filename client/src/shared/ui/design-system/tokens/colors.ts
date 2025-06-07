@@ -1,37 +1,55 @@
-// Color Design Tokens - OpenGraph Explorer Brand Colors
+// Color Design Tokens - Sophisticated Muted Palette
+// Inspired by: Linear, Notion, GitHub Dark, VS Code
+// Focus: Calm, Technical, High Information Density, Low Eye Strain
+
 export const brandColors = {
-  // Primary brand colors (Orange-based)
+  // Primary brand colors (Muted, sophisticated blue)
   primary: {
-    50: "#FFF7ED",
-    100: "#FFEDD5",
-    200: "#FED7AA",
-    300: "#FDBA74",
-    400: "#FB923C",
-    500: "#F97316", // Main brand color
-    600: "#EA580C",
-    700: "#C2410C",
-    800: "#9A3412",
-    900: "#7C2D12",
-    950: "#431407",
+    50: "#F1F5F9",
+    100: "#E2E8F0", 
+    200: "#CBD5E1",
+    300: "#94A3B8",
+    400: "#64748B",
+    500: "#475569", // Main brand color - Muted slate blue
+    600: "#334155",
+    700: "#1E293B",
+    800: "#0F172A",
+    900: "#020617",
+    950: "#010409",
   },
 
-  // Secondary colors (Complementary blue)
+  // Secondary colors (Muted teal/cyan for technical accent)
   secondary: {
-    50: "#EFF6FF",
-    100: "#DBEAFE",
-    200: "#BFDBFE",
-    300: "#93C5FD",
-    400: "#60A5FA",
-    500: "#3B82F6",
-    600: "#2563EB",
-    700: "#1D4ED8",
-    800: "#1E40AF",
-    900: "#1E3A8A",
-    950: "#172554",
+    50: "#ECFEFF",
+    100: "#CFFAFE",
+    200: "#A5F3FC", 
+    300: "#67E8F9",
+    400: "#22D3EE",
+    500: "#0891B2", // Muted cyan accent
+    600: "#0E7490",
+    700: "#155E75", 
+    800: "#164E63",
+    900: "#0C3544",
+    950: "#042028",
+  },
+
+  // Accent colors (Very subtle purple for special highlights)
+  accent: {
+    50: "#FAF5FF",
+    100: "#F3E8FF",
+    200: "#E9D5FF",
+    300: "#D8B4FE",
+    400: "#C084FC",
+    500: "#8B5CF6", // Muted purple
+    600: "#7C3AED",
+    700: "#6D28D9",
+    800: "#5B21B6",
+    900: "#4C1D95",
+    950: "#2E1065",
   },
 } as const;
 
-// Semantic colors
+// Professional semantic colors (more muted)
 export const semanticColors = {
   success: {
     50: "#F0FDF4",
@@ -39,12 +57,12 @@ export const semanticColors = {
     200: "#BBF7D0",
     300: "#86EFAC",
     400: "#4ADE80",
-    500: "#22C55E",
-    600: "#16A34A",
-    700: "#15803D",
-    800: "#166534",
-    900: "#14532D",
-    950: "#052E16",
+    500: "#059669", // Darker, more muted green
+    600: "#047857",
+    700: "#065F46",
+    800: "#064E3B",
+    900: "#022C22",
+    950: "#001F14",
   },
 
   warning: {
@@ -53,12 +71,12 @@ export const semanticColors = {
     200: "#FDE68A",
     300: "#FCD34D",
     400: "#FBBF24",
-    500: "#F59E0B",
-    600: "#D97706",
-    700: "#B45309",
-    800: "#92400E",
-    900: "#78350F",
-    950: "#451A03",
+    500: "#D97706", // More muted amber
+    600: "#B45309",
+    700: "#92400E",
+    800: "#78350F",
+    900: "#451A03",
+    950: "#2D0E02",
   },
 
   error: {
@@ -67,127 +85,135 @@ export const semanticColors = {
     200: "#FECACA",
     300: "#FCA5A5",
     400: "#F87171",
-    500: "#EF4444",
-    600: "#DC2626",
-    700: "#B91C1C",
-    800: "#991B1B",
-    900: "#7F1D1D",
-    950: "#450A0A",
+    500: "#DC2626", // More muted red
+    600: "#B91C1C",
+    700: "#991B1B",
+    800: "#7F1D1D",
+    900: "#450A0A",
+    950: "#2D0505",
   },
 
   info: {
-    50: "#EFF6FF",
-    100: "#DBEAFE",
-    200: "#BFDBFE",
-    300: "#93C5FD",
-    400: "#60A5FA",
-    500: "#3B82F6",
-    600: "#2563EB",
-    700: "#1D4ED8",
-    800: "#1E40AF",
-    900: "#1E3A8A",
-    950: "#172554",
+    50: "#F1F5F9",
+    100: "#E2E8F0",
+    200: "#CBD5E1",
+    300: "#94A3B8",
+    400: "#64748B",
+    500: "#475569", // Same as primary for consistency
+    600: "#334155",
+    700: "#1E293B",
+    800: "#0F172A",
+    900: "#020617",
+    950: "#010409",
   },
 } as const;
 
-// Neutral colors (Gray scale)
+// Sophisticated neutral colors (darker, more contrast)
 export const neutralColors = {
-  50: "#F9FAFB",
-  100: "#F3F4F6",
-  200: "#E5E7EB",
-  300: "#D1D5DB",
-  400: "#9CA3AF",
-  500: "#6B7280",
-  600: "#4B5563",
-  700: "#374151",
-  800: "#1F2937",
-  900: "#111827",
-  950: "#030712",
+  50: "#FAFAFA",   // Almost white
+  100: "#F4F4F5",  // Very light gray
+  200: "#E4E4E7",  // Light gray
+  300: "#D4D4D8",  // Medium light gray
+  400: "#A1A1AA",  // Medium gray
+  500: "#71717A",  // Gray
+  600: "#52525B",  // Dark gray
+  700: "#3F3F46",  // Darker gray
+  800: "#27272A",  // Very dark gray - main dark bg
+  900: "#18181B",  // Almost black
+  950: "#09090B",  // Ultra dark
 } as const;
 
-// Data type specific colors for ML/AI context
+// AI/ML specific data type colors (muted and technical)
 export const dataTypeColors = {
   text: brandColors.primary[500],
-  image: semanticColors.info[500],
-  audio: "#8B5CF6", // Purple
-  video: "#EC4899", // Pink
-  tabular: semanticColors.success[500],
-  structured: brandColors.secondary[500],
-  time_series: "#10B981", // Emerald
-  graph: "#F59E0B", // Amber
+  image: brandColors.secondary[600], 
+  audio: brandColors.accent[600],
+  video: "#7C2D92", // Muted purple
+  tabular: semanticColors.success[600],
+  structured: brandColors.primary[600],
+  time_series: "#047857", // Muted emerald
+  graph: "#0E7490", // Muted cyan
 } as const;
 
-// Light theme color scheme
+// Professional light theme (more muted)
 export const lightThemeColors = {
   background: {
-    primary: "#FFFFFF",
-    secondary: neutralColors[50],
-    tertiary: neutralColors[100],
+    primary: neutralColors[50],      // Off-white instead of pure white
+    secondary: neutralColors[100],
+    tertiary: neutralColors[200],
     card: "#FFFFFF",
-    overlay: "rgba(0, 0, 0, 0.5)",
+    overlay: "rgba(9, 9, 11, 0.5)",  // Dark overlay
     accent: brandColors.primary[50],
+    code: neutralColors[100],
   },
 
   text: {
     primary: neutralColors[900],
-    secondary: neutralColors[600],
+    secondary: neutralColors[600],    // More muted secondary text
     tertiary: neutralColors[500],
-    inverse: "#FFFFFF",
-    brand: brandColors.primary[600],
+    inverse: neutralColors[50],
+    brand: brandColors.primary[600],  // Darker brand text
     muted: neutralColors[400],
+    code: neutralColors[800],
   },
 
   border: {
     primary: neutralColors[200],
     secondary: neutralColors[100],
-    brand: brandColors.primary[200],
+    brand: brandColors.primary[300],  // More subtle brand border
     focus: brandColors.primary[500],
+    subtle: neutralColors[100],
   },
 
   interactive: {
-    primary: brandColors.primary[500],
-    primaryHover: brandColors.primary[600],
-    primaryActive: brandColors.primary[700],
+    primary: brandColors.primary[600],      // Darker primary
+    primaryHover: brandColors.primary[700], 
+    primaryActive: brandColors.primary[800],
     secondary: neutralColors[100],
     secondaryHover: neutralColors[200],
     disabled: neutralColors[300],
+    accent: brandColors.secondary[600],     // Darker accent
+    accentHover: brandColors.secondary[700],
   },
 
   status: {
-    success: semanticColors.success[500],
-    warning: semanticColors.warning[500],
-    error: semanticColors.error[500],
-    info: semanticColors.info[500],
+    success: semanticColors.success[600],   // Darker status colors
+    warning: semanticColors.warning[600],
+    error: semanticColors.error[600],
+    info: semanticColors.info[600],
   },
 
   dataType: dataTypeColors,
 } as const;
 
-// Dark theme color scheme
+// Professional dark theme (primary focus - very dark and muted)
 export const darkThemeColors = {
   background: {
-    primary: neutralColors[900],
+    primary: neutralColors[900],     // Very dark background
     secondary: neutralColors[800],
     tertiary: neutralColors[700],
-    card: neutralColors[800],
+    card: "#1C1C1E", // Slightly lighter than bg
     overlay: "rgba(0, 0, 0, 0.8)",
     accent: brandColors.primary[950],
+    code: neutralColors[800],
   },
 
   text: {
-    primary: neutralColors[50],
-    secondary: neutralColors[300],
-    tertiary: neutralColors[400],
+    primary: neutralColors[100],     // Softer than pure white
+    secondary: neutralColors[400],   // More muted secondary text
+    tertiary: neutralColors[500],
     inverse: neutralColors[900],
-    brand: brandColors.primary[400],
+    brand: brandColors.primary[400], // Muted brand color
     muted: neutralColors[500],
+    code: neutralColors[200],
   },
 
   border: {
-    primary: neutralColors[700],
+    primary: neutralColors[700],     // Very subtle borders
     secondary: neutralColors[800],
     brand: brandColors.primary[700],
     focus: brandColors.primary[500],
+    subtle: neutralColors[800],
   },
 
   interactive: {
@@ -197,51 +223,55 @@ export const darkThemeColors = {
     secondary: neutralColors[700],
     secondaryHover: neutralColors[600],
     disabled: neutralColors[600],
+    accent: brandColors.secondary[500],
+    accentHover: brandColors.secondary[400],
   },
 
   status: {
-    success: semanticColors.success[400],
-    warning: semanticColors.warning[400],
-    error: semanticColors.error[400],
-    info: semanticColors.info[400],
+    success: semanticColors.success[500],
+    warning: semanticColors.warning[500],
+    error: semanticColors.error[500],
+    info: semanticColors.info[500],
   },
 
   dataType: {
     text: brandColors.primary[400],
-    image: semanticColors.info[400],
-    audio: "#A78BFA", // Purple light
-    video: "#F472B6", // Pink light
+    image: brandColors.secondary[400],
+    audio: brandColors.accent[400],
+    video: "#A78BFA", // Muted purple
     tabular: semanticColors.success[400],
-    structured: brandColors.secondary[400],
-    time_series: "#34D399", // Emerald light
-    graph: "#FBBF24", // Amber light
+    structured: brandColors.primary[500],
+    time_series: "#34D399", // Muted emerald
+    graph: "#22D3EE", // Muted cyan
   },
 } as const;
 
-// Gradients
+// Sophisticated gradients (much more subtle)
 export const gradients = {
-  primary: `linear-gradient(135deg, ${brandColors.primary[500]} 0%, ${brandColors.primary[600]} 100%)`,
-  primaryLight: `linear-gradient(135deg, ${brandColors.primary[100]} 0%, ${brandColors.primary[200]} 100%)`,
-  secondary: `linear-gradient(135deg, ${brandColors.secondary[500]} 0%, ${brandColors.secondary[600]} 100%)`,
-  warm: `linear-gradient(135deg, ${brandColors.primary[400]} 0%, ${semanticColors.warning[400]} 100%)`,
-  cool: `linear-gradient(135deg, ${brandColors.secondary[400]} 0%, ${semanticColors.info[500]} 100%)`,
-  success: `linear-gradient(135deg, ${semanticColors.success[400]} 0%, ${semanticColors.success[500]} 100%)`,
-} as const;
-
-// Color utilities
-export const colorUtilities = {
-  withOpacity: (color: string, opacity: number) => {
-    // Handle hex colors
-    if (color.startsWith("#")) {
-      const hex = color.replace("#", "");
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-    }
-    // Return as-is for other formats (rgb, hsl, etc.)
-    return color;
-  },
-
-  getCSSVariable: (tokenPath: string) => `var(--og-${tokenPath.replace(".", "-")})`,
+  // Very subtle primary gradient
+  primary: "linear-gradient(135deg, #475569 0%, #334155 100%)",
+  
+  // Subtle secondary tech gradient
+  secondary: "linear-gradient(135deg, #0891B2 0%, #0E7490 100%)",
+  
+  // Muted accent gradient
+  accent: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)",
+  
+  // Professional cool gradient (very subtle)
+  cool: "linear-gradient(135deg, #3F3F46 0%, #27272A 100%)",
+  
+  // Warm muted gradient
+  warm: "linear-gradient(135deg, #52525B 0%, #3F3F46 100%)",
+  
+  // Subtle success gradient
+  success: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+  
+  // Very subtle glass effects
+  glass: "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
+  
+  // Dark glass effect (more prominent)
+  darkGlass: "linear-gradient(135deg, rgba(9, 9, 11, 0.6) 0%, rgba(39, 39, 42, 0.4) 100%)",
+  
+  // Almost invisible surface gradient
+  surface: "linear-gradient(135deg, rgba(244, 244, 245, 0.8) 0%, rgba(228, 228, 231, 0.6) 100%)",
 } as const;

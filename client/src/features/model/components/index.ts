@@ -1,5 +1,6 @@
 export { ModelCard } from "./ModelCard.tsx";
 export { ModelSearchFilters } from "./ModelSearchFilters.tsx";
+export { ModelFiltersComponent } from "./ModelFilters.tsx";
 export { ModelList } from "./ModelList.tsx";
 export { ModelDetailHeader } from "./ModelDetailHeader.tsx";
 export { DatasetCard } from "./DatasetCard";

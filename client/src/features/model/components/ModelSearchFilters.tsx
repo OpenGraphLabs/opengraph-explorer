@@ -1,9 +1,9 @@
 import React from "react";
 import { Flex, Box, Select, Badge } from "@radix-ui/themes";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { MagnifyingGlassIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import { useTheme } from "@/shared/ui/design-system";
 import { ModelFilters, TaskFilter } from "../types";
 import { TASK_COLORS, TASK_NAMES, TASK_TYPES } from "@/shared/constants/suiConfig.ts";
-import styles from "@/styles/Card.module.css";
 
 interface ModelSearchFiltersProps {
   filters: ModelFilters;
@@ -14,25 +14,13 @@ interface ModelSearchFiltersProps {
 }
 
 const taskFilters: TaskFilter[] = [
-  { value: "all", label: "All Tasks", icon: "🔍 " },
-  { value: TASK_TYPES.TEXT_GENERATION, label: TASK_NAMES[TASK_TYPES.TEXT_GENERATION], icon: "📝 " },
-  {
-    value: TASK_TYPES.TEXT_CLASSIFICATION,
-    label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION],
-    icon: "🏷️ ",
-  },
-  {
-    value: TASK_TYPES.IMAGE_CLASSIFICATION,
-    label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION],
-    icon: "🖼️ ",
-  },
-  {
-    value: TASK_TYPES.OBJECT_DETECTION,
-    label: TASK_NAMES[TASK_TYPES.OBJECT_DETECTION],
-    icon: "🎯 ",
-  },
-  { value: TASK_TYPES.TEXT_TO_IMAGE, label: TASK_NAMES[TASK_TYPES.TEXT_TO_IMAGE], icon: "🎨 " },
-  { value: TASK_TYPES.TRANSLATION, label: TASK_NAMES[TASK_TYPES.TRANSLATION], icon: "🌐 " },
+  { value: "all", label: "All Tasks", icon: "" },
+  { value: TASK_TYPES.TEXT_GENERATION, label: TASK_NAMES[TASK_TYPES.TEXT_GENERATION], icon: "" },
+  { value: TASK_TYPES.TEXT_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION], icon: "" },
+  { value: TASK_TYPES.IMAGE_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION], icon: "" },
+  { value: TASK_TYPES.OBJECT_DETECTION, label: TASK_NAMES[TASK_TYPES.OBJECT_DETECTION], icon: "" },
+  { value: TASK_TYPES.TEXT_TO_IMAGE, label: TASK_NAMES[TASK_TYPES.TEXT_TO_IMAGE], icon: "" },
+  { value: TASK_TYPES.TRANSLATION, label: TASK_NAMES[TASK_TYPES.TRANSLATION], icon: "" },
 ];
 
 export function ModelSearchFilters({
@@ -42,158 +30,240 @@ export function ModelSearchFilters({
   onSortChange,
   resultCount,
 }: ModelSearchFiltersProps) {
+  const { theme } = useTheme();
+
   return (
-    <>
-      {/* Search and Filter Section */}
-      <Flex
-        direction={{ initial: "column", sm: "row" }}
-        gap="4"
-        mb="6"
+    <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
+      {/* Compact Single Row Layout */}
+      <Box
         style={{
-          background: "white",
-          padding: "20px",
-          borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-          border: "1px solid var(--gray-4)",
+          backgroundColor: theme.colors.background.card,
+          border: `1px solid ${theme.colors.border.primary}`,
+          borderRadius: theme.borders.radius.lg,
+          padding: `${theme.spacing.base[3]} ${theme.spacing.base[4]}`,
+          boxShadow: theme.shadows.semantic.card.low,
         }}
       >
-        <Box style={{ flex: 1 }}>
-          <div className="rt-TextFieldRoot" style={{ width: "100%" }}>
-            <div className="rt-TextFieldSlot" style={{ marginRight: "10px" }}>
-              <MagnifyingGlassIcon height="16" width="16" />
+        <Flex
+          gap={theme.spacing.base[3]}
+          align="center"
+          wrap="wrap"
+          style={{ minHeight: "32px" }}
+        >
+          {/* Search Input - Takes up more space */}
+          <Box style={{ flex: "1 1 300px", minWidth: "250px" }}>
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <MagnifyingGlassIcon
+                width="16" 
+                height="16"
+                style={{
+                  position: "absolute",
+                  left: "10px",
+                  color: theme.colors.text.tertiary,
+                  zIndex: 1,
+                }}
+              />
+              <input
+                placeholder="Search models..."
+                value={filters.searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  onSearchQueryChange(e.target.value)
+                }
+                style={{
+                  width: "100%",
+                  backgroundColor: theme.colors.background.secondary,
+                  border: `1px solid ${theme.colors.border.secondary}`,
+                  borderRadius: theme.borders.radius.md,
+                  padding: `${theme.spacing.base[2]} 10px ${theme.spacing.base[2]} 32px`,
+                  fontSize: theme.typography.bodySmall.fontSize,
+                  color: theme.colors.text.primary,
+                  outline: "none",
+                  transition: theme.animations.transitions.hover,
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = theme.colors.border.focus;
+                  e.target.style.backgroundColor = theme.colors.background.card;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = theme.colors.border.secondary;
+                  e.target.style.backgroundColor = theme.colors.background.secondary;
+                }}
+              />
             </div>
-            <input
-              className={`rt-TextFieldInput ${styles.searchField}`}
-              placeholder="Search models by name or description..."
-              value={filters.searchQuery}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                onSearchQueryChange(e.target.value)
-              }
-              style={{
-                backgroundColor: "var(--gray-1)",
-                borderRadius: "8px",
-                border: "1px solid var(--gray-4)",
-                padding: "10px 16px",
-                width: "100%",
-              }}
-            />
-          </div>
-        </Box>
+          </Box>
 
-        <Flex gap="3" align="center">
-          <Select.Root value={filters.selectedTask} onValueChange={onTaskChange}>
-            <Select.Trigger
-              placeholder="Task Type"
+          {/* Results Count */}
+          <Box style={{ flex: "0 0 auto" }}>
+            <span
               style={{
-                minWidth: "160px",
-                backgroundColor: "var(--gray-1)",
-                border: "1px solid var(--gray-4)",
-                borderRadius: "8px",
-                cursor: "pointer",
+                fontSize: theme.typography.bodySmall.fontSize,
+                color: theme.colors.text.secondary,
+                fontWeight: theme.typography.label.fontWeight,
+                whiteSpace: "nowrap",
               }}
-            />
-            <Select.Content position="popper">
-              <Select.Group>
+            >
+              {resultCount.toLocaleString()} {resultCount === 1 ? "model" : "models"}
+            </span>
+          </Box>
+
+          {/* Active Filter Badges */}
+          {filters.selectedTask !== "all" && (
+            <Badge
+              style={{
+                backgroundColor: theme.colors.background.secondary,
+                color: theme.colors.text.primary,
+                border: `1px solid ${theme.colors.border.secondary}`,
+                borderRadius: theme.borders.radius.sm,
+                padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                fontSize: theme.typography.caption.fontSize,
+                fontWeight: theme.typography.label.fontWeight,
+              }}
+            >
+              {TASK_NAMES[filters.selectedTask]}
+            </Badge>
+          )}
+          
+          {filters.searchQuery && (
+            <Badge
+              style={{
+                backgroundColor: theme.colors.interactive.primary + "20",
+                color: theme.colors.interactive.primary,
+                border: `1px solid ${theme.colors.interactive.primary}40`,
+                borderRadius: theme.borders.radius.sm,
+                padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                fontSize: theme.typography.caption.fontSize,
+                fontWeight: theme.typography.label.fontWeight,
+              }}
+            >
+              "{filters.searchQuery}"
+            </Badge>
+          )}
+
+          {/* Compact Filters */}
+          <Flex gap={theme.spacing.base[2]} align="center" style={{ flex: "0 0 auto" }}>
+            {/* Task Filter */}
+            <Select.Root value={filters.selectedTask} onValueChange={onTaskChange}>
+              <Select.Trigger
+                style={{
+                  backgroundColor: theme.colors.background.secondary,
+                  border: `1px solid ${theme.colors.border.secondary}`,
+                  borderRadius: theme.borders.radius.md,
+                  padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`,
+                  fontSize: theme.typography.bodySmall.fontSize,
+                  color: theme.colors.text.primary,
+                  cursor: "pointer",
+                  minWidth: "120px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: theme.spacing.base[2],
+                }}
+              >
+                {filters.selectedTask === "all" ? "All" : TASK_NAMES[filters.selectedTask]}
+                <ChevronDownIcon width="14" height="14" style={{ color: theme.colors.text.tertiary }} />
+              </Select.Trigger>
+              <Select.Content
+                position="popper"
+                style={{
+                  backgroundColor: theme.colors.background.card,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.md,
+                  boxShadow: theme.shadows.semantic.overlay.dropdown,
+                }}
+              >
                 {taskFilters.map(task => (
                   <Select.Item
                     key={task.value}
                     value={task.value}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      fontSize: "14px",
+                      padding: `10px 14px`,
+                      fontSize: theme.typography.bodySmall.fontSize,
                       cursor: "pointer",
+                      color: theme.colors.text.primary,
                     }}
                   >
-                    <span style={{ fontSize: "16px" }}>{task.icon}</span>
                     {task.label}
                   </Select.Item>
                 ))}
-              </Select.Group>
-            </Select.Content>
-          </Select.Root>
-        </Flex>
-      </Flex>
+              </Select.Content>
+            </Select.Root>
 
-      {/* Stats Summary */}
-      <Box mb="6">
-        <Flex
-          justify="between"
-          align="center"
-          style={{
-            padding: "16px 20px",
-            borderRadius: "12px",
-            background: "var(--gray-1)",
-            border: "1px solid var(--gray-4)",
-          }}
-        >
-          <Flex align="center" gap="2">
-            <span style={{ fontWeight: "500" }}>
-              {resultCount} {resultCount === 1 ? "model" : "models"}
-            </span>
-            {filters.selectedTask !== "all" && (
-              <Badge
-                variant="soft"
-                style={{
-                  background: TASK_COLORS[filters.selectedTask]?.bg || "var(--accent-3)",
-                  color: TASK_COLORS[filters.selectedTask]?.text || "var(--accent-11)",
-                }}
-              >
-                {TASK_NAMES[filters.selectedTask] || filters.selectedTask}
-              </Badge>
-            )}
-            {filters.searchQuery && (
-              <Badge variant="soft" color="blue">
-                "{filters.searchQuery}"
-              </Badge>
-            )}
-          </Flex>
-
-          <Flex align="center" gap="3">
+            {/* Sort Filter */}
             <Select.Root value={filters.selectedSort} onValueChange={onSortChange}>
               <Select.Trigger
                 style={{
-                  padding: "8px 12px",
-                  border: "1px solid var(--gray-5)",
-                  borderRadius: "8px",
-                  background: "white",
-                  fontSize: "13px",
+                  backgroundColor: theme.colors.background.secondary,
+                  border: `1px solid ${theme.colors.border.secondary}`,
+                  borderRadius: theme.borders.radius.md,
+                  padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`,
+                  fontSize: theme.typography.bodySmall.fontSize,
+                  color: theme.colors.text.primary,
                   cursor: "pointer",
-                  minWidth: "180px",
+                  minWidth: "90px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: theme.spacing.base[2],
                 }}
               >
-                {filters.selectedSort === "downloads" && "Most Downloads"}
-                {filters.selectedSort === "likes" && "Most Likes"}
-                {filters.selectedSort === "newest" && "Newest First"}
+                {filters.selectedSort === "newest" ? "Newest" : 
+                 filters.selectedSort === "oldest" ? "Oldest" :
+                 filters.selectedSort === "popular" ? "Popular" : "Default"}
+                <ChevronDownIcon width="14" height="14" style={{ color: theme.colors.text.tertiary }} />
               </Select.Trigger>
-              <Select.Content position="popper">
-                <Select.Group>
-                  <Select.Label
-                    style={{
-                      padding: "8px 22px",
-                      color: "var(--gray-9)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Sort by
-                  </Select.Label>
-                  <Select.Item value="downloads" style={{ padding: "8px 22px", cursor: "pointer" }}>
-                    Most Downloads
-                  </Select.Item>
-                  <Select.Item value="likes" style={{ padding: "8px 22px", cursor: "pointer" }}>
-                    Most Likes
-                  </Select.Item>
-                  <Select.Item value="newest" style={{ padding: "8px 22px", cursor: "pointer" }}>
-                    Newest First
-                  </Select.Item>
-                </Select.Group>
+              <Select.Content
+                position="popper"
+                style={{
+                  backgroundColor: theme.colors.background.card,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.md,
+                  boxShadow: theme.shadows.semantic.overlay.dropdown,
+                }}
+              >
+                <Select.Item
+                  value="newest"
+                  style={{
+                    padding: "10px 14px",
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    cursor: "pointer",
+                    color: theme.colors.text.primary,
+                  }}
+                >
+                  Newest First
+                </Select.Item>
+                <Select.Item
+                  value="oldest"
+                  style={{
+                    padding: "10px 14px",
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    cursor: "pointer",
+                    color: theme.colors.text.primary,
+                  }}
+                >
+                  Oldest First
+                </Select.Item>
+                <Select.Item
+                  value="popular"
+                  style={{
+                    padding: "10px 14px",
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    cursor: "pointer",
+                    color: theme.colors.text.primary,
+                  }}
+                >
+                  Most Popular
+                </Select.Item>
               </Select.Content>
             </Select.Root>
           </Flex>
         </Flex>
       </Box>
-    </>
+    </Box>
   );
 }
