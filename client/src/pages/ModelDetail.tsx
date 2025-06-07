@@ -15,7 +15,7 @@ import {
 import { HeartIcon, DownloadIcon, Share1Icon, ExternalLinkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { useModelById } from "@/shared/hooks/useModels";
-import { ModelOverviewTab, ModelInferenceTab } from "@/components/model";
+import { ModelOverviewTab, ModelInferenceTab } from "@/features/model";
 import { getSuiScanUrl } from "@/shared/utils/sui";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";

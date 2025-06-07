@@ -4,28 +4,24 @@ import {
   Flex,
   Heading,
   Text,
-  Card,
   Grid,
   Button,
   Select,
-  Avatar,
-  Badge,
   Spinner,
-  Separator,
-  Tooltip,
+  Badge,
 } from "@radix-ui/themes";
 import {
   MagnifyingGlassIcon,
-  StarFilledIcon,
   DownloadIcon,
-  CodeIcon,
+  StarFilledIcon,
   ChevronUpIcon,
+  CodeIcon,
 } from "@radix-ui/react-icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "@/styles/Card.module.css";
 import { useModels } from "@/shared/hooks/useModels";
+import { ModelCard } from "@/features/model";
 import {
-  SUI_ADDRESS_DISPLAY_LENGTH,
   TASK_COLORS,
   TASK_NAMES,
   TASK_TYPES,
@@ -41,6 +37,7 @@ export function Models() {
 
   // Use custom hook to fetch model data
   const { models, loading, error, refetch } = useModels();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && !error) {
@@ -401,171 +398,22 @@ export function Models() {
           }}
         >
           {filteredModels.map((model, index) => (
-            <Link
+            <div
               key={model.id}
-              to={`/models/${model.id}`}
               style={{ 
-                textDecoration: "none",
-                minWidth: "320px",
-                maxWidth: "100%",
-                display: "block",
+                animationDelay: `${index * 50}ms`,
+                opacity: isLoaded ? 1 : 0,
+                transform: isLoaded ? "translateY(0)" : "translateY(10px)",
+                transition: "opacity 0.5s ease, transform 0.5s ease",
                 height: "100%",
               }}
-              className={`${styles.modelCardLink} ${isLoaded ? styles.visible : ''}`}
             >
-              <div 
-                style={{ 
-                  animationDelay: `${index * 50}ms`,
-                  opacity: isLoaded ? 1 : 0,
-                  transform: isLoaded ? "translateY(0)" : "translateY(10px)",
-                  transition: "opacity 0.5s ease, transform 0.5s ease",
-                  height: "100%",
-                }}
-              >
-                <Card
-                  className={styles.modelCard}
-                  style={{
-                    borderRadius: "16px",
-                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-                    border: "1px solid var(--gray-4)",
-                    overflow: "hidden",
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    transition: "all 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
-                    background: "linear-gradient(180deg, white 0%, var(--gray-1) 100%)",
-                    minWidth: "320px",
-                    maxWidth: "100%",
-                    minHeight: "320px",
-                    maxHeight: "380px",
-                  }}
-                >
-                  <Flex direction="column" gap="4" style={{ height: "100%", padding: "22px" }} className={styles.modelCardContent}>
-                    <Flex direction="column" gap="3">
-                      <Flex justify="between" align="start">
-                        <Badge
-                          size="1"
-                          className={styles.taskBadge}
-                          style={{
-                            background: TASK_COLORS[model.task_type]?.bg || "var(--accent-3)",
-                            color: TASK_COLORS[model.task_type]?.text || "var(--accent-11)",
-                            padding: "4px 8px",
-                            fontWeight: 500,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            borderRadius: "6px",
-                          }}
-                        >
-                          {taskFilters.find(t => t.value === model.task_type)?.icon} {TASK_NAMES[model.task_type] || model.task_type}
-                        </Badge>
-                        
-                        {model.likes > 50 && (
-                          <Badge
-                            size="1"
-                            className={styles.popularBadge}
-                            style={{
-                              background: "rgba(255, 184, 0, 0.15)",
-                              color: "#B45309",
-                              padding: "4px 8px",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            <StarFilledIcon width="12" height="12" style={{ color: "#FFB800" }} />
-                            Popular
-                          </Badge>
-                        )}
-                      </Flex>
-                      
-                      <Heading size="4" style={{ fontWeight: 700, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
-                        {model.name}
-                      </Heading>
-                    </Flex>
-
-                    <Text
-                      size="2"
-                      style={{
-                        color: "var(--gray-11)",
-                        flex: 1,
-                        display: "-webkit-box",
-                        WebkitLineClamp: "3",
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        lineHeight: 1.6,
-                        letterSpacing: "0.01em",
-                      }}
-                    >
-                      {model.description}
-                    </Text>
-
-                    <Separator size="4" className={styles.cardSeparator} style={{ margin: "4px 0" }} />
-
-                    <Flex gap="3" wrap="wrap">
-                      {model.frameworks &&
-                        model.frameworks.map((framework: string) => (
-                          <Badge
-                            key={framework}
-                            size="1"
-                            variant="surface"
-                            radius="full"
-                            className={styles.frameworkBadge}
-                            style={{ 
-                              padding: "4px 10px",
-                              border: "1px solid var(--gray-5)",
-                              background: "white",
-                            }}
-                          >
-                            {framework}
-                          </Badge>
-                        ))}
-                    </Flex>
-
-                    <Flex justify="between" align="center" mt="2">
-                      <Flex align="center" gap="2">
-                        <Avatar
-                          size="1"
-                          src={`https://api.dicebear.com/7.x/identicon/svg?seed=${model.creator}`}
-                          fallback={model.creator.charAt(0)}
-                          radius="full"
-                          style={{ border: "1px solid var(--gray-5)" }}
-                        />
-                        <Text size="1" style={{ fontWeight: 500, color: "var(--gray-10)" }}>
-                          {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH
-                            ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..."
-                            : model.creator}
-                        </Text>
-                      </Flex>
-                      
-                      <Flex gap="3" align="center" className={styles.statsCounter}>
-                        <Flex gap="1" align="center" className={styles.statsCounter}>
-                          <StarFilledIcon width="14" height="14" style={{ color: "#FFB800" }} />
-                          <Text size="1" style={{ fontWeight: 500 }}>
-                            {model.likes}
-                          </Text>
-                        </Flex>
-                        <Flex gap="1" align="center" className={styles.statsCounter}>
-                          <DownloadIcon width="14" height="14" style={{ color: "var(--gray-9)" }} />
-                          <Text size="1" style={{ fontWeight: 500 }}>
-                            {model.downloads}
-                          </Text>
-                        </Flex>
-                        <Tooltip content="Stored on Sui blockchain" className={styles.tooltip}>
-                          <Flex align="center" gap="1">
-                            <CodeIcon width="14" height="14" style={{ color: "#1E88E5" }} />
-                            <Text size="1" style={{ fontWeight: 500, color: "#1E88E5" }}>
-                              SUI
-                            </Text>
-                          </Flex>
-                        </Tooltip>
-                      </Flex>
-                    </Flex>
-                  </Flex>
-                </Card>
-              </div>
-            </Link>
+              <ModelCard
+                model={model}
+                onClick={() => navigate(`/models/${model.id}`)}
+                onViewDetails={() => navigate(`/models/${model.id}`)}
+              />
+            </div>
           ))}
         </Grid>
       ) : (
