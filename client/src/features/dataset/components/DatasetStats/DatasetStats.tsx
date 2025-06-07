@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Flex, Text, Card, Grid } from "@radix-ui/themes";
 import { Database, ImageSquare, Tag } from "phosphor-react";
 import { formatDataSize } from "../../utils";

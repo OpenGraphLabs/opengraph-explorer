@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Flex, Text, Button, Badge, Card } from "@radix-ui/themes";
 import { CaretLeft, CaretRight } from "phosphor-react";
 

@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Flex, Text, Card, Badge, Grid } from "@radix-ui/themes";
 import { Tag } from "phosphor-react";
 import { isImageType, getDataTypeIcon, getDataTypeColor } from "../../utils";

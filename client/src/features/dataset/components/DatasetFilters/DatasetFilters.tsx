@@ -22,13 +22,13 @@ interface DatasetFiltersProps {
   onClearTags: () => void;
 }
 
-export const DatasetFiltersComponent: React.FC<DatasetFiltersProps> = ({
+export const DatasetFiltersComponent = ({
   filters,
   availableTags,
   onUpdateFilter,
   onToggleTag,
   onClearTags,
-}) => {
+}: DatasetFiltersProps) => {
   return (
     <Flex 
       direction="column"

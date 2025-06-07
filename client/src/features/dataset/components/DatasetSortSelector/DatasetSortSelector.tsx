@@ -1,4 +1,3 @@
-import React from "react";
 import { Flex, Select } from "@radix-ui/themes";
 import { 
   ChevronUpIcon, 
@@ -18,11 +17,11 @@ interface DatasetSortSelectorProps {
   options: SortOption[];
 }
 
-export const DatasetSortSelector: React.FC<DatasetSortSelectorProps> = ({
+export const DatasetSortSelector = ({
   selectedSort,
   onSortChange,
   options,
-}) => {
+}: DatasetSortSelectorProps) => {
   const getSortIcon = (sortValue: string) => {
     switch (sortValue) {
       case "newest": return <ChevronUpIcon />;

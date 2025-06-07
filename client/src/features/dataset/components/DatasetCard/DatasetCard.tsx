@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import {
   Box,
@@ -22,11 +21,11 @@ interface DatasetCardProps {
   isLoaded: boolean;
 }
 
-export const DatasetCard: React.FC<DatasetCardProps> = ({
+export const DatasetCard = ({
   dataset,
   index,
   isLoaded,
-}) => {
+}: DatasetCardProps) => {
   const dataTypeColor = getDataTypeColor(dataset.dataType);
 
   return (

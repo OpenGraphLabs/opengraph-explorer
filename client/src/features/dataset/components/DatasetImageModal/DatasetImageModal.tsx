@@ -13,7 +13,6 @@ import {
 } from "@radix-ui/themes";
 import { CheckCircle, Users } from "phosphor-react";
 import { ConfirmationStatus } from "../../types";
-import { getAnnotationColor } from "../../utils";
 
 interface BoundingBox {
   x: number;
@@ -53,7 +52,6 @@ export function DatasetImageModal({
   onConfirmSelectedAnnotations,
   onCloseModal,
   getConfirmedLabels,
-  getAnnotationColor,
 }: DatasetImageModalProps) {
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [selectedConfirmedAnnotation, setSelectedConfirmedAnnotation] = useState<string | null>(null);
@@ -465,7 +463,7 @@ export function DatasetImageModal({
                     <Flex direction="column" gap="3">
                       {selectedImageData.pendingAnnotationStats
                         .sort((a: any, b: any) => b.count - a.count)
-                        .map((stat: any, index: number) => {
+                        .map((stat: any, _: number) => {
                           const isSelected = selectedPendingLabels.has(stat.label);
                           const confirmedLabels = getConfirmedLabels();
                           const isAlreadyConfirmed = confirmedLabels.has(stat.label);
