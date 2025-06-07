@@ -1,7 +1,7 @@
 import { Box, Flex, Text, Card, Badge, Grid } from "@radix-ui/themes";
 import { Tag } from "phosphor-react";
-import { isImageType, getDataTypeIcon, getDataTypeColor } from "../../utils";
-import { ActiveTab } from "../../types";
+import { isImageType, getDataTypeIcon, getDataTypeColor } from "../utils";
+import { ActiveTab } from "../types";
 
 interface DatasetImageGalleryProps {
   items: any[];

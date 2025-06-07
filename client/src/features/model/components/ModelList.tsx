@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Grid, Flex, Text, Spinner, Box, Button } from '@radix-ui/themes';
 import { MagnifyingGlassIcon, CodeIcon } from '@radix-ui/react-icons';
 import { Link } from 'react-router-dom';
-import { Model } from '../../types';
+import { Model } from '../types';
 import { ModelCard } from '@/features/model';
 import styles from '@/styles/Card.module.css';
 

@@ -1,8 +1,8 @@
-export { DatasetFiltersComponent } from './DatasetFilters/DatasetFilters';
-export { DatasetCard } from './DatasetCard/DatasetCard';
-export { DatasetSortSelector } from './DatasetSortSelector/DatasetSortSelector';
-export { DatasetImageModal } from './DatasetImageModal/DatasetImageModal';
-export { DatasetImageGallery } from './DatasetImageGallery/DatasetImageGallery';
-export { DatasetPagination } from './DatasetPagination/DatasetPagination';
-export { DatasetHeader } from './DatasetHeader/DatasetHeader';
-export { DatasetStats } from './DatasetStats/DatasetStats'; 
+export { DatasetFiltersComponent } from './DatasetFilters.tsx';
+export { DatasetCard } from './DatasetCard.tsx';
+export { DatasetSortSelector } from './DatasetSortSelector.tsx';
+export { DatasetImageModal } from './DatasetImageModal.tsx';
+export { DatasetImageGallery } from './DatasetImageGallery.tsx';
+export { DatasetPagination } from './DatasetPagination.tsx';
+export { DatasetHeader } from './DatasetHeader.tsx';
+export { DatasetStats } from './DatasetStats.tsx';

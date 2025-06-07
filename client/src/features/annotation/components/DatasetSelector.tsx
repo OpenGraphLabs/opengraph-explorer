@@ -1,6 +1,6 @@
 import { Card, Flex, Heading, Text, Grid, Box } from '@radix-ui/themes';
 import { Database } from 'phosphor-react';
-import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
+import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
 
 interface DatasetSelectorProps {
   datasets: DatasetObject[];

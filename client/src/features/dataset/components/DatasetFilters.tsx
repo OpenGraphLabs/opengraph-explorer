@@ -11,8 +11,8 @@ import {
   MagnifyingGlassIcon,
   Cross2Icon,
 } from "@radix-ui/react-icons";
-import { DatasetFilters } from "../../types";
-import { TYPE_FILTERS } from "../../constants";
+import { DatasetFilters } from "../types";
+import { TYPE_FILTERS } from "../constants";
 
 interface DatasetFiltersProps {
   filters: DatasetFilters;

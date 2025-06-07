@@ -1,8 +1,8 @@
 import React from 'react';
 import { Flex, Box, Select, Badge } from '@radix-ui/themes';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import { ModelFilters, TaskFilter } from '../../types';
-import { TASK_COLORS, TASK_NAMES, TASK_TYPES } from '@/shared/constants/suiConfig';
+import { ModelFilters, TaskFilter } from '../types';
+import { TASK_COLORS, TASK_NAMES, TASK_TYPES } from '@/shared/constants/suiConfig.ts';
 import styles from '@/styles/Card.module.css';
 
 interface ModelSearchFiltersProps {

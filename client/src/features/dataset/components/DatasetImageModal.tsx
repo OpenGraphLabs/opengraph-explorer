@@ -12,7 +12,7 @@ import {
   Separator,
 } from "@radix-ui/themes";
 import { CheckCircle, Users } from "phosphor-react";
-import { ConfirmationStatus } from "../../types";
+import { ConfirmationStatus } from "../types";
 
 interface BoundingBox {
   x: number;

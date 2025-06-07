@@ -1,2 +1,2 @@
-export { DatasetSelector } from './DatasetSelector/DatasetSelector';
-export { ImageViewer } from './ImageViewer/ImageViewer'; 
+export { DatasetSelector } from './DatasetSelector.tsx';
+export { ImageViewer } from './ImageViewer.tsx';

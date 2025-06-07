@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Card, Flex, Box, Heading, Text, Avatar, Badge, Button, Tooltip } from '@radix-ui/themes';
 import { HeartIcon, DownloadIcon, Share1Icon, ExternalLinkIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
-import { Model } from '../../types';
-import { getSuiScanUrl } from '@/shared/utils/sui';
-import { SUI_ADDRESS_DISPLAY_LENGTH } from '@/shared/constants/suiConfig';
+import { Model } from '../types';
+import { getSuiScanUrl } from '@/shared/utils/sui.ts';
+import { SUI_ADDRESS_DISPLAY_LENGTH } from '@/shared/constants/suiConfig.ts';
 
 interface ModelDetailHeaderProps {
   model: Model;

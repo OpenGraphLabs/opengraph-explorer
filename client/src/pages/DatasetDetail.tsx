@@ -20,7 +20,7 @@ import {
   getAnnotationColor,
   DEFAULT_PAGE_SIZE,
 } from "@/features/dataset";
-import { DatasetImageModal } from "@/features/dataset/components/DatasetImageModal/DatasetImageModal";
+import { DatasetImageModal } from "@/features/dataset/components/DatasetImageModal.tsx";
 import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 
 export function DatasetDetail() {

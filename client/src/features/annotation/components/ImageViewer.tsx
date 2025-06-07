@@ -1,6 +1,6 @@
 import { Box, Flex, Text, Button } from '@radix-ui/themes';
 import { Database, Image as ImageIcon } from 'phosphor-react';
-import { ImageViewerProps } from '../../types';
+import { ImageViewerProps } from '../types';
 
 const styles = `
   @keyframes pulse {

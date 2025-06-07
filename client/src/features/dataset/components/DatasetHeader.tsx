@@ -1,9 +1,9 @@
 import { Box, Flex, Text, Heading, Badge, Button, Avatar, Tooltip } from "@radix-ui/themes";
 import { Database } from "phosphor-react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
-import { getDataTypeIcon, getDataTypeColor } from "../../utils";
-import { getSuiScanUrl, getWalruScanUrl } from "@/shared/utils/sui";
-import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
+import { getDataTypeIcon, getDataTypeColor } from "../utils";
+import { getSuiScanUrl, getWalruScanUrl } from "@/shared/utils/sui.ts";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig.ts";
 
 interface DatasetHeaderProps {
   dataset: any;

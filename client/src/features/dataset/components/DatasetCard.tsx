@@ -11,9 +11,9 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { Database } from "phosphor-react";
-import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
-import { formatDataSize, getDataTypeIcon, getDataTypeColor, truncateAddress } from "../../utils";
-import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
+import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
+import { formatDataSize, getDataTypeIcon, getDataTypeColor, truncateAddress } from "../utils";
+import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig.ts";
 
 interface DatasetCardProps {
   dataset: DatasetObject;
