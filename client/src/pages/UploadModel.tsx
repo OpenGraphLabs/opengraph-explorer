@@ -1,5 +1,5 @@
 import { Box, Flex, Text, Button, Heading, Card, Grid } from "@radix-ui/themes";
-import { ModelUploader } from "@/components/ModelUploader";
+import { ModelUploader } from "@/features/model/components/upload-steps/ModelUploader.tsx";
 import { 
   DatasetCard, 
   DatasetFilters, 

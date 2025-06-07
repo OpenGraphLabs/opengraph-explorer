@@ -1,4 +1,4 @@
-import { Box, Flex, Text, Button } from "@radix-ui/themes";
+import { Box, Flex, Button } from "@radix-ui/themes";
 import { RocketIcon, ReloadIcon } from "@radix-ui/react-icons";
 import type { ModelUploadState } from "../../types/upload";
 
@@ -14,7 +14,7 @@ export function UploadButton({
   uploadState, 
   isReadyForUpload, 
   onUpload, 
-  onRetry, 
+  onRetry,
   onClearError 
 }: UploadButtonProps) {
   return (
