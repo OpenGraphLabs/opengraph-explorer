@@ -135,7 +135,7 @@ export function ThemeProvider({ children, defaultMode = "light" }: ThemeProvider
 
     // Gradients
     setProperty("--og-gradient-primary", theme.gradients.primary);
-    setProperty("--og-gradient-primary-light", theme.gradients.primaryLight);
+    setProperty("--og-gradient-primary-light", theme.gradients.primary);
     setProperty("--og-gradient-secondary", theme.gradients.secondary);
     setProperty("--og-gradient-warm", theme.gradients.warm);
     setProperty("--og-gradient-cool", theme.gradients.cool);

@@ -16,6 +16,7 @@ import {
   calculateConfidenceScores,
 } from "@/shared/utils/modelUtils";
 import { getSuiScanUrl } from "@/shared/utils/sui";
+import { useTheme } from "@/shared/ui/design-system";
 
 // Status summary component
 interface StatusSummaryProps {
@@ -72,23 +73,25 @@ function InferenceResultTable({
   isProcessing,
   layerCount,
 }: InferenceResultTableProps) {
+  const { theme } = useTheme();
+  
   return (
     <Table.Root>
       <Table.Header>
-        <Table.Row style={{ background: "#FFF4F2" }}>
-          <Table.ColumnHeaderCell style={{ color: "#FF5733", fontWeight: 600 }}>
+        <Table.Row style={{ background: theme.colors.background.accent }}>
+          <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600 }}>
             Layer
           </Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell style={{ color: "#FF5733", fontWeight: 600 }}>
+          <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600 }}>
             Activation Function
           </Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell style={{ color: "#FF5733", fontWeight: 600 }}>
+          <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600 }}>
             Input Vector
           </Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell style={{ color: "#FF5733", fontWeight: 600 }}>
+          <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600 }}>
             Output Vector
           </Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell style={{ color: "#FF5733", fontWeight: 600 }}>
+          <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600 }}>
             Status
           </Table.ColumnHeaderCell>
         </Table.Row>
@@ -98,13 +101,13 @@ function InferenceResultTable({
           <Table.Row
             key={index}
             style={{
-              background: index % 2 === 0 ? "#FFF" : "#FAFAFA",
-              borderLeft: result.status === "error" ? "2px solid #FFCDD2" : "none",
+              background: index % 2 === 0 ? theme.colors.background.card : theme.colors.background.secondary,
+              borderLeft: result.status === "error" ? `2px solid ${theme.colors.status.error}20` : "none",
             }}
             data-layer-idx={result.layerIdx}
           >
             <Table.Cell>
-              <Badge color={result.status === "error" ? "red" : "orange"} mr="1">
+              <Badge color={result.status === "error" ? "red" : "blue"} mr="1">
                 {result.layerIdx + 1}
               </Badge>
             </Table.Cell>
@@ -213,7 +216,7 @@ function InferenceResultTable({
             data-processing="true"
           >
             <Table.Cell>
-              <Badge color="orange" mr="1">
+                                <Badge color="blue" mr="1">
                 {currentLayerIndex + 1}
               </Badge>
             </Table.Cell>
@@ -281,9 +284,11 @@ export function LayerFlowVisualization({
   totalLayers,
   inferenceTableRef,
   txDigest,
-}: LayerFlowVisualizationProps) {
-  // Prepare data for visualization
-  const generateLayerData = (layerIndex: number) => {
+  }: LayerFlowVisualizationProps) {
+    const { theme } = useTheme();
+    
+    // Prepare data for visualization
+    const generateLayerData = (layerIndex: number) => {
     const result = predictResults.find(r => r.layerIdx === layerIndex);
 
     return {

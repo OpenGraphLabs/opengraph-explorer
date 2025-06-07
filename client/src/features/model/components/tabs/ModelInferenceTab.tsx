@@ -10,6 +10,12 @@ import {
   TextT,
   ImageSquare,
   PencilSimple,
+  Lightning,
+  Brain,
+  Cpu,
+  Play,
+  Activity,
+  Gear,
 } from "phosphor-react";
 import { ModelObject } from "@/shared/api/graphql/modelGraphQLService";
 import { VectorInputTab } from "./VectorInputTab";
@@ -17,6 +23,7 @@ import { ImageInputTab } from "./ImageInputTab";
 import { DrawingInputTab } from "./DrawingInputTab";
 import { FormattedVector } from "./VectorInfoDisplay";
 import { LayerFlowVisualization } from "./LayerFlowVisualization";
+import { useTheme } from "@/shared/ui/design-system";
 
 // Constants for vector conversion
 const DEFAULT_VECTOR_SCALE = 6; // 10^6 for precision
@@ -26,6 +33,8 @@ interface ModelInferenceTabProps {
 }
 
 export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
+  const { theme } = useTheme();
+  
   // Refs for scrolling
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const inferenceTableRef = useRef<HTMLDivElement>(null);
@@ -189,349 +198,396 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               // HTMLElement로 타입 캐스팅하여 offsetTop 접근 가능하게 함
               const rowElement = activeRow as HTMLElement;
               const headerElement = tableHeader as HTMLElement;
-              tableContainer.scrollTop = rowElement.offsetTop - headerElement.clientHeight - 20;
-            } else {
-              activeRow.scrollIntoView({
+              const containerElement = tableContainer as HTMLElement;
+
+              const scrollTop =
+                rowElement.offsetTop - headerElement.offsetHeight - 20; // 20px 여백
+
+              containerElement.scrollTo({
+                top: scrollTop,
                 behavior: "smooth",
-                block: "center",
               });
             }
           }
-        } else {
-          // 처리 중인 카드가 있으면 해당 카드로 스크롤
-          const processingCard = document.querySelector('[data-status="processing"]');
-          if (processingCard) {
-            processingCard.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-              inline: "nearest",
-            });
-          }
         }
-      }, 200); // Small delay to ensure the DOM is updated
+      }, 300);
     }
-  }, [predictResults.length, currentLayerIndex, isProcessing]);
+  }, [predictResults, currentLayerIndex, isProcessing]);
 
   return (
-    <Card style={{ border: "none", boxShadow: "none" }}>
+    <Box>
       <Flex direction="column" gap="5">
+        {/* Compact Header */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
-          <Flex align="center" gap="3">
+          <Flex align="center" gap="3" mb="4">
             <Box
               style={{
-                background: "#FFF4F2",
-                borderRadius: "8px",
                 width: "32px",
                 height: "32px",
+                borderRadius: theme.borders.radius.md,
+                background: theme.gradients.primary,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#FF5733",
+                boxShadow: theme.shadows.semantic.interactive.default,
               }}
             >
-              <Rocket size={20} weight="bold" />
+              <Lightning size={16} style={{ color: theme.colors.text.inverse }} />
             </Box>
-            <Heading size="4" style={{ color: "#FF5733", fontWeight: 700 }}>
-              On-Chain Inference
-            </Heading>
+            <Box>
+              <Heading
+                size="4"
+                style={{
+                  fontWeight: theme.typography.h4.fontWeight,
+                  background: theme.gradients.primary,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  marginBottom: "2px",
+                }}
+              >
+                Onchain Neural Inference
+              </Heading>
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                Execute fully onchain AI model inference with real-time layer processing
+              </Text>
+            </Box>
           </Flex>
         </motion.div>
 
+        {/* Compact Input Methods */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card
+            style={{
+              padding: theme.spacing.semantic.component.lg,
+              background: theme.colors.background.card,
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.lg,
+              boxShadow: theme.shadows.semantic.card.low,
+            }}
+          >
+            <Flex align="center" gap="2" mb="4">
+              <Brain size={16} style={{ color: theme.colors.interactive.accent }} />
+              <Heading
+                size="3"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: theme.typography.h5.fontWeight,
+                }}
+              >
+                Input Methods
+              </Heading>
+            </Flex>
+
+            <Tabs.Root value={activeInputTab} onValueChange={setActiveInputTab}>
+              <Tabs.List
+                style={{
+                  backgroundColor: theme.colors.background.secondary,
+                  padding: theme.spacing.semantic.component.xs,
+                  borderRadius: theme.borders.radius.md,
+                  marginBottom: theme.spacing.semantic.component.md,
+                  display: "flex",
+                  gap: theme.spacing.semantic.component.xs,
+                }}
+              >
+                <Tabs.Trigger
+                  value="vector"
+                  style={{
+                    cursor: "pointer",
+                    fontWeight: theme.typography.label.fontWeight,
+                    color: activeInputTab === "vector" ? theme.colors.text.inverse : theme.colors.text.secondary,
+                    background: activeInputTab === "vector" ? theme.colors.interactive.primary : "transparent",
+                    transition: theme.animations.transitions.all,
+                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                    borderRadius: theme.borders.radius.sm,
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.xs,
+                    fontSize: "13px",
+                  }}
+                >
+                  <TextT size={12} />
+                  Vector
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="imageUpload"
+                  style={{
+                    cursor: "pointer",
+                    fontWeight: theme.typography.label.fontWeight,
+                    color: activeInputTab === "imageUpload" ? theme.colors.text.inverse : theme.colors.text.secondary,
+                    background: activeInputTab === "imageUpload" ? theme.colors.interactive.primary : "transparent",
+                    transition: theme.animations.transitions.all,
+                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                    borderRadius: theme.borders.radius.sm,
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.xs,
+                    fontSize: "13px",
+                  }}
+                >
+                  <ImageSquare size={12} />
+                  Image
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="drawing"
+                  style={{
+                    cursor: "pointer",
+                    fontWeight: theme.typography.label.fontWeight,
+                    color: activeInputTab === "drawing" ? theme.colors.text.inverse : theme.colors.text.secondary,
+                    background: activeInputTab === "drawing" ? theme.colors.interactive.primary : "transparent",
+                    transition: theme.animations.transitions.all,
+                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                    borderRadius: theme.borders.radius.sm,
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.xs,
+                    fontSize: "13px",
+                  }}
+                >
+                  <PencilSimple size={12} />
+                  Drawing
+                </Tabs.Trigger>
+              </Tabs.List>
+
+              <Box py="3">
+                <Tabs.Content value="vector">
+                  <VectorInputTab
+                    firstLayerDimension={getFirstLayerDimension()}
+                    onVectorGenerated={handleVectorTabChange}
+                  />
+                </Tabs.Content>
+
+                <Tabs.Content value="imageUpload">
+                  <ImageInputTab
+                    getFirstLayerDimension={getFirstLayerDimension}
+                    getModelScale={getModelScale}
+                    onVectorGenerated={handleImageTabVectorGenerated}
+                  />
+                </Tabs.Content>
+
+                <Tabs.Content value="drawing">
+                  <DrawingInputTab
+                    getFirstLayerDimension={getFirstLayerDimension}
+                    getModelScale={getModelScale}
+                    onVectorGenerated={handleDrawingTabVectorGenerated}
+                  />
+                </Tabs.Content>
+              </Box>
+            </Tabs.Root>
+          </Card>
+        </motion.div>
+
+        {/* Compact Execution Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Box
+          <Card
             style={{
-              padding: "4px",
-              marginBottom: "24px",
-              background: "#FFFFFF",
+              padding: theme.spacing.semantic.component.lg,
+              background: theme.colors.background.card,
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.lg,
+              boxShadow: theme.shadows.semantic.card.low,
             }}
           >
-            <Flex>
-              <Text size="2" style={{ fontWeight: 500, lineHeight: "1.6" }}>
-                Choose how to input data for the model. Each layer's output will be automatically
-                passed as input to the next layer.
-              </Text>
-            </Flex>
-
-            <Flex direction="column" gap="3">
-              {/* 입력 방식 선택 탭 */}
-              <Tabs.Root value={activeInputTab} onValueChange={setActiveInputTab}>
-                <Tabs.List>
-                  <Tabs.Trigger value="vector" style={{ cursor: "pointer" }}>
-                    <Flex align="center" gap="2">
-                      <TextT size={16} weight="bold" />
-                      <Text>Vector Input</Text>
-                    </Flex>
-                  </Tabs.Trigger>
-                  <Tabs.Trigger value="imageUpload" style={{ cursor: "pointer" }}>
-                    <Flex align="center" gap="2">
-                      <ImageSquare size={16} weight="bold" />
-                      <Text>Image Input</Text>
-                    </Flex>
-                  </Tabs.Trigger>
-                  <Tabs.Trigger value="drawing" style={{ cursor: "pointer" }}>
-                    <Flex align="center" gap="2">
-                      <PencilSimple size={16} weight="bold" />
-                      <Text>Drawing Input</Text>
-                    </Flex>
-                  </Tabs.Trigger>
-                </Tabs.List>
-
-                <Box style={{ padding: "16px 0" }}>
-                  <Tabs.Content value="vector">
-                    <VectorInputTab
-                      inputVector={inputVector}
-                      setInputVector={setInputVector}
-                      onVectorChange={handleVectorTabChange}
-                    />
-                  </Tabs.Content>
-
-                  <Tabs.Content value="imageUpload">
-                    <ImageInputTab
-                      getFirstLayerDimension={getFirstLayerDimension}
-                      getModelScale={getModelScale}
-                      onVectorGenerated={handleImageTabVectorGenerated}
-                    />
-                  </Tabs.Content>
-
-                  <Tabs.Content value="drawing">
-                    <DrawingInputTab
-                      getFirstLayerDimension={getFirstLayerDimension}
-                      getModelScale={getModelScale}
-                      onVectorGenerated={handleDrawingTabVectorGenerated}
-                    />
-                  </Tabs.Content>
-                </Box>
-              </Tabs.Root>
-
-              <Flex justify="between" align="center" mt="3">
-                <Flex align="center" gap="3">
-                  <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                    <CircuitBoard size={14} weight="bold" />
-                    <Text size="1">Model Structure: {getLayerCount()} Layers</Text>
-                  </Badge>
-                </Flex>
-                <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                  <Text size="1">
-                    Current Layer: {currentLayerIndex}/{getLayerCount()}
-                  </Text>
-                </Badge>
-              </Flex>
-
-              <Flex gap="3" mt="4" wrap="wrap">
-                <Button
-                  onClick={runAllLayersWithPTBOptimization}
-                  disabled={isProcessing || !inputVector.trim()}
+            <Flex justify="between" align="center" mb="4">
+              <Flex align="center" gap="2">
+                <Cpu size={16} style={{ color: theme.colors.status.info }} />
+                <Heading
+                  size="3"
                   style={{
-                    cursor: "pointer",
-                    background: "#FF5733",
-                    color: "white",
-                    borderRadius: "8px",
-                    opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
-                    transition: "all 0.2s ease",
-                    padding: "12px 25px",
-                    fontSize: "16px",
-                    transform: "translateY(0)",
-                    border: "none",
-                    width: "180px",
-                    height: "50px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onMouseOver={e => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
-                  }}
-                  onMouseOut={e => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
+                    color: theme.colors.text.primary,
+                    fontWeight: theme.typography.h5.fontWeight,
                   }}
                 >
-                  {isProcessing ? (
-                    <Flex align="center" gap="2">
-                      <ReloadIcon
-                        style={{
-                          animation: "spin 1s linear infinite",
-                          width: "20px",
-                          height: "20px",
-                        }}
-                      />
-                      <span>Processing...</span>
-                    </Flex>
-                  ) : (
-                    <Flex align="center" gap="3">
-                      <TreeStructure size={20} weight="fill" />
-                      <span>Predict</span>
-                    </Flex>
-                  )}
-                </Button>
-              </Flex>
-
-              <Flex gap="3" mt="4" wrap="wrap">
-                <Button
-                  onClick={runAllLayersWithChunkedPTB}
-                  disabled={isProcessing || !inputVector.trim()}
-                  style={{
-                    cursor: "pointer",
-                    background: "#FF5733",
-                    color: "white",
-                    borderRadius: "8px",
-                    opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
-                    transition: "all 0.2s ease",
-                    padding: "12px 25px",
-                    fontSize: "16px",
-                    transform: "translateY(0)",
-                    border: "none",
-                    width: "180px",
-                    height: "50px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onMouseOver={e => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
-                  }}
-                  onMouseOut={e => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
-                  }}
-                >
-                  {isProcessing ? (
-                    <Flex align="center" gap="2">
-                      <ReloadIcon
-                        style={{
-                          animation: "spin 1s linear infinite",
-                          width: "20px",
-                          height: "20px",
-                        }}
-                      />
-                      <span>Processing...</span>
-                    </Flex>
-                  ) : (
-                    <Flex align="center" gap="3">
-                      <TreeStructure size={20} weight="fill" />
-                      <span>Predict By Chunked PTB</span>
-                    </Flex>
-                  )}
-                </Button>
-              </Flex>
-
-              <Flex gap="3" mt="4" wrap="wrap">
-                <Button
-                  onClick={runAllLayersByInputNodes}
-                  disabled={isProcessing || !inputVector.trim()}
-                  style={{
-                    cursor: "pointer",
-                    background: "#FF5733",
-                    color: "white",
-                    borderRadius: "8px",
-                    opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
-                    transition: "all 0.2s ease",
-                    padding: "12px 25px",
-                    fontSize: "16px",
-                    transform: "translateY(0)",
-                    border: "none",
-                    width: "180px",
-                    height: "50px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onMouseOver={e => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
-                  }}
-                  onMouseOut={e => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
-                  }}
-                >
-                  {isProcessing ? (
-                    <Flex align="center" gap="2">
-                      <ReloadIcon
-                        style={{
-                          animation: "spin 1s linear infinite",
-                          width: "20px",
-                          height: "20px",
-                        }}
-                      />
-                      <span>Processing...</span>
-                    </Flex>
-                  ) : (
-                    <Flex align="center" gap="3">
-                      <TreeStructure size={20} weight="fill" />
-                      <span>Predict By Input Nodes</span>
-                    </Flex>
-                  )}
-                </Button>
-              </Flex>
-            </Flex>
-          </Box>
-        </motion.div>
-
-        {predictResults.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            ref={resultsContainerRef}
-          >
-            <Box style={{ marginTop: "16px" }}>
-              <Flex align="center" gap="3" mb="4">
-                <Box
-                  style={{
-                    background: "#FFF4F2",
-                    borderRadius: "8px",
-                    width: "28px",
-                    height: "28px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#FF5733",
-                  }}
-                >
-                  <CircuitBoard size={16} weight="bold" />
-                </Box>
-                <Heading size="3" style={{ color: "#333" }}>
-                  Layer-by-Layer Inference Results
+                  Execution Controls
                 </Heading>
               </Flex>
+              
+              {/* Status Indicator */}
+              <Flex align="center" gap="2">
+                {isProcessing ? (
+                  <>
+                    <Box
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: theme.borders.radius.full,
+                        backgroundColor: theme.colors.status.warning,
+                        animation: "pulse 1.5s infinite",
+                      }}
+                    />
+                    <Text size="1" style={{ color: theme.colors.status.warning, fontWeight: 500 }}>
+                      Processing Layer {currentLayerIndex + 1}
+                    </Text>
+                  </>
+                ) : predictResults.length > 0 ? (
+                  <>
+                    <Box
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: theme.borders.radius.full,
+                        backgroundColor: theme.colors.status.success,
+                      }}
+                    />
+                    <Text size="1" style={{ color: theme.colors.status.success, fontWeight: 500 }}>
+                      Inference Complete
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Box
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: theme.borders.radius.full,
+                        backgroundColor: theme.colors.text.tertiary,
+                      }}
+                    />
+                    <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 500 }}>
+                      Ready
+                    </Text>
+                  </>
+                )}
+              </Flex>
+            </Flex>
 
-              {/* Add Layer Flow Visualization */}
-              <LayerFlowVisualization
-                predictResults={predictResults}
-                currentLayerIndex={currentLayerIndex}
-                isProcessing={isProcessing}
-                totalLayers={getLayerCount()}
-                inferenceTableRef={inferenceTableRef}
-                txDigest={txDigest}
-              />
-            </Box>
+            <Flex gap="3">
+              <Button
+                onClick={runAllLayersWithPTBOptimization}
+                disabled={isProcessing || getCurrentVector().length === 0}
+                style={{
+                  background: isProcessing || getCurrentVector().length === 0 
+                    ? theme.colors.background.secondary 
+                    : theme.colors.interactive.primary,
+                  color: isProcessing || getCurrentVector().length === 0 
+                    ? theme.colors.text.tertiary 
+                    : theme.colors.text.inverse,
+                  border: "none",
+                  borderRadius: theme.borders.radius.md,
+                  padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                  fontWeight: theme.typography.label.fontWeight,
+                  cursor: isProcessing || getCurrentVector().length === 0 ? "not-allowed" : "pointer",
+                  transition: theme.animations.transitions.all,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: theme.spacing.semantic.component.xs,
+                  fontSize: "14px",
+                }}
+              >
+                {isProcessing ? (
+                  <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
+                ) : (
+                  <Play size={12} weight="fill" />
+                )}
+                Full Inference
+              </Button>
+
+              <Button
+                onClick={runAllLayersWithChunkedPTB}
+                disabled={isProcessing || getCurrentVector().length === 0}
+                style={{
+                  background: isProcessing || getCurrentVector().length === 0 
+                    ? theme.colors.background.secondary 
+                    : theme.colors.background.accent,
+                  color: isProcessing || getCurrentVector().length === 0 
+                    ? theme.colors.text.tertiary 
+                    : theme.colors.text.brand,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.md,
+                  padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                  fontWeight: theme.typography.label.fontWeight,
+                  cursor: isProcessing || getCurrentVector().length === 0 ? "not-allowed" : "pointer",
+                  transition: theme.animations.transitions.all,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: theme.spacing.semantic.component.xs,
+                  fontSize: "14px",
+                }}
+              >
+                <Activity size={12} />
+                Chunked Inference
+              </Button>
+            </Flex>
+
+            {getCurrentVector().length === 0 && (
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  marginTop: theme.spacing.semantic.component.sm,
+                  fontStyle: "italic",
+                }}
+              >
+                Please provide input data to enable inference execution
+              </Text>
+            )}
+          </Card>
+        </motion.div>
+
+        {/* Results Section */}
+        {(predictResults.length > 0 || isProcessing) && (
+          <motion.div
+            ref={resultsContainerRef}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <LayerFlowVisualization
+              predictResults={predictResults}
+              currentLayerIndex={currentLayerIndex}
+              isProcessing={isProcessing}
+              totalLayers={getLayerCount()}
+              inferenceTableRef={inferenceTableRef}
+              txDigest={txDigest}
+            />
           </motion.div>
         )}
       </Flex>
 
+      {/* Enhanced animations */}
       <style>
         {`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        
         @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: ${theme.shadows.semantic.interactive.hover};
+        }
+        
+        button:disabled {
+          opacity: 0.6;
         }
         `}
       </style>
-    </Card>
+    </Box>
   );
 }

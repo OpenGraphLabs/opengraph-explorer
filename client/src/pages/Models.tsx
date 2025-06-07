@@ -343,7 +343,7 @@ export function Models() {
             gridTemplateColumns: "repeat(auto-fill, minmax(480px, 1fr))",
           }}
         >
-          {filteredModels.map((model, index) => (
+          {filteredModels.map((model, _) => (
             <ModelCard 
               key={model.id} 
               model={model} 

@@ -10,6 +10,7 @@ import {
 } from "phosphor-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "@/shared/ui/design-system";
 
 // 벡터 정보 표시 인터페이스
 export interface ImageData {
@@ -34,6 +35,7 @@ export function VectorInfoDisplay({
   getModelScale,
   formatVectorForPrediction,
 }: VectorInfoDisplayProps) {
+  const { theme } = useTheme();
   const [showAnimation, setShowAnimation] = useState(true);
   const [activeTab, setActiveTab] = useState<"visual" | "data">("visual");
 
@@ -129,10 +131,10 @@ export function VectorInfoDisplay({
         <Box style={{ padding: "16px" }}>
           <Flex justify="between" align="center" mb="3">
             <Flex align="center" gap="2">
-              <Graph size={20} weight="duotone" style={{ color: "#FF5733" }} />
+              <Graph size={20} weight="duotone" style={{ color: theme.colors.interactive.primary }} />
               <Heading size="3">Vector Conversion</Heading>
             </Flex>
-            <Badge variant="solid" style={{ background: "#FF5733", color: "#FFF" }}>
+            <Badge variant="solid" style={{ background: theme.colors.interactive.primary, color: theme.colors.text.inverse }}>
               {imageData.vector?.length} dimensions
             </Badge>
           </Flex>
@@ -171,7 +173,7 @@ export function VectorInfoDisplay({
                     duration: 1.5,
                   }}
                 >
-                  <ArrowRightIcon width="32" height="32" style={{ color: "#FF5733" }} />
+                  <ArrowRightIcon width="32" height="32" style={{ color: theme.colors.interactive.primary }} />
                 </motion.div>
 
                 <motion.div
@@ -254,7 +256,7 @@ export function VectorInfoDisplay({
               <Flex gap="2" mb="3">
                 <Button
                   variant={activeTab === "visual" ? "solid" : "soft"}
-                  color="orange"
+                  color="blue"
                   size="2"
                   onClick={() => setActiveTab("visual")}
                   style={{ cursor: "pointer" }}
@@ -264,7 +266,7 @@ export function VectorInfoDisplay({
                 </Button>
                 <Button
                   variant={activeTab === "data" ? "solid" : "soft"}
-                  color="orange"
+                  color="blue"
                   size="2"
                   onClick={() => setActiveTab("data")}
                   style={{ cursor: "pointer" }}
@@ -306,7 +308,7 @@ export function VectorInfoDisplay({
                           <Text size="1" style={{ color: "#666" }}>
                             Mean
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text size="3" style={{ fontWeight: 500, color: theme.colors.interactive.primary }}>
                             {imageData.vector
                               ? (
                                   imageData.vector.reduce((a, b) => a + b, 0) /
@@ -321,7 +323,7 @@ export function VectorInfoDisplay({
                           <Text size="1" style={{ color: "#666" }}>
                             Max
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text size="3" style={{ fontWeight: 500, color: theme.colors.interactive.primary }}>
                             {Math.max(...(imageData.vector || [0])).toFixed(3)}
                           </Text>
                         </Flex>
@@ -331,7 +333,7 @@ export function VectorInfoDisplay({
                           <Text size="1" style={{ color: "#666" }}>
                             Min
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text size="3" style={{ fontWeight: 500, color: theme.colors.interactive.primary }}>
                             {Math.min(...(imageData.vector || [0])).toFixed(3)}
                           </Text>
                         </Flex>
@@ -341,7 +343,7 @@ export function VectorInfoDisplay({
                           <Text size="1" style={{ color: "#666" }}>
                             Non-zero
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text size="3" style={{ fontWeight: 500, color: theme.colors.interactive.primary }}>
                             {imageData.vector?.filter(v => v > 0.01).length || 0}
                           </Text>
                         </Flex>
@@ -395,7 +397,7 @@ export function VectorInfoDisplay({
                               <Flex justify="center" align="center" gap="2">
                                 <Box>{exampleValue.toFixed(6)}</Box>
                                 <ArrowRightIcon />
-                                <Box style={{ color: "#FF5733" }}>
+                                <Box style={{ color: theme.colors.interactive.primary }}>
                                   {formattedResult.magnitudes[0]}
                                   {formattedResult.signs[0] === 1 ? " (negative)" : " (positive)"}
                                 </Box>

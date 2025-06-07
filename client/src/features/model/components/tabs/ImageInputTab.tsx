@@ -1,8 +1,9 @@
+import { useState, useRef } from "react";
 import { Box, Flex, Heading, Text, Card, Button } from "@radix-ui/themes";
 import { ReloadIcon, ResetIcon, UploadIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
 import { ImageSquare } from "phosphor-react";
 import { VectorInfoDisplay, ImageData, FormattedVector } from "./VectorInfoDisplay";
+import { useTheme } from "@/shared/ui/design-system";
 
 interface ImageInputTabProps {
   getFirstLayerDimension: () => number;
@@ -15,9 +16,13 @@ export function ImageInputTab({
   getModelScale,
   onVectorGenerated,
 }: ImageInputTabProps) {
-  // 상태 관리
-  const [imageData, setImageData] = useState<ImageData>({ dataUrl: null, vector: null });
-  const [isProcessingImage, setIsProcessingImage] = useState<boolean>(false);
+  const { theme } = useTheme();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageData, setImageData] = useState<ImageData | null>(null);
+  const [processedVector, setProcessedVector] = useState<number[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // 이미지를 벡터로 변환
   const imageToVector = async (dataUrl: string, dimension: number): Promise<number[]> => {
@@ -105,7 +110,7 @@ export function ImageInputTab({
   // 이미지 업로드 핸들러
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setIsProcessingImage(true);
+      setIsProcessing(true);
 
       const file = e.target.files[0];
       console.log("File selected:", file.name, "type:", file.type, "size:", file.size);
@@ -122,7 +127,7 @@ export function ImageInputTab({
             .then(vector => {
               if (vector.length === 0) {
                 console.error("Vector conversion failed - empty vector");
-                setIsProcessingImage(false);
+                setIsProcessing(false);
                 return;
               }
 
@@ -133,21 +138,21 @@ export function ImageInputTab({
               // 부모 컴포넌트로 생성된 벡터 전달
               onVectorGenerated(vector);
 
-              setIsProcessingImage(false);
+              setIsProcessing(false);
             })
             .catch(error => {
               console.error("Error in vector conversion:", error);
-              setIsProcessingImage(false);
+              setIsProcessing(false);
             });
         } else {
           console.error("FileReader result is null or undefined");
-          setIsProcessingImage(false);
+          setIsProcessing(false);
         }
       };
 
       reader.onerror = error => {
         console.error("FileReader error:", error);
-        setIsProcessingImage(false);
+        setIsProcessing(false);
       };
 
       reader.readAsDataURL(file);
@@ -157,7 +162,7 @@ export function ImageInputTab({
   return (
     <Flex direction="column" gap="4">
       <Flex align="center" gap="3">
-        <ImageSquare size={20} weight="duotone" style={{ color: "#FF5733" }} />
+        <ImageSquare size={20} weight="duotone" style={{ color: theme.colors.interactive.primary }} />
         <Heading size="3">Image Input</Heading>
       </Flex>
 
@@ -166,7 +171,7 @@ export function ImageInputTab({
         style={{
           padding: "16px",
           borderRadius: "8px",
-          border: "1px dashed #FFE8E2",
+          border: `1px dashed ${theme.colors.border.secondary}`,
           background: "#FDFDFD",
           minHeight: "250px",
           display: "flex",
@@ -175,7 +180,7 @@ export function ImageInputTab({
           justifyContent: "center",
         }}
       >
-        {imageData.dataUrl ? (
+        {imageData?.dataUrl ? (
           // Show uploaded image
           <Box style={{ position: "relative" }}>
             <Box
@@ -200,7 +205,7 @@ export function ImageInputTab({
                 size="1"
                 variant="soft"
                 onClick={() => {
-                  setImageData({ dataUrl: null, vector: null });
+                  setImageData(null);
                   // 이미지 제거 시 빈 벡터 전달
                   onVectorGenerated([]);
                 }}
@@ -219,7 +224,7 @@ export function ImageInputTab({
               }}
             />
 
-            {isProcessingImage && (
+            {isProcessing && (
               <Box
                 style={{
                   position: "absolute",
@@ -248,9 +253,9 @@ export function ImageInputTab({
               justifyContent: "center",
               padding: "20px",
               gap: "12px",
-              border: "2px dashed #FFE8E2",
+              border: `2px dashed ${theme.colors.border.secondary}`,
               borderRadius: "8px",
-              backgroundColor: "#FDFDFD",
+              backgroundColor: theme.colors.background.accent,
               minHeight: "200px",
               width: "100%",
               position: "relative",
@@ -258,7 +263,7 @@ export function ImageInputTab({
             onDragOver={e => {
               e.preventDefault();
               e.stopPropagation();
-              e.currentTarget.style.backgroundColor = "#FFF4F2";
+              e.currentTarget.style.backgroundColor = theme.colors.background.accent;
             }}
             onDragLeave={e => {
               e.preventDefault();
@@ -268,7 +273,7 @@ export function ImageInputTab({
             onDrop={e => {
               e.preventDefault();
               e.stopPropagation();
-              e.currentTarget.style.backgroundColor = "#FDFDFD";
+              e.currentTarget.style.backgroundColor = theme.colors.background.accent;
 
               const files = e.dataTransfer.files;
               if (files && files[0]) {
@@ -283,7 +288,7 @@ export function ImageInputTab({
           >
             <Box
               style={{
-                background: "#FFF4F2",
+                background: theme.colors.background.accent,
                 borderRadius: "50%",
                 width: "48px",
                 height: "48px",
@@ -292,7 +297,7 @@ export function ImageInputTab({
                 justifyContent: "center",
               }}
             >
-              <UploadIcon style={{ width: "24px", height: "24px", color: "#FF5733" }} />
+              <UploadIcon style={{ width: "24px", height: "24px", color: theme.colors.interactive.primary }} />
             </Box>
             <Text size="2" style={{ fontWeight: 500 }}>
               Drag & Drop Image Here
@@ -304,8 +309,8 @@ export function ImageInputTab({
               onClick={() => document.getElementById("image-upload")?.click()}
               style={{
                 cursor: "pointer",
-                background: "#FFF4F2",
-                color: "#FF5733",
+                background: theme.colors.background.accent,
+                color: theme.colors.text.brand,
                 borderRadius: "8px",
                 transition: "all 0.2s ease",
               }}
@@ -331,7 +336,7 @@ export function ImageInputTab({
       </Card>
 
       {/* Show vector info if image is processed */}
-      {imageData.vector && imageData.vector.length > 0 && (
+      {imageData?.vector && imageData.vector.length > 0 && (
         <VectorInfoDisplay
           imageData={imageData}
           getModelScale={getModelScale}
