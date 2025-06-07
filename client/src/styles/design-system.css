@@ -1,0 +1,209 @@
+/* OpenGraph Design System Global Styles */
+
+/* CSS Custom Properties are set by ThemeProvider */
+:root {
+  /* Font families */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', Consolas, monospace;
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--og-bg-primary);
+  color: var(--og-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--og-border-focus);
+  outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--og-interactive-primary);
+  color: var(--og-text-inverse);
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--og-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--og-border-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--og-text-tertiary);
+}
+
+/* Utility classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Animation utilities */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* Responsive utilities */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
+
+/* Theme-specific overrides for Radix UI */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Custom component styles */
+.og-card {
+  background-color: var(--og-bg-card);
+  border: 1px solid var(--og-border-primary);
+  border-radius: 0.5rem;
+  box-shadow: var(--og-shadow-sm);
+  transition: box-shadow 0.15s ease-out;
+}
+
+.og-card:hover {
+  box-shadow: var(--og-shadow-md);
+}
+
+.og-button-primary {
+  background: var(--og-gradient-primary);
+  color: var(--og-text-inverse);
+  border: none;
+  transition: all 0.15s ease-out;
+}
+
+.og-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--og-shadow-md);
+}
+
+.og-input {
+  background-color: var(--og-bg-card);
+  border: 1px solid var(--og-border-primary);
+  color: var(--og-text-primary);
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.og-input:focus {
+  border-color: var(--og-border-focus);
+  box-shadow: 0 0 0 3px var(--og-interactive-primary);
+}
+
+/* Data type color utilities */
+.data-text { color: var(--og-data-text); }
+.data-image { color: var(--og-data-image); }
+.data-audio { color: var(--og-data-audio); }
+.data-video { color: var(--og-data-video); }
+.data-tabular { color: var(--og-data-tabular); }
+.data-structured { color: var(--og-data-structured); }
+.data-time-series { color: var(--og-data-time_series); }
+.data-graph { color: var(--og-data-graph); } 

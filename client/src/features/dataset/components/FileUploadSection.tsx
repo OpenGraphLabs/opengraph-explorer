@@ -1,4 +1,5 @@
-import { Box, Flex, Text, Button, Card, Badge } from "@radix-ui/themes";
+import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
 import { UploadIcon, PlusIcon, TrashIcon, FileIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import type { UploadProgress } from "../types/upload";
@@ -146,8 +147,8 @@ export function FileUploadSection({
               </Flex>
               <Flex gap="2" align="center">
                 <Button
-                  size="2"
-                  variant="soft"
+                  size="sm"
+                  variant="tertiary"
                   onClick={() => document.getElementById("dataset-upload-more")?.click()}
                   style={{
                     background: "var(--blue-3)",
@@ -160,8 +161,8 @@ export function FileUploadSection({
                   Add More Files
                 </Button>
                 <Button
-                  size="2"
-                  variant="soft"
+                  size="sm"
+                  variant="tertiary"
                   onClick={onClearAll}
                   style={{
                     background: "var(--red-3)",
@@ -263,8 +264,8 @@ export function FileUploadSection({
 
                   {/* Actions */}
                   <Button
-                    size="1"
-                    variant="soft"
+                    size="xs"
+                    variant="tertiary"
                     onClick={() => onFileRemove(index)}
                     style={{
                       background: "var(--red-3)",

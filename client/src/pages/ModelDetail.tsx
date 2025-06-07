@@ -1,49 +1,28 @@
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Box, Flex, Heading, Text, Tabs, Badge, Card, Button } from "@radix-ui/themes";
-import { ExternalLinkIcon } from "@radix-ui/react-icons";
-import { motion } from "framer-motion";
-import { useModelById } from "@/shared/hooks/useModels";
-import { ModelDetailHeader, ModelOverviewTab, ModelInferenceTab } from "@/features/model";
-import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
-import { Image, TextT, Database } from "phosphor-react";
-
-// Helper functions for dataset types
-function getDataTypeColor(dataType: string) {
-  switch (dataType.toLowerCase()) {
-    case "image":
-      return {
-        bg: "rgba(59, 130, 246, 0.1)",
-        text: "rgb(29, 78, 216)",
-      };
-    case "text":
-      return {
-        bg: "rgba(16, 185, 129, 0.1)",
-        text: "rgb(6, 95, 70)",
-      };
-    default:
-      return {
-        bg: "rgba(107, 114, 128, 0.1)",
-        text: "rgb(55, 65, 81)",
-      };
-  }
-}
-
-function getDataTypeIcon(dataType: string) {
-  switch (dataType.toLowerCase()) {
-    case "image":
-      return <Image />;
-    case "text":
-      return <TextT />;
-    default:
-      return <Database />;
-  }
-}
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { 
+  Box, 
+  Flex, 
+  Heading, 
+  Text, 
+  Tabs, 
+  Badge, 
+  Card,
+  LoadingSpinner,
+  ErrorState,
+  DatasetCard,
+} from '@/shared/ui/design-system/components';
+import { useTheme } from '@/shared/ui/design-system';
+import { motion } from 'framer-motion';
+import { useModelById } from '@/shared/hooks/useModels';
+import { ModelDetailHeader, ModelOverviewTab, ModelInferenceTab } from '@/features/model';
+import { datasetGraphQLService, DatasetObject } from '@/shared/api/graphql/datasetGraphQLService';
 
 export function ModelDetail() {
   const { id } = useParams<{ id: string }>();
-  const { model, loading, error } = useModelById(id || "");
-  const [activeTab, setActiveTab] = useState("overview");
+  const { model, loading, error } = useModelById(id || '');
+  const { theme } = useTheme();
+  const [activeTab, setActiveTab] = useState('overview');
   const [trainingDataset, setTrainingDataset] = useState<DatasetObject | null>(null);
   const [testDatasets, setTestDatasets] = useState<DatasetObject[]>([]);
   const [datasetsLoading, setDatasetsLoading] = useState(false);
@@ -53,7 +32,7 @@ export function ModelDetail() {
     if (model) {
       document.title = `${model.name} - OpenGraph`;
     } else {
-      document.title = "Model Details - OpenGraph";
+      document.title = 'Model Details - OpenGraph';
     }
   }, [model]);
 
@@ -78,7 +57,7 @@ export function ModelDetail() {
           setTestDatasets(testData.filter(dataset => dataset !== null) as DatasetObject[]);
         }
       } catch (error) {
-        console.error("Error fetching datasets:", error);
+        console.error('Error fetching datasets:', error);
       } finally {
         setDatasetsLoading(false);
       }
@@ -90,29 +69,19 @@ export function ModelDetail() {
   // Loading state
   if (loading) {
     return (
-      <Flex direction="column" align="center" gap="4" py="9">
+      <Flex 
+        direction="column" 
+        align="center" 
+        gap="4" 
+        py="9"
+        style={{ minHeight: '60vh' }}
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Box
-            style={{
-              width: "50px",
-              height: "50px",
-              borderRadius: "50%",
-              border: "3px solid #FF5733",
-              borderTopColor: "transparent",
-              animation: "spin 1s linear infinite",
-            }}
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Text size="3">Loading model data...</Text>
+          <LoadingSpinner size="lg" message="Loading model data..." />
         </motion.div>
       </Flex>
     );
@@ -121,50 +90,34 @@ export function ModelDetail() {
   // Error state
   if (error || !model) {
     return (
-      <Flex direction="column" align="center" gap="4" py="9">
+      <Flex 
+        direction="column" 
+        align="center" 
+        gap="4" 
+        py="9"
+        style={{ minHeight: '60vh' }}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Box
-            style={{
-              width: "60px",
-              height: "60px",
-              borderRadius: "50%",
-              background: "#FFEBE8",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "24px",
-              color: "#FF5733",
-            }}
-          >
-            !
-          </Box>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Text size="3">{error || "Model not found."}</Text>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Button variant="soft" onClick={() => window.history.back()}>
-            Return to previous page
-          </Button>
+          <ErrorState
+            message={error || 'Model not found.'}
+            onRetry={() => window.history.back()}
+            retryLabel="Return to previous page"
+          />
         </motion.div>
       </Flex>
     );
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 0.5 }}
+    >
       <Box>
         {/* Model Header */}
         <ModelDetailHeader model={model} />
@@ -177,28 +130,36 @@ export function ModelDetail() {
         >
           <Card
             style={{
-              padding: "32px",
-              marginBottom: "28px",
-              borderRadius: "16px",
-              background: "linear-gradient(135deg, #FFFFFF 0%, #FFF4F2 100%)",
-              boxShadow: "0 8px 32px rgba(255, 87, 51, 0.08)",
-              border: "1px solid #FFE8E2",
+              padding: theme.spacing.semantic.container.lg,
+              marginBottom: theme.spacing.semantic.layout.lg,
+              borderRadius: theme.borders.radius.xl,
+              background: theme.gradients.primaryLight,
+              boxShadow: theme.shadows.semantic.card.medium,
+              border: `1px solid ${theme.colors.border.brand}`,
             }}
           >
             <Flex justify="between" align="center" mb="4">
               <Heading
                 size="4"
                 style={{
-                  background: "linear-gradient(90deg, #FF5733 0%, #FF8C66 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  fontWeight: 600,
+                  background: theme.gradients.primary,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontWeight: theme.typography.h4.fontWeight,
                 }}
               >
                 Associated Datasets
               </Heading>
-              <Badge variant="soft" style={{ background: "#FFF4F2", color: "#FF5733" }}>
-                {trainingDataset ? "1" : "0"} Training + {testDatasets.length} Test
+              <Badge 
+                variant="soft" 
+                style={{ 
+                  backgroundColor: theme.colors.background.accent,
+                  color: theme.colors.text.brand,
+                  borderRadius: theme.borders.radius.sm,
+                }}
+              >
+                {trainingDataset ? '1' : '0'} Training + {testDatasets.length} Test
               </Badge>
             </Flex>
 
@@ -207,22 +168,12 @@ export function ModelDetail() {
                 align="center"
                 justify="center"
                 py="6"
-                style={{ background: "rgba(255, 255, 255, 0.5)", borderRadius: "12px" }}
+                style={{ 
+                  backgroundColor: theme.colors.background.secondary,
+                  borderRadius: theme.borders.radius.lg,
+                }}
               >
-                <Box
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    borderRadius: "50%",
-                    border: "2px solid #FF5733",
-                    borderTopColor: "transparent",
-                    animation: "spin 1s linear infinite",
-                    marginRight: "12px",
-                  }}
-                />
-                <Text size="2" style={{ color: "#FF5733" }}>
-                  Loading datasets...
-                </Text>
+                <LoadingSpinner size="sm" message="Loading datasets..." />
               </Flex>
             ) : (
               <Flex direction="column" gap="5">
@@ -231,124 +182,49 @@ export function ModelDetail() {
                   <Flex align="center" gap="2" mb="3">
                     <Box
                       style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background: "#FF5733",
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: theme.borders.radius.full,
+                        backgroundColor: theme.colors.interactive.primary,
                       }}
                     />
                     <Text
                       size="2"
                       style={{
-                        fontWeight: 600,
-                        color: "#FF5733",
-                        letterSpacing: "0.02em",
+                        fontWeight: theme.typography.label.fontWeight,
+                        color: theme.colors.text.brand,
+                        letterSpacing: '0.02em',
                       }}
                     >
                       Training Dataset
                     </Text>
                   </Flex>
                   {trainingDataset ? (
-                    <Link to={`/datasets/${trainingDataset.id}`} style={{ textDecoration: "none" }}>
-                      <Card
-                        style={{
-                          padding: "20px",
-                          background: "rgba(255, 255, 255, 0.7)",
-                          backdropFilter: "blur(8px)",
-                          border: "1px solid rgba(255, 87, 51, 0.1)",
-                          borderRadius: "12px",
-                          cursor: "pointer",
-                          transition: "all 0.3s ease",
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                        className="hover-effect"
-                      >
-                        <Box
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "4px",
-                            height: "100%",
-                            background: "linear-gradient(to bottom, #FF5733, #FF8C66)",
-                          }}
-                        />
-                        <Flex align="center" gap="4">
-                          <Box
-                            style={{
-                              background: getDataTypeColor(trainingDataset.dataType).bg,
-                              color: getDataTypeColor(trainingDataset.dataType).text,
-                              borderRadius: "12px",
-                              width: "48px",
-                              height: "48px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "24px",
-                            }}
-                          >
-                            {getDataTypeIcon(trainingDataset.dataType)}
-                          </Box>
-                          <Box style={{ flex: 1 }}>
-                            <Text
-                              size="3"
-                              style={{
-                                fontWeight: 600,
-                                marginBottom: "6px",
-                                color: "#1A1A1A",
-                              }}
-                            >
-                              {trainingDataset.name}
-                            </Text>
-                            <Flex gap="3" align="center">
-                              <Badge
-                                style={{
-                                  background: getDataTypeColor(trainingDataset.dataType).bg,
-                                  color: getDataTypeColor(trainingDataset.dataType).text,
-                                  padding: "4px 10px",
-                                  borderRadius: "6px",
-                                  fontSize: "12px",
-                                }}
-                              >
-                                {trainingDataset.dataType}
-                              </Badge>
-                              <Text
-                                size="1"
-                                style={{
-                                  color: "var(--gray-11)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                }}
-                              >
-                                <Database size={12} />
-                                {trainingDataset.dataCount.toLocaleString()} files
-                              </Text>
-                            </Flex>
-                          </Box>
-                          <Box
-                            style={{
-                              color: "#FF5733",
-                              opacity: 0.5,
-                              transition: "all 0.3s ease",
-                            }}
-                          >
-                            <ExternalLinkIcon width="16" height="16" />
-                          </Box>
-                        </Flex>
-                      </Card>
-                    </Link>
+                    <DatasetCard
+                      dataset={{
+                        id: trainingDataset.id,
+                        name: trainingDataset.name,
+                        dataType: trainingDataset.dataType,
+                        dataCount: trainingDataset.dataCount,
+                      }}
+                      type="training"
+                    />
                   ) : (
                     <Card
                       style={{
-                        padding: "20px",
-                        background: "rgba(255, 255, 255, 0.7)",
-                        border: "1px dashed rgba(255, 87, 51, 0.2)",
-                        borderRadius: "12px",
+                        padding: theme.spacing.semantic.component.lg,
+                        backgroundColor: theme.colors.background.secondary,
+                        border: `1px dashed ${theme.colors.border.secondary}`,
+                        borderRadius: theme.borders.radius.lg,
                       }}
                     >
-                      <Text size="2" style={{ color: "var(--gray-11)", textAlign: "center" }}>
+                      <Text 
+                        size="2" 
+                        style={{ 
+                          color: theme.colors.text.tertiary,
+                          textAlign: 'center',
+                        }}
+                      >
                         No training dataset associated
                       </Text>
                     </Card>
@@ -360,18 +236,18 @@ export function ModelDetail() {
                   <Flex align="center" gap="2" mb="3">
                     <Box
                       style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background: "#FF8C66",
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: theme.borders.radius.full,
+                        backgroundColor: theme.colors.interactive.secondary,
                       }}
                     />
                     <Text
                       size="2"
                       style={{
-                        fontWeight: 600,
-                        color: "#FF8C66",
-                        letterSpacing: "0.02em",
+                        fontWeight: theme.typography.label.fontWeight,
+                        color: theme.colors.text.secondary,
+                        letterSpacing: '0.02em',
                       }}
                     >
                       Test Datasets {testDatasets.length > 0 && `(${testDatasets.length})`}
@@ -380,111 +256,33 @@ export function ModelDetail() {
                   <Flex direction="column" gap="3">
                     {testDatasets.length > 0 ? (
                       testDatasets.map(dataset => (
-                        <Link
+                        <DatasetCard
                           key={dataset.id}
-                          to={`/datasets/${dataset.id}`}
-                          style={{ textDecoration: "none" }}
-                        >
-                          <Card
-                            style={{
-                              padding: "20px",
-                              background: "rgba(255, 255, 255, 0.7)",
-                              backdropFilter: "blur(8px)",
-                              border: "1px solid rgba(255, 87, 51, 0.1)",
-                              borderRadius: "12px",
-                              cursor: "pointer",
-                              transition: "all 0.3s ease",
-                              position: "relative",
-                              overflow: "hidden",
-                            }}
-                            className="hover-effect"
-                          >
-                            <Box
-                              style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "4px",
-                                height: "100%",
-                                background: "linear-gradient(to bottom, #FF8C66, #FFAA99)",
-                              }}
-                            />
-                            <Flex align="center" gap="4">
-                              <Box
-                                style={{
-                                  background: getDataTypeColor(dataset.dataType).bg,
-                                  color: getDataTypeColor(dataset.dataType).text,
-                                  borderRadius: "12px",
-                                  width: "48px",
-                                  height: "48px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontSize: "24px",
-                                }}
-                              >
-                                {getDataTypeIcon(dataset.dataType)}
-                              </Box>
-                              <Box style={{ flex: 1 }}>
-                                <Text
-                                  size="3"
-                                  style={{
-                                    fontWeight: 600,
-                                    marginBottom: "6px",
-                                    color: "#1A1A1A",
-                                  }}
-                                >
-                                  {dataset.name}
-                                </Text>
-                                <Flex gap="3" align="center">
-                                  <Badge
-                                    style={{
-                                      background: getDataTypeColor(dataset.dataType).bg,
-                                      color: getDataTypeColor(dataset.dataType).text,
-                                      padding: "4px 10px",
-                                      borderRadius: "6px",
-                                      fontSize: "12px",
-                                    }}
-                                  >
-                                    {dataset.dataType}
-                                  </Badge>
-                                  <Text
-                                    size="1"
-                                    style={{
-                                      color: "var(--gray-11)",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "4px",
-                                    }}
-                                  >
-                                    <Database size={12} />
-                                    {dataset.dataCount.toLocaleString()} files
-                                  </Text>
-                                </Flex>
-                              </Box>
-                              <Box
-                                style={{
-                                  color: "#FF8C66",
-                                  opacity: 0.5,
-                                  transition: "all 0.3s ease",
-                                }}
-                              >
-                                <ExternalLinkIcon width="16" height="16" />
-                              </Box>
-                            </Flex>
-                          </Card>
-                        </Link>
+                          dataset={{
+                            id: dataset.id,
+                            name: dataset.name,
+                            dataType: dataset.dataType,
+                            dataCount: dataset.dataCount,
+                          }}
+                          type="test"
+                        />
                       ))
                     ) : (
                       <Card
                         style={{
-                          padding: "20px",
-                          background: "rgba(255, 255, 255, 0.7)",
-                          border: "1px dashed rgba(255, 87, 51, 0.2)",
-                          borderRadius: "12px",
+                          padding: theme.spacing.semantic.component.lg,
+                          backgroundColor: theme.colors.background.secondary,
+                          border: `1px dashed ${theme.colors.border.secondary}`,
+                          borderRadius: theme.borders.radius.lg,
                         }}
                       >
-                        <Text size="2" style={{ color: "var(--gray-11)", textAlign: "center" }}>
+                        <Text 
+                          size="2" 
+                          style={{ 
+                            color: theme.colors.text.tertiary,
+                            textAlign: 'center',
+                          }}
+                        >
                           No test datasets associated
                         </Text>
                       </Card>
@@ -506,28 +304,33 @@ export function ModelDetail() {
             value={activeTab}
             onValueChange={setActiveTab}
             style={{
-              borderRadius: "12px",
-              overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-              background: "#FFFFFF",
-              border: "1px solid #FFE8E2",
+              borderRadius: theme.borders.radius.lg,
+              overflow: 'hidden',
+              boxShadow: theme.shadows.semantic.card.low,
+              backgroundColor: theme.colors.background.card,
+              border: `1px solid ${theme.colors.border.primary}`,
             }}
           >
             <Tabs.List
               style={{
-                background: "#FFF4F2",
-                padding: "10px 20px",
-                borderBottom: "1px solid #FFE8E2",
+                backgroundColor: theme.colors.background.secondary,
+                padding: `${theme.spacing.base[2]} ${theme.spacing.base[5]}`,
+                borderBottom: `1px solid ${theme.colors.border.primary}`,
               }}
             >
               <Tabs.Trigger
                 value="overview"
                 style={{
-                  cursor: "pointer",
-                  fontWeight: activeTab === "overview" ? 700 : 500,
-                  color: activeTab === "overview" ? "#FF5733" : "#666",
-                  transition: "all 0.3s ease",
-                  padding: "8px 16px",
+                  cursor: 'pointer',
+                  fontWeight: activeTab === 'overview' 
+                    ? theme.typography.label.fontWeight 
+                    : theme.typography.body.fontWeight,
+                  color: activeTab === 'overview' 
+                    ? theme.colors.text.brand 
+                    : theme.colors.text.secondary,
+                  transition: theme.animations.transitions.colors,
+                  padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
+                  borderRadius: theme.borders.radius.sm,
                 }}
               >
                 Overview
@@ -535,18 +338,27 @@ export function ModelDetail() {
               <Tabs.Trigger
                 value="inference"
                 style={{
-                  cursor: "pointer",
-                  fontWeight: activeTab === "inference" ? 700 : 500,
-                  color: activeTab === "inference" ? "#FF5733" : "#666",
-                  transition: "all 0.3s ease",
-                  padding: "8px 16px",
+                  cursor: 'pointer',
+                  fontWeight: activeTab === 'inference' 
+                    ? theme.typography.label.fontWeight 
+                    : theme.typography.body.fontWeight,
+                  color: activeTab === 'inference' 
+                    ? theme.colors.text.brand 
+                    : theme.colors.text.secondary,
+                  transition: theme.animations.transitions.colors,
+                  padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
+                  borderRadius: theme.borders.radius.sm,
                 }}
               >
                 On-Chain Inference
               </Tabs.Trigger>
             </Tabs.List>
 
-            <Box py="5" px="4" style={{ background: "white" }}>
+            <Box 
+              py="5" 
+              px="4" 
+              style={{ backgroundColor: theme.colors.background.card }}
+            >
               {/* Overview Tab */}
               <Tabs.Content value="overview">
                 <ModelOverviewTab model={model} />

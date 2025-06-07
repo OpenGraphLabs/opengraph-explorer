@@ -1,4 +1,19 @@
-import { Box, Flex, Text, Button, Heading, Card, Grid } from "@radix-ui/themes";
+import { 
+  Box, 
+  Flex, 
+  Text, 
+  Button,
+  Grid 
+} from "@/shared/ui/design-system/components";
+import { 
+  Card
+} from "@/shared/ui/design-system/components/Card";
+import { 
+  PageHeader
+} from "@/shared/ui/design-system/components/PageHeader";
+import { 
+  useTheme
+} from "@/shared/ui/design-system";
 import { ModelUploader } from "@/features/model/components/upload-steps/ModelUploader.tsx";
 import {
   DatasetCard,
@@ -11,6 +26,8 @@ import { useDatasetSelection, useModelUploadFlow } from "@/features/model/hooks"
 import { ReloadIcon, CheckCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export function UploadModel() {
+  const { theme } = useTheme();
+  
   // Dataset selection logic
   const {
     datasetInfo,
@@ -51,19 +68,28 @@ export function UploadModel() {
   };
 
   return (
-    <Box style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px" }}>
-      <Heading size={{ initial: "7", md: "8" }} mb="5" style={{ fontWeight: 700 }}>
-        Upload Model
-      </Heading>
+    <Box 
+      style={{ 
+        maxWidth: "1000px", 
+        margin: "0 auto", 
+        padding: `0 ${theme.spacing.semantic.layout.md}`,
+      }}
+    >
+      <PageHeader
+        title="Upload Model"
+        description="Upload and deploy your machine learning model to the Sui blockchain with on-chain inference capabilities."
+      />
 
-      <Flex direction="column" gap="6">
+      <Flex direction="column" gap={theme.spacing.semantic.section.md}>
         {/* Step 1: Upload and Convert Model */}
         <Card
+          elevation="medium"
           style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
+            padding: theme.spacing.semantic.component.lg,
+            borderRadius: theme.borders.radius.lg,
+            boxShadow: theme.shadows.semantic.card.medium,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.card,
           }}
         >
           <StepHeader
@@ -85,11 +111,13 @@ export function UploadModel() {
 
         {/* Step 2: Select Training Dataset */}
         <Card
+          elevation="medium"
           style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
+            padding: theme.spacing.semantic.component.lg,
+            borderRadius: theme.borders.radius.lg,
+            boxShadow: theme.shadows.semantic.card.medium,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.card,
           }}
         >
           <StepHeader
@@ -133,11 +161,13 @@ export function UploadModel() {
 
         {/* Step 3: Select Test Datasets */}
         <Card
+          elevation="medium"
           style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
+            padding: theme.spacing.semantic.component.lg,
+            borderRadius: theme.borders.radius.lg,
+            boxShadow: theme.shadows.semantic.card.medium,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.card,
           }}
         >
           <StepHeader
@@ -146,22 +176,34 @@ export function UploadModel() {
             description="Choose test datasets for your model (optional)."
           />
 
-          <Box style={{ marginTop: "8px" }}>
-            <Flex justify="between" align="center" style={{ marginBottom: "12px" }}>
-              <Text size="2" style={{ fontWeight: 500 }}>
+          <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
+            <Flex 
+              justify="between" 
+              align="center" 
+              style={{ marginBottom: theme.spacing.semantic.component.md }}
+            >
+              <Text 
+                size="2" 
+                style={{ 
+                  fontWeight: 500,
+                  color: theme.colors.text.primary,
+                }}
+              >
                 Test Datasets{" "}
                 {datasetInfo.selectedTestDatasets.length > 0 &&
                   `(${datasetInfo.selectedTestDatasets.length} selected)`}
               </Text>
               {datasetInfo.selectedTestDatasets.length > 0 && (
                 <Button
-                  size="1"
-                  variant="soft"
                   onClick={clearTestDatasets}
                   style={{
-                    background: "var(--red-3)",
-                    color: "var(--red-11)",
+                    background: theme.colors.status.error,
+                    color: theme.colors.text.inverse,
                     cursor: "pointer",
+                    borderRadius: theme.borders.radius.sm,
+                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                    fontSize: "12px",
+                    border: "none",
                   }}
                 >
                   Clear All
@@ -199,11 +241,13 @@ export function UploadModel() {
 
         {/* Step 4: Model Information */}
         <Card
+          elevation="medium"
           style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
+            padding: theme.spacing.semantic.component.lg,
+            borderRadius: theme.borders.radius.lg,
+            boxShadow: theme.shadows.semantic.card.medium,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.card,
           }}
         >
           <StepHeader
@@ -217,12 +261,14 @@ export function UploadModel() {
 
         {/* Step 5: Upload to Blockchain */}
         <Card
+          elevation="medium"
           style={{
-            padding: "24px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
-            marginBottom: "32px",
+            padding: theme.spacing.semantic.component.lg,
+            borderRadius: theme.borders.radius.lg,
+            boxShadow: theme.shadows.semantic.card.medium,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.card,
+            marginBottom: theme.spacing.semantic.section.lg,
           }}
         >
           <StepHeader
@@ -246,45 +292,68 @@ export function UploadModel() {
         <Card
           style={{
             position: "fixed",
-            bottom: "24px",
-            right: "24px",
-            padding: "16px",
-            backgroundColor: "#FFEBEE",
-            borderRadius: "8px",
+            bottom: theme.spacing.semantic.layout.md,
+            right: theme.spacing.semantic.layout.md,
+            padding: theme.spacing.semantic.component.md,
+            backgroundColor: theme.colors.status.error,
+            borderRadius: theme.borders.radius.md,
             border: "none",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            boxShadow: theme.shadows.semantic.overlay.modal,
             zIndex: 1000,
             animation: "slideIn 0.3s ease-out",
           }}
         >
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
-              <ExclamationTriangleIcon style={{ color: "#D32F2F", width: 20, height: 20 }} />
-              <Text style={{ color: "#D32F2F", fontWeight: 500 }}>Upload Failed</Text>
+              <ExclamationTriangleIcon 
+                style={{ 
+                  color: theme.colors.text.inverse, 
+                  width: 20, 
+                  height: 20 
+                }} 
+              />
+              <Text 
+                style={{ 
+                  color: theme.colors.text.inverse, 
+                  fontWeight: 500 
+                }}
+              >
+                Upload Failed
+              </Text>
             </Flex>
-            <Text size="2" style={{ color: "#D32F2F" }}>
+            <Text 
+              size="2" 
+              style={{ 
+                color: theme.colors.text.inverse,
+              }}
+            >
               {uploadState.uploadError}
             </Text>
             <Flex gap="2" mt="2">
               <Button
-                size="1"
-                variant="soft"
                 onClick={clearUploadError}
                 style={{
-                  background: "#FFCDD2",
-                  color: "#D32F2F",
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.status.error,
                   cursor: "pointer",
+                  borderRadius: theme.borders.radius.sm,
+                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                  fontSize: "12px",
+                  border: "none",
                 }}
               >
                 Dismiss
               </Button>
               <Button
-                size="1"
                 onClick={onUpload}
                 style={{
-                  background: "#D32F2F",
-                  color: "white",
+                  background: theme.colors.text.inverse,
+                  color: theme.colors.status.error,
                   cursor: "pointer",
+                  borderRadius: theme.borders.radius.sm,
+                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                  fontSize: "12px",
+                  border: "none",
                 }}
               >
                 Try Again
@@ -298,30 +367,52 @@ export function UploadModel() {
         <Card
           style={{
             position: "fixed",
-            bottom: "24px",
-            right: "24px",
-            padding: "10px 20px",
-            backgroundColor: "#E8F5E9",
-            borderRadius: "8px",
+            bottom: theme.spacing.semantic.layout.md,
+            right: theme.spacing.semantic.layout.md,
+            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.lg}`,
+            backgroundColor: theme.colors.status.success,
+            borderRadius: theme.borders.radius.md,
             border: "none",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            boxShadow: theme.shadows.semantic.overlay.modal,
             zIndex: 1000,
             animation: "slideIn 0.3s ease-out",
           }}
         >
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
-              <CheckCircledIcon style={{ color: "#2E7D32", width: 20, height: 20 }} />
-              <Text style={{ color: "#2E7D32", fontWeight: 500 }}>Upload Successful!</Text>
+              <CheckCircledIcon 
+                style={{ 
+                  color: theme.colors.text.inverse, 
+                  width: 20, 
+                  height: 20 
+                }} 
+              />
+              <Text 
+                style={{ 
+                  color: theme.colors.text.inverse, 
+                  fontWeight: 500 
+                }}
+              >
+                Upload Successful!
+              </Text>
             </Flex>
-            <Text size="2" style={{ color: "#2E7D32" }}>
+            <Text 
+              size="2" 
+              style={{ 
+                color: theme.colors.text.inverse,
+              }}
+            >
               Your model has been successfully uploaded to the blockchain. Redirecting to models
               page...
             </Text>
             {uploadState.transactionHash && (
               <Text
                 size="1"
-                style={{ marginTop: "4px", fontFamily: "monospace", color: "#2E7D32" }}
+                style={{ 
+                  marginTop: "4px", 
+                  fontFamily: "monospace", 
+                  color: theme.colors.text.inverse,
+                }}
               >
                 Transaction: {uploadState.transactionHash.substring(0, 10)}...
               </Text>
@@ -334,24 +425,41 @@ export function UploadModel() {
         <Card
           style={{
             position: "fixed",
-            bottom: "24px",
-            right: "24px",
-            padding: "10px 20px",
-            backgroundColor: "#E3F2FD",
-            borderRadius: "8px",
+            bottom: theme.spacing.semantic.layout.md,
+            right: theme.spacing.semantic.layout.md,
+            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.lg}`,
+            backgroundColor: theme.colors.status.info,
+            borderRadius: theme.borders.radius.md,
             border: "none",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            boxShadow: theme.shadows.semantic.overlay.modal,
             zIndex: 1000,
             animation: "slideIn 0.3s ease-out",
-            marginTop: "16px",
+            marginTop: theme.spacing.semantic.component.md,
           }}
         >
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
-              <ReloadIcon style={{ color: "#1976D2", animation: "spin 1s linear infinite" }} />
-              <Text style={{ color: "#1976D2", fontWeight: 500 }}>Transaction in Progress</Text>
+              <ReloadIcon 
+                style={{ 
+                  color: theme.colors.text.inverse, 
+                  animation: "spin 1s linear infinite" 
+                }} 
+              />
+              <Text 
+                style={{ 
+                  color: theme.colors.text.inverse, 
+                  fontWeight: 500 
+                }}
+              >
+                Transaction in Progress
+              </Text>
             </Flex>
-            <Text size="2" style={{ color: "#1976D2" }}>
+            <Text 
+              size="2" 
+              style={{ 
+                color: theme.colors.text.inverse,
+              }}
+            >
               Please wait while we process your transaction. This may take a few moments...
             </Text>
           </Flex>
