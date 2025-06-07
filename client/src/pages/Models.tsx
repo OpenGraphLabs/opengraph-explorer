@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import styles from "@/styles/Card.module.css";
 import { useModels } from "@/shared/hooks/useModels";
 import { useModelFilters } from "@/features/model/hooks/useModelFilters";
-import { ModelSearchFilters } from "@/features/model/ui/ModelSearchFilters/ModelSearchFilters";
-import { ModelList } from "@/features/model/ui/ModelList/ModelList";
+import { ModelSearchFilters } from "@/features/model/components/ModelSearchFilters/ModelSearchFilters";
+import { ModelList } from "@/features/model/components/ModelList/ModelList";
 
 export function Models() {
   const navigate = useNavigate();
