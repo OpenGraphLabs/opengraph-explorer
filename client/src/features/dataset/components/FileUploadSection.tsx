@@ -1,18 +1,5 @@
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Card,
-  Badge,
-} from "@radix-ui/themes";
-import {
-  UploadIcon,
-  PlusIcon,
-  TrashIcon,
-  FileIcon,
-  ReloadIcon,
-} from "@radix-ui/react-icons";
+import { Box, Flex, Text, Button, Card, Badge } from "@radix-ui/themes";
+import { UploadIcon, PlusIcon, TrashIcon, FileIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import type { UploadProgress } from "../types/upload";
 
@@ -46,7 +33,7 @@ export function FileUploadSection({
     if (files && files.length > 0) {
       onFileSelect(Array.from(files));
       if (isAdditional) {
-        e.target.value = '';
+        e.target.value = "";
       }
     }
   };
@@ -63,7 +50,8 @@ export function FileUploadSection({
   return (
     <Flex direction="column" gap="6">
       <Text size="3" style={{ color: "var(--gray-11)", marginBottom: "12px" }}>
-        Upload your training data files. All files will be stored securely and combined into a single blob on Walrus.
+        Upload your training data files. All files will be stored securely and combined into a
+        single blob on Walrus.
       </Text>
 
       {previewStep === "select" && (
@@ -83,7 +71,7 @@ export function FileUploadSection({
           <input
             type="file"
             multiple
-            onChange={(e) => handleFileInputChange(e)}
+            onChange={e => handleFileInputChange(e)}
             disabled={!currentWallet?.accounts[0]?.address}
             style={{ display: "none" }}
             id="dataset-upload"
@@ -130,7 +118,7 @@ export function FileUploadSection({
       <input
         type="file"
         multiple
-        onChange={(e) => handleFileInputChange(e, true)}
+        onChange={e => handleFileInputChange(e, true)}
         disabled={!currentWallet?.accounts[0]?.address}
         style={{ display: "none" }}
         id="dataset-upload-more"
@@ -149,14 +137,18 @@ export function FileUploadSection({
           <Flex direction="column" gap="4">
             <Flex justify="between" align="center">
               <Flex align="center" gap="3">
-                <Text size="4" weight="bold">Selected Files</Text>
-                <Badge color="blue" style={{ fontSize: "12px" }}>{selectedFiles.length} files</Badge>
+                <Text size="4" weight="bold">
+                  Selected Files
+                </Text>
+                <Badge color="blue" style={{ fontSize: "12px" }}>
+                  {selectedFiles.length} files
+                </Badge>
               </Flex>
               <Flex gap="2" align="center">
-                <Button 
-                  size="2" 
-                  variant="soft" 
-                  onClick={() => document.getElementById('dataset-upload-more')?.click()}
+                <Button
+                  size="2"
+                  variant="soft"
+                  onClick={() => document.getElementById("dataset-upload-more")?.click()}
                   style={{
                     background: "var(--blue-3)",
                     color: "var(--blue-11)",
@@ -185,12 +177,19 @@ export function FileUploadSection({
             </Flex>
 
             {/* File List */}
-            <Box style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid var(--gray-4)", borderRadius: "8px" }}>
+            <Box
+              style={{
+                maxHeight: "400px",
+                overflowY: "auto",
+                border: "1px solid var(--gray-4)",
+                borderRadius: "8px",
+              }}
+            >
               {/* Table Header */}
-              <Box 
-                style={{ 
-                  padding: "12px 16px", 
-                  background: "var(--gray-2)", 
+              <Box
+                style={{
+                  padding: "12px 16px",
+                  background: "var(--gray-2)",
                   borderBottom: "1px solid var(--gray-4)",
                   display: "grid",
                   gridTemplateColumns: "1fr auto auto auto",
@@ -213,7 +212,8 @@ export function FileUploadSection({
                   key={index}
                   style={{
                     padding: "12px 16px",
-                    borderBottom: index < selectedFiles.length - 1 ? "1px solid var(--gray-3)" : "none",
+                    borderBottom:
+                      index < selectedFiles.length - 1 ? "1px solid var(--gray-3)" : "none",
                     background: "white",
                     display: "grid",
                     gridTemplateColumns: "1fr auto auto auto",
@@ -238,14 +238,22 @@ export function FileUploadSection({
                     >
                       <FileIcon width={12} height={12} style={{ color: "white" }} />
                     </Box>
-                    <Text size="2" style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <Text
+                      size="2"
+                      style={{
+                        fontWeight: 500,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {file.name}
                     </Text>
                   </Flex>
 
                   {/* File Type */}
                   <Badge color="gray" style={{ fontSize: "11px" }}>
-                    {file.type.split('/')[1]?.toUpperCase() || "UNKNOWN"}
+                    {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
                   </Badge>
 
                   {/* File Size */}
@@ -273,7 +281,14 @@ export function FileUploadSection({
             </Box>
 
             {/* File Statistics */}
-            <Card style={{ padding: "16px", background: "var(--blue-2)", border: "1px solid var(--blue-4)", borderRadius: "8px" }}>
+            <Card
+              style={{
+                padding: "16px",
+                background: "var(--blue-2)",
+                border: "1px solid var(--blue-4)",
+                borderRadius: "8px",
+              }}
+            >
               <Flex justify="between" align="center">
                 <Text size="2" weight="medium" style={{ color: "var(--blue-11)" }}>
                   Total: {selectedFiles.length} files
@@ -322,7 +337,9 @@ export function FileUploadSection({
               </Badge>
             </Flex>
 
-            <Text size="2" style={{ color: "var(--gray-11)" }}>{uploadProgress.message}</Text>
+            <Text size="2" style={{ color: "var(--gray-11)" }}>
+              {uploadProgress.message}
+            </Text>
 
             <Box
               style={{
@@ -347,7 +364,9 @@ export function FileUploadSection({
             {uploadProgress.status === "creating" && (
               <Flex align="center" gap="2" justify="center">
                 <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
-                <Text size="2" style={{ color: "var(--blue-11)" }}>Creating dataset on Sui blockchain...</Text>
+                <Text size="2" style={{ color: "var(--blue-11)" }}>
+                  Creating dataset on Sui blockchain...
+                </Text>
               </Flex>
             )}
           </Flex>
@@ -359,7 +378,9 @@ export function FileUploadSection({
         onClick={onUpload}
         disabled={isUploadDisabled}
         style={{
-          background: isUploadDisabled ? "var(--gray-6)" : "linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)",
+          background: isUploadDisabled
+            ? "var(--gray-6)"
+            : "linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)",
           color: "white",
           cursor: isUploadDisabled ? "not-allowed" : "pointer",
           padding: "0 32px",
@@ -377,11 +398,9 @@ export function FileUploadSection({
           ) : (
             <UploadIcon width={20} height={20} />
           )}
-          <span>
-            {isLoading ? "Creating Dataset..." : "Create Dataset"}
-          </span>
+          <span>{isLoading ? "Creating Dataset..." : "Create Dataset"}</span>
         </Flex>
       </Button>
     </Flex>
   );
-} 
+}

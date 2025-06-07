@@ -10,11 +10,7 @@ interface UploadButtonProps {
   onClearError: () => void;
 }
 
-export function UploadButton({ 
-  uploadState, 
-  isReadyForUpload, 
-  onUpload,
-}: UploadButtonProps) {
+export function UploadButton({ uploadState, isReadyForUpload, onUpload }: UploadButtonProps) {
   return (
     <Box style={{ marginTop: "8px" }}>
       <Button
@@ -46,4 +42,4 @@ export function UploadButton({
       </Button>
     </Box>
   );
-} 
+}

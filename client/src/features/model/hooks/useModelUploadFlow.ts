@@ -9,13 +9,13 @@ export const useModelUploadFlow = () => {
   const navigate = useNavigate();
   const { currentWallet } = useCurrentWallet();
   const { uploadModel } = useUploadModelToSui();
-  
+
   const [modelInfo, setModelInfo] = useState<ModelUploadInfo>({
     name: "",
     description: "",
     modelType: "text-generation",
   });
-  
+
   const [uploadState, setUploadState] = useState<ModelUploadState>({
     isUploading: false,
     uploadError: null,
@@ -44,7 +44,7 @@ export const useModelUploadFlow = () => {
     } catch (error) {
       setUploadState(prev => ({
         ...prev,
-        uploadError: error instanceof Error ? error.message : "Failed to convert model file"
+        uploadError: error instanceof Error ? error.message : "Failed to convert model file",
       }));
     }
   };
@@ -126,20 +126,20 @@ export const useModelUploadFlow = () => {
   };
 
   const isReadyForUpload = (): boolean => {
-    return !!(convertedModel &&
-        modelInfo.name &&
-        modelInfo.description &&
-        modelInfo.modelType &&
-        !uploadState.isUploading);
-
-
+    return !!(
+      convertedModel &&
+      modelInfo.name &&
+      modelInfo.description &&
+      modelInfo.modelType &&
+      !uploadState.isUploading
+    );
   };
 
   return {
     // Model info
     modelInfo,
     updateModelInfo,
-    
+
     // File conversion
     selectedFile,
     isConverting,
@@ -149,13 +149,13 @@ export const useModelUploadFlow = () => {
     conversionError,
     handleFileSelect,
     resetUploadState,
-    
+
     // Upload state
     uploadState,
     clearUploadError,
-    
+
     // Upload flow
     handleUpload,
     isReadyForUpload,
   };
-}; 
+};

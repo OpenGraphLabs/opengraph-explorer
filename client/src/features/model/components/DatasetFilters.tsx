@@ -41,7 +41,7 @@ export function DatasetFilters({
               size="2"
               placeholder="Search datasets..."
               value={filters.searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={e => onSearchChange(e.target.value)}
               style={{
                 width: "100%",
                 borderRadius: "6px",
@@ -49,12 +49,7 @@ export function DatasetFilters({
             />
           </Box>
           {filters.searchQuery && (
-            <Button
-              size="1"
-              variant="soft"
-              onClick={onClearSearch}
-              style={{ padding: "0 8px" }}
-            >
+            <Button size="1" variant="soft" onClick={onClearSearch} style={{ padding: "0 8px" }}>
               Clear
             </Button>
           )}
@@ -85,7 +80,7 @@ export function DatasetFilters({
           {/* 선택된 태그 표시 */}
           {filters.selectedTags.length > 0 && (
             <Flex gap="1" wrap="wrap" mb="1">
-              {filters.selectedTags.map((tag) => (
+              {filters.selectedTags.map(tag => (
                 <Badge
                   key={tag}
                   size="1"
@@ -126,7 +121,7 @@ export function DatasetFilters({
               </Text>
             ) : (
               <Flex gap="1" wrap="wrap">
-                {allTags.map((tag) => (
+                {allTags.map(tag => (
                   <Badge
                     key={tag}
                     size="1"
@@ -160,4 +155,4 @@ export function DatasetFilters({
       </Flex>
     </Card>
   );
-} 
+}

@@ -1,23 +1,14 @@
 import { Box, Flex, Text, Button, Heading, Card, Grid } from "@radix-ui/themes";
 import { ModelUploader } from "@/features/model/components/upload-steps/ModelUploader.tsx";
-import { 
-  DatasetCard, 
-  DatasetFilters, 
-  ModelInfoForm, 
-  StepHeader, 
-  UploadButton 
-} from "@/features/model/components";
-import { 
-  useDatasetSelection, 
-  useModelUploadFlow 
-} from "@/features/model/hooks";
 import {
-  ReloadIcon,
-  CheckCircledIcon,
-  ExclamationTriangleIcon,
-} from "@radix-ui/react-icons";
-
-
+  DatasetCard,
+  DatasetFilters,
+  ModelInfoForm,
+  StepHeader,
+  UploadButton,
+} from "@/features/model/components";
+import { useDatasetSelection, useModelUploadFlow } from "@/features/model/hooks";
+import { ReloadIcon, CheckCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export function UploadModel() {
   // Dataset selection logic
@@ -56,10 +47,7 @@ export function UploadModel() {
   const filteredDatasets = getFilteredDatasets();
 
   const onUpload = () => {
-    handleUpload(
-      datasetInfo.selectedTrainingDataset,
-      datasetInfo.selectedTestDatasets
-    );
+    handleUpload(datasetInfo.selectedTrainingDataset, datasetInfo.selectedTestDatasets);
   };
 
   return (
@@ -70,7 +58,14 @@ export function UploadModel() {
 
       <Flex direction="column" gap="6">
         {/* Step 1: Upload and Convert Model */}
-        <Card style={{ padding: "24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)", border: "1px solid var(--gray-4)" }}>
+        <Card
+          style={{
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--gray-4)",
+          }}
+        >
           <StepHeader
             stepNumber={1}
             title="Upload and Convert Model"
@@ -89,7 +84,14 @@ export function UploadModel() {
         </Card>
 
         {/* Step 2: Select Training Dataset */}
-        <Card style={{ padding: "24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)", border: "1px solid var(--gray-4)" }}>
+        <Card
+          style={{
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--gray-4)",
+          }}
+        >
           <StepHeader
             stepNumber={2}
             title="Select Training Dataset"
@@ -130,7 +132,14 @@ export function UploadModel() {
         </Card>
 
         {/* Step 3: Select Test Datasets */}
-        <Card style={{ padding: "24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)", border: "1px solid var(--gray-4)" }}>
+        <Card
+          style={{
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--gray-4)",
+          }}
+        >
           <StepHeader
             stepNumber={3}
             title="Select Test Datasets"
@@ -159,7 +168,7 @@ export function UploadModel() {
                 </Button>
               )}
             </Flex>
-            
+
             <Grid columns={{ initial: "1", sm: "3" }} gap="3">
               {filteredDatasets.map(dataset => (
                 <DatasetCard
@@ -189,21 +198,33 @@ export function UploadModel() {
         </Card>
 
         {/* Step 4: Model Information */}
-        <Card style={{ padding: "24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)", border: "1px solid var(--gray-4)" }}>
+        <Card
+          style={{
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--gray-4)",
+          }}
+        >
           <StepHeader
             stepNumber={4}
             title="Model Information"
             description="Provide details about your model. This information will be stored on-chain with your model."
           />
 
-          <ModelInfoForm
-            modelInfo={modelInfo}
-            onUpdate={updateModelInfo}
-          />
+          <ModelInfoForm modelInfo={modelInfo} onUpdate={updateModelInfo} />
         </Card>
 
         {/* Step 5: Upload to Blockchain */}
-        <Card style={{ padding: "24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)", border: "1px solid var(--gray-4)", marginBottom: "32px" }}>
+        <Card
+          style={{
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--gray-4)",
+            marginBottom: "32px",
+          }}
+        >
           <StepHeader
             stepNumber={5}
             title="Upload to Blockchain"
@@ -294,7 +315,8 @@ export function UploadModel() {
               <Text style={{ color: "#2E7D32", fontWeight: 500 }}>Upload Successful!</Text>
             </Flex>
             <Text size="2" style={{ color: "#2E7D32" }}>
-              Your model has been successfully uploaded to the blockchain. Redirecting to models page...
+              Your model has been successfully uploaded to the blockchain. Redirecting to models
+              page...
             </Text>
             {uploadState.transactionHash && (
               <Text
@@ -326,12 +348,8 @@ export function UploadModel() {
         >
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
-              <ReloadIcon
-                style={{ color: "#1976D2", animation: "spin 1s linear infinite" }}
-              />
-              <Text style={{ color: "#1976D2", fontWeight: 500 }}>
-                Transaction in Progress
-              </Text>
+              <ReloadIcon style={{ color: "#1976D2", animation: "spin 1s linear infinite" }} />
+              <Text style={{ color: "#1976D2", fontWeight: 500 }}>Transaction in Progress</Text>
             </Flex>
             <Text size="2" style={{ color: "#1976D2" }}>
               Please wait while we process your transaction. This may take a few moments...

@@ -118,35 +118,35 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
 
       // 최적화된 PTB로 모든 레이어 예측 실행
       await predictModelWithPTBOptimization(
-          model.id,
-          totalLayers,
-          layerDimensions,
-          parsedInput.magnitudes,
-          parsedInput.signs,
-          res => {
-            console.log("--------------------------------");
-            console.log(`Optimized PTB prediction result:`, res);
-            console.log(`Events:`, res.events);
-            console.log("--------------------------------");
+        model.id,
+        totalLayers,
+        layerDimensions,
+        parsedInput.magnitudes,
+        parsedInput.signs,
+        res => {
+          console.log("--------------------------------");
+          console.log(`Optimized PTB prediction result:`, res);
+          console.log(`Events:`, res.events);
+          console.log("--------------------------------");
 
-            if (res && res.digest) {
-              setTxDigest(res.digest);
-              processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
-            } else {
-              setInferenceStatus(
-                  `Error: No transaction digest received. The transaction might have failed.`
-              );
-              setInferenceStatusType("error");
-              setIsProcessing(false);
-            }
+          if (res && res.digest) {
+            setTxDigest(res.digest);
+            processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
+          } else {
+            setInferenceStatus(
+              `Error: No transaction digest received. The transaction might have failed.`
+            );
+            setInferenceStatusType("error");
+            setIsProcessing(false);
           }
+        }
       );
     } catch (error) {
       console.error(`Optimized PTB inference error:`, error);
       const errorMessage =
-          error instanceof Error
-              ? error.message
-              : "An error occurred during optimized PTB inference execution. Please try again.";
+        error instanceof Error
+          ? error.message
+          : "An error occurred during optimized PTB inference execution. Please try again.";
 
       setInferenceStatus(`Error: ${errorMessage}`);
       setInferenceStatusType("error");
@@ -177,34 +177,29 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
       console.log("xxxxxx layerDimensions", layerDimensions);
 
       // chunked PTB로 모든 레이어 예측 실행
-      await predictModelWithChunkedPTB(
-          model,
-          parsedInput.magnitudes,
-          parsedInput.signs,
-          res => {
-            console.log("--------------------------------");
-            console.log(`Optimized PTB prediction result:`, res);
-            console.log(`Events:`, res.events);
-            console.log("--------------------------------");
+      await predictModelWithChunkedPTB(model, parsedInput.magnitudes, parsedInput.signs, res => {
+        console.log("--------------------------------");
+        console.log(`Optimized PTB prediction result:`, res);
+        console.log(`Events:`, res.events);
+        console.log("--------------------------------");
 
-            if (res && res.digest) {
-              setTxDigest(res.digest);
-              processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
-            } else {
-              setInferenceStatus(
-                  `Error: No transaction digest received. The transaction might have failed.`
-              );
-              setInferenceStatusType("error");
-              setIsProcessing(false);
-            }
-          }
-      );
+        if (res && res.digest) {
+          setTxDigest(res.digest);
+          processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
+        } else {
+          setInferenceStatus(
+            `Error: No transaction digest received. The transaction might have failed.`
+          );
+          setInferenceStatusType("error");
+          setIsProcessing(false);
+        }
+      });
     } catch (error) {
       console.error(`Optimized PTB inference error:`, error);
       const errorMessage =
-          error instanceof Error
-              ? error.message
-              : "An error occurred during optimized PTB inference execution. Please try again.";
+        error instanceof Error
+          ? error.message
+          : "An error occurred during optimized PTB inference execution. Please try again.";
 
       setInferenceStatus(`Error: ${errorMessage}`);
       setInferenceStatusType("error");
@@ -235,28 +230,23 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
       console.log("xxxxxx layerDimensions", layerDimensions);
 
       // 최적화된 PTB로 모든 레이어 예측 실행
-      await predictModel(
-        model,
-        parsedInput.magnitudes,
-        parsedInput.signs,
-        res => {
-          console.log("--------------------------------");
-          console.log(`Optimized PTB prediction result:`, res);
-          console.log(`Events:`, res.events);
-          console.log("--------------------------------");
+      await predictModel(model, parsedInput.magnitudes, parsedInput.signs, res => {
+        console.log("--------------------------------");
+        console.log(`Optimized PTB prediction result:`, res);
+        console.log(`Events:`, res.events);
+        console.log("--------------------------------");
 
-          if (res && res.digest) {
-            setTxDigest(res.digest);
-            processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
-          } else {
-            setInferenceStatus(
-              `Error: No transaction digest received. The transaction might have failed.`
-            );
-            setInferenceStatusType("error");
-            setIsProcessing(false);
-          }
+        if (res && res.digest) {
+          setTxDigest(res.digest);
+          processOptimizedPTBResult(res, parsedInput.magnitudes, parsedInput.signs);
+        } else {
+          setInferenceStatus(
+            `Error: No transaction digest received. The transaction might have failed.`
+          );
+          setInferenceStatusType("error");
+          setIsProcessing(false);
         }
-      );
+      });
     } catch (error) {
       console.error(`Optimized PTB inference error:`, error);
       const errorMessage =
@@ -385,9 +375,7 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
           );
           setInferenceStatusType("success");
         } else {
-          setInferenceStatus(
-            `Success! All ${totalLayers} layers processed.`
-          );
+          setInferenceStatus(`Success! All ${totalLayers} layers processed.`);
           setInferenceStatusType("success");
         }
       } else {

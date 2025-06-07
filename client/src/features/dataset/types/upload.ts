@@ -31,4 +31,4 @@ export interface FileUploadConfig {
   maxFileSize?: number;
   allowedTypes?: string[];
   maxFiles?: number;
-} 
+}

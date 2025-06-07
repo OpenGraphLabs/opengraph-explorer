@@ -8,7 +8,11 @@ interface DatasetImageGalleryProps {
   loading: boolean;
   activeTab: ActiveTab;
   onTabChange: (tab: ActiveTab) => void;
-  onImageClick: (item: any, index: number, getImageUrl: (item: any, index: number) => string) => void;
+  onImageClick: (
+    item: any,
+    index: number,
+    getImageUrl: (item: any, index: number) => string
+  ) => void;
   getImageUrl: (item: any, index: number) => string;
   isItemLoading: (item: any) => boolean;
   hasConfirmedAnnotations: (item: any) => boolean;
@@ -25,7 +29,6 @@ export function DatasetImageGallery({
   hasConfirmedAnnotations,
   getAnnotationColor,
 }: DatasetImageGalleryProps) {
-  
   if (loading) {
     return (
       <Flex align="center" justify="center" style={{ height: "200px" }}>
@@ -36,12 +39,14 @@ export function DatasetImageGallery({
 
   if (items.length === 0) {
     return (
-      <Card style={{
-        padding: "40px",
-        textAlign: "center",
-        background: "var(--gray-2)",
-        border: "1px dashed var(--gray-6)",
-      }}>
+      <Card
+        style={{
+          padding: "40px",
+          textAlign: "center",
+          background: "var(--gray-2)",
+          border: "1px dashed var(--gray-6)",
+        }}
+      >
         <Text>No items found in this category</Text>
       </Card>
     );
@@ -85,7 +90,8 @@ export function DatasetImageGallery({
                       left: 0,
                       width: "100%",
                       height: "100%",
-                      background: "linear-gradient(90deg, var(--gray-3) 25%, var(--gray-4) 50%, var(--gray-3) 75%)",
+                      background:
+                        "linear-gradient(90deg, var(--gray-3) 25%, var(--gray-4) 50%, var(--gray-3) 75%)",
                       backgroundSize: "200% 100%",
                       animation: "shimmer 1.5s infinite ease-in-out",
                     }}
@@ -102,12 +108,13 @@ export function DatasetImageGallery({
                       height: "100%",
                       objectFit: "cover",
                     }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
+                    onError={e => {
+                      (e.target as HTMLImageElement).src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
                     }}
                   />
                 )}
-                
+
                 {/* Annotation 표시 */}
                 {!isItemLoading(item) && item.annotations && item.annotations.length > 0 && (
                   <Box
@@ -123,7 +130,12 @@ export function DatasetImageGallery({
                     }}
                   >
                     <Flex align="center" gap="1">
-                      <Tag size={12} style={{ color: activeTab === 'confirmed' ? "var(--green-9)" : "var(--violet-9)" }} />
+                      <Tag
+                        size={12}
+                        style={{
+                          color: activeTab === "confirmed" ? "var(--green-9)" : "var(--violet-9)",
+                        }}
+                      />
                       <Text size="1" style={{ fontWeight: 600 }}>
                         {item.annotations.length}
                       </Text>
@@ -132,7 +144,7 @@ export function DatasetImageGallery({
                 )}
 
                 {/* Verified 배지 */}
-                {activeTab === 'pending' && hasConfirmedAnnotations(item) && (
+                {activeTab === "pending" && hasConfirmedAnnotations(item) && (
                   <Box
                     style={{
                       position: "absolute",
@@ -201,7 +213,7 @@ export function DatasetImageGallery({
               >
                 {getDataTypeIcon(item.dataType || "text/plain")}
               </Box>
-              
+
               {/* 파일 타입 데이터의 Annotation 표시 */}
               {item.annotations && item.annotations.length > 0 && (
                 <Flex direction="column" gap="2">
@@ -237,4 +249,4 @@ export function DatasetImageGallery({
       ))}
     </Grid>
   );
-} 
+}

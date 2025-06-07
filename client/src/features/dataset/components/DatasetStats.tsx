@@ -7,7 +7,8 @@ interface DatasetStatsProps {
 }
 
 export function DatasetStats({ dataset }: DatasetStatsProps) {
-  const totalAnnotations = dataset.data?.reduce((sum: number, item: any) => sum + (item.annotations?.length || 0), 0) || 0;
+  const totalAnnotations =
+    dataset.data?.reduce((sum: number, item: any) => sum + (item.annotations?.length || 0), 0) || 0;
 
   return (
     <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4" style={{ marginBottom: "32px" }}>
@@ -117,4 +118,4 @@ export function DatasetStats({ dataset }: DatasetStatsProps) {
       </Card>
     </Grid>
   );
-} 
+}

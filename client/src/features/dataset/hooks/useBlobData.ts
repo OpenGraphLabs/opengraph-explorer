@@ -13,11 +13,11 @@ export const useBlobData = (dataset: DatasetObject | null) => {
     if (dataset && isImageType(dataset.dataType)) {
       loadBlobData();
     }
-    
+
     // 컴포넌트 언마운트 시 URL 정리
     return () => {
       Object.values(imageUrls).forEach(url => {
-        if (url.startsWith('blob:')) {
+        if (url.startsWith("blob:")) {
           URL.revokeObjectURL(url);
         }
       });
@@ -29,7 +29,7 @@ export const useBlobData = (dataset: DatasetObject | null) => {
 
     // 고유한 blobId 추출
     const uniqueBlobIds = Array.from(new Set(dataset.data.map(item => item.blobId)));
-    
+
     // 로딩 상태 초기화
     const newLoadingState: BlobLoading = {};
     uniqueBlobIds.forEach(blobId => {
@@ -47,21 +47,21 @@ export const useBlobData = (dataset: DatasetObject | null) => {
         }
 
         const response = await fetch(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${blobId}`);
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
         }
-        
+
         // 전체 Blob 데이터를 ArrayBuffer로 변환
         const blob = await response.blob();
         const buffer = await blob.arrayBuffer();
 
         // 캐시에 저장
         setBlobCache(prev => ({
-          ...prev, 
-          [blobId]: buffer
+          ...prev,
+          [blobId]: buffer,
         }));
-        
+
         // 이 Blob을 참조하는 모든 이미지 처리
         processBlob(blobId, buffer);
       } catch (error) {
@@ -70,7 +70,7 @@ export const useBlobData = (dataset: DatasetObject | null) => {
         // 로딩 상태 업데이트
         setBlobLoading(prev => ({
           ...prev,
-          [blobId]: false
+          [blobId]: false,
         }));
       }
     }
@@ -79,17 +79,17 @@ export const useBlobData = (dataset: DatasetObject | null) => {
   // 가져온 Blob 데이터를 처리하여 개별 이미지 URL 생성
   const processBlob = (blobId: string, buffer: ArrayBuffer) => {
     if (!dataset) return;
-    
-    const newImageUrls = {...imageUrls};
-    
+
+    const newImageUrls = { ...imageUrls };
+
     // 같은 blobId를 참조하는 모든 항목 처리
     dataset.data.forEach((item: any, index: number) => {
       if (item.blobId !== blobId) return;
-      
+
       try {
         // range 정보가 있으면 해당 부분만 추출
         let imageBlob: Blob;
-        const itemType = item.dataType || 'image/jpeg';
+        const itemType = item.dataType || "image/jpeg";
 
         if (item.range && item.range.start !== undefined && item.range.end !== undefined) {
           const start = parseInt(String(item.range.start), 10);
@@ -102,18 +102,22 @@ export const useBlobData = (dataset: DatasetObject | null) => {
               const slice = buffer.slice(start, end);
               imageBlob = new Blob([slice], { type: itemType });
             } else {
-              console.warn(`Invalid range for item ${index}: [${start}, ${end}] (buffer size: ${buffer.byteLength})`);
+              console.warn(
+                `Invalid range for item ${index}: [${start}, ${end}] (buffer size: ${buffer.byteLength})`
+              );
               imageBlob = new Blob([buffer], { type: itemType });
             }
           } else {
-            console.warn(`Invalid number format for range values: start=${item.range.start}, end=${item.range.end}`);
+            console.warn(
+              `Invalid number format for range values: start=${item.range.start}, end=${item.range.end}`
+            );
             imageBlob = new Blob([buffer], { type: itemType });
           }
         } else {
           // range 정보가 없으면 전체 사용
           imageBlob = new Blob([buffer], { type: itemType });
         }
-        
+
         // URL 생성
         const url = URL.createObjectURL(imageBlob);
         const cacheKey = generateBlobCacheKey(blobId, index);
@@ -122,14 +126,14 @@ export const useBlobData = (dataset: DatasetObject | null) => {
         console.error(`Error creating image URL for item ${index}:`, error);
       }
     });
-    
+
     setImageUrls(newImageUrls);
   };
 
   // 이미지 URL 가져오기
   const getImageUrl = (item: any, index: number) => {
     const cacheKey = generateBlobCacheKey(item.blobId, index);
-    
+
     if (imageUrls[cacheKey]) {
       return imageUrls[cacheKey];
     }
@@ -162,4 +166,4 @@ export const useBlobData = (dataset: DatasetObject | null) => {
     isAnyBlobLoading,
     getUniqueBlobId,
   };
-}; 
+};

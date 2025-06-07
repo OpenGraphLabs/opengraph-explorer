@@ -1,16 +1,6 @@
 import React from "react";
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Select,
-  Badge,
-} from "@radix-ui/themes";
-import { 
-  MagnifyingGlassIcon,
-  Cross2Icon,
-} from "@radix-ui/react-icons";
+import { Box, Flex, Text, Button, Select, Badge } from "@radix-ui/themes";
+import { MagnifyingGlassIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { DatasetFilters } from "../types";
 import { TYPE_FILTERS } from "../constants";
 
@@ -30,34 +20,31 @@ export const DatasetFiltersComponent = ({
   onClearTags,
 }: DatasetFiltersProps) => {
   return (
-    <Flex 
+    <Flex
       direction="column"
-      gap="4" 
-      mb="6" 
-      style={{ 
-        background: "white", 
-        padding: "20px", 
-        borderRadius: "16px", 
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)", 
-        border: "1px solid var(--gray-4)"
+      gap="4"
+      mb="6"
+      style={{
+        background: "white",
+        padding: "20px",
+        borderRadius: "16px",
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+        border: "1px solid var(--gray-4)",
       }}
     >
       {/* 검색 및 데이터 타입 필터 */}
       <Flex direction={{ initial: "column", sm: "row" }} gap="4" align="start">
         <Box style={{ flex: 1 }}>
-          <div
-            className="rt-TextFieldRoot"
-            style={{ width: "100%" }}
-          >
-            <div className="rt-TextFieldSlot" style={{ marginRight: "10px" }} >
+          <div className="rt-TextFieldRoot" style={{ width: "100%" }}>
+            <div className="rt-TextFieldSlot" style={{ marginRight: "10px" }}>
               <MagnifyingGlassIcon height="16" width="16" />
             </div>
             <input
               className="rt-TextFieldInput"
-              placeholder="Search datasets by name or description..." 
+              placeholder="Search datasets by name or description..."
               value={filters.searchQuery}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                onUpdateFilter('searchQuery', e.target.value)
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onUpdateFilter("searchQuery", e.target.value)
               }
               style={{
                 backgroundColor: "var(--gray-1)",
@@ -69,15 +56,15 @@ export const DatasetFiltersComponent = ({
             />
           </div>
         </Box>
-        
-        <Select.Root 
-          value={filters.selectedType} 
-          onValueChange={(value) => onUpdateFilter('selectedType', value)}
+
+        <Select.Root
+          value={filters.selectedType}
+          onValueChange={value => onUpdateFilter("selectedType", value)}
         >
-          <Select.Trigger 
-            placeholder="Data Type" 
-            style={{ 
-              minWidth: "160px", 
+          <Select.Trigger
+            placeholder="Data Type"
+            style={{
+              minWidth: "160px",
               backgroundColor: "var(--gray-1)",
               border: "1px solid var(--gray-4)",
               borderRadius: "8px",
@@ -87,12 +74,12 @@ export const DatasetFiltersComponent = ({
           <Select.Content position="popper">
             <Select.Group>
               {TYPE_FILTERS.map(type => (
-                <Select.Item 
-                  key={type.value} 
+                <Select.Item
+                  key={type.value}
                   value={type.value}
-                  style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
                     gap: "8px",
                     fontSize: "14px",
                     cursor: "pointer",
@@ -114,13 +101,13 @@ export const DatasetFiltersComponent = ({
             Filter by Tags
           </Text>
           {filters.selectedTags.length > 0 && (
-            <Button 
-              size="1" 
-              variant="soft" 
+            <Button
+              size="1"
+              variant="soft"
               onClick={onClearTags}
-              style={{ 
+              style={{
                 cursor: "pointer",
-                fontSize: "12px", 
+                fontSize: "12px",
                 padding: "4px 8px",
                 background: "var(--gray-3)",
                 color: "var(--gray-11)",
@@ -134,9 +121,11 @@ export const DatasetFiltersComponent = ({
         {/* 선택된 태그 섹션 */}
         {filters.selectedTags.length > 0 && (
           <Box mb="2">
-            <Text size="1" color="gray" mb="1">Selected Tags:</Text>
+            <Text size="1" color="gray" mb="1">
+              Selected Tags:
+            </Text>
             <Flex gap="2" wrap="wrap">
-              {filters.selectedTags.map((tag) => (
+              {filters.selectedTags.map(tag => (
                 <Badge
                   key={tag}
                   variant="surface"
@@ -180,7 +169,7 @@ export const DatasetFiltersComponent = ({
                 No tags available in any datasets
               </Text>
             ) : (
-              availableTags.map((tag) => (
+              availableTags.map(tag => (
                 <Badge
                   key={tag}
                   variant="surface"
@@ -189,8 +178,12 @@ export const DatasetFiltersComponent = ({
                     margin: "2px",
                     borderRadius: "20px",
                     background: filters.selectedTags.includes(tag) ? "var(--accent-3)" : "white",
-                    color: filters.selectedTags.includes(tag) ? "var(--accent-11)" : "var(--gray-11)",
-                    border: filters.selectedTags.includes(tag) ? "1px solid var(--accent-6)" : "1px solid var(--gray-4)",
+                    color: filters.selectedTags.includes(tag)
+                      ? "var(--accent-11)"
+                      : "var(--gray-11)",
+                    border: filters.selectedTags.includes(tag)
+                      ? "1px solid var(--accent-6)"
+                      : "1px solid var(--gray-4)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                     fontSize: "12px",
@@ -206,4 +199,4 @@ export const DatasetFiltersComponent = ({
       </Box>
     </Flex>
   );
-}; 
+};

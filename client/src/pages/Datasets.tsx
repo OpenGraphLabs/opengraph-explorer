@@ -1,17 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Flex,
-  Heading,
-  Text,
-  Button,
-  Grid,
-  Spinner,
-  Badge,
-} from "@radix-ui/themes";
+import { Box, Flex, Heading, Text, Button, Grid, Spinner, Badge } from "@radix-ui/themes";
 import { Link } from "react-router-dom";
 import { Database } from "phosphor-react";
-import { 
+import {
   useDatasets,
   DatasetFiltersComponent,
   DatasetCard,
@@ -37,7 +28,13 @@ export function Datasets() {
 
   if (loading) {
     return (
-      <Flex direction="column" align="center" gap="4" py="9" style={{ minHeight: "60vh", justifyContent: "center" }}>
+      <Flex
+        direction="column"
+        align="center"
+        gap="4"
+        py="9"
+        style={{ minHeight: "60vh", justifyContent: "center" }}
+      >
         <Spinner size="3" />
         <Text size="3" style={{ fontWeight: 500 }}>
           Loading amazing datasets...
@@ -48,19 +45,19 @@ export function Datasets() {
 
   if (error) {
     return (
-      <Flex 
-        direction="column" 
-        align="center" 
-        gap="4" 
-        py="9" 
-        style={{ 
-          minHeight: "60vh", 
+      <Flex
+        direction="column"
+        align="center"
+        gap="4"
+        py="9"
+        style={{
+          minHeight: "60vh",
           justifyContent: "center",
           background: "white",
           borderRadius: "16px",
           padding: "40px",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-          border: "1px solid var(--gray-4)"
+          border: "1px solid var(--gray-4)",
         }}
       >
         <Box
@@ -101,21 +98,21 @@ export function Datasets() {
   }
 
   return (
-    <Box 
-      className={`${isLoaded ? "pageLoaded" : ''}`} 
+    <Box
+      className={`${isLoaded ? "pageLoaded" : ""}`}
       style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 28px", minHeight: "90vh" }}
     >
       {/* 헤더 섹션 */}
       <Flex gap="5" justify="between" align="baseline" mb="6">
         <div>
-          <Heading 
-            size={{ initial: "8", md: "9" }} 
-            style={{ 
-              fontWeight: 800, 
-              letterSpacing: "-0.03em", 
-              background: "linear-gradient(90deg, #FF5733 0%, #E74C3C 100%)", 
-              WebkitBackgroundClip: "text", 
-              WebkitTextFillColor: "transparent" 
+          <Heading
+            size={{ initial: "8", md: "9" }}
+            style={{
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              background: "linear-gradient(90deg, #FF5733 0%, #E74C3C 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
             mb="2"
           >
@@ -126,7 +123,7 @@ export function Datasets() {
           </Text>
         </div>
         <Link to="/datasets/upload">
-          <Button 
+          <Button
             size="3"
             style={{
               background: "#FF5733",
@@ -156,24 +153,24 @@ export function Datasets() {
 
       {/* 통계 요약 및 정렬 */}
       <Box mb="6">
-        <Flex 
-          justify="between" 
-          align="center" 
-          style={{ 
-            padding: "16px 20px", 
-            borderRadius: "12px", 
-            background: "var(--gray-1)", 
+        <Flex
+          justify="between"
+          align="center"
+          style={{
+            padding: "16px 20px",
+            borderRadius: "12px",
+            background: "var(--gray-1)",
             border: "1px solid var(--gray-4)",
           }}
         >
           <Flex align="center" gap="2">
             <Text weight="medium">
-              {filteredDatasets.length} {filteredDatasets.length === 1 ? "dataset" : "datasets"} 
+              {filteredDatasets.length} {filteredDatasets.length === 1 ? "dataset" : "datasets"}
             </Text>
             {filters.selectedType !== "all" && (
-              <Badge 
-                variant="soft" 
-                style={{ 
+              <Badge
+                variant="soft"
+                style={{
                   background: "var(--accent-3)",
                   color: "var(--accent-11)",
                 }}
@@ -188,10 +185,10 @@ export function Datasets() {
             )}
             {filters.selectedTags.length > 0 && (
               <Flex align="center" gap="1">
-                {filters.selectedTags.slice(0, 2).map((tag) => (
-                  <Badge 
-                    key={tag} 
-                    variant="soft" 
+                {filters.selectedTags.slice(0, 2).map(tag => (
+                  <Badge
+                    key={tag}
+                    variant="soft"
                     color="purple"
                     style={{
                       display: "flex",
@@ -205,20 +202,17 @@ export function Datasets() {
                   </Badge>
                 ))}
                 {filters.selectedTags.length > 2 && (
-                  <Badge 
-                    variant="soft" 
-                    color="purple"
-                  >
+                  <Badge variant="soft" color="purple">
                     +{filters.selectedTags.length - 2} more
                   </Badge>
                 )}
               </Flex>
             )}
           </Flex>
-          
+
           <DatasetSortSelector
             selectedSort={filters.selectedSort}
-            onSortChange={(value) => updateFilter('selectedSort', value)}
+            onSortChange={value => updateFilter("selectedSort", value)}
             options={SORT_OPTIONS}
           />
         </Flex>
@@ -226,19 +220,19 @@ export function Datasets() {
 
       {/* 데이터셋 그리드 */}
       {filteredDatasets.length === 0 ? (
-        <Flex 
-          direction="column" 
-          align="center" 
-          gap="4" 
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
           py="9"
-          style={{ 
-            minHeight: "60vh", 
+          style={{
+            minHeight: "60vh",
             justifyContent: "center",
             background: "white",
             borderRadius: "16px",
             padding: "40px",
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)"
+            border: "1px solid var(--gray-4)",
           }}
         >
           <Box
@@ -281,9 +275,9 @@ export function Datasets() {
           </Button>
         </Flex>
       ) : (
-        <Grid 
-          columns={{ initial: "1", sm: "2", lg: "3" }} 
-          gap="4" 
+        <Grid
+          columns={{ initial: "1", sm: "2", lg: "3" }}
+          gap="4"
           className="modelGrid"
           style={{
             maxWidth: "100%",
@@ -293,12 +287,7 @@ export function Datasets() {
           }}
         >
           {filteredDatasets.map((dataset, index) => (
-            <DatasetCard
-              key={dataset.id}
-              dataset={dataset}
-              index={index}
-              isLoaded={isLoaded}
-            />
+            <DatasetCard key={dataset.id} dataset={dataset} index={index} isLoaded={isLoaded} />
           ))}
         </Grid>
       )}

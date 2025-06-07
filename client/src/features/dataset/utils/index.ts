@@ -1,5 +1,5 @@
-import { DATA_TYPE_ICONS, DATA_TYPE_COLORS, ANNOTATION_COLORS } from '../constants';
-import { DataObject } from '../types';
+import { DATA_TYPE_ICONS, DATA_TYPE_COLORS, ANNOTATION_COLORS } from "../constants";
+import { DataObject } from "../types";
 
 /**
  * 데이터 크기를 포맷팅하는 함수
@@ -74,4 +74,4 @@ export const extractUniqueTags = (datasets: any[]): string[] => {
  */
 export const generateBlobCacheKey = (blobId: string, index: number): string => {
   return `${blobId}_${index}`;
-}; 
+};

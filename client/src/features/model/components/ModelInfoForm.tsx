@@ -35,14 +35,12 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
           {/* 모델 이름 */}
           <Box style={{ flex: 1 }}>
             <Flex align="baseline" gap="1" mb="1">
-              <Text 
-                as="label" 
-                size="2" 
-                style={{ fontWeight: 500, display: "block" }}
-              >
+              <Text as="label" size="2" style={{ fontWeight: 500, display: "block" }}>
                 Model Name
               </Text>
-              <Text size="1" style={{ color: "#FF5733" }}>*</Text>
+              <Text size="1" style={{ color: "#FF5733" }}>
+                *
+              </Text>
             </Flex>
             <TextField.Root
               size="2"
@@ -64,19 +62,14 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
           {/* 모델 타입 */}
           <Box style={{ flex: 1 }}>
             <Flex align="baseline" gap="1" mb="1">
-              <Text
-                as="label"
-                size="2"
-                style={{ fontWeight: 500, display: "block" }}
-              >
+              <Text as="label" size="2" style={{ fontWeight: 500, display: "block" }}>
                 Model Type
               </Text>
-              <Text size="1" style={{ color: "#FF5733" }}>*</Text>
+              <Text size="1" style={{ color: "#FF5733" }}>
+                *
+              </Text>
             </Flex>
-            <Select.Root 
-              value={modelInfo.modelType} 
-              onValueChange={handleModelTypeChange}
-            >
+            <Select.Root value={modelInfo.modelType} onValueChange={handleModelTypeChange}>
               <Select.Trigger
                 style={{
                   width: "100%",
@@ -93,15 +86,16 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
               >
                 <Flex align="center" gap="2">
                   <span>
-                    {MODEL_TYPE_OPTIONS.find(option => option.value === modelInfo.modelType)?.label || modelInfo.modelType}
+                    {MODEL_TYPE_OPTIONS.find(option => option.value === modelInfo.modelType)
+                      ?.label || modelInfo.modelType}
                   </span>
                 </Flex>
               </Select.Trigger>
               <Select.Content>
                 {MODEL_TYPE_OPTIONS.map(option => (
-                  <Select.Item 
+                  <Select.Item
                     key={option.value}
-                    value={option.value} 
+                    value={option.value}
                     style={{ cursor: "pointer" }}
                   >
                     {option.label}
@@ -118,14 +112,12 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
         {/* 모델 설명 */}
         <Box>
           <Flex align="baseline" gap="1" mb="1">
-            <Text
-              as="label"
-              size="2"
-              style={{ fontWeight: 500, display: "block" }}
-            >
+            <Text as="label" size="2" style={{ fontWeight: 500, display: "block" }}>
               Description
             </Text>
-            <Text size="1" style={{ color: "#FF5733" }}>*</Text>
+            <Text size="1" style={{ color: "#FF5733" }}>
+              *
+            </Text>
           </Flex>
           <TextArea
             size="2"
@@ -155,4 +147,4 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
       </Flex>
     </Card>
   );
-} 
+}

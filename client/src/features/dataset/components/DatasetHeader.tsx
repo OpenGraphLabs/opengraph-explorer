@@ -29,7 +29,7 @@ export function DatasetHeader({ dataset, uniqueBlobId }: DatasetHeaderProps) {
         >
           {getDataTypeIcon(dataset.dataType)}
         </Box>
-        
+
         <Box style={{ flex: 1 }}>
           <Heading size="7" mb="2" style={{ fontWeight: 700 }}>
             {dataset.name}
@@ -61,7 +61,7 @@ export function DatasetHeader({ dataset, uniqueBlobId }: DatasetHeaderProps) {
             </Badge>
           </Flex>
         </Box>
-        
+
         <Flex gap="3">
           {uniqueBlobId && (
             <Tooltip content="View dataset blob on WalrusScan">
@@ -79,7 +79,9 @@ export function DatasetHeader({ dataset, uniqueBlobId }: DatasetHeaderProps) {
               >
                 <Flex align="center" gap="2">
                   <Database size={16} />
-                  <Text size="2" weight="medium">WalrusScan</Text>
+                  <Text size="2" weight="medium">
+                    WalrusScan
+                  </Text>
                   <ExternalLinkIcon />
                 </Flex>
               </Button>
@@ -99,7 +101,9 @@ export function DatasetHeader({ dataset, uniqueBlobId }: DatasetHeaderProps) {
               onClick={() => window.open(getSuiScanUrl("object", dataset.id), "_blank")}
             >
               <Flex align="center" gap="2">
-                <Text size="2" weight="medium">Sui Explorer</Text>
+                <Text size="2" weight="medium">
+                  Sui Explorer
+                </Text>
                 <ExternalLinkIcon />
               </Flex>
             </Button>
@@ -155,11 +159,10 @@ export function DatasetHeader({ dataset, uniqueBlobId }: DatasetHeaderProps) {
               fontWeight: 500,
             }}
             className="hover-effect"
-            onClick={() =>
-              window.open(getSuiScanUrl("account", dataset.creator || ""), "_blank")
-            }
+            onClick={() => window.open(getSuiScanUrl("account", dataset.creator || ""), "_blank")}
           >
-            Created by {dataset.creator
+            Created by{" "}
+            {dataset.creator
               ? `${dataset.creator.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...`
               : "Unknown"}
             <ExternalLinkIcon style={{ width: "14px", height: "14px", opacity: 0.7 }} />
@@ -168,4 +171,4 @@ export function DatasetHeader({ dataset, uniqueBlobId }: DatasetHeaderProps) {
       </Flex>
     </Box>
   );
-} 
+}

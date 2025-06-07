@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Box, Flex, Text, Heading } from "@radix-ui/themes";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
-import { 
-  DatasetSelector, 
-  useBlobDataManager, 
+import {
+  DatasetSelector,
+  useBlobDataManager,
   useAnnotationState,
   ImageViewer,
 } from "@/features/annotation";
@@ -18,7 +18,7 @@ export function Annotator() {
 
   // Blob data management
   const blobManager = useBlobDataManager(selectedDataset);
-  
+
   // Annotation state management
   const annotationManager = useAnnotationState();
 
@@ -46,24 +46,27 @@ export function Annotator() {
   useEffect(() => {
     const handleGlobalKeyPress = (e: KeyboardEvent) => {
       if (!selectedDataset) return;
-      
+
       // Only handle if not focused on input elements
-      if (document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'INPUT') {
+      if (
+        document.activeElement?.tagName === "TEXTAREA" ||
+        document.activeElement?.tagName === "INPUT"
+      ) {
         return;
       }
-      
-      if (e.key === 'ArrowLeft') {
+
+      if (e.key === "ArrowLeft") {
         e.preventDefault();
-        handleNavigation('prev');
-      } else if (e.key === 'ArrowRight') {
+        handleNavigation("prev");
+      } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        handleNavigation('next');
+        handleNavigation("next");
       }
     };
 
-    document.addEventListener('keydown', handleGlobalKeyPress);
+    document.addEventListener("keydown", handleGlobalKeyPress);
     return () => {
-      document.removeEventListener('keydown', handleGlobalKeyPress);
+      document.removeEventListener("keydown", handleGlobalKeyPress);
     };
   }, [selectedDataset, currentImageIndex]);
 
@@ -91,26 +94,26 @@ export function Annotator() {
     setCurrentImageIndex(0);
   };
 
-  const handleNavigation = (direction: 'prev' | 'next') => {
+  const handleNavigation = (direction: "prev" | "next") => {
     if (!selectedDataset) return;
-    
-    if (direction === 'prev' && currentImageIndex > 0) {
+
+    if (direction === "prev" && currentImageIndex > 0) {
       setCurrentImageIndex(prev => prev - 1);
-    } else if (direction === 'next' && currentImageIndex < selectedDataset.data.length - 1) {
+    } else if (direction === "next" && currentImageIndex < selectedDataset.data.length - 1) {
       setCurrentImageIndex(prev => prev + 1);
     }
   };
 
   const handleKeyPress = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       const value = annotationManager.currentInput.trim();
       if (value && selectedDataset && getCurrentImage()) {
         const currentImage = getCurrentImage()!;
-        
+
         // Add annotation
         annotationManager.addAnnotation(currentImage, currentImageIndex, value);
-        
+
         // Move to next image
         if (currentImageIndex < selectedDataset.data.length - 1) {
           setCurrentImageIndex(prev => prev + 1);
@@ -118,13 +121,12 @@ export function Annotator() {
       }
     }
     // Arrow key navigation
-    else if (e.key === 'ArrowLeft' && e.ctrlKey) {
+    else if (e.key === "ArrowLeft" && e.ctrlKey) {
       e.preventDefault();
-      handleNavigation('prev');
-    }
-    else if (e.key === 'ArrowRight' && e.ctrlKey) {
+      handleNavigation("prev");
+    } else if (e.key === "ArrowRight" && e.ctrlKey) {
       e.preventDefault();
-      handleNavigation('next');
+      handleNavigation("next");
     }
   };
 
@@ -153,7 +155,7 @@ export function Annotator() {
     <Box p="5">
       <Flex direction="column" gap="4">
         <Heading size="6">Dataset Annotator</Heading>
-        
+
         {/* Dataset Selection */}
         <DatasetSelector
           datasets={datasets}
@@ -177,11 +179,11 @@ export function Annotator() {
                   getImageUrl={blobManager.getImageUrl}
                   onNavigate={handleNavigation}
                 />
-                
+
                 {/* Annotation Input */}
-                <Flex 
-                  direction="column" 
-                  gap="3" 
+                <Flex
+                  direction="column"
+                  gap="3"
                   mt="4"
                   style={{
                     maxWidth: "600px",
@@ -190,14 +192,16 @@ export function Annotator() {
                   }}
                 >
                   <textarea
-                    placeholder={blobManager.isCurrentImageBlobLoading(getCurrentImage()) 
-                      ? "Loading image data..." 
-                      : "Enter annotation and press Enter... (Use ← → arrows to navigate)"}
+                    placeholder={
+                      blobManager.isCurrentImageBlobLoading(getCurrentImage())
+                        ? "Loading image data..."
+                        : "Enter annotation and press Enter... (Use ← → arrows to navigate)"
+                    }
                     value={annotationManager.currentInput}
-                    onChange={(e) => annotationManager.updateCurrentInput(e.target.value)}
+                    onChange={e => annotationManager.updateCurrentInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     disabled={blobManager.isCurrentImageBlobLoading(getCurrentImage())}
-                    style={{ 
+                    style={{
                       width: "100%",
                       resize: "none",
                       height: "44px",
@@ -207,7 +211,9 @@ export function Annotator() {
                       fontSize: "14px",
                       lineHeight: "24px",
                       opacity: blobManager.isCurrentImageBlobLoading(getCurrentImage()) ? 0.6 : 1,
-                      cursor: blobManager.isCurrentImageBlobLoading(getCurrentImage()) ? "not-allowed" : "text",
+                      cursor: blobManager.isCurrentImageBlobLoading(getCurrentImage())
+                        ? "not-allowed"
+                        : "text",
                       background: "white",
                       outline: "none",
                     }}
@@ -226,18 +232,20 @@ export function Annotator() {
                   <Text size="2" weight="bold">
                     Pending Annotations ({annotationManager.pendingAnnotations.length})
                   </Text>
-                  <Box 
-                    style={{ 
-                      height: "300px", 
-                      overflow: "auto", 
-                      background: "var(--gray-2)", 
+                  <Box
+                    style={{
+                      height: "300px",
+                      overflow: "auto",
+                      background: "var(--gray-2)",
                       borderRadius: "8px",
-                      padding: "8px"
+                      padding: "8px",
                     }}
                   >
                     {annotationManager.pendingAnnotations.map((annotation, index) => (
                       <Box key={index} style={{ marginBottom: "8px", fontSize: "12px" }}>
-                        <Text size="1" weight="bold">{annotation.path}</Text>
+                        <Text size="1" weight="bold">
+                          {annotation.path}
+                        </Text>
                         <br />
                         <Text size="1">{annotation.label.join(", ")}</Text>
                       </Box>
@@ -251,8 +259,13 @@ export function Annotator() {
             {annotationManager.pendingAnnotations.length > 0 && (
               <Flex justify="center" p="4">
                 <button
-                  onClick={() => selectedDataset && annotationManager.savePendingAnnotations(selectedDataset)}
-                  disabled={annotationManager.saving || annotationManager.transactionStatus.status === 'pending'}
+                  onClick={() =>
+                    selectedDataset && annotationManager.savePendingAnnotations(selectedDataset)
+                  }
+                  disabled={
+                    annotationManager.saving ||
+                    annotationManager.transactionStatus.status === "pending"
+                  }
                   style={{
                     background: "#FF5733",
                     color: "white",
@@ -265,27 +278,36 @@ export function Annotator() {
                     fontWeight: "500",
                   }}
                 >
-                  {annotationManager.saving ? "Saving..." : `Save ${annotationManager.pendingAnnotations.length} Annotations`}
+                  {annotationManager.saving
+                    ? "Saving..."
+                    : `Save ${annotationManager.pendingAnnotations.length} Annotations`}
                 </button>
               </Flex>
             )}
 
             {/* Transaction Status */}
-            {annotationManager.transactionStatus.status !== 'idle' && (
-              <Box p="4" style={{ 
-                background: annotationManager.transactionStatus.status === 'success' 
-                  ? "var(--green-3)" 
-                  : annotationManager.transactionStatus.status === 'failed'
-                  ? "var(--red-3)"
-                  : "var(--blue-3)",
-                borderRadius: "8px",
-                textAlign: "center"
-              }}>
+            {annotationManager.transactionStatus.status !== "idle" && (
+              <Box
+                p="4"
+                style={{
+                  background:
+                    annotationManager.transactionStatus.status === "success"
+                      ? "var(--green-3)"
+                      : annotationManager.transactionStatus.status === "failed"
+                        ? "var(--red-3)"
+                        : "var(--blue-3)",
+                  borderRadius: "8px",
+                  textAlign: "center",
+                }}
+              >
                 <Text size="2" weight="bold">
                   {annotationManager.transactionStatus.message}
                 </Text>
                 {annotationManager.transactionStatus.txHash && (
-                  <Text size="1" style={{ display: "block", marginTop: "4px", fontFamily: "monospace" }}>
+                  <Text
+                    size="1"
+                    style={{ display: "block", marginTop: "4px", fontFamily: "monospace" }}
+                  >
                     TX: {annotationManager.transactionStatus.txHash.substring(0, 20)}...
                   </Text>
                 )}
@@ -295,13 +317,17 @@ export function Annotator() {
         )}
 
         {selectedDataset && !isImageType(selectedDataset.dataType) && (
-          <Box p="4" style={{ background: "var(--gray-3)", borderRadius: "8px", textAlign: "center" }}>
+          <Box
+            p="4"
+            style={{ background: "var(--gray-3)", borderRadius: "8px", textAlign: "center" }}
+          >
             <Text size="3" style={{ color: "var(--gray-11)" }}>
-              This dataset contains {selectedDataset.dataType} data. Only image datasets are currently supported for annotation.
+              This dataset contains {selectedDataset.dataType} data. Only image datasets are
+              currently supported for annotation.
             </Text>
           </Box>
         )}
       </Flex>
     </Box>
   );
-} 
+}

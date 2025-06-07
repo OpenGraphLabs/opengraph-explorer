@@ -1,5 +1,5 @@
-import { Card, Flex, Heading, Text, Grid, Box } from '@radix-ui/themes';
-import { Database } from 'phosphor-react';
+import { Card, Flex, Heading, Text, Grid, Box } from "@radix-ui/themes";
+import { Database } from "phosphor-react";
 import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
 
 interface DatasetSelectorProps {
@@ -10,12 +10,12 @@ interface DatasetSelectorProps {
   error?: string | null;
 }
 
-export function DatasetSelector({ 
-  datasets, 
-  selectedDataset, 
-  onDatasetSelect, 
-  loading = false, 
-  error = null 
+export function DatasetSelector({
+  datasets,
+  selectedDataset,
+  onDatasetSelect,
+  loading = false,
+  error = null,
 }: DatasetSelectorProps) {
   if (loading) {
     return (
@@ -62,12 +62,11 @@ export function DatasetSelector({
                 key={dataset.id}
                 style={{
                   cursor: "pointer",
-                  border: selectedDataset?.id === dataset.id 
-                    ? "2px solid #FF5733" 
-                    : "1px solid var(--gray-6)",
-                  background: selectedDataset?.id === dataset.id 
-                    ? "var(--orange-2)" 
-                    : "white",
+                  border:
+                    selectedDataset?.id === dataset.id
+                      ? "2px solid #FF5733"
+                      : "1px solid var(--gray-6)",
+                  background: selectedDataset?.id === dataset.id ? "var(--orange-2)" : "white",
                   transition: "all 0.2s ease",
                 }}
                 onClick={() => onDatasetSelect(dataset)}
@@ -75,32 +74,26 @@ export function DatasetSelector({
                 <Flex align="center" gap="2" p="2">
                   <Box
                     style={{
-                      color: selectedDataset?.id === dataset.id 
-                        ? "#FF5733" 
-                        : "var(--gray-11)",
+                      color: selectedDataset?.id === dataset.id ? "#FF5733" : "var(--gray-11)",
                     }}
                   >
                     <Database size={24} />
                   </Box>
                   <Box>
-                    <Text 
-                      size="2" 
+                    <Text
+                      size="2"
                       weight="bold"
                       style={{
-                        color: selectedDataset?.id === dataset.id 
-                          ? "#FF5733" 
-                          : "var(--gray-12)",
+                        color: selectedDataset?.id === dataset.id ? "#FF5733" : "var(--gray-12)",
                       }}
                     >
                       {dataset.name}
                     </Text>
-                    <Text 
-                      size="1" 
-                      style={{ 
-                        marginLeft: '6px',
-                        color: selectedDataset?.id === dataset.id 
-                          ? "#FF8C66" 
-                          : "var(--gray-11)",
+                    <Text
+                      size="1"
+                      style={{
+                        marginLeft: "6px",
+                        color: selectedDataset?.id === dataset.id ? "#FF8C66" : "var(--gray-11)",
                       }}
                     >
                       {dataset.dataType} • {dataset.dataCount} items
@@ -114,4 +107,4 @@ export function DatasetSelector({
       </Flex>
     </Card>
   );
-} 
+}

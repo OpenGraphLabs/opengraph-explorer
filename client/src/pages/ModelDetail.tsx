@@ -1,15 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  Box,
-  Flex,
-  Heading,
-  Text,
-  Tabs,
-  Badge,
-  Card,
-  Button,
-} from "@radix-ui/themes";
+import { Box, Flex, Heading, Text, Tabs, Badge, Card, Button } from "@radix-ui/themes";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { useModelById } from "@/shared/hooks/useModels";

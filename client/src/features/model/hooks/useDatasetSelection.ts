@@ -5,7 +5,7 @@ import type { DatasetSelectionInfo, DatasetFilters, DatasetObject } from "../typ
 
 export const useDatasetSelection = () => {
   const { currentWallet } = useCurrentWallet();
-  
+
   const [datasetInfo, setDatasetInfo] = useState<DatasetSelectionInfo>({
     availableDatasets: [],
     selectedTrainingDataset: null,
@@ -13,7 +13,7 @@ export const useDatasetSelection = () => {
     isLoading: false,
     error: null,
   });
-  
+
   const [filters, setFilters] = useState<DatasetFilters>({
     selectedTags: [],
     searchQuery: "",
@@ -58,16 +58,17 @@ export const useDatasetSelection = () => {
   const getFilteredDatasets = () => {
     return datasetInfo.availableDatasets.filter(dataset => {
       // 검색 필터
-      const searchFilter = 
+      const searchFilter =
         filters.searchQuery === "" ||
         dataset.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        (dataset.description && dataset.description.toLowerCase().includes(filters.searchQuery.toLowerCase()));
-      
+        (dataset.description &&
+          dataset.description.toLowerCase().includes(filters.searchQuery.toLowerCase()));
+
       // 태그 필터
-      const tagFilter = 
-        filters.selectedTags.length === 0 || 
+      const tagFilter =
+        filters.selectedTags.length === 0 ||
         (dataset.tags && filters.selectedTags.every(tag => dataset.tags?.includes(tag)));
-      
+
       return searchFilter && tagFilter;
     });
   };
@@ -78,7 +79,7 @@ export const useDatasetSelection = () => {
       ...prev,
       selectedTags: prev.selectedTags.includes(tag)
         ? prev.selectedTags.filter(t => t !== tag)
-        : [...prev.selectedTags, tag]
+        : [...prev.selectedTags, tag],
     }));
   };
 
@@ -138,4 +139,4 @@ export const useDatasetSelection = () => {
     clearTestDatasets,
     refetchDatasets: fetchUserDatasets,
   };
-}; 
+};

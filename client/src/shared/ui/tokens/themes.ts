@@ -1,40 +1,40 @@
-import { brandColors, statusColors, neutralColors, gradients } from './colors';
+import { brandColors, statusColors, neutralColors, gradients } from "./colors";
 
 export const lightTheme = {
   colors: {
     // Background colors
     background: {
-      primary: '#FFFFFF',
-      secondary: '#FAFBFC',
-      tertiary: '#F8F9FA',
-      card: '#FFFFFF',
-      overlay: 'rgba(0, 0, 0, 0.5)',
+      primary: "#FFFFFF",
+      secondary: "#FAFBFC",
+      tertiary: "#F8F9FA",
+      card: "#FFFFFF",
+      overlay: "rgba(0, 0, 0, 0.5)",
     },
-    
+
     // Text colors
     text: {
-      primary: '#212529',
-      secondary: '#6C757D',
-      tertiary: '#ADB5BD',
-      inverse: '#FFFFFF',
+      primary: "#212529",
+      secondary: "#6C757D",
+      tertiary: "#ADB5BD",
+      inverse: "#FFFFFF",
       brand: brandColors.primary[500],
       success: statusColors.success[800],
       warning: statusColors.warning[800],
       error: statusColors.error[700],
       info: statusColors.info[800],
     },
-    
+
     // Border colors
     border: {
-      primary: '#DEE2E6',
-      secondary: '#E9ECEF',
+      primary: "#DEE2E6",
+      secondary: "#E9ECEF",
       brand: brandColors.primary[200],
       success: statusColors.success[200],
       warning: statusColors.warning[200],
       error: statusColors.error[200],
       info: statusColors.info[200],
     },
-    
+
     // Interactive colors
     interactive: {
       primary: brandColors.primary[500],
@@ -44,7 +44,7 @@ export const lightTheme = {
       secondaryHover: neutralColors[300],
       secondaryActive: neutralColors[400],
     },
-    
+
     // Status colors
     status: {
       success: statusColors.success[500],
@@ -56,37 +56,37 @@ export const lightTheme = {
       info: statusColors.info[500],
       infoBg: statusColors.info[50],
     },
-    
+
     // Data type specific colors
     dataType: {
       image: {
-        bg: '#E8F5E9',
-        text: '#2E7D32',
-        border: '#A5D6A7'
+        bg: "#E8F5E9",
+        text: "#2E7D32",
+        border: "#A5D6A7",
       },
       text: {
-        bg: '#E3F2FD',
-        text: '#1565C0',
-        border: '#90CAF9'
+        bg: "#E3F2FD",
+        text: "#1565C0",
+        border: "#90CAF9",
       },
       csv: {
-        bg: '#E0F7FA',
-        text: '#00838F',
-        border: '#80DEEA'
+        bg: "#E0F7FA",
+        text: "#00838F",
+        border: "#80DEEA",
       },
       zip: {
-        bg: '#FFF3E0',
-        text: '#E65100',
-        border: '#FFCC80'
+        bg: "#FFF3E0",
+        text: "#E65100",
+        border: "#FFCC80",
       },
       default: {
-        bg: '#F3E8FD',
-        text: '#7E22CE',
-        border: '#D0BCFF'
-      }
-    }
+        bg: "#F3E8FD",
+        text: "#7E22CE",
+        border: "#D0BCFF",
+      },
+    },
   },
-  
+
   gradients: {
     primary: gradients.primary,
     primaryLight: gradients.primaryLight,
@@ -96,50 +96,50 @@ export const lightTheme = {
     neutral: gradients.neutral,
     warm: gradients.warm,
   },
-  
+
   shadows: {
-    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-  }
+    sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+  },
 } as const;
 
 export const darkTheme = {
   colors: {
     // Background colors
     background: {
-      primary: '#1A1A1A',
-      secondary: '#212529',
-      tertiary: '#343A40',
-      card: '#212529',
-      overlay: 'rgba(0, 0, 0, 0.7)',
+      primary: "#1A1A1A",
+      secondary: "#212529",
+      tertiary: "#343A40",
+      card: "#212529",
+      overlay: "rgba(0, 0, 0, 0.7)",
     },
-    
+
     // Text colors
     text: {
-      primary: '#F8F9FA',
-      secondary: '#ADB5BD',
-      tertiary: '#6C757D',
-      inverse: '#212529',
+      primary: "#F8F9FA",
+      secondary: "#ADB5BD",
+      tertiary: "#6C757D",
+      inverse: "#212529",
       brand: brandColors.primary[400],
       success: statusColors.success[400],
       warning: statusColors.warning[400],
       error: statusColors.error[400],
       info: statusColors.info[400],
     },
-    
+
     // Border colors
     border: {
-      primary: '#495057',
-      secondary: '#343A40',
+      primary: "#495057",
+      secondary: "#343A40",
       brand: brandColors.primary[600],
       success: statusColors.success[600],
       warning: statusColors.warning[600],
       error: statusColors.error[600],
       info: statusColors.info[600],
     },
-    
+
     // Interactive colors
     interactive: {
       primary: brandColors.primary[400],
@@ -149,7 +149,7 @@ export const darkTheme = {
       secondaryHover: neutralColors[600],
       secondaryActive: neutralColors[500],
     },
-    
+
     // Status colors
     status: {
       success: statusColors.success[400],
@@ -161,53 +161,53 @@ export const darkTheme = {
       info: statusColors.info[400],
       infoBg: statusColors.info[900],
     },
-    
+
     // Data type specific colors (adjusted for dark theme)
     dataType: {
       image: {
-        bg: 'rgba(76, 175, 80, 0.1)',
-        text: '#81C784',
-        border: '#388E3C'
+        bg: "rgba(76, 175, 80, 0.1)",
+        text: "#81C784",
+        border: "#388E3C",
       },
       text: {
-        bg: 'rgba(33, 150, 243, 0.1)',
-        text: '#64B5F6',
-        border: '#1976D2'
+        bg: "rgba(33, 150, 243, 0.1)",
+        text: "#64B5F6",
+        border: "#1976D2",
       },
       csv: {
-        bg: 'rgba(0, 188, 212, 0.1)',
-        text: '#4DD0E1',
-        border: '#00838F'
+        bg: "rgba(0, 188, 212, 0.1)",
+        text: "#4DD0E1",
+        border: "#00838F",
       },
       zip: {
-        bg: 'rgba(255, 152, 0, 0.1)',
-        text: '#FFB74D',
-        border: '#E65100'
+        bg: "rgba(255, 152, 0, 0.1)",
+        text: "#FFB74D",
+        border: "#E65100",
       },
       default: {
-        bg: 'rgba(156, 39, 176, 0.1)',
-        text: '#BA68C8',
-        border: '#7E22CE'
-      }
-    }
+        bg: "rgba(156, 39, 176, 0.1)",
+        text: "#BA68C8",
+        border: "#7E22CE",
+      },
+    },
   },
-  
+
   gradients: {
-    primary: 'linear-gradient(90deg, #FF8C66 0%, #FF5733 100%)',
-    primaryLight: 'linear-gradient(135deg, #343A40 0%, #212529 100%)',
-    secondary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    success: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%)',
-    error: 'linear-gradient(135deg, rgba(244, 67, 54, 0.2) 0%, rgba(244, 67, 54, 0.1) 100%)',
-    neutral: 'linear-gradient(135deg, #343A40 0%, #212529 100%)',
-    warm: 'linear-gradient(135deg, rgba(255, 229, 220, 0.1) 0%, rgba(255, 206, 191, 0.1) 100%)',
+    primary: "linear-gradient(90deg, #FF8C66 0%, #FF5733 100%)",
+    primaryLight: "linear-gradient(135deg, #343A40 0%, #212529 100%)",
+    secondary: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    success: "linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%)",
+    error: "linear-gradient(135deg, rgba(244, 67, 54, 0.2) 0%, rgba(244, 67, 54, 0.1) 100%)",
+    neutral: "linear-gradient(135deg, #343A40 0%, #212529 100%)",
+    warm: "linear-gradient(135deg, rgba(255, 229, 220, 0.1) 0%, rgba(255, 206, 191, 0.1) 100%)",
   },
-  
+
   shadows: {
-    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
-    md: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
-    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
-    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
-  }
+    sm: "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+    md: "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)",
+    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)",
+    xl: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)",
+  },
 } as const;
 
 // Base theme structure
@@ -284,4 +284,4 @@ type BaseTheme = {
 };
 
 export type Theme = BaseTheme;
-export type ThemeMode = 'light' | 'dark'; 
+export type ThemeMode = "light" | "dark";

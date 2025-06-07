@@ -23,10 +23,10 @@ export const DATA_TYPE_COLORS: Record<string, { bg: string; text: string; border
 
 // 데이터 유형별 표시 이름
 export const DATA_TYPE_NAMES: Record<string, string> = {
-  "image": "Images",
-  "text": "Text",
-  "application": "Applications",
-  "default": "Data"
+  image: "Images",
+  text: "Text",
+  application: "Applications",
+  default: "Data",
 };
 
 // Annotation 색상 팔레트
@@ -66,4 +66,4 @@ export {
   DEFAULT_UPLOAD_PROGRESS,
   UPLOAD_CONFIG,
   UPLOAD_MESSAGES,
-} from './upload'; 
+} from "./upload";

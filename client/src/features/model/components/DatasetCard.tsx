@@ -58,7 +58,7 @@ export function DatasetCard({
           {disabledReason}
         </Box>
       )}
-      
+
       <Flex
         direction="column"
         gap="2"
@@ -107,11 +107,11 @@ export function DatasetCard({
                   marginLeft: "4px",
                 }}
               >
-                {dataset.dataType.split('/')[0]}
+                {dataset.dataType.split("/")[0]}
               </Badge>
             </Box>
           </Flex>
-          
+
           {onRemove && (
             <Button
               size="1"
@@ -133,7 +133,7 @@ export function DatasetCard({
               Remove
             </Button>
           )}
-          
+
           {isSelected && !onRemove && (
             <Box
               style={{
@@ -175,7 +175,7 @@ export function DatasetCard({
               {formatDataSize(dataset.dataSize)}
             </Text>
           </Box>
-          
+
           <Box style={{ display: "flex", gap: "1px", alignItems: "center" }}>
             <Text size="1" style={{ color: "var(--gray-11)" }}>
               Items:
@@ -184,7 +184,7 @@ export function DatasetCard({
               {dataset.dataCount}
             </Text>
           </Box>
-          
+
           <Box style={{ display: "flex", gap: "1px", alignItems: "center" }}>
             <Text size="1" style={{ color: "var(--gray-11)" }}>
               License:
@@ -197,7 +197,7 @@ export function DatasetCard({
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
                 marginLeft: "4px",
-                maxWidth: "60px"
+                maxWidth: "60px",
               }}
             >
               {dataset.license || "N/A"}
@@ -239,4 +239,4 @@ export function DatasetCard({
       </Flex>
     </Card>
   );
-} 
+}

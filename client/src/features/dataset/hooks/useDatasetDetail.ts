@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { datasetGraphQLService, DatasetObject, PaginationOptions } from "@/shared/api/graphql/datasetGraphQLService";
+import {
+  datasetGraphQLService,
+  DatasetObject,
+  PaginationOptions,
+} from "@/shared/api/graphql/datasetGraphQLService";
 import { ActiveTab, TotalCounts, ConfirmationStatus } from "../types";
 import { DEFAULT_PAGE_SIZE } from "../constants";
 
@@ -13,26 +17,26 @@ export const useDatasetDetail = (id: string | undefined) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paginationLoading, setPaginationLoading] = useState(false);
-  
+
   // 페이지네이션 상태
   const [currentCursors, setCurrentCursors] = useState<{
     startCursor?: string;
     endCursor?: string;
   }>({});
-  
+
   // 탭별 페이지 상태
   const [confirmedPage, setConfirmedPage] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('confirmed');
-  
+  const [activeTab, setActiveTab] = useState<ActiveTab>("confirmed");
+
   // 캐시된 아이템들
   const [cachedItems, setCachedItems] = useState<any[]>([]);
-  
+
   // 총 개수
   const [totalCounts, setTotalCounts] = useState<TotalCounts>({
     total: 0,
     confirmed: 0,
-    pending: 0
+    pending: 0,
   });
 
   // 모달 관련 상태
@@ -44,8 +48,8 @@ export const useDatasetDetail = (id: string | undefined) => {
 
   // 트랜잭션 상태
   const [confirmationStatus, setConfirmationStatus] = useState<ConfirmationStatus>({
-    status: 'idle',
-    message: '',
+    status: "idle",
+    message: "",
   });
 
   useEffect(() => {
@@ -67,11 +71,11 @@ export const useDatasetDetail = (id: string | undefined) => {
       if (!id) throw new Error("Dataset ID is required");
 
       const result = await datasetGraphQLService.getDatasetById(id, {
-        first: 50
+        first: 50,
       });
-      
+
       setDataset(result);
-      
+
       if (result?.pageInfo) {
         setCurrentCursors({
           startCursor: result.pageInfo.startCursor,
@@ -84,11 +88,11 @@ export const useDatasetDetail = (id: string | undefined) => {
         const confirmed = result.data.filter(item => hasConfirmedAnnotations(item));
         const confirmedCount = confirmed.length;
         const pendingCount = totalDataCount - confirmedCount;
-        
+
         setTotalCounts({
           total: totalDataCount,
           confirmed: confirmedCount,
-          pending: pendingCount
+          pending: pendingCount,
         });
 
         updateCachedItems(result.data);
@@ -102,10 +106,11 @@ export const useDatasetDetail = (id: string | undefined) => {
   };
 
   const updateCachedItems = (items: any[]) => {
-    const filteredItems = activeTab === 'confirmed'
-      ? items.filter(item => hasConfirmedAnnotations(item))
-      : items.filter(item => !hasConfirmedAnnotations(item));
-    
+    const filteredItems =
+      activeTab === "confirmed"
+        ? items.filter(item => hasConfirmedAnnotations(item))
+        : items.filter(item => !hasConfirmedAnnotations(item));
+
     setCachedItems(filteredItems);
   };
 
@@ -115,31 +120,31 @@ export const useDatasetDetail = (id: string | undefined) => {
     return cachedItems.slice(start, end);
   };
 
-  const loadPage = async (direction: 'next' | 'prev') => {
+  const loadPage = async (direction: "next" | "prev") => {
     if (!id || !dataset) return;
-    
+
     try {
       setPaginationLoading(true);
-      
-      const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
-      const setPage = activeTab === 'confirmed' ? setConfirmedPage : setPendingPage;
-      
-      const totalItems = activeTab === 'confirmed' ? totalCounts.confirmed : totalCounts.pending;
+
+      const currentPage = activeTab === "confirmed" ? confirmedPage : pendingPage;
+      const setPage = activeTab === "confirmed" ? setConfirmedPage : setPendingPage;
+
+      const totalItems = activeTab === "confirmed" ? totalCounts.confirmed : totalCounts.pending;
       const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
-      
-      if (direction === 'next') {
+
+      if (direction === "next") {
         const nextPageStart = currentPage * DEFAULT_PAGE_SIZE;
         const nextPageEnd = nextPageStart + DEFAULT_PAGE_SIZE;
         const needsMoreData = nextPageEnd > cachedItems.length;
-        
+
         if (needsMoreData && dataset.pageInfo?.hasNextPage) {
           const paginationOptions: PaginationOptions = {
             first: 50,
-            after: currentCursors.endCursor
+            after: currentCursors.endCursor,
           };
-          
+
           const paginatedData = await datasetGraphQLService.getDatasetData(id, paginationOptions);
-          
+
           if (paginatedData && paginatedData.data) {
             const updatedDataset = {
               ...dataset,
@@ -147,7 +152,7 @@ export const useDatasetDetail = (id: string | undefined) => {
               pageInfo: paginatedData.pageInfo,
             };
             setDataset(updatedDataset);
-            
+
             setCurrentCursors({
               startCursor: paginatedData.pageInfo.startCursor,
               endCursor: paginatedData.pageInfo.endCursor,
@@ -156,11 +161,11 @@ export const useDatasetDetail = (id: string | undefined) => {
             updateCachedItems([...dataset.data, ...paginatedData.data]);
           }
         }
-        
+
         if (currentPage < totalPages) {
           setPage(currentPage + 1);
         }
-      } else if (direction === 'prev' && currentPage > 1) {
+      } else if (direction === "prev" && currentPage > 1) {
         setPage(currentPage - 1);
       }
     } catch (error) {
@@ -171,10 +176,14 @@ export const useDatasetDetail = (id: string | undefined) => {
     }
   };
 
-  const handleImageClick = (item: any, index: number, getImageUrl: (item: any, index: number) => string) => {
-    const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
+  const handleImageClick = (
+    item: any,
+    index: number,
+    getImageUrl: (item: any, index: number) => string
+  ) => {
+    const currentPage = activeTab === "confirmed" ? confirmedPage : pendingPage;
     const absoluteIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE + index;
-    
+
     setSelectedImage(getImageUrl(item, absoluteIndex));
     setSelectedImageData(item);
     setSelectedImageIndex(absoluteIndex);
@@ -188,14 +197,14 @@ export const useDatasetDetail = (id: string | undefined) => {
     setSelectedImageIndex(-1);
     setSelectedPendingLabels(new Set());
     setConfirmationStatus({
-      status: 'idle',
-      message: '',
+      status: "idle",
+      message: "",
     });
   };
 
   const handleTogglePendingAnnotation = (label: string) => {
     const confirmedLabels = new Set(selectedAnnotations.map(annotation => annotation.label));
-    
+
     if (confirmedLabels.has(label)) {
       alert(`"${label}" is already confirmed and cannot be selected again.`);
       return;
@@ -218,14 +227,14 @@ export const useDatasetDetail = (id: string | undefined) => {
     loading,
     error,
     paginationLoading,
-    
+
     // 페이지네이션
     confirmedPage,
     pendingPage,
     activeTab,
     totalCounts,
     cachedItems,
-    
+
     // 모달 상태
     selectedImage,
     selectedAnnotations,
@@ -233,7 +242,7 @@ export const useDatasetDetail = (id: string | undefined) => {
     selectedImageIndex,
     selectedPendingLabels,
     confirmationStatus,
-    
+
     // 액션들
     setActiveTab,
     getPaginatedItems,
@@ -245,4 +254,4 @@ export const useDatasetDetail = (id: string | undefined) => {
     setConfirmationStatus,
     refetch: fetchDataset,
   };
-}; 
+};

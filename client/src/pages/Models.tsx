@@ -8,44 +8,39 @@ import { ModelList } from "@/features/model/components/ModelList.tsx";
 
 export function Models() {
   const navigate = useNavigate();
-  
+
   // Fetch models data
   const { models, loading, error, refetch } = useModels();
-  
+
   // Handle filtering and search
-  const {
-    filters,
-    filteredModels,
-    setSearchQuery,
-    setSelectedTask,
-    setSelectedSort,
-  } = useModelFilters(models);
+  const { filters, filteredModels, setSearchQuery, setSelectedTask, setSelectedSort } =
+    useModelFilters(models);
 
   const handleModelClick = (model: any) => {
     navigate(`/models/${model.id}`);
   };
 
   return (
-    <Box 
-      className={styles.pageLoaded} 
-      style={{ 
-        maxWidth: "1400px", 
-        margin: "0 auto", 
-        padding: "0 28px", 
-        minHeight: "90vh" 
+    <Box
+      className={styles.pageLoaded}
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: "0 28px",
+        minHeight: "90vh",
       }}
     >
       {/* Page Header */}
       <Flex gap="5" justify="between" align="baseline" mb="6">
         <div>
-          <Heading 
-            size={{ initial: "8", md: "9" }} 
-            style={{ 
-              fontWeight: 800, 
-              letterSpacing: "-0.03em", 
-              background: "linear-gradient(90deg, #FF5733 0%, #E74C3C 100%)", 
-              WebkitBackgroundClip: "text", 
-              WebkitTextFillColor: "transparent" 
+          <Heading
+            size={{ initial: "8", md: "9" }}
+            style={{
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              background: "linear-gradient(90deg, #FF5733 0%, #E74C3C 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
             mb="2"
           >
@@ -56,7 +51,7 @@ export function Models() {
           </Text>
         </div>
         <Link to="/upload">
-          <Button 
+          <Button
             size="3"
             style={{
               background: "#FF5733",

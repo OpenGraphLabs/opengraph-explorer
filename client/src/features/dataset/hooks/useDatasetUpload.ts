@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 import type { DatasetUploadState, DatasetMetadata } from "../types/upload";
-import { 
-  DEFAULT_DATASET_METADATA, 
+import {
+  DEFAULT_DATASET_METADATA,
   DEFAULT_UPLOAD_PROGRESS,
-  UPLOAD_MESSAGES 
+  UPLOAD_MESSAGES,
 } from "../constants/upload";
 
 export const useDatasetUpload = () => {
@@ -27,33 +27,33 @@ export const useDatasetUpload = () => {
   const updateMetadata = (updates: Partial<DatasetMetadata>) => {
     setState(prev => ({
       ...prev,
-      metadata: { ...prev.metadata, ...updates }
+      metadata: { ...prev.metadata, ...updates },
     }));
   };
 
   const addTag = (tag: string) => {
     if (tag.trim() && !state.metadata.tags.includes(tag.trim())) {
       updateMetadata({
-        tags: [...state.metadata.tags, tag.trim()]
+        tags: [...state.metadata.tags, tag.trim()],
       });
     }
   };
 
   const removeTag = (tagToRemove: string) => {
     updateMetadata({
-      tags: state.metadata.tags.filter(tag => tag !== tagToRemove)
+      tags: state.metadata.tags.filter(tag => tag !== tagToRemove),
     });
   };
 
   const handleFileSelect = (files: File[]) => {
     if (files.length === 0) return;
-    
+
     const newFiles = [...state.selectedFiles, ...files];
     setState(prev => ({
       ...prev,
       selectedFiles: newFiles,
       error: null,
-      previewStep: "preview"
+      previewStep: "preview",
     }));
   };
 
@@ -63,7 +63,7 @@ export const useDatasetUpload = () => {
     setState(prev => ({
       ...prev,
       selectedFiles: newFiles,
-      previewStep: newFiles.length === 0 ? "select" : "preview"
+      previewStep: newFiles.length === 0 ? "select" : "preview",
     }));
   };
 
@@ -71,7 +71,7 @@ export const useDatasetUpload = () => {
     setState(prev => ({
       ...prev,
       selectedFiles: [],
-      previewStep: "select"
+      previewStep: "select",
     }));
   };
 
@@ -122,7 +122,7 @@ export const useDatasetUpload = () => {
           status: "uploading",
           progress: 10,
           message: UPLOAD_MESSAGES.UPLOADING,
-        }
+        },
       }));
 
       const totalSize = state.selectedFiles.reduce((sum, file) => sum + file.size, 0);
@@ -136,7 +136,7 @@ export const useDatasetUpload = () => {
         finalMetadata,
         state.selectedFiles,
         10, // epochs
-        (result) => {
+        result => {
           console.log("Dataset created:", result);
           setState(prev => ({
             ...prev,
@@ -146,7 +146,7 @@ export const useDatasetUpload = () => {
               status: "success",
               progress: 100,
               message: UPLOAD_MESSAGES.SUCCESS,
-            }
+            },
           }));
 
           // Reset form and navigate
@@ -155,7 +155,7 @@ export const useDatasetUpload = () => {
             navigate("/datasets");
           }, 1000);
         },
-        (error) => {
+        error => {
           console.error("Dataset creation failed:", error);
           const errorMessage = `Failed to create dataset: ${error.message}`;
           setState(prev => ({
@@ -165,7 +165,7 @@ export const useDatasetUpload = () => {
               ...prev.uploadProgress,
               status: "failed",
               message: errorMessage,
-            }
+            },
           }));
         }
       );
@@ -179,7 +179,7 @@ export const useDatasetUpload = () => {
           ...prev.uploadProgress,
           status: "failed",
           message: errorMessage,
-        }
+        },
       }));
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
@@ -198,25 +198,25 @@ export const useDatasetUpload = () => {
   return {
     // State
     ...state,
-    
+
     // Metadata management
     updateMetadata,
     addTag,
     removeTag,
-    
+
     // File management
     handleFileSelect,
     handleFileRemove,
     clearAllFiles,
-    
+
     // Upload process
     handleUpload,
     isUploadDisabled,
     setError,
     resetForm,
-    
+
     // Computed values
     totalFileSize: state.selectedFiles.reduce((sum, file) => sum + file.size, 0),
     fileCount: state.selectedFiles.length,
   };
-}; 
+};

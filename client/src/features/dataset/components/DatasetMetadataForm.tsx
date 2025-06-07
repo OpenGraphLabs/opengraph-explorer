@@ -1,13 +1,4 @@
-import {
-  Box,
-  Flex,
-  Text,
-  TextField,
-  TextArea,
-  Badge,
-  Button,
-  Card,
-} from "@radix-ui/themes";
+import { Box, Flex, Text, TextField, TextArea, Badge, Button, Card } from "@radix-ui/themes";
 import { PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import type { DatasetMetadata } from "../types/upload";
@@ -63,7 +54,7 @@ export function DatasetMetadataForm({
             style={{ borderRadius: "8px" }}
           />
         </Box>
-        
+
         <Box>
           <Text size="2" weight="medium" style={{ color: "var(--gray-11)", marginBottom: "8px" }}>
             Description
@@ -105,7 +96,7 @@ export function DatasetMetadataForm({
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
               />
-              <Button 
+              <Button
                 onClick={handleTagAdd}
                 variant="soft"
                 style={{ borderRadius: "8px", padding: "0 16px" }}
@@ -114,7 +105,7 @@ export function DatasetMetadataForm({
                 Add
               </Button>
             </Flex>
-            
+
             {metadata.tags.length > 0 && (
               <Flex gap="2" wrap="wrap">
                 {metadata.tags.map(tag => (
@@ -140,4 +131,4 @@ export function DatasetMetadataForm({
       </Flex>
     </Card>
   );
-} 
+}

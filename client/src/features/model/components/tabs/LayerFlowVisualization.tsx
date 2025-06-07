@@ -2,9 +2,19 @@ import React from "react";
 import { Box, Flex, Text, Card, Table, Badge, Heading, Tooltip } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import { CheckCircledIcon, CrossCircledIcon, ReloadIcon } from "@radix-ui/react-icons";
-import { CircleWavyCheck as CircuitBoard, CheckCircle, Trophy, FlowArrow, ArrowsHorizontal } from "phosphor-react";
+import {
+  CircleWavyCheck as CircuitBoard,
+  CheckCircle,
+  Trophy,
+  FlowArrow,
+  ArrowsHorizontal,
+} from "phosphor-react";
 import { PredictResult } from "@/shared/hooks/useModelInference";
-import { formatVector, getActivationTypeName, calculateConfidenceScores } from "@/shared/utils/modelUtils";
+import {
+  formatVector,
+  getActivationTypeName,
+  calculateConfidenceScores,
+} from "@/shared/utils/modelUtils";
 import { getSuiScanUrl } from "@/shared/utils/sui";
 
 // Status summary component
@@ -291,19 +301,16 @@ export function LayerFlowVisualization({
       activation: result ? getActivationTypeName(result.activationType) : "N/A",
       errorMessage: result?.errorMessage,
       isFinalLayer: result?.argmaxIdx !== undefined,
-      finalValue:
-        result?.argmaxIdx !== undefined
-          ? result.argmaxIdx
-          : null,
+      finalValue: result?.argmaxIdx !== undefined ? result.argmaxIdx : null,
     };
   };
 
   // Create layer data for all layers (including pending ones)
   const layerData = Array.from({ length: totalLayers }).map((_, idx) => generateLayerData(idx));
-  
+
   // 최종 예측 결과 추출
   const finalResult = predictResults.find(r => r.argmaxIdx !== undefined);
-  
+
   return (
     <Box style={{ marginTop: "24px" }}>
       <Card
@@ -322,70 +329,87 @@ export function LayerFlowVisualization({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <Card style={{
-              padding: "16px",
-              marginBottom: "24px",
-              borderRadius: "12px",
-              background: "#FFF4F2",
-              border: "1px solid #FFCCBC",
-              overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(255, 87, 51, 0.1)",
-            }}>
+            <Card
+              style={{
+                padding: "16px",
+                marginBottom: "24px",
+                borderRadius: "12px",
+                background: "#FFF4F2",
+                border: "1px solid #FFCCBC",
+                overflow: "hidden",
+                boxShadow: "0 4px 12px rgba(255, 87, 51, 0.1)",
+              }}
+            >
               <Flex justify="between" align="center">
                 <Flex align="center" gap="3">
-                  <Box style={{
-                    background: "#FF5733",
-                    borderRadius: "50%",
-                    width: "40px",
-                    height: "40px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
-                    <Trophy size={24} weight="fill" style={{ color: "white" }} />
-                  </Box>
-                  <Heading size="3" style={{ color: "#D84315" }}>Final Prediction Result</Heading>
-                </Flex>
-                <Badge size="2" variant="solid" color="orange">
-                  {currentLayerIndex === totalLayers ? 'Complete' : `Layer ${currentLayerIndex}/${totalLayers}`}
-                </Badge>
-              </Flex>
-              
-              <Flex mt="4" align="center" justify="center">
-                <Card style={{
-                  padding: "24px",
-                  background: "white",
-                  borderRadius: "16px",
-                  border: "1px solid #FFCCBC",
-                  width: "100%",
-                }}>
-                  <Flex align="center" justify="center" gap="6">
-                    <Box style={{
+                  <Box
+                    style={{
+                      background: "#FF5733",
+                      borderRadius: "50%",
+                      width: "40px",
+                      height: "40px",
                       display: "flex",
-                      flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                    }}>
-                      <Text size="1" style={{ fontWeight: 500, color: "#666", marginBottom: "8px" }}>
-                        Detected Digit
-                      </Text>
-                      <Box style={{
-                        width: "80px",
-                        height: "80px",
+                    }}
+                  >
+                    <Trophy size={24} weight="fill" style={{ color: "white" }} />
+                  </Box>
+                  <Heading size="3" style={{ color: "#D84315" }}>
+                    Final Prediction Result
+                  </Heading>
+                </Flex>
+                <Badge size="2" variant="solid" color="orange">
+                  {currentLayerIndex === totalLayers
+                    ? "Complete"
+                    : `Layer ${currentLayerIndex}/${totalLayers}`}
+                </Badge>
+              </Flex>
+
+              <Flex mt="4" align="center" justify="center">
+                <Card
+                  style={{
+                    padding: "24px",
+                    background: "white",
+                    borderRadius: "16px",
+                    border: "1px solid #FFCCBC",
+                    width: "100%",
+                  }}
+                >
+                  <Flex align="center" justify="center" gap="6">
+                    <Box
+                      style={{
                         display: "flex",
+                        flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
-                        background: "#FF5733",
-                        borderRadius: "12px",
-                        color: "white",
-                        fontSize: "48px",
-                        fontWeight: "bold",
-                        boxShadow: "0 4px 12px rgba(255, 87, 51, 0.2)",
-                      }}>
+                      }}
+                    >
+                      <Text
+                        size="1"
+                        style={{ fontWeight: 500, color: "#666", marginBottom: "8px" }}
+                      >
+                        Detected Digit
+                      </Text>
+                      <Box
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "#FF5733",
+                          borderRadius: "12px",
+                          color: "white",
+                          fontSize: "48px",
+                          fontWeight: "bold",
+                          boxShadow: "0 4px 12px rgba(255, 87, 51, 0.2)",
+                        }}
+                      >
                         {finalResult.argmaxIdx}
                       </Box>
                     </Box>
-                    
+
                     {/* <Box style={{
                       display: "flex",
                       flexDirection: "column",
@@ -407,13 +431,19 @@ export function LayerFlowVisualization({
                         {getNumberIcon(finalResult.argmaxIdx)}
                       </Box>
                     </Box> */}
-                    
-                    <Flex direction="column" align="start" gap="2" style={{ flex: 1, maxWidth: "280px" }}>
+
+                    <Flex
+                      direction="column"
+                      align="start"
+                      gap="2"
+                      style={{ flex: 1, maxWidth: "280px" }}
+                    >
                       <Text size="2" style={{ fontWeight: 600, color: "#333" }}>
                         On-chain Inference Complete
                       </Text>
                       <Text size="1" style={{ color: "#666", lineHeight: "1.5" }}>
-                        The neural network successfully processed your input through {totalLayers} layers and produced a final prediction.
+                        The neural network successfully processed your input through {totalLayers}{" "}
+                        layers and produced a final prediction.
                       </Text>
                       <Flex align="center" gap="1" mt="1">
                         <CheckCircle size={14} weight="fill" style={{ color: "#4CAF50" }} />
@@ -421,7 +451,7 @@ export function LayerFlowVisualization({
                           100% On-chain computation
                         </Text>
                       </Flex>
-                      
+
                       {/* 트랜잭션 링크 추가 */}
                       {txDigest && (
                         <Box
@@ -434,11 +464,13 @@ export function LayerFlowVisualization({
                             cursor: "pointer",
                             transition: "all 0.2s ease",
                           }}
-                          onClick={() => window.open(getSuiScanUrl("transaction", txDigest), "_blank")}
-                          onMouseOver={(e) => {
+                          onClick={() =>
+                            window.open(getSuiScanUrl("transaction", txDigest), "_blank")
+                          }
+                          onMouseOver={e => {
                             e.currentTarget.style.boxShadow = "0 4px 8px rgba(255, 87, 51, 0.2)";
                           }}
-                          onMouseOut={(e) => {
+                          onMouseOut={e => {
                             e.currentTarget.style.boxShadow = "none";
                           }}
                         >
@@ -452,48 +484,59 @@ export function LayerFlowVisualization({
                       )}
                     </Flex>
                   </Flex>
-                  
+
                   {/* 신뢰도 점수 시각화 - 스크롤 없이 상위 값만 표시 */}
                   <Box mt="5" style={{ borderTop: "1px solid #FFCCBC", paddingTop: "16px" }}>
                     <Text size="2" style={{ fontWeight: 600, color: "#333" }}>
                       Confidence Scores (Top 5)
                     </Text>
                     <Flex direction="column" gap="2" mt="4">
-                      {getTopConfidenceScores(finalResult).map((item) => (
+                      {getTopConfidenceScores(finalResult).map(item => (
                         <Flex key={item.index} align="center" gap="3">
                           <Box style={{ width: "30px", textAlign: "center", position: "relative" }}>
-                            <Text size="2" style={{ 
-                              fontWeight: item.index === finalResult.argmaxIdx ? 700 : 400,
-                              color: item.index === finalResult.argmaxIdx ? "#FF5733" : "#666"
-                            }}>
+                            <Text
+                              size="2"
+                              style={{
+                                fontWeight: item.index === finalResult.argmaxIdx ? 700 : 400,
+                                color: item.index === finalResult.argmaxIdx ? "#FF5733" : "#666",
+                              }}
+                            >
                               {item.index}
                             </Text>
                             {item.index === finalResult.argmaxIdx && (
-                              <Box style={{
-                                position: "absolute",
-                                top: "-3px",
-                                right: "-3px",
-                                width: "8px",
-                                height: "8px",
-                                borderRadius: "50%",
-                                background: "#FF5733"
-                              }} />
+                              <Box
+                                style={{
+                                  position: "absolute",
+                                  top: "-3px",
+                                  right: "-3px",
+                                  width: "8px",
+                                  height: "8px",
+                                  borderRadius: "50%",
+                                  background: "#FF5733",
+                                }}
+                              />
                             )}
                           </Box>
                           <Box style={{ flex: 1 }}>
                             <Flex align="center" gap="2">
-                              <Box style={{
-                                height: "12px",
-                                width: `${Math.max(item.score * 100, 2)}%`, // 최소 2% 너비 보장
-                                background: item.index === finalResult.argmaxIdx ? "#FF5733" : "#FFB74D",
-                                borderRadius: "6px",
-                                transition: "width 0.5s ease-out",
-                              }} />
-                              <Text size="1" style={{ 
-                                width: "40px", 
-                                fontWeight: item.index === finalResult.argmaxIdx ? 700 : 400,
-                                color: item.index === finalResult.argmaxIdx ? "#FF5733" : "#666"
-                              }}>
+                              <Box
+                                style={{
+                                  height: "12px",
+                                  width: `${Math.max(item.score * 100, 2)}%`, // 최소 2% 너비 보장
+                                  background:
+                                    item.index === finalResult.argmaxIdx ? "#FF5733" : "#FFB74D",
+                                  borderRadius: "6px",
+                                  transition: "width 0.5s ease-out",
+                                }}
+                              />
+                              <Text
+                                size="1"
+                                style={{
+                                  width: "40px",
+                                  fontWeight: item.index === finalResult.argmaxIdx ? 700 : 400,
+                                  color: item.index === finalResult.argmaxIdx ? "#FF5733" : "#666",
+                                }}
+                              >
                                 {(item.score * 100).toFixed(1)}%
                               </Text>
                             </Flex>
@@ -502,11 +545,14 @@ export function LayerFlowVisualization({
                       ))}
                     </Flex>
                   </Box>
-                  
+
                   {/* 트랜잭션 ID 표시 */}
                   {txDigest && (
                     <Box mt="4" style={{ borderTop: "1px dashed #FFCCBC", paddingTop: "12px" }}>
-                      <Text size="1" style={{ color: "#666", fontFamily: "monospace", fontSize: "11px" }}>
+                      <Text
+                        size="1"
+                        style={{ color: "#666", fontFamily: "monospace", fontSize: "11px" }}
+                      >
                         TX: {txDigest.substring(0, 8)}...{txDigest.substring(txDigest.length - 8)}
                       </Text>
                     </Box>
@@ -611,7 +657,9 @@ export function LayerFlowVisualization({
                       : layer.status === "error"
                         ? "#FFEBEE"
                         : layer.status === "success"
-                          ? layer.isFinalLayer ? "#E8F5E9" : "#F1F8E9"
+                          ? layer.isFinalLayer
+                            ? "#E8F5E9"
+                            : "#F1F8E9"
                           : "#F5F5F5",
                   border: `1px solid ${
                     layer.status === "processing"
@@ -619,7 +667,9 @@ export function LayerFlowVisualization({
                       : layer.status === "error"
                         ? "#FFCDD2"
                         : layer.status === "success"
-                          ? layer.isFinalLayer ? "#66BB6A" : "#C8E6C9"
+                          ? layer.isFinalLayer
+                            ? "#66BB6A"
+                            : "#C8E6C9"
                           : "#E0E0E0"
                   }`,
                   overflow: "hidden",
@@ -634,17 +684,20 @@ export function LayerFlowVisualization({
                 <Box style={{ padding: "10px" }}>
                   <Flex align="center" justify="between" mb="1">
                     <Flex align="center" gap="1">
-                      <Badge 
-                        color={layer.isFinalLayer ? "green" : "orange"} 
-                        variant="soft" 
+                      <Badge
+                        color={layer.isFinalLayer ? "green" : "orange"}
+                        variant="soft"
                         size="1"
                       >
                         {index + 1}
                       </Badge>
-                      <Text size="2" style={{ 
-                        fontWeight: layer.isFinalLayer ? 700 : 600, 
-                        color: layer.isFinalLayer ? "#2E7D32" : "#333" 
-                      }}>
+                      <Text
+                        size="2"
+                        style={{
+                          fontWeight: layer.isFinalLayer ? 700 : 600,
+                          color: layer.isFinalLayer ? "#2E7D32" : "#333",
+                        }}
+                      >
                         {layer.isFinalLayer ? "Final Layer" : `Layer ${index + 1}`}
                       </Text>
                     </Flex>
@@ -667,10 +720,10 @@ export function LayerFlowVisualization({
                       />
                     )}
                     {layer.status === "success" && (
-                      <CheckCircle 
-                        size={14} 
-                        weight="fill" 
-                        style={{ color: layer.isFinalLayer ? "#2E7D32" : "#4CAF50" }} 
+                      <CheckCircle
+                        size={14}
+                        weight="fill"
+                        style={{ color: layer.isFinalLayer ? "#2E7D32" : "#4CAF50" }}
                       />
                     )}
                   </Flex>
@@ -689,10 +742,10 @@ export function LayerFlowVisualization({
                   )}
 
                   {layer.status === "success" && (
-                    <Badge 
-                      size="1" 
-                      color={layer.isFinalLayer ? "green" : "grass"} 
-                      variant={layer.isFinalLayer ? "solid" : "soft"} 
+                    <Badge
+                      size="1"
+                      color={layer.isFinalLayer ? "green" : "grass"}
+                      variant={layer.isFinalLayer ? "solid" : "soft"}
                       style={{ marginBottom: "4px" }}
                     >
                       {layer.isFinalLayer ? "Final Output" : "Completed"}
@@ -765,27 +818,29 @@ export function LayerFlowVisualization({
                     </>
                   )}
 
-                  {layer.isFinalLayer && layer.finalValue !== null && layer.status === "success" && (
-                    <Box
-                      style={{
-                        marginTop: "8px",
-                        padding: "6px",
-                        background: "#E8F5E9",
-                        borderRadius: "4px",
-                        border: "1px solid #66BB6A",
-                      }}
-                    >
-                      <Flex align="center" justify="center" gap="1">
-                        <Trophy size={12} weight="fill" style={{ color: "#2E7D32" }} />
-                        <Text
-                          size="2"
-                          style={{ color: "#2E7D32", fontWeight: 700, fontSize: "14px" }}
-                        >
-                          Result: {layer.finalValue}
-                        </Text>
-                      </Flex>
-                    </Box>
-                  )}
+                  {layer.isFinalLayer &&
+                    layer.finalValue !== null &&
+                    layer.status === "success" && (
+                      <Box
+                        style={{
+                          marginTop: "8px",
+                          padding: "6px",
+                          background: "#E8F5E9",
+                          borderRadius: "4px",
+                          border: "1px solid #66BB6A",
+                        }}
+                      >
+                        <Flex align="center" justify="center" gap="1">
+                          <Trophy size={12} weight="fill" style={{ color: "#2E7D32" }} />
+                          <Text
+                            size="2"
+                            style={{ color: "#2E7D32", fontWeight: 700, fontSize: "14px" }}
+                          >
+                            Result: {layer.finalValue}
+                          </Text>
+                        </Flex>
+                      </Box>
+                    )}
                 </Box>
               </Card>
             ))}

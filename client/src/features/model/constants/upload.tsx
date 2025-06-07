@@ -11,7 +11,7 @@ export const getDataTypeIcon = (dataType: string): ReactElement => {
     "application/zip": () => <FileZip size={20} />,
     default: () => <Database size={20} />,
   };
-  
+
   const key = Object.keys(iconMap).find(type => dataType.includes(type)) || "default";
   return iconMap[key]();
 };
@@ -48,4 +48,4 @@ export const formatDataSize = (size: string | number): string => {
   if (numSize < 1024) return `${numSize} B`;
   if (numSize < 1024 * 1024) return `${(numSize / 1024).toFixed(1)} KB`;
   return `${(numSize / (1024 * 1024)).toFixed(1)} MB`;
-}; 
+};

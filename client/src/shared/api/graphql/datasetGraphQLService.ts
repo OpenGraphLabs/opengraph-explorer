@@ -160,14 +160,18 @@ export class DatasetGraphQLService {
    * 특정 ID의 데이터셋 객체 가져오기 (페이지네이션 포함)
    */
   async getDatasetById(
-    datasetId: string, 
+    datasetId: string,
     paginationOptions?: PaginationOptions
   ): Promise<DatasetObject | null> {
     try {
-      const pageSize = paginationOptions?.first || paginationOptions?.last || this.DEFAULT_PAGE_SIZE;
-      
-      console.log(`[GraphQL] getDatasetById - datasetId: ${datasetId}, pageSize: ${pageSize}, options:`, paginationOptions);
-      
+      const pageSize =
+        paginationOptions?.first || paginationOptions?.last || this.DEFAULT_PAGE_SIZE;
+
+      console.log(
+        `[GraphQL] getDatasetById - datasetId: ${datasetId}, pageSize: ${pageSize}, options:`,
+        paginationOptions
+      );
+
       // 변수와 쿼리 동적 생성
       const variables: any = {
         datasetId,
@@ -176,14 +180,22 @@ export class DatasetGraphQLService {
 
       let dynamicFieldsArgs = "first: $pageSize";
       let variableDeclarations = "$datasetId: SuiAddress!, $pageSize: Int!";
-      
+
       // cursor 유효성 검증 및 안전한 설정
-      if (paginationOptions?.after && typeof paginationOptions.after === 'string' && paginationOptions.after.trim()) {
+      if (
+        paginationOptions?.after &&
+        typeof paginationOptions.after === "string" &&
+        paginationOptions.after.trim()
+      ) {
         variables.after = paginationOptions.after;
         dynamicFieldsArgs = "first: $pageSize, after: $after";
         variableDeclarations += ", $after: String!";
         console.log(`[GraphQL] Using after cursor: ${paginationOptions.after}`);
-      } else if (paginationOptions?.before && typeof paginationOptions.before === 'string' && paginationOptions.before.trim()) {
+      } else if (
+        paginationOptions?.before &&
+        typeof paginationOptions.before === "string" &&
+        paginationOptions.before.trim()
+      ) {
         variables.before = paginationOptions.before;
         dynamicFieldsArgs = "last: $pageSize, before: $before";
         variableDeclarations += ", $before: String!";
@@ -274,14 +286,18 @@ export class DatasetGraphQLService {
    * 데이터셋의 동적 필드만 페이지네이션으로 가져오기
    */
   async getDatasetData(
-    datasetId: string, 
+    datasetId: string,
     paginationOptions?: PaginationOptions
   ): Promise<PaginatedDataResponse> {
     try {
-      const pageSize = paginationOptions?.first || paginationOptions?.last || this.DEFAULT_PAGE_SIZE;
-      
-      console.log(`[GraphQL] getDatasetData - datasetId: ${datasetId}, pageSize: ${pageSize}, options:`, paginationOptions);
-      
+      const pageSize =
+        paginationOptions?.first || paginationOptions?.last || this.DEFAULT_PAGE_SIZE;
+
+      console.log(
+        `[GraphQL] getDatasetData - datasetId: ${datasetId}, pageSize: ${pageSize}, options:`,
+        paginationOptions
+      );
+
       // 변수와 쿼리 동적 생성
       const variables: any = {
         datasetId,
@@ -290,20 +306,33 @@ export class DatasetGraphQLService {
 
       let dynamicFieldsArgs = "first: $pageSize";
       let variableDeclarations = "$datasetId: SuiAddress!, $pageSize: Int!";
-      
+
       // cursor 유효성 검증 및 안전한 설정
-      if (paginationOptions?.after && typeof paginationOptions.after === 'string' && paginationOptions.after.trim()) {
+      if (
+        paginationOptions?.after &&
+        typeof paginationOptions.after === "string" &&
+        paginationOptions.after.trim()
+      ) {
         variables.after = paginationOptions.after;
         dynamicFieldsArgs = "first: $pageSize, after: $after";
         variableDeclarations += ", $after: String!";
         console.log(`[GraphQL] Using after cursor: ${paginationOptions.after.substring(0, 50)}...`);
-      } else if (paginationOptions?.before && typeof paginationOptions.before === 'string' && paginationOptions.before.trim()) {
+      } else if (
+        paginationOptions?.before &&
+        typeof paginationOptions.before === "string" &&
+        paginationOptions.before.trim()
+      ) {
         variables.before = paginationOptions.before;
         dynamicFieldsArgs = "last: $pageSize, before: $before";
         variableDeclarations += ", $before: String!";
-        console.log(`[GraphQL] Using before cursor: ${paginationOptions.before.substring(0, 50)}...`);
+        console.log(
+          `[GraphQL] Using before cursor: ${paginationOptions.before.substring(0, 50)}...`
+        );
       } else if (paginationOptions?.after || paginationOptions?.before) {
-        console.warn(`[GraphQL] Invalid cursor provided, falling back to first page:`, paginationOptions);
+        console.warn(
+          `[GraphQL] Invalid cursor provided, falling back to first page:`,
+          paginationOptions
+        );
         // 잘못된 cursor가 제공된 경우 첫 페이지로 fallback
         dynamicFieldsArgs = "first: $pageSize";
       }
@@ -345,20 +374,23 @@ export class DatasetGraphQLService {
 
       if (result.errors && result.errors.length > 0) {
         console.error(`[GraphQL] getDatasetData errors:`, result.errors);
-        
+
         // 특정 에러의 경우 재시도 또는 fallback
         const errorMessage = result.errors[0].message;
-        if (errorMessage.includes('outside the available range') || errorMessage.includes('invalid cursor')) {
+        if (
+          errorMessage.includes("outside the available range") ||
+          errorMessage.includes("invalid cursor")
+        ) {
           console.warn(`[GraphQL] Cursor error detected, falling back to first page`);
           return this.getDatasetData(datasetId, { first: pageSize });
         }
-        
+
         throw new Error(`GraphQL error: ${errorMessage}`);
       }
 
       const objectData = result.data?.object as any;
       const dynamicFields = objectData?.asMoveObject?.dynamicFields;
-      
+
       if (!dynamicFields) {
         console.warn(`[GraphQL] No dynamic fields found for dataset: ${datasetId}`);
         return {
@@ -366,7 +398,7 @@ export class DatasetGraphQLService {
           pageInfo: {
             hasNextPage: false,
             hasPreviousPage: false,
-          }
+          },
         };
       }
 
@@ -391,7 +423,7 @@ export class DatasetGraphQLService {
           range: {
             start: fieldData.range?.start,
             end: fieldData.range?.end,
-          }
+          },
         };
       });
 
@@ -404,7 +436,7 @@ export class DatasetGraphQLService {
           hasPreviousPage: dynamicFields.pageInfo?.hasPreviousPage || false,
           startCursor: dynamicFields.pageInfo?.startCursor,
           endCursor: dynamicFields.pageInfo?.endCursor,
-        }
+        },
       };
     } catch (error) {
       console.error(`[GraphQL] Error fetching dataset data for ${datasetId}:`, error);
@@ -481,7 +513,7 @@ export class DatasetGraphQLService {
       const dynamicFieldsResponse = node?.asMoveObject?.dynamicFields;
       const dynamicFields = dynamicFieldsResponse?.nodes || [];
       const pageInfo = dynamicFieldsResponse?.pageInfo;
-      
+
       const dataItems: Array<DataObject> = dynamicFields.map((field: any) => {
         const fieldData = field.value.json;
         return {
@@ -494,10 +526,12 @@ export class DatasetGraphQLService {
             start: fieldData.range?.start,
             end: fieldData.range?.end,
           },
-          pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
-            label: stat.key,
-            count: stat.value,
-          })),
+          pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map(
+            (stat: any) => ({
+              label: stat.key,
+              count: stat.value,
+            })
+          ),
         };
       });
 
@@ -578,10 +612,12 @@ export class DatasetGraphQLService {
             start: fieldData.range?.start,
             end: fieldData.range?.end,
           },
-          pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map((stat: any) => ({
-            label: stat.key,
-            count: stat.value,
-          })),
+          pendingAnnotationStats: fieldData.pending_annotation_stats?.contents?.map(
+            (stat: any) => ({
+              label: stat.key,
+              count: stat.value,
+            })
+          ),
         };
       });
 

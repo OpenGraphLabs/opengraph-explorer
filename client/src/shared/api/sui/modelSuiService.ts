@@ -6,10 +6,10 @@ import {
   SUI_CONTRACT,
   GAS_BUDGET,
   SUI_MAX_PARAMS_PER_TX,
-  SUI_PREDICT_COMPUTATION_BATCH_SIZE
+  SUI_PREDICT_COMPUTATION_BATCH_SIZE,
 } from "../../constants/suiConfig";
-import {Model, validateModel} from "../../types/model";
-import {ModelObject} from "../graphql/modelGraphQLService";
+import { Model, validateModel } from "../../types/model";
+import { ModelObject } from "../graphql/modelGraphQLService";
 
 export const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
@@ -44,7 +44,7 @@ export function useUploadModelToSui() {
 
       tx.setGasBudget(GAS_BUDGET);
 
-      console.log("CREATE MODEL!")
+      console.log("CREATE MODEL!");
       // 1. create model
       const modelObject = tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
@@ -62,7 +62,7 @@ export function useUploadModelToSui() {
       });
 
       // for now, only one graph is supported
-      console.log("ADD GRAPH!")
+      console.log("ADD GRAPH!");
       const numGraph = 1;
       for (let i = 0; i < numGraph; i++) {
         // 2. add graph
@@ -82,7 +82,7 @@ export function useUploadModelToSui() {
           }
         }
 
-        console.log("ADD LAYER!")
+        console.log("ADD LAYER!");
         for (let j = 0; j < model.layerDimensions.length; j++) {
           const layerDimensionPair = model.layerDimensions[j];
 
@@ -109,10 +109,15 @@ export function useUploadModelToSui() {
           let weightStartIdx = 0;
           while (weightStartIdx < numTotalWeights) {
             const chunkSize = Math.min(SUI_MAX_PARAMS_PER_TX / 2, numTotalWeights - weightStartIdx);
-            const weightMagChunk = weightsMagnitudes.slice(weightStartIdx, weightStartIdx + chunkSize);
+            const weightMagChunk = weightsMagnitudes.slice(
+              weightStartIdx,
+              weightStartIdx + chunkSize
+            );
             const weightSignChunk = weightsSigns.slice(weightStartIdx, weightStartIdx + chunkSize);
 
-            console.log(`ADD WEIGHTS CHUNK (${weightStartIdx}:${weightStartIdx + chunkSize}/${numTotalWeights})`);
+            console.log(
+              `ADD WEIGHTS CHUNK (${weightStartIdx}:${weightStartIdx + chunkSize}/${numTotalWeights})`
+            );
             tx.moveCall({
               target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_weights_chunk`,
               arguments: [
@@ -138,7 +143,9 @@ export function useUploadModelToSui() {
             const biasMagChunk = biasesMagnitudes.slice(biasStartIdx, biasStartIdx + chunkSize);
             const biasSignChunk = biasesSigns.slice(biasStartIdx, biasStartIdx + chunkSize);
 
-            console.log(`ADD BIASES CHUNK (${biasStartIdx}:${biasStartIdx + chunkSize}/${numTotalBiases})`);
+            console.log(
+              `ADD BIASES CHUNK (${biasStartIdx}:${biasStartIdx + chunkSize}/${numTotalBiases})`
+            );
             tx.moveCall({
               target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::add_biases_chunk`,
               arguments: [
@@ -164,7 +171,7 @@ export function useUploadModelToSui() {
           });
         }
 
-        console.log("COMPLETE MODEL!")
+        console.log("COMPLETE MODEL!");
         // 4. complete model
         tx.moveCall({
           target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::complete_model`,
@@ -293,7 +300,9 @@ export function useModelInference() {
               tx.pure.u64(BigInt(dimIdx)),
               layerResultMagnitudes as TransactionArgument,
               layerResultSigns as TransactionArgument,
-              currentLayerResultMagnitudes ? currentLayerResultMagnitudes : tx.pure.vector("u64", []),
+              currentLayerResultMagnitudes
+                ? currentLayerResultMagnitudes
+                : tx.pure.vector("u64", []),
               currentLayerResultSigns ? currentLayerResultSigns : tx.pure.vector("u64", []),
             ],
           });
@@ -350,10 +359,10 @@ export function useModelInference() {
    * @returns 트랜잭션 실행 결과
    */
   const predictModelWithChunkedPTB = async (
-      model: ModelObject,
-      inputMagnitude: number[],
-      inputSign: number[],
-      onSuccess?: (result: any) => void
+    model: ModelObject,
+    inputMagnitude: number[],
+    inputSign: number[],
+    onSuccess?: (result: any) => void
   ) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
@@ -392,7 +401,11 @@ export function useModelInference() {
           let currentSign = undefined;
 
           // 입력 차원을 청크 단위로 처리
-          for (let chunkStartIdx = 0; chunkStartIdx < inputDimension; chunkStartIdx += SUI_PREDICT_COMPUTATION_BATCH_SIZE) {
+          for (
+            let chunkStartIdx = 0;
+            chunkStartIdx < inputDimension;
+            chunkStartIdx += SUI_PREDICT_COMPUTATION_BATCH_SIZE
+          ) {
             const result = tx.moveCall({
               target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::predict_layer_partial_chunked`,
               arguments: [
@@ -401,20 +414,18 @@ export function useModelInference() {
                 tx.pure.u64(BigInt(outputDimIdx)), // output node index
 
                 layerIdx === 0
-                    ? tx.pure.vector("u64", inputMagnitude) // input magnitudes
-                    : resultMagnitudes as TransactionArgument, // use previous layer result
+                  ? tx.pure.vector("u64", inputMagnitude) // input magnitudes
+                  : (resultMagnitudes as TransactionArgument), // use previous layer result
                 layerIdx === 0
-                    ? tx.pure.vector("u64", inputSign) // input signs
-                    : resultSigns as TransactionArgument, // use previous layer result
+                  ? tx.pure.vector("u64", inputSign) // input signs
+                  : (resultSigns as TransactionArgument), // use previous layer result
                 tx.pure.u64(BigInt(chunkStartIdx)), // chunk start index
                 tx.pure.u64(BigInt(SUI_PREDICT_COMPUTATION_BATCH_SIZE)), // chunk size
 
                 chunkStartIdx === 0
                   ? tx.pure.u64(BigInt(0))
-                  : currentMagnitude as TransactionArgument, // chunk accumulated magnitude
-                chunkStartIdx === 0
-                    ? tx.pure.u64(BigInt(0))
-                    : currentSign as TransactionArgument, // chunk accumulated sign
+                  : (currentMagnitude as TransactionArgument), // chunk accumulated magnitude
+                chunkStartIdx === 0 ? tx.pure.u64(BigInt(0)) : (currentSign as TransactionArgument), // chunk accumulated sign
                 layerResultMagnitudes ? layerResultMagnitudes : tx.pure.vector("u64", []), // final result magnitudes
                 layerResultSigns ? layerResultSigns : tx.pure.vector("u64", []), // final result signs
               ],
@@ -426,8 +437,13 @@ export function useModelInference() {
             currentSign = result[3]; // chunk accumulated sign
 
             // 로그 출력
-            const chunkEndIdx = Math.min(chunkStartIdx + SUI_PREDICT_COMPUTATION_BATCH_SIZE, inputDimension);
-            console.log(`출력 노드 ${outputDimIdx}/${outputDimension-1}, 입력 청크 ${chunkStartIdx}-${chunkEndIdx-1}/${inputDimension-1} 처리 완료`);
+            const chunkEndIdx = Math.min(
+              chunkStartIdx + SUI_PREDICT_COMPUTATION_BATCH_SIZE,
+              inputDimension
+            );
+            console.log(
+              `출력 노드 ${outputDimIdx}/${outputDimension - 1}, 입력 청크 ${chunkStartIdx}-${chunkEndIdx - 1}/${inputDimension - 1} 처리 완료`
+            );
           }
 
           console.log(`출력 노드 ${outputDimIdx} 처리 완료`);
@@ -441,29 +457,29 @@ export function useModelInference() {
 
       // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
       return await signAndExecuteTransaction(
-          {
-            transaction: tx,
-            chain: `sui:${SUI_NETWORK.TYPE}`,
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: result => {
+            console.log(`Optimized PTB prediction successful:`, result);
+            console.log(`Events:`, result.events);
+
+            // 결과 이벤트 파싱
+            const events = result.events || [];
+            const partialLayerEvents = parseLayerPartialComputedEvents(events);
+            const predictionCompletedEvent = parsePredictionCompletedEvent(events);
+
+            console.log(`Partial layer outputs:`, partialLayerEvents);
+            console.log(`Prediction completed:`, predictionCompletedEvent);
+
+            if (onSuccess) {
+              onSuccess(result);
+            }
+            return result;
           },
-          {
-            onSuccess: result => {
-              console.log(`Optimized PTB prediction successful:`, result);
-              console.log(`Events:`, result.events);
-
-              // 결과 이벤트 파싱
-              const events = result.events || [];
-              const partialLayerEvents = parseLayerPartialComputedEvents(events);
-              const predictionCompletedEvent = parsePredictionCompletedEvent(events);
-
-              console.log(`Partial layer outputs:`, partialLayerEvents);
-              console.log(`Prediction completed:`, predictionCompletedEvent);
-
-              if (onSuccess) {
-                onSuccess(result);
-              }
-              return result;
-            },
-          }
+        }
       );
     } catch (error) {
       console.error(`Error predicting model ${model.id} with optimized PTB:`, error);
@@ -481,16 +497,16 @@ export function useModelInference() {
    * @returns 트랜잭션 실행 결과
    */
   const predictModel = async (
-      model: ModelObject,
-      inputMagnitude: number[],
-      inputSign: number[],
-      onSuccess?: (result: any) => void
+    model: ModelObject,
+    inputMagnitude: number[],
+    inputSign: number[],
+    onSuccess?: (result: any) => void
   ) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
     }
     if (!model.graphs[0]) {
-        throw new Error("Model graph not found.");
+      throw new Error("Model graph not found.");
     }
     if (!model.graphs[0].layers) {
       throw new Error("Model layers not found.");
@@ -534,11 +550,11 @@ export function useModelInference() {
                 tx.pure.u64(BigInt(inputIdx)), // input node index
 
                 layerIdx === 0
-                    ? tx.pure.vector("u64", inputMagnitude) // input magnitudes
-                    : resultMagnitudes as TransactionArgument, // use previous layer result
+                  ? tx.pure.vector("u64", inputMagnitude) // input magnitudes
+                  : (resultMagnitudes as TransactionArgument), // use previous layer result
                 layerIdx === 0
-                    ? tx.pure.vector("u64", inputSign) // input signs
-                    : resultSigns as TransactionArgument, // use previous layer resul
+                  ? tx.pure.vector("u64", inputSign) // input signs
+                  : (resultSigns as TransactionArgument), // use previous layer resul
                 tx.pure.u64(BigInt(outputStartIdx)),
                 tx.pure.u64(BigInt(SUI_PREDICT_COMPUTATION_BATCH_SIZE)),
                 layerResultMagnitudes ? layerResultMagnitudes : tx.pure.vector("u64", []),
@@ -551,7 +567,9 @@ export function useModelInference() {
             outputStartIdx = Number(result[3]); // next_output_start_idx
             isLastOutputBatch = Boolean(result[5]); // is_last_output_batch
             const isLastInput = Boolean(result[4]); // is_last_input
-            console.log(`입력 노드 ${inputIdx}/${inputDimension-1}, 출력 배치 ${outputStartIdx-SUI_PREDICT_COMPUTATION_BATCH_SIZE}~${outputStartIdx-1}/${outputDimension-1} 처리 완료`);
+            console.log(
+              `입력 노드 ${inputIdx}/${inputDimension - 1}, 출력 배치 ${outputStartIdx - SUI_PREDICT_COMPUTATION_BATCH_SIZE}~${outputStartIdx - 1}/${outputDimension - 1} 처리 완료`
+            );
 
             // 마지막 입력 노드와 마지막 출력 배치면 이 레이어의 처리가 완료됨
             if (isLastInput && isLastOutputBatch) {
@@ -567,29 +585,29 @@ export function useModelInference() {
 
       // 사용자의 지갑을 통해 트랜잭션 서명 및 실행
       return await signAndExecuteTransaction(
-          {
-            transaction: tx,
-            chain: `sui:${SUI_NETWORK.TYPE}`,
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: result => {
+            console.log(`Optimized PTB prediction successful:`, result);
+            console.log(`Events:`, result.events);
+
+            // 결과 이벤트 파싱
+            const events = result.events || [];
+            const partialLayerEvents = parseLayerPartialComputedEvents(events);
+            const predictionCompletedEvent = parsePredictionCompletedEvent(events);
+
+            console.log(`Partial layer outputs:`, partialLayerEvents);
+            console.log(`Prediction completed:`, predictionCompletedEvent);
+
+            if (onSuccess) {
+              onSuccess(result);
+            }
+            return result;
           },
-          {
-            onSuccess: result => {
-              console.log(`Optimized PTB prediction successful:`, result);
-              console.log(`Events:`, result.events);
-
-              // 결과 이벤트 파싱
-              const events = result.events || [];
-              const partialLayerEvents = parseLayerPartialComputedEvents(events);
-              const predictionCompletedEvent = parsePredictionCompletedEvent(events);
-
-              console.log(`Partial layer outputs:`, partialLayerEvents);
-              console.log(`Prediction completed:`, predictionCompletedEvent);
-
-              if (onSuccess) {
-                onSuccess(result);
-              }
-              return result;
-            },
-          }
+        }
       );
     } catch (error) {
       console.error(`Error predicting model ${model.id} with optimized PTB:`, error);

@@ -110,13 +110,13 @@ export default function App() {
             <Button
               variant="ghost"
               onClick={toggleTheme}
-              style={{ 
+              style={{
                 padding: "8px",
                 background: "transparent",
-                color: colors.text.secondary 
+                color: colors.text.secondary,
               }}
             >
-              {mode === 'light' ? (
+              {mode === "light" ? (
                 <MoonIcon width="20" height="20" />
               ) : (
                 <SunIcon width="20" height="20" />

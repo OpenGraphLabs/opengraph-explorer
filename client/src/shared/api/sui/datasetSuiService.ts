@@ -5,7 +5,6 @@ import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../../constants/suiConfig
 import { useWalrusService } from "../walrus/walrusService";
 import { type DatasetObject } from "../graphql/datasetGraphQLService";
 
-
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
 });
@@ -229,14 +228,14 @@ export function useDatasetSuiService() {
       console.log("file metadata:", filesMetadata);
       for (let i = 0; i < filesMetadata.length; i++) {
         const fileMetadata = filesMetadata[i];
-        
+
         try {
           // blob range 객체 생성 - 실제 start/end 값 설정
           const rangeOptionObject = tx.moveCall({
             target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_range_option`,
             arguments: [
               tx.pure.option("u64", BigInt(fileMetadata.startPosition)), // range start
-              tx.pure.option("u64", BigInt(fileMetadata.endPosition)),   // range end
+              tx.pure.option("u64", BigInt(fileMetadata.endPosition)), // range end
             ],
           });
 
@@ -288,9 +287,9 @@ export function useDatasetSuiService() {
             console.error("Transaction execution failed:", error);
             if (onError) {
               onError(
-                  new Error(
-                      `Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`
-                  )
+                new Error(
+                  `Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`
+                )
               );
             }
           },
@@ -308,7 +307,7 @@ export function useDatasetSuiService() {
 
   const addAnnotationLabels = async (
     dataset: DatasetObject,
-    annotations: { path: string; label: string[] }[],
+    annotations: { path: string; label: string[] }[]
   ) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
@@ -362,8 +361,8 @@ export function useDatasetSuiService() {
   };
 
   const addConfirmedAnnotationLabels = async (
-      dataset: DatasetObject,
-      annotation: { path: string; label: string[] },
+    dataset: DatasetObject,
+    annotation: { path: string; label: string[] }
   ) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
@@ -387,16 +386,16 @@ export function useDatasetSuiService() {
       });
 
       await signAndExecuteTransaction(
-          {
-            transaction: tx,
-            chain: `sui:${SUI_NETWORK.TYPE}`,
+        {
+          transaction: tx,
+          chain: `sui:${SUI_NETWORK.TYPE}`,
+        },
+        {
+          onSuccess: result => {
+            console.log("Annotation labels added successfully:", result);
+            return result;
           },
-          {
-            onSuccess: result => {
-              console.log("Annotation labels added successfully:", result);
-              return result;
-            },
-          }
+        }
       );
     } catch (error) {
       console.error("Error adding annotation labels:", error);
@@ -404,11 +403,11 @@ export function useDatasetSuiService() {
     }
   };
 
-  return { 
+  return {
     createDataset,
     createDatasetWithMultipleFiles,
     addAnnotationLabels,
-    addConfirmedAnnotationLabels
+    addConfirmedAnnotationLabels,
   };
 }
 
@@ -555,7 +554,7 @@ export async function getDatasetData(datasetId: string) {
 
     const content = object.data.content as any;
     const dataItems = content.fields?.data_items || [];
-    
+
     // 데이터 항목 파싱
     const parsedDataItems = dataItems.map((item: any) => {
       const range = item.range || {};
@@ -568,7 +567,7 @@ export async function getDatasetData(datasetId: string) {
         range: {
           start: range.start !== undefined ? Number(range.start) : undefined,
           end: range.end !== undefined ? Number(range.end) : undefined,
-        }
+        },
       };
     });
 

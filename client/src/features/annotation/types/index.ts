@@ -14,7 +14,7 @@ export interface AnnotationState {
 }
 
 export interface TransactionStatus {
-  status: 'idle' | 'pending' | 'success' | 'failed';
+  status: "idle" | "pending" | "success" | "failed";
   message: string;
   txHash?: string;
 }
@@ -43,7 +43,7 @@ export interface ImageViewerProps {
   imageLoading: boolean;
   onImageLoadingChange: (loading: boolean) => void;
   getImageUrl: (item: DataObject, index: number) => string;
-  onNavigate: (direction: 'prev' | 'next') => void;
+  onNavigate: (direction: "prev" | "next") => void;
 }
 
 export interface AnnotationInputProps {
@@ -60,4 +60,4 @@ export interface PendingAnnotationsListProps {
   imageUrls: Record<string, string>;
   getImageUrl: (item: DataObject, index: number) => string;
   onRemoveAnnotation: (path: string) => void;
-} 
+}

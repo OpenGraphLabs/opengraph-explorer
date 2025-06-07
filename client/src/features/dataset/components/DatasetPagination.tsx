@@ -8,7 +8,7 @@ interface DatasetPaginationProps {
   loading: boolean;
   totalItems: number;
   pageSize: number;
-  onLoadPage: (direction: 'next' | 'prev') => void;
+  onLoadPage: (direction: "next" | "prev") => void;
 }
 
 export function DatasetPagination({
@@ -62,7 +62,7 @@ export function DatasetPagination({
             variant="soft"
             size="2"
             disabled={!hasPrevPage || loading}
-            onClick={() => onLoadPage('prev')}
+            onClick={() => onLoadPage("prev")}
             style={{
               background: hasPrevPage ? "var(--gray-3)" : "var(--gray-2)",
               color: hasPrevPage ? "var(--gray-12)" : "var(--gray-8)",
@@ -94,7 +94,7 @@ export function DatasetPagination({
             variant="soft"
             size="2"
             disabled={!hasNextPage || loading}
-            onClick={() => onLoadPage('next')}
+            onClick={() => onLoadPage("next")}
             style={{
               background: hasNextPage ? "var(--gray-3)" : "var(--gray-2)",
               color: hasNextPage ? "var(--gray-12)" : "var(--gray-8)",
@@ -124,4 +124,4 @@ export function DatasetPagination({
       </Flex>
     </Card>
   );
-} 
+}

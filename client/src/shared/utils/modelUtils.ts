@@ -131,21 +131,23 @@ export function getActivationTypeName(type: number): string {
  */
 export const calculateConfidenceScores = (result: PredictResult): ConfidenceScore[] => {
   if (!result || !result.outputMagnitude) return [];
-  
+
   // 가장 큰 값을 찾아서 정규화에 사용
   const maxValue = Math.max(...result.outputMagnitude);
-  
+
   // 각 출력값을 신뢰도 점수로 변환 (양수면 값 그대로, 음수면 0으로)
-  return result.outputMagnitude.map((value, index) => {
-    // sign이 0이면 양수, 1이면 음수
-    const isNegative = result.outputSign[index] === 1;
-    const normalizedValue = isNegative ? 0 : (value / maxValue);
-    
-    return {
-      index,
-      score: normalizedValue
-    };
-  }).sort((a, b) => b.score - a.score); // 높은 점수순으로 정렬
+  return result.outputMagnitude
+    .map((value, index) => {
+      // sign이 0이면 양수, 1이면 음수
+      const isNegative = result.outputSign[index] === 1;
+      const normalizedValue = isNegative ? 0 : value / maxValue;
+
+      return {
+        index,
+        score: normalizedValue,
+      };
+    })
+    .sort((a, b) => b.score - a.score); // 높은 점수순으로 정렬
 };
 
 /**
@@ -164,4 +166,4 @@ export const formatVector = (magnitudes: number[], signs: number[]): string => {
       return (sign * mag).toFixed(2);
     })
     .join(", ");
-}
+};

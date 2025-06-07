@@ -57,7 +57,7 @@ export const useDatasets = () => {
       ...prev,
       selectedTags: prev.selectedTags.includes(tag)
         ? prev.selectedTags.filter(t => t !== tag)
-        : [...prev.selectedTags, tag]
+        : [...prev.selectedTags, tag],
     }));
   };
 
@@ -75,17 +75,21 @@ export const useDatasets = () => {
   const filteredDatasets = datasets
     .filter(dataset => {
       // 데이터 타입 필터
-      const typeFilter = filters.selectedType === "all" || dataset.dataType.includes(filters.selectedType);
-      
+      const typeFilter =
+        filters.selectedType === "all" || dataset.dataType.includes(filters.selectedType);
+
       // 검색어 필터
-      const searchFilter = filters.searchQuery === "" ||
+      const searchFilter =
+        filters.searchQuery === "" ||
         dataset.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        (dataset.description && dataset.description.toLowerCase().includes(filters.searchQuery.toLowerCase()));
-      
+        (dataset.description &&
+          dataset.description.toLowerCase().includes(filters.searchQuery.toLowerCase()));
+
       // 태그 필터
-      const tagFilter = filters.selectedTags.length === 0 || 
+      const tagFilter =
+        filters.selectedTags.length === 0 ||
         (dataset.tags && filters.selectedTags.every(tag => dataset.tags?.includes(tag)));
-      
+
       return typeFilter && searchFilter && tagFilter;
     })
     .sort((a, b) => {
@@ -115,4 +119,4 @@ export const useDatasets = () => {
     updateFilter,
     refetch: fetchDatasets,
   };
-}; 
+};

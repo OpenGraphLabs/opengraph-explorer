@@ -1,7 +1,7 @@
 import { Flex, Select } from "@radix-ui/themes";
-import { 
-  ChevronUpIcon, 
-  ChevronDownIcon, 
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
   TextAlignLeftIcon,
   StackIcon,
 } from "@radix-ui/react-icons";
@@ -24,11 +24,16 @@ export const DatasetSortSelector = ({
 }: DatasetSortSelectorProps) => {
   const getSortIcon = (sortValue: string) => {
     switch (sortValue) {
-      case "newest": return <ChevronUpIcon />;
-      case "oldest": return <ChevronDownIcon />;
-      case "name": return <TextAlignLeftIcon />;
-      case "size": return <StackIcon />;
-      default: return <ChevronUpIcon />;
+      case "newest":
+        return <ChevronUpIcon />;
+      case "oldest":
+        return <ChevronDownIcon />;
+      case "name":
+        return <TextAlignLeftIcon />;
+      case "size":
+        return <StackIcon />;
+      default:
+        return <ChevronUpIcon />;
     }
   };
 
@@ -38,10 +43,7 @@ export const DatasetSortSelector = ({
   };
 
   return (
-    <Select.Root 
-      value={selectedSort}
-      onValueChange={onSortChange}
-    >
+    <Select.Root value={selectedSort} onValueChange={onSortChange}>
       <Select.Trigger
         style={{
           padding: "8px 12px",
@@ -67,29 +69,36 @@ export const DatasetSortSelector = ({
         </Flex>
       </Select.Trigger>
 
-      <Select.Content 
-        position="popper" 
-        style={{ 
+      <Select.Content
+        position="popper"
+        style={{
           zIndex: 999,
-          borderRadius: "8px", 
-          overflow: "hidden", 
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", 
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
           border: "1px solid var(--gray-4)",
           background: "white",
           animation: "slideDown 0.2s ease",
         }}
       >
         <Select.Group>
-          <Select.Label style={{ padding: "8px 22px", color: "var(--gray-9)", fontSize: "12px", fontWeight: 600 }}>
+          <Select.Label
+            style={{
+              padding: "8px 22px",
+              color: "var(--gray-9)",
+              fontSize: "12px",
+              fontWeight: 600,
+            }}
+          >
             Sort by
           </Select.Label>
-          
-          {options.map((option) => (
-            <Select.Item 
+
+          {options.map(option => (
+            <Select.Item
               key={option.value}
               value={option.value}
-              style={{ 
-                padding: "8px 22px", 
+              style={{
+                padding: "8px 22px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -110,4 +119,4 @@ export const DatasetSortSelector = ({
       </Select.Content>
     </Select.Root>
   );
-}; 
+};

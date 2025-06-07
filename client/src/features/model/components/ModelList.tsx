@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Grid, Flex, Text, Spinner, Box, Button } from '@radix-ui/themes';
-import { MagnifyingGlassIcon, CodeIcon } from '@radix-ui/react-icons';
-import { Link } from 'react-router-dom';
-import { Model } from '../types';
-import { ModelCard } from '@/features/model';
-import styles from '@/styles/Card.module.css';
+import { useState, useEffect } from "react";
+import { Grid, Flex, Text, Spinner, Box, Button } from "@radix-ui/themes";
+import { MagnifyingGlassIcon, CodeIcon } from "@radix-ui/react-icons";
+import { Link } from "react-router-dom";
+import { Model } from "../types";
+import { ModelCard } from "@/features/model";
+import styles from "@/styles/Card.module.css";
 
 interface ModelListProps {
   models: Model[];
@@ -25,7 +25,13 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
 
   if (loading) {
     return (
-      <Flex direction="column" align="center" gap="4" py="9" style={{ minHeight: "60vh", justifyContent: "center" }}>
+      <Flex
+        direction="column"
+        align="center"
+        gap="4"
+        py="9"
+        style={{ minHeight: "60vh", justifyContent: "center" }}
+      >
         <Spinner size="3" className={styles.loadingPulse} />
         <Text size="3" style={{ fontWeight: 500 }}>
           Loading amazing models...
@@ -36,19 +42,19 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
 
   if (error) {
     return (
-      <Flex 
-        direction="column" 
-        align="center" 
-        gap="4" 
-        py="9" 
-        style={{ 
-          minHeight: "60vh", 
+      <Flex
+        direction="column"
+        align="center"
+        gap="4"
+        py="9"
+        style={{
+          minHeight: "60vh",
           justifyContent: "center",
           background: "white",
           borderRadius: "16px",
           padding: "40px",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-          border: "1px solid var(--gray-4)"
+          border: "1px solid var(--gray-4)",
         }}
       >
         <Box
@@ -93,19 +99,19 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
 
   if (models.length === 0) {
     return (
-      <Flex 
-        direction="column" 
-        align="center" 
-        gap="4" 
+      <Flex
+        direction="column"
+        align="center"
+        gap="4"
         py="9"
-        style={{ 
-          minHeight: "60vh", 
+        style={{
+          minHeight: "60vh",
           justifyContent: "center",
           background: "white",
           borderRadius: "16px",
           padding: "40px",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-          border: "1px solid var(--gray-4)"
+          border: "1px solid var(--gray-4)",
         }}
       >
         <Box
@@ -153,9 +159,9 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
   }
 
   return (
-    <Grid 
-      columns={{ initial: "1", sm: "2", lg: "3" }} 
-      gap="5" 
+    <Grid
+      columns={{ initial: "1", sm: "2", lg: "3" }}
+      gap="5"
       className={styles.modelGrid}
       style={{
         maxWidth: "100%",
@@ -167,7 +173,7 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
       {models.map((model, index) => (
         <div
           key={model.id}
-          style={{ 
+          style={{
             animationDelay: `${index * 50}ms`,
             opacity: isLoaded ? 1 : 0,
             transform: isLoaded ? "translateY(0)" : "translateY(10px)",
@@ -184,4 +190,4 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
       ))}
     </Grid>
   );
-} 
+}

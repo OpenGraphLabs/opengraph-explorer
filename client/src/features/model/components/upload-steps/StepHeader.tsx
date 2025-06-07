@@ -35,4 +35,4 @@ export function StepHeader({ stepNumber, title, description }: StepHeaderProps) 
       </Text>
     </Flex>
   );
-} 
+}

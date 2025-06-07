@@ -1,6 +1,6 @@
-import { Box, Flex, Text, Button } from '@radix-ui/themes';
-import { Database, Image as ImageIcon } from 'phosphor-react';
-import { ImageViewerProps } from '../types';
+import { Box, Flex, Text, Button } from "@radix-ui/themes";
+import { Database, Image as ImageIcon } from "phosphor-react";
+import { ImageViewerProps } from "../types";
 
 const styles = `
   @keyframes pulse {
@@ -50,11 +50,11 @@ export function ImageViewer({
   onNavigate,
 }: ImageViewerProps) {
   const currentImage = dataset.data[currentImageIndex];
-  
+
   if (!currentImage) {
     return (
-      <Box 
-        style={{ 
+      <Box
+        style={{
           width: "100%",
           height: "500px",
           background: "var(--gray-2)",
@@ -76,7 +76,7 @@ export function ImageViewer({
   return (
     <>
       <style>{styles}</style>
-      
+
       {/* Navigation Header */}
       <Flex justify="between" align="center" mb="4">
         <Flex direction="column" gap="2">
@@ -84,47 +84,53 @@ export function ImageViewer({
             <Text size="3" weight="bold">
               Image {currentImageIndex + 1} of {dataset.data.length}
             </Text>
-            
-                         {/* Navigation Buttons */}
-             <Flex gap="2">
-               <Button
-                 size="1"
-                 variant="soft"
-                 disabled={currentImageIndex === 0}
-                 onClick={() => onNavigate('prev')}
-                 style={{
-                   cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
-                   padding: "0 8px",
-                   background: currentImageIndex === 0 ? "var(--gray-3)" : "var(--blue-3)",
-                   color: currentImageIndex === 0 ? "var(--gray-8)" : "var(--blue-11)",
-                 }}
-               >
-                 ← Previous
-               </Button>
-               <Button
-                 size="1"
-                 variant="soft"
-                 disabled={currentImageIndex === dataset.data.length - 1}
-                 onClick={() => onNavigate('next')}
-                 style={{
-                   cursor: currentImageIndex === dataset.data.length - 1 ? "not-allowed" : "pointer",
-                   padding: "0 8px",
-                   background: currentImageIndex === dataset.data.length - 1 ? "var(--gray-3)" : "var(--blue-3)",
-                   color: currentImageIndex === dataset.data.length - 1 ? "var(--gray-8)" : "var(--blue-11)",
-                 }}
-               >
-                 Next →
-               </Button>
-             </Flex>
+
+            {/* Navigation Buttons */}
+            <Flex gap="2">
+              <Button
+                size="1"
+                variant="soft"
+                disabled={currentImageIndex === 0}
+                onClick={() => onNavigate("prev")}
+                style={{
+                  cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
+                  padding: "0 8px",
+                  background: currentImageIndex === 0 ? "var(--gray-3)" : "var(--blue-3)",
+                  color: currentImageIndex === 0 ? "var(--gray-8)" : "var(--blue-11)",
+                }}
+              >
+                ← Previous
+              </Button>
+              <Button
+                size="1"
+                variant="soft"
+                disabled={currentImageIndex === dataset.data.length - 1}
+                onClick={() => onNavigate("next")}
+                style={{
+                  cursor: currentImageIndex === dataset.data.length - 1 ? "not-allowed" : "pointer",
+                  padding: "0 8px",
+                  background:
+                    currentImageIndex === dataset.data.length - 1
+                      ? "var(--gray-3)"
+                      : "var(--blue-3)",
+                  color:
+                    currentImageIndex === dataset.data.length - 1
+                      ? "var(--gray-8)"
+                      : "var(--blue-11)",
+                }}
+              >
+                Next →
+              </Button>
+            </Flex>
           </Flex>
-          
+
           {/* Loading Progress */}
           {(() => {
             const uniqueBlobIds = Array.from(new Set(dataset.data.map(item => item.blobId)));
             const loadedBlobs = uniqueBlobIds.filter(blobId => blobLoading[blobId] === false);
             const totalBlobs = uniqueBlobIds.length;
             const percentage = totalBlobs > 0 ? (loadedBlobs.length / totalBlobs) * 100 : 0;
-            
+
             if (totalBlobs > 0 && percentage < 100) {
               return (
                 <Flex align="center" gap="2">
@@ -159,7 +165,7 @@ export function ImageViewer({
             return null;
           })()}
         </Flex>
-        
+
         {/* Current Image Status */}
         <Flex align="center" gap="2">
           {isCurrentImageBlobLoading && (
@@ -178,28 +184,30 @@ export function ImageViewer({
               </Text>
             </Flex>
           )}
-          {!isCurrentImageBlobLoading && imageUrls[`${currentImage.blobId}_${currentImageIndex}`] && !blobLoading[currentImage.blobId] && (
-            <Flex align="center" gap="2">
-              <Box
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  background: "var(--green-9)",
-                  borderRadius: "50%",
-                }}
-              />
-              <Text size="1" style={{ color: "var(--green-11)" }}>
-                Ready
-              </Text>
-            </Flex>
-          )}
+          {!isCurrentImageBlobLoading &&
+            imageUrls[`${currentImage.blobId}_${currentImageIndex}`] &&
+            !blobLoading[currentImage.blobId] && (
+              <Flex align="center" gap="2">
+                <Box
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    background: "var(--green-9)",
+                    borderRadius: "50%",
+                  }}
+                />
+                <Text size="1" style={{ color: "var(--green-11)" }}>
+                  Ready
+                </Text>
+              </Flex>
+            )}
         </Flex>
       </Flex>
 
       {/* Image Display */}
-      <Box 
-        style={{ 
-          position: "relative", 
+      <Box
+        style={{
+          position: "relative",
           width: "100%",
           height: "500px",
           background: "var(--gray-2)",
@@ -307,9 +315,9 @@ export function ImageViewer({
               console.log(`Image ${currentImageIndex + 1} loaded successfully`);
               onImageLoadingChange(false);
             }}
-            onError={(e) => {
+            onError={e => {
               console.error(`Image ${currentImageIndex + 1} failed to load:`, e);
-              console.log('Image URL:', getImageUrl(currentImage, currentImageIndex));
+              console.log("Image URL:", getImageUrl(currentImage, currentImageIndex));
               onImageLoadingChange(false);
             }}
           />
@@ -317,4 +325,4 @@ export function ImageViewer({
       </Box>
     </>
   );
-} 
+}

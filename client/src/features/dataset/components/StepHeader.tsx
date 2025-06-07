@@ -10,11 +10,11 @@ interface StepHeaderProps {
   };
 }
 
-export function StepHeader({ 
-  stepNumber, 
-  title, 
+export function StepHeader({
+  stepNumber,
+  title,
   description,
-  gradientColors = { from: "#667eea", to: "#764ba2" }
+  gradientColors = { from: "#667eea", to: "#764ba2" },
 }: StepHeaderProps) {
   return (
     <Flex align="center" gap="3" mb="2">
@@ -46,4 +46,4 @@ export function StepHeader({
       </Box>
     </Flex>
   );
-} 
+}

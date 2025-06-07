@@ -21,17 +21,13 @@ interface DatasetCardProps {
   isLoaded: boolean;
 }
 
-export const DatasetCard = ({
-  dataset,
-  index,
-  isLoaded,
-}: DatasetCardProps) => {
+export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
   const dataTypeColor = getDataTypeColor(dataset.dataType);
 
   return (
     <Link
       to={`/datasets/${dataset.id}`}
-      style={{ 
+      style={{
         textDecoration: "none",
         opacity: isLoaded ? 1 : 0,
         transform: isLoaded ? "translateY(0)" : "translateY(10px)",
@@ -40,7 +36,7 @@ export const DatasetCard = ({
         minWidth: "320px",
         maxWidth: "100%",
       }}
-      className={`${isLoaded ? "visible" : ''}`}
+      className={`${isLoaded ? "visible" : ""}`}
     >
       <Card
         style={{
@@ -69,7 +65,7 @@ export const DatasetCard = ({
           }}
         >
           {/* 배경 장식 요소 */}
-          <Box 
+          <Box
             style={{
               position: "absolute",
               top: "-20px",
@@ -81,7 +77,7 @@ export const DatasetCard = ({
               zIndex: 0,
             }}
           />
-          
+
           <Flex justify="between" align="center" style={{ position: "relative", zIndex: 1 }}>
             <Flex align="center" gap="3">
               <Box
@@ -118,15 +114,23 @@ export const DatasetCard = ({
                   {dataset.dataType.split("/")[0]}
                 </Badge>
                 {dataset.license && (
-                  <Text size="1" style={{ color: dataTypeColor.text, marginTop: "4px", marginLeft: "6px", opacity: 0.8 }}>
+                  <Text
+                    size="1"
+                    style={{
+                      color: dataTypeColor.text,
+                      marginTop: "4px",
+                      marginLeft: "6px",
+                      opacity: 0.8,
+                    }}
+                  >
                     {dataset.license}
                   </Text>
                 )}
               </Box>
             </Flex>
-            
+
             <Tooltip content="Dataset Size">
-              <Box 
+              <Box
                 style={{
                   background: "white",
                   padding: "6px 12px",
@@ -137,18 +141,18 @@ export const DatasetCard = ({
                   gap: "6px",
                 }}
               >
-                <Box 
-                  style={{ 
-                    width: "8px", 
-                    height: "8px", 
-                    borderRadius: "50%", 
+                <Box
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
                     background: dataTypeColor.text,
-                  }} 
+                  }}
                 />
                 <Text
                   size="2"
-                  style={{ 
-                    color: dataTypeColor.text, 
+                  style={{
+                    color: dataTypeColor.text,
                     fontWeight: 600,
                     fontSize: "13px",
                   }}
@@ -161,17 +165,21 @@ export const DatasetCard = ({
         </Box>
 
         {/* 데이터셋 콘텐츠 */}
-        <Box 
-          style={{ 
-            padding: "20px", 
-            flex: 1, 
-            display: "flex", 
+        <Box
+          style={{
+            padding: "20px",
+            flex: 1,
+            display: "flex",
             flexDirection: "column",
             background: "linear-gradient(180deg, white, var(--gray-1))",
           }}
           className="datasetCardContent"
         >
-          <Heading size="3" mb="2" style={{ fontWeight: 700, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
+          <Heading
+            size="3"
+            mb="2"
+            style={{ fontWeight: 700, lineHeight: 1.3, letterSpacing: "-0.01em" }}
+          >
             {dataset.name}
           </Heading>
           <Text
@@ -189,11 +197,14 @@ export const DatasetCard = ({
             {dataset.description || "No description provided for this dataset."}
           </Text>
 
-          <Separator size="4" style={{ 
-            margin: "14px 0", 
-            height: "1px", 
-            background: "linear-gradient(90deg, var(--gray-4), transparent)" 
-          }} />
+          <Separator
+            size="4"
+            style={{
+              margin: "14px 0",
+              height: "1px",
+              background: "linear-gradient(90deg, var(--gray-4), transparent)",
+            }}
+          />
 
           {/* 태그 */}
           {dataset.tags && dataset.tags.length > 0 && (
@@ -245,20 +256,20 @@ export const DatasetCard = ({
                 fallback={dataset.creator ? dataset.creator[0] : "U"}
                 radius="full"
                 style={{
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                 }}
               />
               <Text size="1" style={{ fontWeight: 500, color: "var(--gray-10)" }}>
                 {truncateAddress(dataset.creator || "", SUI_ADDRESS_DISPLAY_LENGTH)}
               </Text>
             </Flex>
-            
+
             <Flex gap="3" align="center">
               <Tooltip content="Total items in dataset">
-                <Flex 
-                  align="center" 
-                  gap="2" 
-                  style={{ 
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{
                     color: "var(--gray-10)",
                     background: "var(--gray-3)",
                     padding: "4px 10px",
@@ -273,10 +284,10 @@ export const DatasetCard = ({
                 </Flex>
               </Tooltip>
               <Tooltip content={`Created: ${new Date(dataset.createdAt).toLocaleDateString()}`}>
-                <Text 
-                  size="1" 
-                  style={{ 
-                    color: "var(--gray-10)", 
+                <Text
+                  size="1"
+                  style={{
+                    color: "var(--gray-10)",
                     fontWeight: 500,
                     background: "var(--gray-3)",
                     padding: "4px 8px",
@@ -293,4 +304,4 @@ export const DatasetCard = ({
       </Card>
     </Link>
   );
-}; 
+};

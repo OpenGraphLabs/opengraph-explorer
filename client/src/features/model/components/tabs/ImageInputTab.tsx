@@ -1,16 +1,5 @@
-import {
-  Box,
-  Flex,
-  Heading,
-  Text,
-  Card,
-  Button,
-} from "@radix-ui/themes";
-import {
-  ReloadIcon,
-  ResetIcon,
-  UploadIcon,
-} from "@radix-ui/react-icons";
+import { Box, Flex, Heading, Text, Card, Button } from "@radix-ui/themes";
+import { ReloadIcon, ResetIcon, UploadIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { ImageSquare } from "phosphor-react";
 import { VectorInfoDisplay, ImageData, FormattedVector } from "./VectorInfoDisplay";
@@ -24,7 +13,7 @@ interface ImageInputTabProps {
 export function ImageInputTab({
   getFirstLayerDimension,
   getModelScale,
-  onVectorGenerated
+  onVectorGenerated,
 }: ImageInputTabProps) {
   // 상태 관리
   const [imageData, setImageData] = useState<ImageData>({ dataUrl: null, vector: null });
@@ -143,7 +132,7 @@ export function ImageInputTab({
 
               // 부모 컴포넌트로 생성된 벡터 전달
               onVectorGenerated(vector);
-              
+
               setIsProcessingImage(false);
             })
             .catch(error => {
@@ -243,9 +232,7 @@ export function ImageInputTab({
                 }}
               >
                 <Flex align="center" gap="2" justify="center">
-                  <ReloadIcon
-                    style={{ animation: "spin 1s linear infinite" }}
-                  />
+                  <ReloadIcon style={{ animation: "spin 1s linear infinite" }} />
                   <Text size="2">Processing...</Text>
                 </Flex>
               </Box>
@@ -305,9 +292,7 @@ export function ImageInputTab({
                 justifyContent: "center",
               }}
             >
-              <UploadIcon
-                style={{ width: "24px", height: "24px", color: "#FF5733" }}
-              />
+              <UploadIcon style={{ width: "24px", height: "24px", color: "#FF5733" }} />
             </Box>
             <Text size="2" style={{ fontWeight: 500 }}>
               Drag & Drop Image Here
@@ -355,4 +340,4 @@ export function ImageInputTab({
       )}
     </Flex>
   );
-} 
+}

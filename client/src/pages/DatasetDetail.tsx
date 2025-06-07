@@ -1,20 +1,12 @@
 import { useParams } from "react-router-dom";
-import {
-  Box,
-  Flex,
-  Text,
-  Tabs,
-  Card,
-  Heading,
-  Badge,
-} from "@radix-ui/themes";
+import { Box, Flex, Text, Tabs, Card, Heading, Badge } from "@radix-ui/themes";
 import { CheckCircle, Users } from "phosphor-react";
 import {
   useDatasetDetail,
   useBlobData,
-  DatasetHeader, 
-  DatasetStats, 
-  DatasetImageGallery, 
+  DatasetHeader,
+  DatasetStats,
+  DatasetImageGallery,
   DatasetPagination,
   isImageType,
   getAnnotationColor,
@@ -26,7 +18,7 @@ import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 export function DatasetDetail() {
   const { addConfirmedAnnotationLabels } = useDatasetSuiService();
   const { id } = useParams<{ id: string }>();
-  
+
   // Dataset 상세 정보 관리
   const {
     dataset,
@@ -53,27 +45,22 @@ export function DatasetDetail() {
   } = useDatasetDetail(id);
 
   // Blob 데이터 관리
-  const {
-    getImageUrl,
-    isItemLoading,
-    isAnyBlobLoading,
-    getUniqueBlobId,
-  } = useBlobData(dataset);
+  const { getImageUrl, isItemLoading, isAnyBlobLoading, getUniqueBlobId } = useBlobData(dataset);
 
   // 선택된 Annotation들 승인 핸들러
   const handleConfirmSelectedAnnotations = async () => {
     if (selectedPendingLabels.size === 0) {
       setConfirmationStatus({
-        status: 'failed',
-        message: 'Please select annotations to confirm',
+        status: "failed",
+        message: "Please select annotations to confirm",
       });
       return;
     }
 
     if (!dataset || !selectedImageData) {
       setConfirmationStatus({
-        status: 'failed',
-        message: 'Dataset or image data not found',
+        status: "failed",
+        message: "Dataset or image data not found",
       });
       return;
     }
@@ -82,7 +69,7 @@ export function DatasetDetail() {
 
     try {
       setConfirmationStatus({
-        status: 'pending',
+        status: "pending",
         message: `Confirming ${labels.length} annotation(s) on blockchain...`,
       });
 
@@ -90,26 +77,25 @@ export function DatasetDetail() {
         path: selectedImageData.path,
         label: labels,
       });
-      
+
       setConfirmationStatus({
-        status: 'success',
+        status: "success",
         message: `Successfully confirmed ${labels.length} annotation(s)!`,
         txHash: (result as any)?.digest || undefined,
         confirmedLabels: labels,
       });
-      
+
       // 3초 후 상태 초기화
       setTimeout(() => {
         setConfirmationStatus({
-          status: 'idle',
-          message: '',
+          status: "idle",
+          message: "",
         });
       }, 3000);
-      
     } catch (error) {
       console.error("Error confirming annotations:", error);
       setConfirmationStatus({
-        status: 'failed',
+        status: "failed",
         message: error instanceof Error ? error.message : "Failed to confirm annotations",
       });
     }
@@ -151,15 +137,10 @@ export function DatasetDetail() {
           background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
         }}
       >
-        <DatasetHeader
-          dataset={dataset}
-          uniqueBlobId={getUniqueBlobId() || undefined}
-        />
-        
+        <DatasetHeader dataset={dataset} uniqueBlobId={getUniqueBlobId() || undefined} />
+
         {/* 데이터셋 통계 */}
-        <DatasetStats
-          dataset={dataset}
-        />
+        <DatasetStats dataset={dataset} />
       </Card>
 
       {/* 데이터셋 콘텐츠 */}
@@ -175,8 +156,10 @@ export function DatasetDetail() {
         <Flex direction="column" gap="6">
           <Flex align="center" justify="between">
             <Flex direction="column" gap="2">
-              <Heading size="5" style={{ fontWeight: 600 }}>Dataset Contents</Heading>
-              
+              <Heading size="5" style={{ fontWeight: 600 }}>
+                Dataset Contents
+              </Heading>
+
               {/* 심플한 로딩 상태 표시 */}
               {isAnyBlobLoading() && isImageType(dataset.dataType) && (
                 <Flex align="center" gap="2">
@@ -198,48 +181,61 @@ export function DatasetDetail() {
             </Flex>
           </Flex>
 
-          <Tabs.Root value={activeTab} onValueChange={(value) => setActiveTab(value as 'confirmed' | 'pending')}>
+          <Tabs.Root
+            value={activeTab}
+            onValueChange={value => setActiveTab(value as "confirmed" | "pending")}
+          >
             <Tabs.List>
-              <Tabs.Trigger value="confirmed" style={{
-                padding: "12px 24px",
-                borderRadius: "8px 8px 0 0",
-                border: "none",
-                background: activeTab === 'confirmed' ? "var(--green-3)" : "transparent",
-                color: activeTab === 'confirmed' ? "var(--green-11)" : "var(--gray-11)",
-                fontWeight: "600",
-                position: "relative",
-              }}>
+              <Tabs.Trigger
+                value="confirmed"
+                style={{
+                  padding: "12px 24px",
+                  borderRadius: "8px 8px 0 0",
+                  border: "none",
+                  background: activeTab === "confirmed" ? "var(--green-3)" : "transparent",
+                  color: activeTab === "confirmed" ? "var(--green-11)" : "var(--gray-11)",
+                  fontWeight: "600",
+                  position: "relative",
+                }}
+              >
                 <Flex align="center" gap="2">
-                  <CheckCircle size={16} weight={activeTab === 'confirmed' ? "fill" : "regular"} />
+                  <CheckCircle size={16} weight={activeTab === "confirmed" ? "fill" : "regular"} />
                   Confirmed
-                  <Badge style={{
-                    background: activeTab === 'confirmed' ? "var(--green-9)" : "var(--gray-5)",
-                    color: activeTab === 'confirmed' ? "white" : "var(--gray-11)",
-                    fontSize: "11px",
-                    fontWeight: "600",
-                  }}>
+                  <Badge
+                    style={{
+                      background: activeTab === "confirmed" ? "var(--green-9)" : "var(--gray-5)",
+                      color: activeTab === "confirmed" ? "white" : "var(--gray-11)",
+                      fontSize: "11px",
+                      fontWeight: "600",
+                    }}
+                  >
                     {totalCounts.confirmed}
                   </Badge>
                 </Flex>
               </Tabs.Trigger>
-              <Tabs.Trigger value="pending" style={{
-                padding: "12px 24px",
-                borderRadius: "8px 8px 0 0",
-                border: "none",
-                background: activeTab === 'pending' ? "var(--orange-3)" : "transparent",
-                color: activeTab === 'pending' ? "var(--orange-11)" : "var(--gray-11)",
-                fontWeight: "600",
-                position: "relative",
-              }}>
+              <Tabs.Trigger
+                value="pending"
+                style={{
+                  padding: "12px 24px",
+                  borderRadius: "8px 8px 0 0",
+                  border: "none",
+                  background: activeTab === "pending" ? "var(--orange-3)" : "transparent",
+                  color: activeTab === "pending" ? "var(--orange-11)" : "var(--gray-11)",
+                  fontWeight: "600",
+                  position: "relative",
+                }}
+              >
                 <Flex align="center" gap="2">
-                  <Users size={16} weight={activeTab === 'pending' ? "fill" : "regular"} />
+                  <Users size={16} weight={activeTab === "pending" ? "fill" : "regular"} />
                   Pending
-                  <Badge style={{
-                    background: activeTab === 'pending' ? "var(--orange-9)" : "var(--gray-5)",
-                    color: activeTab === 'pending' ? "white" : "var(--gray-11)",
-                    fontSize: "11px",
-                    fontWeight: "600",
-                  }}>
+                  <Badge
+                    style={{
+                      background: activeTab === "pending" ? "var(--orange-9)" : "var(--gray-5)",
+                      color: activeTab === "pending" ? "white" : "var(--gray-11)",
+                      fontSize: "11px",
+                      fontWeight: "600",
+                    }}
+                  >
                     {totalCounts.pending}
                   </Badge>
                 </Flex>
@@ -248,10 +244,10 @@ export function DatasetDetail() {
 
             <Box style={{ marginTop: "24px" }}>
               <DatasetImageGallery
-                items={getPaginatedItems(activeTab === 'confirmed' ? confirmedPage : pendingPage)}
+                items={getPaginatedItems(activeTab === "confirmed" ? confirmedPage : pendingPage)}
                 loading={isAnyBlobLoading()}
                 activeTab={activeTab}
-                onTabChange={(tab) => setActiveTab(tab)}
+                onTabChange={tab => setActiveTab(tab)}
                 onImageClick={(item, index) => handleImageClick(item, index, getImageUrl)}
                 getImageUrl={getImageUrl}
                 isItemLoading={isItemLoading}
@@ -263,16 +259,17 @@ export function DatasetDetail() {
 
           {/* 페이지네이션 컨트롤 */}
           <DatasetPagination
-            currentPage={activeTab === 'confirmed' ? confirmedPage : pendingPage}
+            currentPage={activeTab === "confirmed" ? confirmedPage : pendingPage}
             hasNextPage={(() => {
-              const currentPage = activeTab === 'confirmed' ? confirmedPage : pendingPage;
-              const totalItems = activeTab === 'confirmed' ? totalCounts.confirmed : totalCounts.pending;
+              const currentPage = activeTab === "confirmed" ? confirmedPage : pendingPage;
+              const totalItems =
+                activeTab === "confirmed" ? totalCounts.confirmed : totalCounts.pending;
               const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
               return currentPage < totalPages || !!dataset?.pageInfo?.hasNextPage;
             })()}
-            hasPrevPage={(activeTab === 'confirmed' ? confirmedPage : pendingPage) > 1}
+            hasPrevPage={(activeTab === "confirmed" ? confirmedPage : pendingPage) > 1}
             loading={paginationLoading}
-            totalItems={activeTab === 'confirmed' ? totalCounts.confirmed : totalCounts.pending}
+            totalItems={activeTab === "confirmed" ? totalCounts.confirmed : totalCounts.pending}
             pageSize={DEFAULT_PAGE_SIZE}
             onLoadPage={loadPage}
           />

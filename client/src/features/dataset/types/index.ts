@@ -60,7 +60,7 @@ export interface DatasetFilters {
 }
 
 export interface ConfirmationStatus {
-  status: 'idle' | 'pending' | 'success' | 'failed';
+  status: "idle" | "pending" | "success" | "failed";
   message: string;
   txHash?: string;
   confirmedLabels?: string[];
@@ -84,7 +84,7 @@ export interface BlobLoading {
   [blobId: string]: boolean;
 }
 
-export type ActiveTab = 'confirmed' | 'pending';
+export type ActiveTab = "confirmed" | "pending";
 
 // Re-export upload types
 export type {
@@ -92,4 +92,4 @@ export type {
   UploadProgress,
   DatasetUploadState,
   FileUploadConfig,
-} from './upload'; 
+} from "./upload";

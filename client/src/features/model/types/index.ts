@@ -23,7 +23,7 @@ export interface ModelFilters {
   selectedSort: string;
 }
 
-export type SortOption = 'downloads' | 'likes' | 'newest';
+export type SortOption = "downloads" | "likes" | "newest";
 
 export interface TaskFilter {
   value: string;

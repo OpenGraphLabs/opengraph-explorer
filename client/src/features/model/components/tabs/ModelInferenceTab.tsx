@@ -1,16 +1,5 @@
-import {
-  Box,
-  Flex,
-  Heading,
-  Text,
-  Card,
-  Badge,
-  Button,
-  Tabs,
-} from "@radix-ui/themes";
-import {
-  ReloadIcon,
-} from "@radix-ui/react-icons";
+import { Box, Flex, Heading, Text, Card, Badge, Button, Tabs } from "@radix-ui/themes";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useModelInferenceState } from "@/shared/hooks/useModelInference";
@@ -43,7 +32,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
 
   // State declarations
   const [activeInputTab, setActiveInputTab] = useState<string>("vector");
-  
+
   // 각 탭별 벡터 값 (모두 독립적으로 관리)
   const [vectorTabVector, setVectorTabVector] = useState<number[]>([]);
   const [imageTabVector, setImageTabVector] = useState<number[]>([]);
@@ -130,10 +119,10 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   const handleVectorChange = (vector: number[]) => {
     // 입력 벡터 텍스트도 업데이트 (호환성 유지)
     setInputVector(vector.join(", "));
-    
+
     // 현재 벡터 포맷 변환
     const formattedVector = formatVectorForPrediction(vector);
-    
+
     // 추론 입력값 설정
     setInputValues(formattedVector.magnitudes);
     setInputSigns(formattedVector.signs);
@@ -266,7 +255,8 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
           >
             <Flex>
               <Text size="2" style={{ fontWeight: 500, lineHeight: "1.6" }}>
-                Choose how to input data for the model. Each layer's output will be automatically passed as input to the next layer.
+                Choose how to input data for the model. Each layer's output will be automatically
+                passed as input to the next layer.
               </Text>
             </Flex>
 
@@ -296,7 +286,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
 
                 <Box style={{ padding: "16px 0" }}>
                   <Tabs.Content value="vector">
-                    <VectorInputTab 
+                    <VectorInputTab
                       inputVector={inputVector}
                       setInputVector={setInputVector}
                       onVectorChange={handleVectorTabChange}
@@ -356,18 +346,24 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                     justifyContent: "center",
                     alignItems: "center",
                   }}
-                  onMouseOver={(e) => {
+                  onMouseOver={e => {
                     e.currentTarget.style.transform = "translateY(-2px)";
                     e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
                   }}
-                  onMouseOut={(e) => {
+                  onMouseOut={e => {
                     e.currentTarget.style.transform = "translateY(0)";
                     e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
                   }}
                 >
                   {isProcessing ? (
                     <Flex align="center" gap="2">
-                      <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />
+                      <ReloadIcon
+                        style={{
+                          animation: "spin 1s linear infinite",
+                          width: "20px",
+                          height: "20px",
+                        }}
+                      />
                       <span>Processing...</span>
                     </Flex>
                   ) : (
@@ -381,88 +377,100 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
 
               <Flex gap="3" mt="4" wrap="wrap">
                 <Button
-                    onClick={runAllLayersWithChunkedPTB}
-                    disabled={isProcessing || !inputVector.trim()}
-                    style={{
-                      cursor: "pointer",
-                      background: "#FF5733",
-                      color: "white",
-                      borderRadius: "8px",
-                      opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
-                      transition: "all 0.2s ease",
-                      padding: "12px 25px",
-                      fontSize: "16px",
-                      transform: "translateY(0)",
-                      border: "none",
-                      width: "180px",
-                      height: "50px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
-                    }}
+                  onClick={runAllLayersWithChunkedPTB}
+                  disabled={isProcessing || !inputVector.trim()}
+                  style={{
+                    cursor: "pointer",
+                    background: "#FF5733",
+                    color: "white",
+                    borderRadius: "8px",
+                    opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                    padding: "12px 25px",
+                    fontSize: "16px",
+                    transform: "translateY(0)",
+                    border: "none",
+                    width: "180px",
+                    height: "50px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                  onMouseOver={e => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
+                  }}
+                  onMouseOut={e => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
+                  }}
                 >
                   {isProcessing ? (
-                      <Flex align="center" gap="2">
-                        <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />
-                        <span>Processing...</span>
-                      </Flex>
+                    <Flex align="center" gap="2">
+                      <ReloadIcon
+                        style={{
+                          animation: "spin 1s linear infinite",
+                          width: "20px",
+                          height: "20px",
+                        }}
+                      />
+                      <span>Processing...</span>
+                    </Flex>
                   ) : (
-                      <Flex align="center" gap="3">
-                        <TreeStructure size={20} weight="fill" />
-                        <span>Predict By Chunked PTB</span>
-                      </Flex>
+                    <Flex align="center" gap="3">
+                      <TreeStructure size={20} weight="fill" />
+                      <span>Predict By Chunked PTB</span>
+                    </Flex>
                   )}
                 </Button>
               </Flex>
 
               <Flex gap="3" mt="4" wrap="wrap">
                 <Button
-                    onClick={runAllLayersByInputNodes}
-                    disabled={isProcessing || !inputVector.trim()}
-                    style={{
-                      cursor: "pointer",
-                      background: "#FF5733",
-                      color: "white",
-                      borderRadius: "8px",
-                      opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
-                      transition: "all 0.2s ease",
-                      padding: "12px 25px",
-                      fontSize: "16px",
-                      transform: "translateY(0)",
-                      border: "none",
-                      width: "180px",
-                      height: "50px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
-                    }}
+                  onClick={runAllLayersByInputNodes}
+                  disabled={isProcessing || !inputVector.trim()}
+                  style={{
+                    cursor: "pointer",
+                    background: "#FF5733",
+                    color: "white",
+                    borderRadius: "8px",
+                    opacity: isProcessing || !inputVector.trim() ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                    padding: "12px 25px",
+                    fontSize: "16px",
+                    transform: "translateY(0)",
+                    border: "none",
+                    width: "180px",
+                    height: "50px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                  onMouseOver={e => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 87, 51, 0.4)";
+                  }}
+                  onMouseOut={e => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(255, 87, 51, 0.3)";
+                  }}
                 >
                   {isProcessing ? (
-                      <Flex align="center" gap="2">
-                        <ReloadIcon style={{ animation: "spin 1s linear infinite", width: "20px", height: "20px" }} />
-                        <span>Processing...</span>
-                      </Flex>
+                    <Flex align="center" gap="2">
+                      <ReloadIcon
+                        style={{
+                          animation: "spin 1s linear infinite",
+                          width: "20px",
+                          height: "20px",
+                        }}
+                      />
+                      <span>Processing...</span>
+                    </Flex>
                   ) : (
-                      <Flex align="center" gap="3">
-                        <TreeStructure size={20} weight="fill" />
-                        <span>Predict By Input Nodes</span>
-                      </Flex>
+                    <Flex align="center" gap="3">
+                      <TreeStructure size={20} weight="fill" />
+                      <span>Predict By Input Nodes</span>
+                    </Flex>
                   )}
                 </Button>
               </Flex>

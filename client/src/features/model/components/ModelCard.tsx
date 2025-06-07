@@ -11,10 +11,10 @@ interface ModelCardProps {
 export function ModelCard({ model, onClick, onViewDetails }: ModelCardProps) {
   const getTaskTypeColor = (taskType: string): { bg: string; color: string } => {
     const taskTypeLower = taskType.toLowerCase();
-    if (taskTypeLower.includes('classification')) return { bg: '#E3F2FD', color: '#1565C0' };
-    if (taskTypeLower.includes('regression')) return { bg: '#E8F5E8', color: '#2E7D32' };
-    if (taskTypeLower.includes('detection')) return { bg: '#FFF3E0', color: '#EF6C00' };
-    return { bg: 'var(--gray-a3)', color: 'var(--gray-11)' };
+    if (taskTypeLower.includes("classification")) return { bg: "#E3F2FD", color: "#1565C0" };
+    if (taskTypeLower.includes("regression")) return { bg: "#E8F5E8", color: "#2E7D32" };
+    if (taskTypeLower.includes("detection")) return { bg: "#FFF3E0", color: "#EF6C00" };
+    return { bg: "var(--gray-a3)", color: "var(--gray-11)" };
   };
 
   const taskTypeColor = getTaskTypeColor(model.task_type);
@@ -53,12 +53,14 @@ export function ModelCard({ model, onClick, onViewDetails }: ModelCardProps) {
             </Text>
             <Text
               size="3"
-              style={{
-                color: "var(--gray-10)",
-                lineHeight: "1.4",
-                display: "-webkit-box",
-                overflow: "hidden",
-              } as React.CSSProperties}
+              style={
+                {
+                  color: "var(--gray-10)",
+                  lineHeight: "1.4",
+                  display: "-webkit-box",
+                  overflow: "hidden",
+                } as React.CSSProperties
+              }
             >
               {model.description || "No description available"}
             </Text>
@@ -84,7 +86,7 @@ export function ModelCard({ model, onClick, onViewDetails }: ModelCardProps) {
           <Flex align="center" gap="2">
             <Database size={16} style={{ color: "var(--gray-9)" }} />
             <Text size="2" style={{ color: "var(--gray-11)" }}>
-              {model.graphs?.length || 0} Graph{(model.graphs?.length || 0) !== 1 ? 's' : ''}
+              {model.graphs?.length || 0} Graph{(model.graphs?.length || 0) !== 1 ? "s" : ""}
             </Text>
           </Flex>
 
@@ -162,7 +164,7 @@ export function ModelCard({ model, onClick, onViewDetails }: ModelCardProps) {
         <Flex gap="3" mt="2">
           <Button
             variant="soft"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
               onViewDetails?.();
             }}
@@ -181,7 +183,7 @@ export function ModelCard({ model, onClick, onViewDetails }: ModelCardProps) {
           </Button>
 
           <Button
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
               onClick();
             }}
@@ -198,4 +200,4 @@ export function ModelCard({ model, onClick, onViewDetails }: ModelCardProps) {
       </Flex>
     </Card>
   );
-} 
+}

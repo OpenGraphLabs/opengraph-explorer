@@ -1,9 +1,8 @@
 import { getSuiScanUrl } from "../../utils/sui";
 import { suiClient } from "../sui/modelSuiService";
 import { WalrusClient } from "@mysten/walrus";
-import {useCurrentAccount} from "@mysten/dapp-kit";
-import {useSignAndExecuteTransaction} from "@mysten/dapp-kit";
-
+import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 
 // Walrus 네트워크 설정
 // const WALRUS_NETWORK = "testnet"; // 또는 "devnet", "mainnet" 등
@@ -11,7 +10,7 @@ import {useSignAndExecuteTransaction} from "@mysten/dapp-kit";
 export const WALRUS_AGGREGATOR_URL = "https://aggregator.testnet.walrus.atalma.io";
 
 export const walrusClient = new WalrusClient({
-  network: 'testnet',
+  network: "testnet",
   suiClient,
   storageNodeClientOptions: {
     timeout: 60_000,
@@ -65,11 +64,7 @@ export function useWalrusService() {
    * @param epochs 주기 (선택 사항)
    * @returns 저장 정보
    */
-  const uploadMedia = async (
-      file: File,
-      sendTo: string,
-      epochs?: number
-  )=> {
+  const uploadMedia = async (file: File, sendTo: string, epochs?: number) => {
     if (!account) {
       throw new Error("Wallet account not found. Please connect your wallet first.");
     }
@@ -88,7 +83,7 @@ export function useWalrusService() {
         deletable: true,
         epochs: epochs ? epochs : 3,
         owner: sendTo,
-      })
+      });
       registerBlobTx.setSender(account.address);
 
       console.log("Registering blob transaction:", registerBlobTx);
@@ -101,16 +96,16 @@ export function useWalrusService() {
 
       console.log("blob transaction effects:", effects);
 
-      if (effects?.status.status !== 'success') {
-        throw new Error('Failed to register blob');
+      if (effects?.status.status !== "success") {
+        throw new Error("Failed to register blob");
       }
 
       const blobType = await walrusClient.getBlobType();
       const blobObject = objectChanges?.find(
-          (change) => change.type === 'created' && change.objectType === blobType,
+        change => change.type === "created" && change.objectType === blobType
       );
-      if (!blobObject || blobObject.type !== 'created') {
-        throw new Error('Blob object not found');
+      if (!blobObject || blobObject.type !== "created") {
+        throw new Error("Blob object not found");
       }
 
       console.log("blob type: ", blobType);
@@ -130,7 +125,7 @@ export function useWalrusService() {
       });
       certifyBlobTx.setSender(account.address);
 
-        console.log("Certifying blob transaction:", certifyBlobTx);
+      console.log("Certifying blob transaction:", certifyBlobTx);
 
       const { digest: certifyDigest } = await signAndExecuteTransaction({
         transaction: certifyBlobTx,
@@ -143,8 +138,8 @@ export function useWalrusService() {
 
       console.log("certify blob transaction effects:", certifyEffects);
 
-      if (certifyEffects?.status.status !== 'success') {
-        throw new Error('Failed to certify blob');
+      if (certifyEffects?.status.status !== "success") {
+        throw new Error("Failed to certify blob");
       }
 
       // 응답 데이터 처리
@@ -157,7 +152,7 @@ export function useWalrusService() {
         mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/${encoded.blobId}`,
         suiScanUrl: getSuiScanUrl("object", blobObject.objectId),
         suiRefId: blobObject.objectId,
-      }
+      };
       console.log("[신규 BLOB 객체 생성] BLOB 객체 ID:", blobObject.objectId);
 
       console.log("storageInfo: ", storageInfo);
@@ -166,10 +161,10 @@ export function useWalrusService() {
     } catch (error) {
       console.error("미디어 업로드 오류:", error);
       throw new Error(
-          `미디어 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`
+        `미디어 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`
       );
     }
-  }
+  };
 
   /**
    * 여러 파일을 하나의 Blob으로 업로드하는 함수
@@ -200,16 +195,14 @@ export function useWalrusService() {
       let currentPosition = 0;
 
       // 모든 파일의 바이트 배열 계산
-      const fileBuffers: ArrayBuffer[] = await Promise.all(
-        files.map(file => file.arrayBuffer())
-      );
+      const fileBuffers: ArrayBuffer[] = await Promise.all(files.map(file => file.arrayBuffer()));
 
       // 총 크기 계산
       totalSize = fileBuffers.reduce((acc, buffer) => acc + buffer.byteLength, 0);
-      
+
       // 하나의 큰 바이트 배열 생성
       const combinedBuffer = new Uint8Array(totalSize);
-      
+
       // 파일 메타데이터 생성 및 바이트 배열 채우기
       for (let i = 0; i < files.length; i++) {
         console.log(`Processing file ${i + 1}:`, files[i].name);
@@ -218,13 +211,13 @@ export function useWalrusService() {
         const file = files[i];
         const buffer = fileBuffers[i];
         const bytesArray = new Uint8Array(buffer);
-        
+
         // 현재 파일의 내용을 통합 버퍼에 복사
         combinedBuffer.set(bytesArray, currentPosition);
-        
+
         // 파일 해시 계산
         const fileHash = await calculateFileHash(file);
-        
+
         // 메타데이터 저장
         filesMetadata.push({
           fileName: file.name,
@@ -234,7 +227,7 @@ export function useWalrusService() {
           startPosition: currentPosition,
           endPosition: currentPosition + bytesArray.length - 1,
         });
-        
+
         // 다음 파일 위치 업데이트
         currentPosition += bytesArray.length;
       }
@@ -264,17 +257,17 @@ export function useWalrusService() {
 
       console.log("blob transaction effects:", effects);
 
-      if (effects?.status.status !== 'success') {
-        throw new Error('Failed to register blob');
+      if (effects?.status.status !== "success") {
+        throw new Error("Failed to register blob");
       }
 
       // 생성된 blob 객체 찾기
       const blobType = await walrusClient.getBlobType();
       const blobObject = objectChanges?.find(
-        (change) => change.type === 'created' && change.objectType === blobType,
+        change => change.type === "created" && change.objectType === blobType
       );
-      if (!blobObject || blobObject.type !== 'created') {
-        throw new Error('Blob object not found');
+      if (!blobObject || blobObject.type !== "created") {
+        throw new Error("Blob object not found");
       }
 
       console.log("blob type:", blobType);
@@ -310,8 +303,8 @@ export function useWalrusService() {
 
       console.log("certify blob transaction effects:", certifyEffects);
 
-      if (certifyEffects?.status.status !== 'success') {
-        throw new Error('Failed to certify blob');
+      if (certifyEffects?.status.status !== "success") {
+        throw new Error("Failed to certify blob");
       }
 
       // 응답 데이터 처리
@@ -352,17 +345,13 @@ export function useWalrusService() {
    * @param end 종료 위치
    * @returns Blob 객체
    */
-  const getMediaRange = async (
-    blobId: string, 
-    start: number, 
-    end: number
-  ): Promise<Blob> => {
+  const getMediaRange = async (blobId: string, start: number, end: number): Promise<Blob> => {
     try {
       const url = `${WALRUS_AGGREGATOR_URL}/v1/blobs/${blobId}`;
       const response = await fetch(url, {
         headers: {
-          Range: `bytes=${start}-${end}`
-        }
+          Range: `bytes=${start}-${end}`,
+        },
       });
 
       if (!response.ok) {
@@ -379,7 +368,7 @@ export function useWalrusService() {
   return {
     uploadMedia,
     uploadMultipleMedia,
-    getMediaRange
+    getMediaRange,
   };
 }
 
@@ -414,7 +403,7 @@ export async function uploadMedia(
       deletable: true,
       epochs: epochs ? epochs : 3,
       owner: sendTo,
-    })
+    });
     registerBlobTx.setSender(account.address);
 
     const { digest } = await signAndExecuteTransaction({ transaction: registerBlobTx });
@@ -423,16 +412,16 @@ export async function uploadMedia(
       options: { showObjectChanges: true, showEffects: true },
     });
 
-    if (effects?.status.status !== 'success') {
-      throw new Error('Failed to register blob');
+    if (effects?.status.status !== "success") {
+      throw new Error("Failed to register blob");
     }
 
     const blobType = await walrusClient.getBlobType();
     const blobObject = objectChanges?.find(
-        (change) => change.type === 'created' && change.objectType === blobType,
+      change => change.type === "created" && change.objectType === blobType
     );
-    if (!blobObject || blobObject.type !== 'created') {
-      throw new Error('Blob object not found');
+    if (!blobObject || blobObject.type !== "created") {
+      throw new Error("Blob object not found");
     }
 
     const confirmations = await walrusClient.writeEncodedBlobToNodes({
@@ -459,8 +448,8 @@ export async function uploadMedia(
       options: { showEffects: true },
     });
 
-    if (certifyEffects?.status.status !== 'success') {
-      throw new Error('Failed to certify blob');
+    if (certifyEffects?.status.status !== "success") {
+      throw new Error("Failed to certify blob");
     }
 
     // 응답 데이터 처리
@@ -474,7 +463,7 @@ export async function uploadMedia(
       mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/${encoded.blobId}`,
       suiScanUrl: getSuiScanUrl("object", blobObject.objectId),
       suiRefId: blobObject.objectId,
-    }
+    };
     console.log("[신규 BLOB 객체 생성] BLOB 객체 ID:", blobObject.objectId);
 
     // if ("alreadyCertified" in data) {
@@ -550,8 +539,8 @@ export async function getMediaRange(blobId: string, start: number, end: number):
     const url = `${WALRUS_AGGREGATOR_URL}/v1/blobs/${blobId}`;
     const response = await fetch(url, {
       headers: {
-        Range: `bytes=${start}-${end}`
-      }
+        Range: `bytes=${start}-${end}`,
+      },
     });
 
     if (!response.ok) {

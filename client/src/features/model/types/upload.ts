@@ -13,7 +13,7 @@ export interface ModelUploadState {
 }
 
 // Import DatasetObject from shared types or define here if needed
-import type { DatasetObject } from '@/shared/api/graphql/datasetGraphQLService';
+import type { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 
 // Re-export for easier access within this feature module
 export type { DatasetObject };
@@ -29,4 +29,4 @@ export interface DatasetSelectionInfo {
 export interface DatasetFilters {
   selectedTags: string[];
   searchQuery: string;
-} 
+}

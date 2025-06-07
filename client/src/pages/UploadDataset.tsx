@@ -18,17 +18,17 @@ export function UploadDataset() {
     isLoading,
     error,
     uploadSuccess,
-    
+
     // Metadata management
     updateMetadata,
     addTag,
     removeTag,
-    
+
     // File management
     handleFileSelect,
     handleFileRemove,
     clearAllFiles,
-    
+
     // Upload process
     handleUpload,
     isUploadDisabled,
@@ -42,7 +42,8 @@ export function UploadDataset() {
           Upload Dataset
         </Heading>
         <Text size="3" style={{ color: "var(--gray-11)", maxWidth: "600px" }}>
-          Create a new dataset for machine learning training. Define annotation labels and upload your data files to get started.
+          Create a new dataset for machine learning training. Define annotation labels and upload
+          your data files to get started.
         </Text>
       </Flex>
 
@@ -58,12 +59,12 @@ export function UploadDataset() {
           }}
         >
           <Flex direction="column" gap="6">
-            <StepHeader 
+            <StepHeader
               stepNumber={1}
               title="Dataset Information"
               gradientColors={{ from: "#667eea", to: "#764ba2" }}
             />
-            
+
             <DatasetMetadataForm
               metadata={metadata}
               onUpdate={updateMetadata}
@@ -84,12 +85,12 @@ export function UploadDataset() {
           }}
         >
           <Flex direction="column" gap="6">
-            <StepHeader 
+            <StepHeader
               stepNumber={2}
               title="Upload Data Files"
               gradientColors={{ from: "#ff6b6b", to: "#ee5a52" }}
             />
-            
+
             <FileUploadSection
               selectedFiles={selectedFiles}
               previewStep={previewStep}
@@ -105,19 +106,9 @@ export function UploadDataset() {
         </Card>
 
         {/* Status Messages */}
-        {uploadSuccess && (
-          <StatusMessage 
-            type="success" 
-            message={UPLOAD_MESSAGES.UPLOAD_SUCCESS}
-          />
-        )}
+        {uploadSuccess && <StatusMessage type="success" message={UPLOAD_MESSAGES.UPLOAD_SUCCESS} />}
 
-        {error && (
-          <StatusMessage 
-            type="error" 
-            message={error}
-          />
-        )}
+        {error && <StatusMessage type="error" message={error} />}
       </Flex>
 
       <style>
