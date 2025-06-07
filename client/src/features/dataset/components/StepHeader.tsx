@@ -1,9 +1,4 @@
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Heading 
-} from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 
 interface StepHeaderProps {
@@ -23,11 +18,11 @@ export function StepHeader({
   gradientColors = { from: "#667eea", to: "#764ba2" },
 }: StepHeaderProps) {
   const { theme } = useTheme();
-  
+
   return (
-    <Flex 
-      align="center" 
-      gap={theme.spacing.semantic.component.md} 
+    <Flex
+      align="center"
+      gap={theme.spacing.semantic.component.md}
       style={{ marginBottom: theme.spacing.semantic.component.sm }}
     >
       <Box
@@ -43,10 +38,10 @@ export function StepHeader({
           flexShrink: 0,
         }}
       >
-        <Text 
-          size="4" 
-          style={{ 
-            fontWeight: "700", 
+        <Text
+          size="4"
+          style={{
+            fontWeight: "700",
             color: theme.colors.text.inverse,
           }}
         >
@@ -54,9 +49,9 @@ export function StepHeader({
         </Text>
       </Box>
       <Box>
-        <Heading 
-          size="5" 
-          style={{ 
+        <Heading
+          size="5"
+          style={{
             fontWeight: 600,
             color: theme.colors.text.primary,
             marginBottom: description ? theme.spacing.semantic.component.xs : 0,
@@ -65,9 +60,9 @@ export function StepHeader({
           {title}
         </Heading>
         {description && (
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               color: theme.colors.text.secondary,
               lineHeight: theme.typography.body.lineHeight,
             }}

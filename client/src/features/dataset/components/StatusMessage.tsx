@@ -1,10 +1,5 @@
-import { 
-  Flex, 
-  Text 
-} from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
+import { Flex, Text } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
@@ -17,7 +12,7 @@ export function StatusMessage({ type, message }: StatusMessageProps) {
   const { theme } = useTheme();
   const isSuccess = type === "success";
 
-  const statusConfig = isSuccess 
+  const statusConfig = isSuccess
     ? {
         backgroundColor: theme.colors.status.success,
         color: theme.colors.text.inverse,
@@ -41,13 +36,13 @@ export function StatusMessage({ type, message }: StatusMessageProps) {
       }}
     >
       <Flex align="center" gap={theme.spacing.semantic.component.md}>
-        <statusConfig.Icon 
-          style={{ 
+        <statusConfig.Icon
+          style={{
             color: statusConfig.color,
             flexShrink: 0,
-          }} 
-          width={20} 
-          height={20} 
+          }}
+          width={20}
+          height={20}
         />
         <Text
           size="3"

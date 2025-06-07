@@ -1,12 +1,12 @@
-import React, { forwardRef } from 'react';
-import { Card as RadixCard } from '@radix-ui/themes';
-import { useTheme } from '../../theme/ThemeProvider';
+import React, { forwardRef } from "react";
+import { Card as RadixCard } from "@radix-ui/themes";
+import { useTheme } from "../../theme/ThemeProvider";
 
 export interface CardProps {
   children: React.ReactNode;
-  variant?: 'surface' | 'classic' | 'ghost';
-  size?: '1' | '2' | '3' | '4' | '5';
-  elevation?: 'flat' | 'low' | 'medium' | 'high' | 'highest';
+  variant?: "surface" | "classic" | "ghost";
+  size?: "1" | "2" | "3" | "4" | "5";
+  elevation?: "flat" | "low" | "medium" | "high" | "highest";
   interactive?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -18,9 +18,9 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
       children,
-      variant = 'surface',
-      size = '3',
-      elevation = 'low',
+      variant = "surface",
+      size = "3",
+      elevation = "low",
       interactive = false,
       className,
       style,
@@ -35,15 +35,15 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     const cardStyles: React.CSSProperties = {
       boxShadow: theme.shadows.semantic.card[elevation],
       transition: interactive ? theme.animations.transitions.hover : undefined,
-      cursor: interactive ? 'pointer' : undefined,
+      cursor: interactive ? "pointer" : undefined,
       ...(interactive && {
-        '&:hover': {
+        "&:hover": {
           boxShadow: theme.shadows.semantic.interactive.hover,
-          transform: 'translateY(-1px)',
+          transform: "translateY(-1px)",
         },
-        '&:active': {
+        "&:active": {
           boxShadow: theme.shadows.semantic.interactive.active,
-          transform: 'translateY(0)',
+          transform: "translateY(0)",
         },
       }),
       ...style,
@@ -66,6 +66,6 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
   }
 );
 
-Card.displayName = 'Card';
+Card.displayName = "Card";
 
-export { Card }; 
+export { Card };

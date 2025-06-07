@@ -1,18 +1,7 @@
 import { useParams } from "react-router-dom";
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Tabs, 
-  Badge,
-  Heading 
-} from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
-import { 
-  useTheme
-} from "@/shared/ui/design-system";
+import { Box, Flex, Text, Tabs, Badge, Heading } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircle, Users } from "phosphor-react";
 import {
   useDatasetDetail,
@@ -122,10 +111,10 @@ export function DatasetDetail() {
 
   if (loading) {
     return (
-      <Flex 
-        align="center" 
-        justify="center" 
-        style={{ 
+      <Flex
+        align="center"
+        justify="center"
+        style={{
           height: "80vh",
           color: theme.colors.text.secondary,
         }}
@@ -137,26 +126,24 @@ export function DatasetDetail() {
 
   if (error || !dataset) {
     return (
-      <Flex 
-        align="center" 
-        justify="center" 
-        style={{ 
+      <Flex
+        align="center"
+        justify="center"
+        style={{
           height: "80vh",
           color: theme.colors.status.error,
         }}
       >
-        <Text size="3">
-          {error || "Dataset not found"}
-        </Text>
+        <Text size="3">{error || "Dataset not found"}</Text>
       </Flex>
     );
   }
 
   return (
-    <Box 
-      style={{ 
-        maxWidth: "1400px", 
-        margin: "0 auto", 
+    <Box
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
         padding: `0 ${theme.spacing.semantic.layout.md}`,
       }}
     >
@@ -172,10 +159,7 @@ export function DatasetDetail() {
           background: theme.colors.background.card,
         }}
       >
-        <DatasetHeader 
-          dataset={dataset} 
-          uniqueBlobId={getUniqueBlobId() || undefined} 
-        />
+        <DatasetHeader dataset={dataset} uniqueBlobId={getUniqueBlobId() || undefined} />
 
         {/* 데이터셋 통계 */}
         <DatasetStats dataset={dataset} />
@@ -195,9 +179,9 @@ export function DatasetDetail() {
         <Flex direction="column" gap="6">
           <Flex align="center" justify="between">
             <Flex direction="column" gap="2">
-              <Heading 
-                size="5" 
-                style={{ 
+              <Heading
+                size="5"
+                style={{
                   fontWeight: 600,
                   color: theme.colors.text.primary,
                 }}
@@ -218,9 +202,9 @@ export function DatasetDetail() {
                       animation: "spin 1s linear infinite",
                     }}
                   />
-                  <Text 
-                    size="2" 
-                    style={{ 
+                  <Text
+                    size="2"
+                    style={{
                       color: theme.colors.text.secondary,
                     }}
                   >
@@ -242,8 +226,12 @@ export function DatasetDetail() {
                   padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
                   borderRadius: `${theme.borders.radius.md} ${theme.borders.radius.md} 0 0`,
                   border: "none",
-                  background: activeTab === "confirmed" ? theme.colors.status.success : "transparent",
-                  color: activeTab === "confirmed" ? theme.colors.text.inverse : theme.colors.text.secondary,
+                  background:
+                    activeTab === "confirmed" ? theme.colors.status.success : "transparent",
+                  color:
+                    activeTab === "confirmed"
+                      ? theme.colors.text.inverse
+                      : theme.colors.text.secondary,
                   fontWeight: "600",
                   position: "relative",
                   transition: theme.animations.transitions.colors,
@@ -254,8 +242,14 @@ export function DatasetDetail() {
                   Confirmed
                   <Badge
                     style={{
-                      background: activeTab === "confirmed" ? theme.colors.background.card : theme.colors.background.secondary,
-                      color: activeTab === "confirmed" ? theme.colors.status.success : theme.colors.text.secondary,
+                      background:
+                        activeTab === "confirmed"
+                          ? theme.colors.background.card
+                          : theme.colors.background.secondary,
+                      color:
+                        activeTab === "confirmed"
+                          ? theme.colors.status.success
+                          : theme.colors.text.secondary,
                       fontSize: "11px",
                       fontWeight: "600",
                     }}
@@ -271,7 +265,10 @@ export function DatasetDetail() {
                   borderRadius: `${theme.borders.radius.md} ${theme.borders.radius.md} 0 0`,
                   border: "none",
                   background: activeTab === "pending" ? theme.colors.status.warning : "transparent",
-                  color: activeTab === "pending" ? theme.colors.text.inverse : theme.colors.text.secondary,
+                  color:
+                    activeTab === "pending"
+                      ? theme.colors.text.inverse
+                      : theme.colors.text.secondary,
                   fontWeight: "600",
                   position: "relative",
                   transition: theme.animations.transitions.colors,
@@ -282,8 +279,14 @@ export function DatasetDetail() {
                   Pending
                   <Badge
                     style={{
-                      background: activeTab === "pending" ? theme.colors.background.card : theme.colors.background.secondary,
-                      color: activeTab === "pending" ? theme.colors.status.warning : theme.colors.text.secondary,
+                      background:
+                        activeTab === "pending"
+                          ? theme.colors.background.card
+                          : theme.colors.background.secondary,
+                      color:
+                        activeTab === "pending"
+                          ? theme.colors.status.warning
+                          : theme.colors.text.secondary,
                       fontSize: "11px",
                       fontWeight: "600",
                     }}

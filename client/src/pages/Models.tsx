@@ -1,14 +1,10 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Button,
-  PageHeader 
-} from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { useModels } from '@/shared/hooks/useModels';
-import { useModelFilters } from '@/features/model/hooks/useModelFilters';
-import { ModelSearchFilters } from '@/features/model/components/ModelSearchFilters.tsx';
-import { ModelList } from '@/features/model/components/ModelList.tsx';
+import { Link, useNavigate } from "react-router-dom";
+import { Box, Button, PageHeader } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { useModels } from "@/shared/hooks/useModels";
+import { useModelFilters } from "@/features/model/hooks/useModelFilters";
+import { ModelSearchFilters } from "@/features/model/components/ModelSearchFilters.tsx";
+import { ModelList } from "@/features/model/components/ModelList.tsx";
 
 export function Models() {
   const navigate = useNavigate();
@@ -35,7 +31,7 @@ export function Models() {
           fontWeight: theme.typography.label.fontWeight,
           padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
           boxShadow: theme.shadows.semantic.interactive.hover,
-          border: 'none',
+          border: "none",
           transition: theme.animations.transitions.hover,
         }}
       >
@@ -47,10 +43,10 @@ export function Models() {
   return (
     <Box
       style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
+        maxWidth: "1400px",
+        margin: "0 auto",
         padding: `0 ${theme.spacing.semantic.container.lg}`,
-        minHeight: '90vh',
+        minHeight: "90vh",
       }}
     >
       {/* Page Header */}

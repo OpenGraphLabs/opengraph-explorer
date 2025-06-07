@@ -1,16 +1,12 @@
 // Theme System Types
-import type { 
-  lightThemeColors, 
-  darkThemeColors, 
-  gradients 
-} from '../tokens/colors';
-import type { textStyles } from '../tokens/typography';
-import type { spacing, semanticSpacing } from '../tokens/spacing';
-import type { boxShadows, semanticShadows, darkShadows } from '../tokens/shadows';
-import type { borderRadius, semanticBorderRadius } from '../tokens/borders';
-import type { transitions, keyframes } from '../tokens/animations';
+import type { lightThemeColors, darkThemeColors, gradients } from "../tokens/colors";
+import type { textStyles } from "../tokens/typography";
+import type { spacing, semanticSpacing } from "../tokens/spacing";
+import type { boxShadows, semanticShadows, darkShadows } from "../tokens/shadows";
+import type { borderRadius, semanticBorderRadius } from "../tokens/borders";
+import type { transitions, keyframes } from "../tokens/animations";
 
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = "light" | "dark";
 
 // Base color scheme structure (allows for different implementations)
 export interface BaseColorScheme {
@@ -61,7 +57,7 @@ export interface BaseShadowScheme {
   md: string;
   lg: string;
   xl: string;
-  '2xl': string;
+  "2xl": string;
   inner: string;
   glow: string;
   glowFocus: string;
@@ -102,15 +98,22 @@ export type DarkColorScheme = typeof darkThemeColors;
 export type GradientScheme = typeof gradients;
 
 // Component variant types
-export type ComponentVariant = 'primary' | 'secondary' | 'tertiary' | 'danger' | 'success' | 'warning' | 'info';
-export type ComponentSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type ComponentState = 'default' | 'hover' | 'active' | 'disabled' | 'focus';
+export type ComponentVariant =
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "danger"
+  | "success"
+  | "warning"
+  | "info";
+export type ComponentSize = "xs" | "sm" | "md" | "lg" | "xl";
+export type ComponentState = "default" | "hover" | "active" | "disabled" | "focus";
 
 // Theme configuration (generic to allow different color schemes)
 export interface Theme<
-  TColorScheme extends BaseColorScheme = BaseColorScheme, 
+  TColorScheme extends BaseColorScheme = BaseColorScheme,
   TShadowScheme extends BaseShadowScheme = BaseShadowScheme,
-  TSemanticShadows extends BaseSemanticShadows = BaseSemanticShadows
+  TSemanticShadows extends BaseSemanticShadows = BaseSemanticShadows,
 > {
   mode: ThemeMode;
   colors: TColorScheme;
@@ -157,11 +160,13 @@ export interface StyleProps {
 }
 
 // Responsive value type
-export type ResponsiveValue<T> = T | {
-  xs?: T;
-  sm?: T;
-  md?: T;
-  lg?: T;
-  xl?: T;
-  '2xl'?: T;
-}; 
+export type ResponsiveValue<T> =
+  | T
+  | {
+      xs?: T;
+      sm?: T;
+      md?: T;
+      lg?: T;
+      xl?: T;
+      "2xl"?: T;
+    };

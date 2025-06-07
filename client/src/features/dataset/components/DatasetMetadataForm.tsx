@@ -1,14 +1,5 @@
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  TextField, 
-  TextArea,
-  Button 
-} from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
+import { Box, Flex, Text, TextField, TextArea, Button } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { useState } from "react";
@@ -57,9 +48,9 @@ export function DatasetMetadataForm({
     >
       <Flex direction="column" gap={theme.spacing.semantic.component.lg}>
         <Box>
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               color: theme.colors.text.secondary,
               marginBottom: theme.spacing.semantic.component.sm,
               fontWeight: theme.typography.label.fontWeight,
@@ -71,7 +62,7 @@ export function DatasetMetadataForm({
             placeholder="Enter a descriptive name for your dataset"
             value={metadata.name}
             onChange={e => onUpdate({ name: e.target.value })}
-            style={{ 
+            style={{
               borderRadius: theme.borders.radius.md,
               backgroundColor: theme.colors.background.primary,
               border: `1px solid ${theme.colors.border.primary}`,
@@ -80,9 +71,9 @@ export function DatasetMetadataForm({
         </Box>
 
         <Box>
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               color: theme.colors.text.secondary,
               marginBottom: theme.spacing.semantic.component.sm,
               fontWeight: theme.typography.label.fontWeight,
@@ -94,7 +85,7 @@ export function DatasetMetadataForm({
             placeholder="Describe the dataset content, source, and intended use case"
             value={metadata.description}
             onChange={e => onUpdate({ description: e.target.value })}
-            style={{ 
+            style={{
               borderRadius: theme.borders.radius.md,
               backgroundColor: theme.colors.background.primary,
               border: `1px solid ${theme.colors.border.primary}`,
@@ -104,9 +95,9 @@ export function DatasetMetadataForm({
         </Box>
 
         <Box>
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               color: theme.colors.text.secondary,
               marginBottom: theme.spacing.semantic.component.sm,
               fontWeight: theme.typography.label.fontWeight,
@@ -118,15 +109,15 @@ export function DatasetMetadataForm({
             placeholder="Your name or organization (optional)"
             value={metadata.creator}
             onChange={e => onUpdate({ creator: e.target.value })}
-            style={{ 
+            style={{
               borderRadius: theme.borders.radius.md,
               backgroundColor: theme.colors.background.primary,
               border: `1px solid ${theme.colors.border.primary}`,
             }}
           />
-          <Text 
-            size="1" 
-            style={{ 
+          <Text
+            size="1"
+            style={{
               color: theme.colors.text.tertiary,
               marginTop: theme.spacing.semantic.component.xs,
             }}
@@ -137,9 +128,9 @@ export function DatasetMetadataForm({
 
         {/* Tags Section */}
         <Box>
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               color: theme.colors.text.secondary,
               marginBottom: theme.spacing.semantic.component.sm,
               fontWeight: theme.typography.label.fontWeight,
@@ -150,8 +141,8 @@ export function DatasetMetadataForm({
           <Flex direction="column" gap={theme.spacing.semantic.component.md}>
             <Flex gap={theme.spacing.semantic.component.sm}>
               <TextField.Root
-                style={{ 
-                  flex: 1, 
+                style={{
+                  flex: 1,
                   borderRadius: theme.borders.radius.md,
                   backgroundColor: theme.colors.background.primary,
                   border: `1px solid ${theme.colors.border.primary}`,
@@ -219,9 +210,9 @@ export function DatasetMetadataForm({
               </Flex>
             )}
           </Flex>
-          <Text 
-            size="1" 
-            style={{ 
+          <Text
+            size="1"
+            style={{
               color: theme.colors.text.tertiary,
               marginTop: theme.spacing.semantic.component.sm,
             }}

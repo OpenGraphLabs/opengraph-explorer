@@ -1,19 +1,7 @@
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Button,
-  Grid 
-} from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
-import { 
-  PageHeader
-} from "@/shared/ui/design-system/components/PageHeader";
-import { 
-  useTheme
-} from "@/shared/ui/design-system";
+import { Box, Flex, Text, Button, Grid } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { useTheme } from "@/shared/ui/design-system";
 import { ModelUploader } from "@/features/model/components/upload-steps/ModelUploader.tsx";
 import {
   DatasetCard,
@@ -27,7 +15,7 @@ import { ReloadIcon, CheckCircledIcon, ExclamationTriangleIcon } from "@radix-ui
 
 export function UploadModel() {
   const { theme } = useTheme();
-  
+
   // Dataset selection logic
   const {
     datasetInfo,
@@ -68,10 +56,10 @@ export function UploadModel() {
   };
 
   return (
-    <Box 
-      style={{ 
-        maxWidth: "1000px", 
-        margin: "0 auto", 
+    <Box
+      style={{
+        maxWidth: "1000px",
+        margin: "0 auto",
         padding: `0 ${theme.spacing.semantic.layout.md}`,
       }}
     >
@@ -177,14 +165,14 @@ export function UploadModel() {
           />
 
           <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
-            <Flex 
-              justify="between" 
-              align="center" 
+            <Flex
+              justify="between"
+              align="center"
               style={{ marginBottom: theme.spacing.semantic.component.md }}
             >
-              <Text 
-                size="2" 
-                style={{ 
+              <Text
+                size="2"
+                style={{
                   fontWeight: 500,
                   color: theme.colors.text.primary,
                 }}
@@ -305,25 +293,25 @@ export function UploadModel() {
         >
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
-              <ExclamationTriangleIcon 
-                style={{ 
-                  color: theme.colors.text.inverse, 
-                  width: 20, 
-                  height: 20 
-                }} 
+              <ExclamationTriangleIcon
+                style={{
+                  color: theme.colors.text.inverse,
+                  width: 20,
+                  height: 20,
+                }}
               />
-              <Text 
-                style={{ 
-                  color: theme.colors.text.inverse, 
-                  fontWeight: 500 
+              <Text
+                style={{
+                  color: theme.colors.text.inverse,
+                  fontWeight: 500,
                 }}
               >
                 Upload Failed
               </Text>
             </Flex>
-            <Text 
-              size="2" 
-              style={{ 
+            <Text
+              size="2"
+              style={{
                 color: theme.colors.text.inverse,
               }}
             >
@@ -380,25 +368,25 @@ export function UploadModel() {
         >
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
-              <CheckCircledIcon 
-                style={{ 
-                  color: theme.colors.text.inverse, 
-                  width: 20, 
-                  height: 20 
-                }} 
+              <CheckCircledIcon
+                style={{
+                  color: theme.colors.text.inverse,
+                  width: 20,
+                  height: 20,
+                }}
               />
-              <Text 
-                style={{ 
-                  color: theme.colors.text.inverse, 
-                  fontWeight: 500 
+              <Text
+                style={{
+                  color: theme.colors.text.inverse,
+                  fontWeight: 500,
                 }}
               >
                 Upload Successful!
               </Text>
             </Flex>
-            <Text 
-              size="2" 
-              style={{ 
+            <Text
+              size="2"
+              style={{
                 color: theme.colors.text.inverse,
               }}
             >
@@ -408,9 +396,9 @@ export function UploadModel() {
             {uploadState.transactionHash && (
               <Text
                 size="1"
-                style={{ 
-                  marginTop: "4px", 
-                  fontFamily: "monospace", 
+                style={{
+                  marginTop: "4px",
+                  fontFamily: "monospace",
                   color: theme.colors.text.inverse,
                 }}
               >
@@ -439,24 +427,24 @@ export function UploadModel() {
         >
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
-              <ReloadIcon 
-                style={{ 
-                  color: theme.colors.text.inverse, 
-                  animation: "spin 1s linear infinite" 
-                }} 
+              <ReloadIcon
+                style={{
+                  color: theme.colors.text.inverse,
+                  animation: "spin 1s linear infinite",
+                }}
               />
-              <Text 
-                style={{ 
-                  color: theme.colors.text.inverse, 
-                  fontWeight: 500 
+              <Text
+                style={{
+                  color: theme.colors.text.inverse,
+                  fontWeight: 500,
                 }}
               >
                 Transaction in Progress
               </Text>
             </Flex>
-            <Text 
-              size="2" 
-              style={{ 
+            <Text
+              size="2"
+              style={{
                 color: theme.colors.text.inverse,
               }}
             >

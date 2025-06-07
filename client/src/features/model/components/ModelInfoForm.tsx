@@ -1,15 +1,6 @@
 import { ChangeEvent } from "react";
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  TextArea, 
-  Select, 
-  TextField 
-} from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
+import { Box, Flex, Text, TextArea, Select, TextField } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { MODEL_TYPE_OPTIONS } from "../constants/upload";
 import type { ModelUploadInfo } from "../types/upload";
@@ -21,7 +12,7 @@ interface ModelInfoFormProps {
 
 export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
   const { theme } = useTheme();
-  
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUpdate({ name: e.target.value });
   };
@@ -46,17 +37,17 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
       }}
     >
       <Flex direction="column" gap={theme.spacing.semantic.component.lg}>
-        <Flex 
-          gap={theme.spacing.semantic.component.lg} 
+        <Flex
+          gap={theme.spacing.semantic.component.lg}
           direction={{ initial: "column", sm: "row" }}
         >
           {/* 모델 이름 */}
           <Box style={{ flex: 1 }}>
             <Flex align="baseline" gap="1" mb="1">
-              <Text 
-                as="label" 
-                size="2" 
-                style={{ 
+              <Text
+                as="label"
+                size="2"
+                style={{
                   fontWeight: theme.typography.label.fontWeight,
                   display: "block",
                   color: theme.colors.text.secondary,
@@ -64,9 +55,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
               >
                 Model Name
               </Text>
-              <Text 
-                size="1" 
-                style={{ 
+              <Text
+                size="1"
+                style={{
                   color: theme.colors.status.error,
                 }}
               >
@@ -86,9 +77,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                 height: "34px",
               }}
             />
-            <Text 
-              size="1" 
-              style={{ 
+            <Text
+              size="1"
+              style={{
                 color: theme.colors.text.tertiary,
                 marginTop: theme.spacing.semantic.component.xs,
               }}
@@ -100,10 +91,10 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
           {/* 모델 타입 */}
           <Box style={{ flex: 1 }}>
             <Flex align="baseline" gap="1" mb="1">
-              <Text 
-                as="label" 
-                size="2" 
-                style={{ 
+              <Text
+                as="label"
+                size="2"
+                style={{
                   fontWeight: theme.typography.label.fontWeight,
                   display: "block",
                   color: theme.colors.text.secondary,
@@ -111,9 +102,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
               >
                 Model Type
               </Text>
-              <Text 
-                size="1" 
-                style={{ 
+              <Text
+                size="1"
+                style={{
                   color: theme.colors.status.error,
                 }}
               >
@@ -155,9 +146,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                 ))}
               </Select.Content>
             </Select.Root>
-            <Text 
-              size="1" 
-              style={{ 
+            <Text
+              size="1"
+              style={{
                 color: theme.colors.text.tertiary,
                 marginTop: theme.spacing.semantic.component.xs,
               }}
@@ -170,10 +161,10 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
         {/* 모델 설명 */}
         <Box>
           <Flex align="baseline" gap="1" mb="1">
-            <Text 
-              as="label" 
-              size="2" 
-              style={{ 
+            <Text
+              as="label"
+              size="2"
+              style={{
                 fontWeight: theme.typography.label.fontWeight,
                 display: "block",
                 color: theme.colors.text.secondary,
@@ -181,9 +172,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
             >
               Description
             </Text>
-            <Text 
-              size="1" 
-              style={{ 
+            <Text
+              size="1"
+              style={{
                 color: theme.colors.status.error,
               }}
             >
@@ -207,9 +198,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
               boxShadow: theme.shadows.semantic.card.low,
             }}
           />
-          <Text 
-            size="1" 
-            style={{ 
+          <Text
+            size="1"
+            style={{
               color: theme.colors.text.tertiary,
               marginTop: theme.spacing.semantic.component.xs,
             }}
@@ -219,9 +210,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
         </Box>
 
         {/* 필수 필드 안내 */}
-        <Text 
-          size="1" 
-          style={{ 
+        <Text
+          size="1"
+          style={{
             color: theme.colors.text.tertiary,
             marginTop: theme.spacing.semantic.component.sm,
           }}

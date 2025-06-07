@@ -1,18 +1,7 @@
 import React from "react";
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Button, 
-  Select, 
-  Badge 
-} from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
-import { 
-  useTheme
-} from "@/shared/ui/design-system";
+import { Box, Flex, Text, Button, Select, Badge } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
 import { MagnifyingGlassIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { DatasetFilters } from "../types";
 import { TYPE_FILTERS } from "../constants";
@@ -51,9 +40,9 @@ export const DatasetFiltersComponent = ({
         <Flex direction={{ initial: "column", sm: "row" }} gap="4" align="start">
           <Box style={{ flex: 1 }}>
             <div className="rt-TextFieldRoot" style={{ width: "100%" }}>
-              <div 
-                className="rt-TextFieldSlot" 
-                style={{ 
+              <div
+                className="rt-TextFieldSlot"
+                style={{
                   marginRight: theme.spacing.semantic.component.sm,
                   color: theme.colors.text.tertiary,
                 }}
@@ -125,10 +114,10 @@ export const DatasetFiltersComponent = ({
         {/* 태그 필터 섹션 */}
         <Box>
           <Flex justify="between" align="center" mb="2">
-            <Text 
-              size="2" 
-              weight="medium" 
-              style={{ 
+            <Text
+              size="2"
+              weight="medium"
+              style={{
                 color: theme.colors.text.secondary,
                 fontWeight: 500,
               }}
@@ -157,9 +146,9 @@ export const DatasetFiltersComponent = ({
           {/* 선택된 태그 섹션 */}
           {filters.selectedTags.length > 0 && (
             <Box mb="2">
-              <Text 
-                size="1" 
-                style={{ 
+              <Text
+                size="1"
+                style={{
                   color: theme.colors.text.tertiary,
                   marginBottom: "4px",
                 }}
@@ -210,9 +199,9 @@ export const DatasetFiltersComponent = ({
           >
             <Flex gap="2" wrap="wrap" p="2">
               {availableTags.length === 0 ? (
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     color: theme.colors.text.tertiary,
                     padding: "8px 12px",
                   }}
@@ -228,8 +217,8 @@ export const DatasetFiltersComponent = ({
                       padding: "4px 10px",
                       margin: "2px",
                       borderRadius: theme.borders.radius.full,
-                      background: filters.selectedTags.includes(tag) 
-                        ? theme.colors.status.info 
+                      background: filters.selectedTags.includes(tag)
+                        ? theme.colors.status.info
                         : theme.colors.background.card,
                       color: filters.selectedTags.includes(tag)
                         ? theme.colors.text.inverse

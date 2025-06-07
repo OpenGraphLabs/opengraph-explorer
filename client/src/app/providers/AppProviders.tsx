@@ -1,10 +1,10 @@
-import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
-import { Theme as RadixTheme } from '@radix-ui/themes';
-import { ThemeProvider } from '@/shared/ui/design-system';
-import { networkConfig } from '@/networkConfig.ts';
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
+import { Theme as RadixTheme } from "@radix-ui/themes";
+import { ThemeProvider } from "@/shared/ui/design-system";
+import { networkConfig } from "@/networkConfig.ts";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -43,4 +43,4 @@ export function AppProviders({ children }: AppProvidersProps) {
       </QueryClientProvider>
     </BrowserRouter>
   );
-} 
+}

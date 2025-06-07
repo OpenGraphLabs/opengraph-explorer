@@ -1,22 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Button, 
-  Grid, 
-  Spinner, 
-  Badge 
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  Grid,
+  Spinner,
+  Badge,
 } from "@/shared/ui/design-system/components";
-import { 
-  PageHeader
-} from "@/shared/ui/design-system/components/PageHeader";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
-import { 
-  useTheme
-} from "@/shared/ui/design-system";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
 import { Link } from "react-router-dom";
 import { Database } from "phosphor-react";
 import {
@@ -51,15 +45,15 @@ export function Datasets() {
         align="center"
         gap="4"
         py="9"
-        style={{ 
-          minHeight: "60vh", 
+        style={{
+          minHeight: "60vh",
           justifyContent: "center",
         }}
       >
         <Spinner />
-        <Text 
-          size="3" 
-          style={{ 
+        <Text
+          size="3"
+          style={{
             fontWeight: 500,
             color: theme.colors.text.secondary,
           }}
@@ -103,10 +97,14 @@ export function Datasets() {
         <Text size="6" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
           Error Loading Datasets
         </Text>
-        <Text size="3" align="center" style={{ 
-          maxWidth: "400px", 
-          color: theme.colors.text.secondary 
-        }}>
+        <Text
+          size="3"
+          align="center"
+          style={{
+            maxWidth: "400px",
+            color: theme.colors.text.secondary,
+          }}
+        >
           {error}
         </Text>
         <Button
@@ -130,10 +128,10 @@ export function Datasets() {
   return (
     <Box
       className={`${isLoaded ? "pageLoaded" : ""}`}
-      style={{ 
-        maxWidth: "1400px", 
-        margin: "0 auto", 
-        padding: `0 ${theme.spacing.semantic.layout.md}`, 
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: `0 ${theme.spacing.semantic.layout.md}`,
         minHeight: "90vh",
       }}
     >
@@ -184,10 +182,7 @@ export function Datasets() {
         >
           <Flex justify="between" align="center">
             <Flex align="center" gap="2">
-              <Text 
-                weight="medium"
-                style={{ color: theme.colors.text.primary }}
-              >
+              <Text weight="medium" style={{ color: theme.colors.text.primary }}>
                 {filteredDatasets.length} {filteredDatasets.length === 1 ? "dataset" : "datasets"}
               </Text>
               {filters.selectedType !== "all" && (
@@ -202,8 +197,8 @@ export function Datasets() {
                 </Badge>
               )}
               {filters.searchQuery && (
-                <Badge 
-                  variant="soft" 
+                <Badge
+                  variant="soft"
                   style={{
                     backgroundColor: theme.colors.interactive.secondary,
                     color: theme.colors.text.primary,
@@ -233,7 +228,7 @@ export function Datasets() {
                     </Badge>
                   ))}
                   {filters.selectedTags.length > 2 && (
-                    <Badge 
+                    <Badge
                       variant="soft"
                       style={{
                         backgroundColor: theme.colors.status.warning,
@@ -292,9 +287,9 @@ export function Datasets() {
           <Text
             size="3"
             align="center"
-            style={{ 
-              maxWidth: "400px", 
-              lineHeight: 1.6, 
+            style={{
+              maxWidth: "400px",
+              lineHeight: 1.6,
               letterSpacing: "0.01em",
               color: theme.colors.text.secondary,
             }}
@@ -329,12 +324,7 @@ export function Datasets() {
           }}
         >
           {filteredDatasets.map((dataset, index) => (
-            <DatasetCard 
-              key={dataset.id} 
-              dataset={dataset} 
-              index={index} 
-              isLoaded={isLoaded} 
-            />
+            <DatasetCard key={dataset.id} dataset={dataset} index={index} isLoaded={isLoaded} />
           ))}
         </Grid>
       )}

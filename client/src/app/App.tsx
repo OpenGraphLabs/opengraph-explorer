@@ -1,14 +1,14 @@
-import { Routes, Route } from 'react-router-dom';
-import { AppLayout } from '@/widgets/layout/AppLayout';
-import { Home } from '@/pages/Home';
-import { Models } from '@/pages/Models';
-import { ModelDetail } from '@/pages/ModelDetail';
-import { UploadModel } from '@/pages/UploadModel';
-import { UploadDataset } from '@/pages/UploadDataset';
-import { Profile } from '@/pages/Profile';
-import { Datasets } from '@/pages/Datasets';
-import { DatasetDetail } from '@/pages/DatasetDetail';
-import { Annotator } from '@/pages/Annotator';
+import { Routes, Route } from "react-router-dom";
+import { AppLayout } from "@/widgets/layout/AppLayout";
+import { Home } from "@/pages/Home";
+import { Models } from "@/pages/Models";
+import { ModelDetail } from "@/pages/ModelDetail";
+import { UploadModel } from "@/pages/UploadModel";
+import { UploadDataset } from "@/pages/UploadDataset";
+import { Profile } from "@/pages/Profile";
+import { Datasets } from "@/pages/Datasets";
+import { DatasetDetail } from "@/pages/DatasetDetail";
+import { Annotator } from "@/pages/Annotator";
 
 export default function App() {
   return (
@@ -26,4 +26,4 @@ export default function App() {
       </Routes>
     </AppLayout>
   );
-} 
+}

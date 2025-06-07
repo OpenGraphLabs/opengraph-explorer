@@ -1,14 +1,7 @@
-import { Link } from 'react-router-dom';
-import { 
-  Card, 
-  Flex, 
-  Avatar, 
-  Text, 
-  Heading, 
-  Badge,
-} from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { StarFilledIcon, DownloadIcon, CodeIcon } from '@radix-ui/react-icons';
+import { Link } from "react-router-dom";
+import { Card, Flex, Avatar, Text, Heading, Badge } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { StarFilledIcon, DownloadIcon, CodeIcon } from "@radix-ui/react-icons";
 
 export interface ModelData {
   id: string;
@@ -30,25 +23,22 @@ export function ModelCard({ model, className }: ModelCardProps) {
   const { theme } = useTheme();
 
   return (
-    <Link 
-      to={`/models/${model.id}`} 
-      style={{ textDecoration: 'none' }}
-    >
+    <Link to={`/models/${model.id}`} style={{ textDecoration: "none" }}>
       <Card
         elevation="low"
         interactive
         className={className}
         style={{
           borderRadius: theme.borders.radius.lg,
-          overflow: 'hidden',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
+          overflow: "hidden",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
           padding: theme.spacing.semantic.component.lg,
           transition: theme.animations.transitions.hover,
         }}
       >
-        <Flex direction="column" gap="3" style={{ height: '100%' }}>
+        <Flex direction="column" gap="3" style={{ height: "100%" }}>
           {/* Creator Info */}
           <Flex align="center" gap="2" mb="1">
             <Avatar
@@ -59,9 +49,9 @@ export function ModelCard({ model, className }: ModelCardProps) {
                 background: theme.colors.interactive.primary,
               }}
             />
-            <Text 
-              size="2" 
-              style={{ 
+            <Text
+              size="2"
+              style={{
                 fontWeight: theme.typography.label.fontWeight,
                 color: theme.colors.text.secondary,
               }}
@@ -71,9 +61,9 @@ export function ModelCard({ model, className }: ModelCardProps) {
           </Flex>
 
           {/* Model Name */}
-          <Heading 
-            size="4" 
-            style={{ 
+          <Heading
+            size="4"
+            style={{
               fontWeight: theme.typography.h4.fontWeight,
               lineHeight: theme.typography.h4.lineHeight,
               color: theme.colors.text.primary,
@@ -88,11 +78,11 @@ export function ModelCard({ model, className }: ModelCardProps) {
             style={{
               color: theme.colors.text.secondary,
               flex: 1,
-              display: '-webkit-box',
-              WebkitLineClamp: '2',
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              display: "-webkit-box",
+              WebkitLineClamp: "2",
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
               lineHeight: theme.typography.bodySmall.lineHeight,
             }}
           >
@@ -115,9 +105,9 @@ export function ModelCard({ model, className }: ModelCardProps) {
               </Badge>
             )}
             {model.frameworks?.map(framework => (
-              <Badge 
-                key={framework} 
-                size="1" 
+              <Badge
+                key={framework}
+                size="1"
                 variant="soft"
                 style={{
                   backgroundColor: theme.colors.interactive.secondary,
@@ -134,14 +124,14 @@ export function ModelCard({ model, className }: ModelCardProps) {
           <Flex justify="between" align="center" mt="2">
             <Flex gap="3" align="center">
               <Flex gap="1" align="center">
-                <StarFilledIcon 
-                  width="14" 
-                  height="14" 
-                  style={{ color: theme.colors.status.warning }} 
+                <StarFilledIcon
+                  width="14"
+                  height="14"
+                  style={{ color: theme.colors.status.warning }}
                 />
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     fontWeight: theme.typography.label.fontWeight,
                     color: theme.colors.text.secondary,
                   }}
@@ -150,14 +140,14 @@ export function ModelCard({ model, className }: ModelCardProps) {
                 </Text>
               </Flex>
               <Flex gap="1" align="center">
-                <DownloadIcon 
-                  width="14" 
-                  height="14" 
-                  style={{ color: theme.colors.text.tertiary }} 
+                <DownloadIcon
+                  width="14"
+                  height="14"
+                  style={{ color: theme.colors.text.tertiary }}
                 />
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     fontWeight: theme.typography.label.fontWeight,
                     color: theme.colors.text.secondary,
                   }}
@@ -167,14 +157,10 @@ export function ModelCard({ model, className }: ModelCardProps) {
               </Flex>
             </Flex>
             <Flex align="center" gap="1">
-              <CodeIcon 
-                width="14" 
-                height="14" 
-                style={{ color: theme.colors.text.tertiary }} 
-              />
-              <Text 
-                size="1" 
-                style={{ 
+              <CodeIcon width="14" height="14" style={{ color: theme.colors.text.tertiary }} />
+              <Text
+                size="1"
+                style={{
                   fontWeight: theme.typography.label.fontWeight,
                   color: theme.colors.text.secondary,
                 }}
@@ -187,4 +173,4 @@ export function ModelCard({ model, className }: ModelCardProps) {
       </Card>
     </Link>
   );
-} 
+}

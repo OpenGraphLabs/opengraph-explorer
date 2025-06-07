@@ -1,19 +1,15 @@
 // Theme Definitions
-import { 
-  lightThemeColors, 
-  darkThemeColors, 
-  gradients 
-} from '../tokens/colors';
-import { textStyles } from '../tokens/typography';
-import { spacing, semanticSpacing } from '../tokens/spacing';
-import { boxShadows, semanticShadows, darkShadows } from '../tokens/shadows';
-import { borderRadius, semanticBorderRadius } from '../tokens/borders';
-import { transitions, keyframes } from '../tokens/animations';
-import type { LightTheme, DarkTheme } from './types';
+import { lightThemeColors, darkThemeColors, gradients } from "../tokens/colors";
+import { textStyles } from "../tokens/typography";
+import { spacing, semanticSpacing } from "../tokens/spacing";
+import { boxShadows, semanticShadows, darkShadows } from "../tokens/shadows";
+import { borderRadius, semanticBorderRadius } from "../tokens/borders";
+import { transitions, keyframes } from "../tokens/animations";
+import type { LightTheme, DarkTheme } from "./types";
 
 // Light theme configuration
 export const lightTheme: LightTheme = {
-  mode: 'light',
+  mode: "light",
   colors: lightThemeColors,
   gradients,
   typography: textStyles,
@@ -37,7 +33,7 @@ export const lightTheme: LightTheme = {
 
 // Dark theme configuration
 export const darkTheme: DarkTheme = {
-  mode: 'dark',
+  mode: "dark",
   colors: darkThemeColors,
   gradients,
   typography: textStyles,
@@ -63,16 +59,16 @@ export const darkTheme: DarkTheme = {
         focus: darkShadows.glowFocus,
       },
       overlay: {
-        modal: darkShadows['2xl'],
+        modal: darkShadows["2xl"],
         dropdown: darkShadows.lg,
         tooltip: darkShadows.md,
         popover: darkShadows.xl,
       },
       status: {
-        success: '0 0 0 3px rgb(34 197 94 / 0.15)',
-        warning: '0 0 0 3px rgb(251 191 36 / 0.15)',
-        error: '0 0 0 3px rgb(239 68 68 / 0.15)',
-        info: '0 0 0 3px rgb(59 130 246 / 0.15)',
+        success: "0 0 0 3px rgb(34 197 94 / 0.15)",
+        warning: "0 0 0 3px rgb(251 191 36 / 0.15)",
+        error: "0 0 0 3px rgb(239 68 68 / 0.15)",
+        info: "0 0 0 3px rgb(59 130 246 / 0.15)",
       },
     },
   },
@@ -87,6 +83,6 @@ export const darkTheme: DarkTheme = {
 } as const;
 
 // Theme selector utility
-export function getTheme(mode: 'light' | 'dark'): LightTheme | DarkTheme {
-  return mode === 'light' ? lightTheme : darkTheme;
-} 
+export function getTheme(mode: "light" | "dark"): LightTheme | DarkTheme {
+  return mode === "light" ? lightTheme : darkTheme;
+}

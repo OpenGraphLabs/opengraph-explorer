@@ -1,9 +1,4 @@
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Button 
-} from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Database, Image as ImageIcon } from "phosphor-react";
 import { ImageViewerProps } from "../types";
@@ -71,9 +66,9 @@ export function ImageViewer({
           justifyContent: "center",
         }}
       >
-        <Text 
-          size="3" 
-          style={{ 
+        <Text
+          size="3"
+          style={{
             color: theme.colors.text.secondary,
           }}
         >
@@ -90,18 +85,18 @@ export function ImageViewer({
       <style>{createAnimationStyles(theme)}</style>
 
       {/* Navigation Header */}
-      <Flex 
-        justify="between" 
-        align="center" 
-        style={{ 
+      <Flex
+        justify="between"
+        align="center"
+        style={{
           marginBottom: theme.spacing.semantic.component.lg,
         }}
       >
         <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
           <Flex align="center" gap={theme.spacing.semantic.component.md}>
-            <Text 
-              size="3" 
-              style={{ 
+            <Text
+              size="3"
+              style={{
                 fontWeight: "600",
                 color: theme.colors.text.primary,
               }}
@@ -117,9 +112,10 @@ export function ImageViewer({
                 style={{
                   cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
                   padding: `0 ${theme.spacing.semantic.component.sm}`,
-                  background: currentImageIndex === 0 
-                    ? theme.colors.interactive.disabled 
-                    : theme.colors.status.info,
+                  background:
+                    currentImageIndex === 0
+                      ? theme.colors.interactive.disabled
+                      : theme.colors.status.info,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.sm,
@@ -134,9 +130,10 @@ export function ImageViewer({
                 style={{
                   cursor: currentImageIndex === dataset.data.length - 1 ? "not-allowed" : "pointer",
                   padding: `0 ${theme.spacing.semantic.component.sm}`,
-                  background: currentImageIndex === dataset.data.length - 1
-                    ? theme.colors.interactive.disabled
-                    : theme.colors.status.info,
+                  background:
+                    currentImageIndex === dataset.data.length - 1
+                      ? theme.colors.interactive.disabled
+                      : theme.colors.status.info,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.sm,
@@ -158,9 +155,9 @@ export function ImageViewer({
             if (totalBlobs > 0 && percentage < 100) {
               return (
                 <Flex align="center" gap={theme.spacing.semantic.component.sm}>
-                  <Text 
-                    size="1" 
-                    style={{ 
+                  <Text
+                    size="1"
+                    style={{
                       color: theme.colors.text.secondary,
                     }}
                   >
@@ -185,9 +182,9 @@ export function ImageViewer({
                       }}
                     />
                   </Box>
-                  <Text 
-                    size="1" 
-                    style={{ 
+                  <Text
+                    size="1"
+                    style={{
                       color: theme.colors.status.info,
                       fontWeight: "500",
                     }}
@@ -214,9 +211,9 @@ export function ImageViewer({
                   animation: "pulse 1.5s infinite",
                 }}
               />
-              <Text 
-                size="1" 
-                style={{ 
+              <Text
+                size="1"
+                style={{
                   color: theme.colors.status.warning,
                 }}
               >
@@ -236,9 +233,9 @@ export function ImageViewer({
                     borderRadius: "50%",
                   }}
                 />
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     color: theme.colors.status.success,
                   }}
                 >

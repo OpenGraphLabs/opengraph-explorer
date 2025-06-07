@@ -1,22 +1,16 @@
 import { useState } from "react";
-import { 
-  Box, 
-  Flex, 
-  Heading, 
-  Text, 
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
   Button,
   Tabs,
-  Avatar
+  Avatar,
 } from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
-import { 
-  PageHeader
-} from "@/shared/ui/design-system/components/PageHeader";
-import { 
-  useTheme
-} from "@/shared/ui/design-system";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { useTheme } from "@/shared/ui/design-system";
 import { CalendarIcon, HeartIcon, DownloadIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 
@@ -28,8 +22,8 @@ export function Profile() {
   // If wallet is not connected, show a message
   if (!isConnected) {
     return (
-      <Box 
-        style={{ 
+      <Box
+        style={{
           padding: theme.spacing.semantic.layout.md,
         }}
       >
@@ -37,8 +31,8 @@ export function Profile() {
           title="Profile"
           description="Manage your models, datasets, and account settings."
         />
-        
-        <Card 
+
+        <Card
           style={{
             padding: theme.spacing.semantic.component.xl,
             textAlign: "center",
@@ -58,17 +52,17 @@ export function Profile() {
             >
               <GitHubLogoIcon width={32} height={32} style={{ color: theme.colors.text.primary }} />
             </Box>
-            <Heading 
-              size="4" 
-              style={{ 
+            <Heading
+              size="4"
+              style={{
                 color: theme.colors.text.primary,
               }}
             >
               Connect Your Wallet
             </Heading>
-            <Text 
-              style={{ 
-                maxWidth: "400px", 
+            <Text
+              style={{
+                maxWidth: "400px",
                 color: theme.colors.text.secondary,
                 lineHeight: "1.6",
               }}
@@ -190,11 +184,11 @@ export function Profile() {
           icon: <UploadIcon style={{ color: theme.colors.status.success }} />,
           text: `Uploaded model "${activity.modelName}"`,
         };
-              case "like":
-          return {
-            icon: <HeartIcon style={{ color: "#F06292" }} />,
-            text: `Liked model "${activity.modelName}"`,
-          };
+      case "like":
+        return {
+          icon: <HeartIcon style={{ color: "#F06292" }} />,
+          text: `Liked model "${activity.modelName}"`,
+        };
       case "download":
         return {
           icon: <DownloadIcon style={{ color: theme.colors.status.info }} />,
@@ -209,8 +203,8 @@ export function Profile() {
   };
 
   return (
-    <Box 
-      style={{ 
+    <Box
+      style={{
         padding: theme.spacing.semantic.layout.md,
       }}
     >
@@ -220,7 +214,7 @@ export function Profile() {
       />
 
       {/* Profile Header */}
-      <Card 
+      <Card
         style={{
           padding: theme.spacing.semantic.component.xl,
           marginBottom: theme.spacing.semantic.component.xl,
@@ -239,27 +233,27 @@ export function Profile() {
           />
 
           <Box style={{ flex: 1 }}>
-            <Heading 
-              size="6" 
-              style={{ 
-                fontWeight: "700", 
+            <Heading
+              size="6"
+              style={{
+                fontWeight: "700",
                 color: theme.colors.text.primary,
               }}
             >
               {formatAddress(userAddress)}
             </Heading>
 
-            <Flex 
-              align="center" 
-              gap={theme.spacing.semantic.component.sm} 
-              style={{ 
+            <Flex
+              align="center"
+              gap={theme.spacing.semantic.component.sm}
+              style={{
                 marginTop: theme.spacing.semantic.component.xs,
               }}
             >
               <CalendarIcon style={{ color: theme.colors.text.secondary }} />
-              <Text 
-                size="2" 
-                style={{ 
+              <Text
+                size="2"
+                style={{
                   color: theme.colors.text.secondary,
                 }}
               >
@@ -267,23 +261,23 @@ export function Profile() {
               </Text>
             </Flex>
 
-            <Flex 
-              style={{ 
+            <Flex
+              style={{
                 marginTop: theme.spacing.semantic.component.lg,
-              }} 
+              }}
               gap={theme.spacing.semantic.component.md}
             >
               <Box>
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     color: theme.colors.text.secondary,
                   }}
                 >
                   Models
                 </Text>
-                <Text 
-                  style={{ 
+                <Text
+                  style={{
                     fontWeight: "600",
                     color: theme.colors.text.primary,
                   }}
@@ -292,16 +286,16 @@ export function Profile() {
                 </Text>
               </Box>
               <Box>
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     color: theme.colors.text.secondary,
                   }}
                 >
                   Downloads
                 </Text>
-                <Text 
-                  style={{ 
+                <Text
+                  style={{
                     fontWeight: "600",
                     color: theme.colors.text.primary,
                   }}
@@ -310,16 +304,16 @@ export function Profile() {
                 </Text>
               </Box>
               <Box>
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     color: theme.colors.text.secondary,
                   }}
                 >
                   Likes
                 </Text>
-                <Text 
-                  style={{ 
+                <Text
+                  style={{
                     fontWeight: "600",
                     color: theme.colors.text.primary,
                   }}
@@ -334,10 +328,7 @@ export function Profile() {
 
       {/* Tabs Navigation */}
       <Card>
-        <Tabs.Root
-          value={activeTab}
-          onValueChange={setActiveTab}
-        >
+        <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
           <Tabs.List
             style={{
               background: theme.colors.background.secondary,
@@ -345,46 +336,58 @@ export function Profile() {
               borderBottom: `1px solid ${theme.colors.border.secondary}`,
             }}
           >
-            <Tabs.Trigger 
-              value="models" 
-              style={{ 
+            <Tabs.Trigger
+              value="models"
+              style={{
                 fontWeight: "600",
-                color: activeTab === "models" ? theme.colors.interactive.primary : theme.colors.text.secondary,
+                color:
+                  activeTab === "models"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
               }}
             >
               My Models
             </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="favorites" 
-              style={{ 
+            <Tabs.Trigger
+              value="favorites"
+              style={{
                 fontWeight: "600",
-                color: activeTab === "favorites" ? theme.colors.interactive.primary : theme.colors.text.secondary,
+                color:
+                  activeTab === "favorites"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
               }}
             >
               Favorites
             </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="activity" 
-              style={{ 
+            <Tabs.Trigger
+              value="activity"
+              style={{
                 fontWeight: "600",
-                color: activeTab === "activity" ? theme.colors.interactive.primary : theme.colors.text.secondary,
+                color:
+                  activeTab === "activity"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
               }}
             >
               Activity
             </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="settings" 
-              style={{ 
+            <Tabs.Trigger
+              value="settings"
+              style={{
                 fontWeight: "600",
-                color: activeTab === "settings" ? theme.colors.interactive.primary : theme.colors.text.secondary,
+                color:
+                  activeTab === "settings"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
               }}
             >
               Settings
             </Tabs.Trigger>
           </Tabs.List>
 
-          <Box 
-            style={{ 
+          <Box
+            style={{
               padding: theme.spacing.semantic.component.lg,
               background: theme.colors.background.primary,
             }}
@@ -392,16 +395,16 @@ export function Profile() {
             {/* My Models Tab */}
             <Tabs.Content value="models">
               <Box>
-                <Flex 
-                  justify="between" 
-                  align="center" 
-                  style={{ 
+                <Flex
+                  justify="between"
+                  align="center"
+                  style={{
                     marginBottom: theme.spacing.semantic.component.lg,
                   }}
                 >
-                  <Heading 
-                    size="4" 
-                    style={{ 
+                  <Heading
+                    size="4"
+                    style={{
                       color: theme.colors.text.primary,
                       fontWeight: "700",
                     }}
@@ -428,8 +431,8 @@ export function Profile() {
                       background: theme.colors.background.secondary,
                     }}
                   >
-                    <Text 
-                      style={{ 
+                    <Text
+                      style={{
                         color: theme.colors.text.secondary,
                       }}
                     >
@@ -449,18 +452,18 @@ export function Profile() {
                         onClick={() => (window.location.href = `/models/${model.id}`)}
                       >
                         <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
-                          <Heading 
-                            size="3" 
-                            style={{ 
+                          <Heading
+                            size="3"
+                            style={{
                               color: theme.colors.text.primary,
                               fontWeight: "600",
                             }}
                           >
                             {model.name}
                           </Heading>
-                          <Text 
-                            size="2" 
-                            style={{ 
+                          <Text
+                            size="2"
+                            style={{
                               color: theme.colors.text.secondary,
                               lineHeight: "1.5",
                             }}
@@ -468,11 +471,11 @@ export function Profile() {
                             {model.description}
                           </Text>
 
-                          <Flex 
-                            style={{ 
+                          <Flex
+                            style={{
                               marginTop: theme.spacing.semantic.component.sm,
-                            }} 
-                            justify="between" 
+                            }}
+                            justify="between"
                             align="center"
                           >
                             <Box
@@ -482,9 +485,9 @@ export function Profile() {
                                 borderRadius: theme.borders.radius.sm,
                               }}
                             >
-                              <Text 
-                                size="1" 
-                                style={{ 
+                              <Text
+                                size="1"
+                                style={{
                                   color: theme.colors.text.primary,
                                 }}
                               >
@@ -494,27 +497,29 @@ export function Profile() {
 
                             <Flex gap={theme.spacing.semantic.component.md} align="center">
                               <Flex align="center" gap={theme.spacing.semantic.component.xs}>
-                                <DownloadIcon style={{ color: theme.colors.status.info, width: 14, height: 14 }} />
-                                <Text 
-                                  size="1" 
-                                  style={{ 
+                                <DownloadIcon
+                                  style={{ color: theme.colors.status.info, width: 14, height: 14 }}
+                                />
+                                <Text
+                                  size="1"
+                                  style={{
                                     color: theme.colors.text.secondary,
                                   }}
                                 >
                                   {model.downloads}
                                 </Text>
                               </Flex>
-                                                             <Flex align="center" gap={theme.spacing.semantic.component.xs}>
-                                 <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
-                                 <Text 
-                                   size="1" 
-                                   style={{ 
-                                     color: theme.colors.text.secondary,
-                                   }}
-                                 >
-                                   {model.likes}
-                                 </Text>
-                               </Flex>
+                              <Flex align="center" gap={theme.spacing.semantic.component.xs}>
+                                <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: theme.colors.text.secondary,
+                                  }}
+                                >
+                                  {model.likes}
+                                </Text>
+                              </Flex>
                             </Flex>
                           </Flex>
                         </Flex>
@@ -528,9 +533,9 @@ export function Profile() {
             {/* Favorites Tab */}
             <Tabs.Content value="favorites">
               <Box>
-                <Heading 
-                  size="4" 
-                  style={{ 
+                <Heading
+                  size="4"
+                  style={{
                     marginBottom: theme.spacing.semantic.component.lg,
                     color: theme.colors.text.primary,
                     fontWeight: "700",
@@ -547,8 +552,8 @@ export function Profile() {
                       background: theme.colors.background.secondary,
                     }}
                   >
-                    <Text 
-                      style={{ 
+                    <Text
+                      style={{
                         color: theme.colors.text.secondary,
                       }}
                     >
@@ -569,42 +574,39 @@ export function Profile() {
                       >
                         <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
                           <Flex justify="between">
-                            <Heading 
-                              size="3" 
-                              style={{ 
+                            <Heading
+                              size="3"
+                              style={{
                                 color: theme.colors.text.primary,
                                 fontWeight: "600",
                               }}
                             >
                               {model.name}
                             </Heading>
-                                                         <Button 
-                               style={{ 
-                                 color: "#F06292",
-                                 background: "transparent",
-                                 border: "none",
-                                 padding: "0",
-                               }}
-                             >
-                               <HeartIcon style={{ color: "#F06292" }} />
-                             </Button>
+                            <Button
+                              style={{
+                                color: "#F06292",
+                                background: "transparent",
+                                border: "none",
+                                padding: "0",
+                              }}
+                            >
+                              <HeartIcon style={{ color: "#F06292" }} />
+                            </Button>
                           </Flex>
 
-                          <Flex 
-                            align="center" 
-                            gap={theme.spacing.semantic.component.xs}
-                          >
+                          <Flex align="center" gap={theme.spacing.semantic.component.xs}>
                             <Avatar
                               size="1"
                               fallback={model.creator[0]}
-                              style={{ 
+                              style={{
                                 background: theme.colors.interactive.primary,
                                 color: theme.colors.text.inverse,
                               }}
                             />
-                            <Text 
-                              size="1" 
-                              style={{ 
+                            <Text
+                              size="1"
+                              style={{
                                 color: theme.colors.text.secondary,
                               }}
                             >
@@ -612,9 +614,9 @@ export function Profile() {
                             </Text>
                           </Flex>
 
-                          <Text 
-                            size="2" 
-                            style={{ 
+                          <Text
+                            size="2"
+                            style={{
                               color: theme.colors.text.secondary,
                               lineHeight: "1.5",
                             }}
@@ -622,11 +624,11 @@ export function Profile() {
                             {model.description}
                           </Text>
 
-                          <Flex 
-                            style={{ 
+                          <Flex
+                            style={{
                               marginTop: theme.spacing.semantic.component.sm,
-                            }} 
-                            justify="between" 
+                            }}
+                            justify="between"
                             align="center"
                           >
                             <Box
@@ -636,9 +638,9 @@ export function Profile() {
                                 borderRadius: theme.borders.radius.sm,
                               }}
                             >
-                              <Text 
-                                size="1" 
-                                style={{ 
+                              <Text
+                                size="1"
+                                style={{
                                   color: theme.colors.text.primary,
                                 }}
                               >
@@ -648,27 +650,29 @@ export function Profile() {
 
                             <Flex gap={theme.spacing.semantic.component.md} align="center">
                               <Flex align="center" gap={theme.spacing.semantic.component.xs}>
-                                <DownloadIcon style={{ color: theme.colors.status.info, width: 14, height: 14 }} />
-                                <Text 
-                                  size="1" 
-                                  style={{ 
+                                <DownloadIcon
+                                  style={{ color: theme.colors.status.info, width: 14, height: 14 }}
+                                />
+                                <Text
+                                  size="1"
+                                  style={{
                                     color: theme.colors.text.secondary,
                                   }}
                                 >
                                   {model.downloads}
                                 </Text>
                               </Flex>
-                                                             <Flex align="center" gap={theme.spacing.semantic.component.xs}>
-                                 <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
-                                 <Text 
-                                   size="1" 
-                                   style={{ 
-                                     color: theme.colors.text.secondary,
-                                   }}
-                                 >
-                                   {model.likes}
-                                 </Text>
-                               </Flex>
+                              <Flex align="center" gap={theme.spacing.semantic.component.xs}>
+                                <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: theme.colors.text.secondary,
+                                  }}
+                                >
+                                  {model.likes}
+                                </Text>
+                              </Flex>
                             </Flex>
                           </Flex>
                         </Flex>
@@ -682,9 +686,9 @@ export function Profile() {
             {/* Activity Tab */}
             <Tabs.Content value="activity">
               <Box>
-                <Heading 
-                  size="4" 
-                  style={{ 
+                <Heading
+                  size="4"
+                  style={{
                     marginBottom: theme.spacing.semantic.component.lg,
                     color: theme.colors.text.primary,
                     fontWeight: "700",
@@ -701,8 +705,8 @@ export function Profile() {
                       background: theme.colors.background.secondary,
                     }}
                   >
-                    <Text 
-                      style={{ 
+                    <Text
+                      style={{
                         color: theme.colors.text.secondary,
                       }}
                     >
@@ -719,12 +723,13 @@ export function Profile() {
                           style={{
                             padding: theme.spacing.semantic.component.md,
                             borderBottom:
-                              index < userActivities.length - 1 
-                                ? `1px solid ${theme.colors.border.secondary}` 
+                              index < userActivities.length - 1
+                                ? `1px solid ${theme.colors.border.secondary}`
                                 : "none",
-                            background: index % 2 === 0 
-                              ? theme.colors.background.primary 
-                              : theme.colors.background.secondary,
+                            background:
+                              index % 2 === 0
+                                ? theme.colors.background.primary
+                                : theme.colors.background.secondary,
                           }}
                           gap={theme.spacing.semantic.component.md}
                           align="center"
@@ -743,24 +748,24 @@ export function Profile() {
                             {icon}
                           </Box>
                           <Box style={{ flex: 1 }}>
-                            <Text 
-                              style={{ 
+                            <Text
+                              style={{
                                 color: theme.colors.text.primary,
                               }}
                             >
                               {text}
                             </Text>
-                            <Text 
-                              size="1" 
-                              style={{ 
+                            <Text
+                              size="1"
+                              style={{
                                 color: theme.colors.text.secondary,
                               }}
                             >
                               {formatDate(activity.date)}
                             </Text>
                           </Box>
-                          <Button 
-                            style={{ 
+                          <Button
+                            style={{
                               borderRadius: theme.borders.radius.sm,
                               fontSize: "12px",
                               padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -779,9 +784,9 @@ export function Profile() {
             {/* Settings Tab */}
             <Tabs.Content value="settings">
               <Box>
-                <Heading 
-                  size="4" 
-                  style={{ 
+                <Heading
+                  size="4"
+                  style={{
                     marginBottom: theme.spacing.semantic.component.lg,
                     color: theme.colors.text.primary,
                     fontWeight: "700",
@@ -796,8 +801,8 @@ export function Profile() {
                     background: theme.colors.background.secondary,
                   }}
                 >
-                  <Text 
-                    style={{ 
+                  <Text
+                    style={{
                       color: theme.colors.text.secondary,
                     }}
                   >

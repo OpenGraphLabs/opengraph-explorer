@@ -1,19 +1,19 @@
-import { Flex, Text, Box } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
+import { Flex, Text, Box } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
 
 export interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   message?: string;
   className?: string;
 }
 
 const sizeMap = {
-  sm: '24px',
-  md: '40px',
-  lg: '50px',
+  sm: "24px",
+  md: "40px",
+  lg: "50px",
 };
 
-export function LoadingSpinner({ size = 'md', message, className }: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = "md", message, className }: LoadingSpinnerProps) {
   const { theme } = useTheme();
   const spinnerSize = sizeMap[size];
 
@@ -25,16 +25,16 @@ export function LoadingSpinner({ size = 'md', message, className }: LoadingSpinn
           height: spinnerSize,
           borderRadius: theme.borders.radius.full,
           border: `3px solid ${theme.colors.interactive.primary}`,
-          borderTopColor: 'transparent',
+          borderTopColor: "transparent",
           animation: `${theme.animations.keyframes.spin} 1s linear infinite`,
         }}
       />
       {message && (
-        <Text 
-          size="3" 
-          style={{ 
+        <Text
+          size="3"
+          style={{
             color: theme.colors.text.secondary,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           {message}
@@ -42,4 +42,4 @@ export function LoadingSpinner({ size = 'md', message, className }: LoadingSpinn
       )}
     </Flex>
   );
-} 
+}

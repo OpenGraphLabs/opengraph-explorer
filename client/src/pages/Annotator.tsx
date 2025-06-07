@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
-import { 
-  Box, 
-  Flex, 
-  Text,
-} from "@/shared/ui/design-system/components";
-import { 
-  PageHeader
-} from "@/shared/ui/design-system/components/PageHeader";
-import { 
-  useTheme
-} from "@/shared/ui/design-system";
+import { Box, Flex, Text } from "@/shared/ui/design-system/components";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { useTheme } from "@/shared/ui/design-system";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 import {
   DatasetSelector,
@@ -20,7 +12,7 @@ import {
 
 export function Annotator() {
   const { theme } = useTheme();
-  
+
   // Dataset state
   const [datasets, setDatasets] = useState<DatasetObject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,8 +140,8 @@ export function Annotator() {
 
   if (loading || error) {
     return (
-      <Box 
-        style={{ 
+      <Box
+        style={{
           padding: theme.spacing.semantic.layout.md,
         }}
       >
@@ -171,8 +163,8 @@ export function Annotator() {
   }
 
   return (
-    <Box 
-      style={{ 
+    <Box
+      style={{
         padding: theme.spacing.semantic.layout.md,
       }}
     >
@@ -246,9 +238,9 @@ export function Annotator() {
                     }}
                   />
                   {blobManager.isCurrentImageBlobLoading(getCurrentImage()) && (
-                    <Text 
-                      size="1" 
-                      style={{ 
+                    <Text
+                      size="1"
+                      style={{
                         color: theme.colors.text.secondary,
                         textAlign: "center",
                       }}
@@ -262,9 +254,9 @@ export function Annotator() {
               {/* Pending Annotations Panel */}
               <Box style={{ width: "240px" }}>
                 <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
-                  <Text 
-                    size="2" 
-                    style={{ 
+                  <Text
+                    size="2"
+                    style={{
                       fontWeight: theme.typography.h3.fontWeight,
                       color: theme.colors.text.primary,
                     }}
@@ -282,16 +274,16 @@ export function Annotator() {
                     }}
                   >
                     {annotationManager.pendingAnnotations.map((annotation, index) => (
-                      <Box 
-                        key={index} 
-                        style={{ 
+                      <Box
+                        key={index}
+                        style={{
                           marginBottom: theme.spacing.semantic.component.sm,
                           fontSize: "12px",
                         }}
                       >
-                        <Text 
-                          size="1" 
-                          style={{ 
+                        <Text
+                          size="1"
+                          style={{
                             fontWeight: theme.typography.label.fontWeight,
                             color: theme.colors.text.primary,
                           }}
@@ -299,9 +291,9 @@ export function Annotator() {
                           {annotation.path}
                         </Text>
                         <br />
-                        <Text 
+                        <Text
                           size="1"
-                          style={{ 
+                          style={{
                             color: theme.colors.text.secondary,
                           }}
                         >
@@ -316,9 +308,9 @@ export function Annotator() {
 
             {/* Save Button */}
             {annotationManager.pendingAnnotations.length > 0 && (
-              <Flex 
-                justify="center" 
-                style={{ 
+              <Flex
+                justify="center"
+                style={{
                   padding: theme.spacing.semantic.section.sm,
                 }}
               >
@@ -331,8 +323,8 @@ export function Annotator() {
                     annotationManager.transactionStatus.status === "pending"
                   }
                   style={{
-                    background: annotationManager.saving 
-                      ? theme.colors.interactive.disabled 
+                    background: annotationManager.saving
+                      ? theme.colors.interactive.disabled
                       : theme.colors.interactive.primary,
                     color: theme.colors.text.inverse,
                     padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.xl}`,
@@ -342,8 +334,8 @@ export function Annotator() {
                     opacity: annotationManager.saving ? 0.6 : 1,
                     fontSize: "14px",
                     fontWeight: "600",
-                    boxShadow: annotationManager.saving 
-                      ? "none" 
+                    boxShadow: annotationManager.saving
+                      ? "none"
                       : theme.shadows.semantic.card.medium,
                     transition: theme.animations.transitions.all,
                   }}
@@ -371,9 +363,9 @@ export function Annotator() {
                   boxShadow: theme.shadows.semantic.card.low,
                 }}
               >
-                <Text 
-                  size="2" 
-                  style={{ 
+                <Text
+                  size="2"
+                  style={{
                     fontWeight: theme.typography.body.fontWeight,
                     color: theme.colors.text.inverse,
                   }}
@@ -383,8 +375,8 @@ export function Annotator() {
                 {annotationManager.transactionStatus.txHash && (
                   <Text
                     size="1"
-                    style={{ 
-                      display: "block", 
+                    style={{
+                      display: "block",
                       marginTop: theme.spacing.semantic.component.xs,
                       fontFamily: "monospace",
                       color: theme.colors.text.inverse,
@@ -400,7 +392,7 @@ export function Annotator() {
 
         {selectedDataset && !isImageType(selectedDataset.dataType) && (
           <Box
-            style={{ 
+            style={{
               padding: theme.spacing.semantic.component.lg,
               background: theme.colors.background.secondary,
               borderRadius: theme.borders.radius.md,
@@ -408,9 +400,9 @@ export function Annotator() {
               border: `1px solid ${theme.colors.border.secondary}`,
             }}
           >
-            <Text 
-              size="3" 
-              style={{ 
+            <Text
+              size="3"
+              style={{
                 color: theme.colors.text.secondary,
               }}
             >

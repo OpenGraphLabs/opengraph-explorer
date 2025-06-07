@@ -1,16 +1,7 @@
-import { 
-  Box, 
-  Flex,
-} from "@/shared/ui/design-system/components";
-import { 
-  Card
-} from "@/shared/ui/design-system/components/Card";
-import { 
-  PageHeader
-} from "@/shared/ui/design-system/components/PageHeader";
-import { 
-  useTheme
-} from "@/shared/ui/design-system";
+import { Box, Flex } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { useTheme } from "@/shared/ui/design-system";
 import {
   useDatasetUpload,
   DatasetMetadataForm,
@@ -48,10 +39,10 @@ export function UploadDataset() {
   } = useDatasetUpload();
 
   return (
-    <Box 
-      style={{ 
-        maxWidth: "1200px", 
-        margin: "0 auto", 
+    <Box
+      style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
         padding: `0 ${theme.spacing.semantic.layout.md}`,
       }}
     >
@@ -122,19 +113,9 @@ export function UploadDataset() {
         </Card>
 
         {/* Status Messages */}
-        {uploadSuccess && (
-          <StatusMessage 
-            type="success" 
-            message={UPLOAD_MESSAGES.UPLOAD_SUCCESS} 
-          />
-        )}
+        {uploadSuccess && <StatusMessage type="success" message={UPLOAD_MESSAGES.UPLOAD_SUCCESS} />}
 
-        {error && (
-          <StatusMessage 
-            type="error" 
-            message={error} 
-          />
-        )}
+        {error && <StatusMessage type="error" message={error} />}
       </Flex>
 
       <style>

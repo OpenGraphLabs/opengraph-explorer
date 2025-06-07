@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ConnectButton, useCurrentWallet } from '@mysten/dapp-kit';
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Avatar,
-  Button
-} from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { HamburgerMenuIcon, GitHubLogoIcon, SunIcon, MoonIcon } from '@radix-ui/react-icons';
-import logoImage from '@/assets/logo/logo.png';
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ConnectButton, useCurrentWallet } from "@mysten/dapp-kit";
+import { Box, Flex, Text, Avatar, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { HamburgerMenuIcon, GitHubLogoIcon, SunIcon, MoonIcon } from "@radix-ui/react-icons";
+import logoImage from "@/assets/logo/logo.png";
 
 export function Header() {
   const location = useLocation();
@@ -27,7 +21,7 @@ export function Header() {
         py="4"
         style={{
           borderBottom: `1px solid ${theme.colors.border.primary}`,
-          position: 'sticky',
+          position: "sticky",
           top: 0,
           backgroundColor: theme.colors.background.primary,
           zIndex: 100,
@@ -35,15 +29,15 @@ export function Header() {
       >
         {/* Logo and Navigation */}
         <Flex align="center" gap="6">
-          <Link to="/" style={{ textDecoration: 'none' }}>
+          <Link to="/" style={{ textDecoration: "none" }}>
             <Flex align="center" gap="2">
               <img
                 src={logoImage}
                 alt="OpenGraph Logo"
                 style={{
-                  width: '40px',
-                  height: '40px',
-                  objectFit: 'contain',
+                  width: "40px",
+                  height: "40px",
+                  objectFit: "contain",
                 }}
               />
               <Text
@@ -128,7 +122,9 @@ export function Header() {
             connectText="Connect Wallet"
             style={{
               borderRadius: theme.borders.radius.md,
-              background: isConnected ? theme.colors.background.card : theme.colors.interactive.primary,
+              background: isConnected
+                ? theme.colors.background.card
+                : theme.colors.interactive.primary,
               color: isConnected ? theme.colors.text.primary : theme.colors.text.inverse,
               border: isConnected ? `1px solid ${theme.colors.border.primary}` : "none",
               fontWeight: 500,
@@ -221,7 +217,7 @@ function NavLink({
   children: React.ReactNode;
 }) {
   const { theme } = useTheme();
-  
+
   return (
     <Link
       to={to}
@@ -252,7 +248,7 @@ function MobileNavLink({
   onClick: () => void;
 }) {
   const { theme } = useTheme();
-  
+
   return (
     <Link
       to={to}
@@ -269,4 +265,4 @@ function MobileNavLink({
       {children}
     </Link>
   );
-} 
+}

@@ -1,2 +1,2 @@
-export { ModelCard } from './ModelCard';
-export type { ModelCardProps, ModelData } from './ModelCard'; 
+export { ModelCard } from "./ModelCard";
+export type { ModelCardProps, ModelData } from "./ModelCard";

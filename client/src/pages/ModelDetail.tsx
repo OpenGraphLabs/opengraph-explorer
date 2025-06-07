@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { 
-  Box, 
-  Flex, 
-  Heading, 
-  Text, 
-  Tabs, 
-  Badge, 
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Tabs,
+  Badge,
   Card,
   LoadingSpinner,
   ErrorState,
   DatasetCard,
-} from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { motion } from 'framer-motion';
-import { useModelById } from '@/shared/hooks/useModels';
-import { ModelDetailHeader, ModelOverviewTab, ModelInferenceTab } from '@/features/model';
-import { datasetGraphQLService, DatasetObject } from '@/shared/api/graphql/datasetGraphQLService';
+} from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { motion } from "framer-motion";
+import { useModelById } from "@/shared/hooks/useModels";
+import { ModelDetailHeader, ModelOverviewTab, ModelInferenceTab } from "@/features/model";
+import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 
 export function ModelDetail() {
   const { id } = useParams<{ id: string }>();
-  const { model, loading, error } = useModelById(id || '');
+  const { model, loading, error } = useModelById(id || "");
   const { theme } = useTheme();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [trainingDataset, setTrainingDataset] = useState<DatasetObject | null>(null);
   const [testDatasets, setTestDatasets] = useState<DatasetObject[]>([]);
   const [datasetsLoading, setDatasetsLoading] = useState(false);
@@ -32,7 +32,7 @@ export function ModelDetail() {
     if (model) {
       document.title = `${model.name} - OpenGraph`;
     } else {
-      document.title = 'Model Details - OpenGraph';
+      document.title = "Model Details - OpenGraph";
     }
   }, [model]);
 
@@ -57,7 +57,7 @@ export function ModelDetail() {
           setTestDatasets(testData.filter(dataset => dataset !== null) as DatasetObject[]);
         }
       } catch (error) {
-        console.error('Error fetching datasets:', error);
+        console.error("Error fetching datasets:", error);
       } finally {
         setDatasetsLoading(false);
       }
@@ -69,13 +69,7 @@ export function ModelDetail() {
   // Loading state
   if (loading) {
     return (
-      <Flex 
-        direction="column" 
-        align="center" 
-        gap="4" 
-        py="9"
-        style={{ minHeight: '60vh' }}
-      >
+      <Flex direction="column" align="center" gap="4" py="9" style={{ minHeight: "60vh" }}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -90,20 +84,14 @@ export function ModelDetail() {
   // Error state
   if (error || !model) {
     return (
-      <Flex 
-        direction="column" 
-        align="center" 
-        gap="4" 
-        py="9"
-        style={{ minHeight: '60vh' }}
-      >
+      <Flex direction="column" align="center" gap="4" py="9" style={{ minHeight: "60vh" }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
           <ErrorState
-            message={error || 'Model not found.'}
+            message={error || "Model not found."}
             onRetry={() => window.history.back()}
             retryLabel="Return to previous page"
           />
@@ -113,11 +101,7 @@ export function ModelDetail() {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      transition={{ duration: 0.5 }}
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
       <Box>
         {/* Model Header */}
         <ModelDetailHeader model={model} />
@@ -143,23 +127,23 @@ export function ModelDetail() {
                 size="4"
                 style={{
                   background: theme.gradients.primary,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
                   fontWeight: theme.typography.h4.fontWeight,
                 }}
               >
                 Associated Datasets
               </Heading>
-              <Badge 
-                variant="soft" 
-                style={{ 
+              <Badge
+                variant="soft"
+                style={{
                   backgroundColor: theme.colors.background.accent,
                   color: theme.colors.text.brand,
                   borderRadius: theme.borders.radius.sm,
                 }}
               >
-                {trainingDataset ? '1' : '0'} Training + {testDatasets.length} Test
+                {trainingDataset ? "1" : "0"} Training + {testDatasets.length} Test
               </Badge>
             </Flex>
 
@@ -168,7 +152,7 @@ export function ModelDetail() {
                 align="center"
                 justify="center"
                 py="6"
-                style={{ 
+                style={{
                   backgroundColor: theme.colors.background.secondary,
                   borderRadius: theme.borders.radius.lg,
                 }}
@@ -182,8 +166,8 @@ export function ModelDetail() {
                   <Flex align="center" gap="2" mb="3">
                     <Box
                       style={{
-                        width: '6px',
-                        height: '6px',
+                        width: "6px",
+                        height: "6px",
                         borderRadius: theme.borders.radius.full,
                         backgroundColor: theme.colors.interactive.primary,
                       }}
@@ -193,7 +177,7 @@ export function ModelDetail() {
                       style={{
                         fontWeight: theme.typography.label.fontWeight,
                         color: theme.colors.text.brand,
-                        letterSpacing: '0.02em',
+                        letterSpacing: "0.02em",
                       }}
                     >
                       Training Dataset
@@ -218,11 +202,11 @@ export function ModelDetail() {
                         borderRadius: theme.borders.radius.lg,
                       }}
                     >
-                      <Text 
-                        size="2" 
-                        style={{ 
+                      <Text
+                        size="2"
+                        style={{
                           color: theme.colors.text.tertiary,
-                          textAlign: 'center',
+                          textAlign: "center",
                         }}
                       >
                         No training dataset associated
@@ -236,8 +220,8 @@ export function ModelDetail() {
                   <Flex align="center" gap="2" mb="3">
                     <Box
                       style={{
-                        width: '6px',
-                        height: '6px',
+                        width: "6px",
+                        height: "6px",
                         borderRadius: theme.borders.radius.full,
                         backgroundColor: theme.colors.interactive.secondary,
                       }}
@@ -247,7 +231,7 @@ export function ModelDetail() {
                       style={{
                         fontWeight: theme.typography.label.fontWeight,
                         color: theme.colors.text.secondary,
-                        letterSpacing: '0.02em',
+                        letterSpacing: "0.02em",
                       }}
                     >
                       Test Datasets {testDatasets.length > 0 && `(${testDatasets.length})`}
@@ -276,11 +260,11 @@ export function ModelDetail() {
                           borderRadius: theme.borders.radius.lg,
                         }}
                       >
-                        <Text 
-                          size="2" 
-                          style={{ 
+                        <Text
+                          size="2"
+                          style={{
                             color: theme.colors.text.tertiary,
-                            textAlign: 'center',
+                            textAlign: "center",
                           }}
                         >
                           No test datasets associated
@@ -305,7 +289,7 @@ export function ModelDetail() {
             onValueChange={setActiveTab}
             style={{
               borderRadius: theme.borders.radius.lg,
-              overflow: 'hidden',
+              overflow: "hidden",
               boxShadow: theme.shadows.semantic.card.low,
               backgroundColor: theme.colors.background.card,
               border: `1px solid ${theme.colors.border.primary}`,
@@ -321,13 +305,15 @@ export function ModelDetail() {
               <Tabs.Trigger
                 value="overview"
                 style={{
-                  cursor: 'pointer',
-                  fontWeight: activeTab === 'overview' 
-                    ? theme.typography.label.fontWeight 
-                    : theme.typography.body.fontWeight,
-                  color: activeTab === 'overview' 
-                    ? theme.colors.text.brand 
-                    : theme.colors.text.secondary,
+                  cursor: "pointer",
+                  fontWeight:
+                    activeTab === "overview"
+                      ? theme.typography.label.fontWeight
+                      : theme.typography.body.fontWeight,
+                  color:
+                    activeTab === "overview"
+                      ? theme.colors.text.brand
+                      : theme.colors.text.secondary,
                   transition: theme.animations.transitions.colors,
                   padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
                   borderRadius: theme.borders.radius.sm,
@@ -338,13 +324,15 @@ export function ModelDetail() {
               <Tabs.Trigger
                 value="inference"
                 style={{
-                  cursor: 'pointer',
-                  fontWeight: activeTab === 'inference' 
-                    ? theme.typography.label.fontWeight 
-                    : theme.typography.body.fontWeight,
-                  color: activeTab === 'inference' 
-                    ? theme.colors.text.brand 
-                    : theme.colors.text.secondary,
+                  cursor: "pointer",
+                  fontWeight:
+                    activeTab === "inference"
+                      ? theme.typography.label.fontWeight
+                      : theme.typography.body.fontWeight,
+                  color:
+                    activeTab === "inference"
+                      ? theme.colors.text.brand
+                      : theme.colors.text.secondary,
                   transition: theme.animations.transitions.colors,
                   padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
                   borderRadius: theme.borders.radius.sm,
@@ -354,11 +342,7 @@ export function ModelDetail() {
               </Tabs.Trigger>
             </Tabs.List>
 
-            <Box 
-              py="5" 
-              px="4" 
-              style={{ backgroundColor: theme.colors.background.card }}
-            >
+            <Box py="5" px="4" style={{ backgroundColor: theme.colors.background.card }}>
               {/* Overview Tab */}
               <Tabs.Content value="overview">
                 <ModelOverviewTab model={model} />
