@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { AppProviders } from '@/providers/AppProviders';
+import { AppProviders } from '@/app/providers/AppProviders.tsx';
 import App from '@/app/App';
 
 // Import global styles
