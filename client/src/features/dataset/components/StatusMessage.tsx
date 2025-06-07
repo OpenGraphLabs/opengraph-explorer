@@ -1,4 +1,4 @@
-import { Box, Flex, Text, Card } from "@radix-ui/themes";
+import { Flex, Text, Card } from "@radix-ui/themes";
 import { CheckCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 interface StatusMessageProps {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, Flex, Box, Heading, Text, Avatar, Badge, Button, Tooltip } from '@radix-ui/themes';
 import { HeartIcon, DownloadIcon, Share1Icon, ExternalLinkIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';

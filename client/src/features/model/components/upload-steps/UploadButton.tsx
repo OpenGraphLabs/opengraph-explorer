@@ -13,9 +13,7 @@ interface UploadButtonProps {
 export function UploadButton({ 
   uploadState, 
   isReadyForUpload, 
-  onUpload, 
-  onRetry,
-  onClearError 
+  onUpload,
 }: UploadButtonProps) {
   return (
     <Box style={{ marginTop: "8px" }}>

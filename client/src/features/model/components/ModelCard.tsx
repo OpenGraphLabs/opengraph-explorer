@@ -1,9 +1,9 @@
 import { Box, Flex, Text, Card, Badge, Button } from "@radix-ui/themes";
 import { Calendar, Database, Eye, ArrowRight } from "phosphor-react";
-import { ModelObject } from "@/shared/api/graphql/modelGraphQLService.ts";
+import { Model } from "@/features/model";
 
 interface ModelCardProps {
-  model: ModelObject;
+  model: Model;
   onClick: () => void;
   onViewDetails?: () => void;
 }

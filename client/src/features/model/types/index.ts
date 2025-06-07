@@ -23,13 +23,6 @@ export interface ModelFilters {
   selectedSort: string;
 }
 
-export interface ModelListState {
-  models: Model[];
-  loading: boolean;
-  error: string | null;
-  filters: ModelFilters;
-}
-
 export type SortOption = 'downloads' | 'likes' | 'newest';
 
 export interface TaskFilter {
@@ -37,15 +30,3 @@ export interface TaskFilter {
   label: string;
   icon: string;
 }
-
-export interface ModelCardProps {
-  model: Model;
-  onClick: () => void;
-  onViewDetails: () => void;
-}
-
-export interface ModelDetailProps {
-  model: Model;
-  loading: boolean;
-  error: string | null;
-} 
