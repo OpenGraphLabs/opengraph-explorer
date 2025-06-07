@@ -1,5 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { Box, Flex, Heading, Text, Button, Grid, Spinner, Badge } from "@radix-ui/themes";
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  Grid,
+  Spinner,
+  Badge,
+} from "@/shared/ui/design-system/components";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
 import { Link } from "react-router-dom";
 import { Database } from "phosphor-react";
 import {
@@ -13,6 +24,7 @@ import {
 
 export function Datasets() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const {
     filteredDatasets,
     loading,
@@ -33,10 +45,19 @@ export function Datasets() {
         align="center"
         gap="4"
         py="9"
-        style={{ minHeight: "60vh", justifyContent: "center" }}
+        style={{
+          minHeight: "60vh",
+          justifyContent: "center",
+        }}
       >
-        <Spinner size="3" />
-        <Text size="3" style={{ fontWeight: 500 }}>
+        <Spinner />
+        <Text
+          size="3"
+          style={{
+            fontWeight: 500,
+            color: theme.colors.text.secondary,
+          }}
+        >
           Loading amazing datasets...
         </Text>
       </Flex>
@@ -53,11 +74,11 @@ export function Datasets() {
         style={{
           minHeight: "60vh",
           justifyContent: "center",
-          background: "white",
-          borderRadius: "16px",
-          padding: "40px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-          border: "1px solid var(--gray-4)",
+          background: theme.colors.background.card,
+          borderRadius: theme.borders.radius.lg,
+          padding: theme.spacing.semantic.layout.lg,
+          boxShadow: theme.shadows.semantic.card.medium,
+          border: `1px solid ${theme.colors.border.primary}`,
         }}
       >
         <Box
@@ -65,29 +86,36 @@ export function Datasets() {
             width: "80px",
             height: "80px",
             borderRadius: "50%",
-            background: "var(--gray-3)",
+            background: theme.colors.background.secondary,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Database size={32} style={{ color: "var(--gray-9)" }} />
+          <Database size={32} style={{ color: theme.colors.text.tertiary }} />
         </Box>
-        <Text size="6" style={{ fontWeight: 600 }}>
+        <Text size="6" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
           Error Loading Datasets
         </Text>
-        <Text size="3" color="gray" align="center" style={{ maxWidth: "400px" }}>
+        <Text
+          size="3"
+          align="center"
+          style={{
+            maxWidth: "400px",
+            color: theme.colors.text.secondary,
+          }}
+        >
           {error}
         </Text>
         <Button
           onClick={refetch}
           style={{
-            background: "#FF5733",
-            color: "white",
-            marginTop: "14px",
-            borderRadius: "8px",
+            backgroundColor: theme.colors.interactive.primary,
+            color: theme.colors.text.inverse,
+            marginTop: theme.spacing.semantic.component.md,
+            borderRadius: theme.borders.radius.md,
             fontWeight: 500,
-            padding: "10px 16px",
+            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
             cursor: "pointer",
           }}
         >
@@ -100,122 +128,127 @@ export function Datasets() {
   return (
     <Box
       className={`${isLoaded ? "pageLoaded" : ""}`}
-      style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 28px", minHeight: "90vh" }}
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: `0 ${theme.spacing.semantic.layout.md}`,
+        minHeight: "90vh",
+      }}
     >
       {/* 헤더 섹션 */}
-      <Flex gap="5" justify="between" align="baseline" mb="6">
-        <div>
-          <Heading
-            size={{ initial: "8", md: "9" }}
-            style={{
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(90deg, #FF5733 0%, #E74C3C 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-            mb="2"
-          >
-            Explore Datasets
-          </Heading>
-          <Text size="3" color="gray" style={{ maxWidth: "620px" }}>
-            Discover high-quality datasets stored on Walrus and indexed on Sui blockchain
-          </Text>
-        </div>
-        <Link to="/datasets/upload">
-          <Button
-            size="3"
-            style={{
-              background: "#FF5733",
-              color: "white",
-              borderRadius: "8px",
-              fontWeight: 600,
-              padding: "10px 18px",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(255, 87, 51, 0.25)",
-              border: "none",
-              transition: "all 0.2s ease",
-            }}
-          >
-            Upload Dataset
-          </Button>
-        </Link>
-      </Flex>
-
-      {/* 필터 섹션 */}
-      <DatasetFiltersComponent
-        filters={filters}
-        availableTags={getAllUniqueTags()}
-        onUpdateFilter={updateFilter}
-        onToggleTag={toggleTag}
-        onClearTags={clearTags}
+      <PageHeader
+        title="Explore Datasets"
+        description="Discover high-quality datasets stored on Walrus and indexed on Sui blockchain"
+        action={
+          <Link to="/datasets/upload">
+            <Button
+              style={{
+                backgroundColor: theme.colors.interactive.primary,
+                color: theme.colors.text.inverse,
+                borderRadius: theme.borders.radius.md,
+                fontWeight: 600,
+                padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                boxShadow: theme.shadows.semantic.interactive.default,
+                border: "none",
+                transition: theme.animations.transitions.hover,
+              }}
+            >
+              Upload Dataset
+            </Button>
+          </Link>
+        }
       />
 
+      {/* 필터 섹션 */}
+      <Box mb={theme.spacing.semantic.section.md}>
+        <DatasetFiltersComponent
+          filters={filters}
+          availableTags={getAllUniqueTags()}
+          onUpdateFilter={updateFilter}
+          onToggleTag={toggleTag}
+          onClearTags={clearTags}
+        />
+      </Box>
+
       {/* 통계 요약 및 정렬 */}
-      <Box mb="6">
-        <Flex
-          justify="between"
-          align="center"
+      <Box mb={theme.spacing.semantic.section.md}>
+        <Card
+          elevation="low"
           style={{
-            padding: "16px 20px",
-            borderRadius: "12px",
-            background: "var(--gray-1)",
-            border: "1px solid var(--gray-4)",
+            padding: theme.spacing.semantic.component.lg,
+            backgroundColor: theme.colors.background.secondary,
+            border: `1px solid ${theme.colors.border.primary}`,
           }}
         >
-          <Flex align="center" gap="2">
-            <Text weight="medium">
-              {filteredDatasets.length} {filteredDatasets.length === 1 ? "dataset" : "datasets"}
-            </Text>
-            {filters.selectedType !== "all" && (
-              <Badge
-                variant="soft"
-                style={{
-                  background: "var(--accent-3)",
-                  color: "var(--accent-11)",
-                }}
-              >
-                {DATA_TYPE_NAMES[filters.selectedType] || filters.selectedType}
-              </Badge>
-            )}
-            {filters.searchQuery && (
-              <Badge variant="soft" color="blue">
-                "{filters.searchQuery}"
-              </Badge>
-            )}
-            {filters.selectedTags.length > 0 && (
-              <Flex align="center" gap="1">
-                {filters.selectedTags.slice(0, 2).map(tag => (
-                  <Badge
-                    key={tag}
-                    variant="soft"
-                    color="purple"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => toggleTag(tag)}
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-                {filters.selectedTags.length > 2 && (
-                  <Badge variant="soft" color="purple">
-                    +{filters.selectedTags.length - 2} more
-                  </Badge>
-                )}
-              </Flex>
-            )}
-          </Flex>
+          <Flex justify="between" align="center">
+            <Flex align="center" gap="2">
+              <Text weight="medium" style={{ color: theme.colors.text.primary }}>
+                {filteredDatasets.length} {filteredDatasets.length === 1 ? "dataset" : "datasets"}
+              </Text>
+              {filters.selectedType !== "all" && (
+                <Badge
+                  variant="soft"
+                  style={{
+                    backgroundColor: theme.colors.status.info,
+                    color: theme.colors.text.inverse,
+                  }}
+                >
+                  {DATA_TYPE_NAMES[filters.selectedType] || filters.selectedType}
+                </Badge>
+              )}
+              {filters.searchQuery && (
+                <Badge
+                  variant="soft"
+                  style={{
+                    backgroundColor: theme.colors.interactive.secondary,
+                    color: theme.colors.text.primary,
+                  }}
+                >
+                  "{filters.searchQuery}"
+                </Badge>
+              )}
+              {filters.selectedTags.length > 0 && (
+                <Flex align="center" gap="1">
+                  {filters.selectedTags.slice(0, 2).map(tag => (
+                    <Badge
+                      key={tag}
+                      variant="soft"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        cursor: "pointer",
+                        backgroundColor: theme.colors.status.warning,
+                        color: theme.colors.text.inverse,
+                        transition: theme.animations.transitions.hover,
+                      }}
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                  {filters.selectedTags.length > 2 && (
+                    <Badge
+                      variant="soft"
+                      style={{
+                        backgroundColor: theme.colors.status.warning,
+                        color: theme.colors.text.inverse,
+                      }}
+                    >
+                      +{filters.selectedTags.length - 2} more
+                    </Badge>
+                  )}
+                </Flex>
+              )}
+            </Flex>
 
-          <DatasetSortSelector
-            selectedSort={filters.selectedSort}
-            onSortChange={value => updateFilter("selectedSort", value)}
-            options={SORT_OPTIONS}
-          />
-        </Flex>
+            <DatasetSortSelector
+              selectedSort={filters.selectedSort}
+              onSortChange={value => updateFilter("selectedSort", value)}
+              options={SORT_OPTIONS}
+            />
+          </Flex>
+        </Card>
       </Box>
 
       {/* 데이터셋 그리드 */}
@@ -228,11 +261,11 @@ export function Datasets() {
           style={{
             minHeight: "60vh",
             justifyContent: "center",
-            background: "white",
-            borderRadius: "16px",
-            padding: "40px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-            border: "1px solid var(--gray-4)",
+            background: theme.colors.background.card,
+            borderRadius: theme.borders.radius.lg,
+            padding: theme.spacing.semantic.layout.lg,
+            boxShadow: theme.shadows.semantic.card.medium,
+            border: `1px solid ${theme.colors.border.primary}`,
           }}
         >
           <Box
@@ -240,34 +273,38 @@ export function Datasets() {
               width: "80px",
               height: "80px",
               borderRadius: "50%",
-              background: "var(--gray-3)",
+              background: theme.colors.background.secondary,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Database size={32} style={{ color: "var(--gray-9)" }} />
+            <Database size={32} style={{ color: theme.colors.text.tertiary }} />
           </Box>
-          <Text size="6" style={{ fontWeight: 600 }}>
+          <Text size="6" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
             No Datasets Found
           </Text>
           <Text
             size="3"
-            color="gray"
             align="center"
-            style={{ maxWidth: "400px", lineHeight: 1.6, letterSpacing: "0.01em" }}
+            style={{
+              maxWidth: "400px",
+              lineHeight: 1.6,
+              letterSpacing: "0.01em",
+              color: theme.colors.text.secondary,
+            }}
           >
             No datasets match your search criteria. Try changing your search terms or filters.
           </Text>
           <Button
             onClick={() => navigate("/datasets/upload")}
             style={{
-              background: "#FF5733",
-              color: "white",
-              marginTop: "14px",
-              borderRadius: "8px",
+              backgroundColor: theme.colors.interactive.primary,
+              color: theme.colors.text.inverse,
+              marginTop: theme.spacing.semantic.component.md,
+              borderRadius: theme.borders.radius.md,
               fontWeight: 500,
-              padding: "10px 16px",
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
               cursor: "pointer",
             }}
           >
@@ -319,39 +356,39 @@ export function Datasets() {
         }
         
         .datasetCard {
-          transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+          transition: ${theme.animations.transitions.hover};
         }
         
         .datasetCard:hover {
           transform: translateY(-6px);
-          box-shadow: 0 16px 30px rgba(0, 0, 0, 0.1);
+          box-shadow: ${theme.shadows.semantic.interactive.hover};
         }
         
         .datasetCardContent {
-          transition: all 0.25s ease;
+          transition: ${theme.animations.transitions.colors};
         }
         
         .datasetCard:hover .datasetCardContent {
-          background: linear-gradient(180deg, white, var(--gray-2));
+          background: ${theme.colors.background.accent};
         }
         
         .tagBadge {
-          transition: all 0.2s ease;
+          transition: ${theme.animations.transitions.colors};
         }
         
         .tagBadge:hover {
           transform: translateY(-1px);
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          box-shadow: ${theme.shadows.semantic.interactive.default};
         }
         
         .statsCounter {
-          transition: all 0.2s ease;
+          transition: ${theme.animations.transitions.colors};
           cursor: pointer;
         }
         
         .statsCounter:hover {
           transform: translateY(-1px);
-          background: var(--gray-4);
+          background: ${theme.colors.background.tertiary};
         }
         `}
       </style>

@@ -1,8 +1,9 @@
-import { Box, Flex, Text, Button } from "@radix-ui/themes";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
 import { Database, Image as ImageIcon } from "phosphor-react";
 import { ImageViewerProps } from "../types";
 
-const styles = `
+const createAnimationStyles = (theme: any) => `
   @keyframes pulse {
     0% { opacity: 0.6; }
     50% { opacity: 1; }
@@ -34,7 +35,7 @@ const styles = `
     bottom: 0;
     left: 0;
     height: 4px;
-    background: linear-gradient(to right, transparent, var(--accent-9), transparent);
+    background: linear-gradient(to right, transparent, ${theme.colors.interactive.primary}, transparent);
     animation: buffer 2s infinite ease-in-out;
   }
 `;
@@ -49,6 +50,7 @@ export function ImageViewer({
   getImageUrl,
   onNavigate,
 }: ImageViewerProps) {
+  const { theme } = useTheme();
   const currentImage = dataset.data[currentImageIndex];
 
   if (!currentImage) {
@@ -57,14 +59,19 @@ export function ImageViewer({
         style={{
           width: "100%",
           height: "500px",
-          background: "var(--gray-2)",
-          borderRadius: "8px",
+          background: theme.colors.background.secondary,
+          borderRadius: theme.borders.radius.md,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Text size="3" style={{ color: "var(--gray-11)" }}>
+        <Text
+          size="3"
+          style={{
+            color: theme.colors.text.secondary,
+          }}
+        >
           No image available
         </Text>
       </Box>
@@ -75,48 +82,62 @@ export function ImageViewer({
 
   return (
     <>
-      <style>{styles}</style>
+      <style>{createAnimationStyles(theme)}</style>
 
       {/* Navigation Header */}
-      <Flex justify="between" align="center" mb="4">
-        <Flex direction="column" gap="2">
-          <Flex align="center" gap="3">
-            <Text size="3" weight="bold">
+      <Flex
+        justify="between"
+        align="center"
+        style={{
+          marginBottom: theme.spacing.semantic.component.lg,
+        }}
+      >
+        <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
+          <Flex align="center" gap={theme.spacing.semantic.component.md}>
+            <Text
+              size="3"
+              style={{
+                fontWeight: "600",
+                color: theme.colors.text.primary,
+              }}
+            >
               Image {currentImageIndex + 1} of {dataset.data.length}
             </Text>
 
             {/* Navigation Buttons */}
-            <Flex gap="2">
+            <Flex gap={theme.spacing.semantic.component.sm}>
               <Button
-                size="1"
-                variant="soft"
-                disabled={currentImageIndex === 0}
                 onClick={() => onNavigate("prev")}
+                disabled={currentImageIndex === 0}
                 style={{
                   cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
-                  padding: "0 8px",
-                  background: currentImageIndex === 0 ? "var(--gray-3)" : "var(--blue-3)",
-                  color: currentImageIndex === 0 ? "var(--gray-8)" : "var(--blue-11)",
+                  padding: `0 ${theme.spacing.semantic.component.sm}`,
+                  background:
+                    currentImageIndex === 0
+                      ? theme.colors.interactive.disabled
+                      : theme.colors.status.info,
+                  color: theme.colors.text.inverse,
+                  border: "none",
+                  borderRadius: theme.borders.radius.sm,
+                  fontSize: "12px",
                 }}
               >
                 ← Previous
               </Button>
               <Button
-                size="1"
-                variant="soft"
-                disabled={currentImageIndex === dataset.data.length - 1}
                 onClick={() => onNavigate("next")}
+                disabled={currentImageIndex === dataset.data.length - 1}
                 style={{
                   cursor: currentImageIndex === dataset.data.length - 1 ? "not-allowed" : "pointer",
-                  padding: "0 8px",
+                  padding: `0 ${theme.spacing.semantic.component.sm}`,
                   background:
                     currentImageIndex === dataset.data.length - 1
-                      ? "var(--gray-3)"
-                      : "var(--blue-3)",
-                  color:
-                    currentImageIndex === dataset.data.length - 1
-                      ? "var(--gray-8)"
-                      : "var(--blue-11)",
+                      ? theme.colors.interactive.disabled
+                      : theme.colors.status.info,
+                  color: theme.colors.text.inverse,
+                  border: "none",
+                  borderRadius: theme.borders.radius.sm,
+                  fontSize: "12px",
                 }}
               >
                 Next →
@@ -133,16 +154,21 @@ export function ImageViewer({
 
             if (totalBlobs > 0 && percentage < 100) {
               return (
-                <Flex align="center" gap="2">
-                  <Text size="1" style={{ color: "var(--gray-11)" }}>
+                <Flex align="center" gap={theme.spacing.semantic.component.sm}>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.secondary,
+                    }}
+                  >
                     Loading dataset: {loadedBlobs.length}/{totalBlobs} blobs
                   </Text>
                   <Box
                     style={{
                       width: "100px",
                       height: "4px",
-                      background: "var(--gray-4)",
-                      borderRadius: "2px",
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.sm,
                       overflow: "hidden",
                     }}
                   >
@@ -150,13 +176,19 @@ export function ImageViewer({
                       style={{
                         width: `${percentage}%`,
                         height: "100%",
-                        background: "var(--blue-9)",
-                        borderRadius: "2px",
-                        transition: "width 0.3s ease",
+                        background: theme.colors.status.info,
+                        borderRadius: theme.borders.radius.sm,
+                        transition: theme.animations.transitions.all,
                       }}
                     />
                   </Box>
-                  <Text size="1" style={{ color: "var(--blue-11)", fontWeight: "500" }}>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.status.info,
+                      fontWeight: "500",
+                    }}
+                  >
                     {Math.round(percentage)}%
                   </Text>
                 </Flex>
@@ -167,19 +199,24 @@ export function ImageViewer({
         </Flex>
 
         {/* Current Image Status */}
-        <Flex align="center" gap="2">
+        <Flex align="center" gap={theme.spacing.semantic.component.sm}>
           {isCurrentImageBlobLoading && (
-            <Flex align="center" gap="2">
+            <Flex align="center" gap={theme.spacing.semantic.component.sm}>
               <Box
                 style={{
                   width: "8px",
                   height: "8px",
-                  background: "var(--orange-9)",
+                  background: theme.colors.status.warning,
                   borderRadius: "50%",
                   animation: "pulse 1.5s infinite",
                 }}
               />
-              <Text size="1" style={{ color: "var(--orange-11)" }}>
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.status.warning,
+                }}
+              >
                 Loading blob data
               </Text>
             </Flex>
@@ -187,16 +224,21 @@ export function ImageViewer({
           {!isCurrentImageBlobLoading &&
             imageUrls[`${currentImage.blobId}_${currentImageIndex}`] &&
             !blobLoading[currentImage.blobId] && (
-              <Flex align="center" gap="2">
+              <Flex align="center" gap={theme.spacing.semantic.component.sm}>
                 <Box
                   style={{
                     width: "8px",
                     height: "8px",
-                    background: "var(--green-9)",
+                    background: theme.colors.status.success,
                     borderRadius: "50%",
                   }}
                 />
-                <Text size="1" style={{ color: "var(--green-11)" }}>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.status.success,
+                  }}
+                >
                   Ready
                 </Text>
               </Flex>
@@ -210,8 +252,8 @@ export function ImageViewer({
           position: "relative",
           width: "100%",
           height: "500px",
-          background: "var(--gray-2)",
-          borderRadius: "8px",
+          background: theme.colors.background.secondary,
+          borderRadius: theme.borders.radius.md,
           overflow: "hidden",
         }}
       >
@@ -227,19 +269,19 @@ export function ImageViewer({
               left: 0,
               right: 0,
               bottom: 0,
-              background: "var(--gray-2)",
+              background: theme.colors.background.secondary,
               zIndex: 2,
               overflow: "hidden",
             }}
           >
             <Box className="loading-icon">
-              <Database size={40} color="var(--blue-9)" weight="thin" />
+              <Database size={40} color={theme.colors.status.info} weight="thin" />
             </Box>
             <Text
               size="3"
               style={{
-                color: "var(--blue-11)",
-                marginTop: "16px",
+                color: theme.colors.status.info,
+                marginTop: theme.spacing.semantic.component.md,
                 fontWeight: "500",
               }}
             >
@@ -248,8 +290,8 @@ export function ImageViewer({
             <Text
               size="2"
               style={{
-                color: "var(--gray-11)",
-                marginTop: "8px",
+                color: theme.colors.text.secondary,
+                marginTop: theme.spacing.semantic.component.sm,
               }}
             >
               This may take a moment for large datasets
@@ -270,19 +312,19 @@ export function ImageViewer({
               left: 0,
               right: 0,
               bottom: 0,
-              background: "var(--gray-2)",
+              background: theme.colors.background.secondary,
               zIndex: 1,
               overflow: "hidden",
             }}
           >
             <Box className="loading-icon">
-              <ImageIcon size={32} color="var(--gray-8)" weight="thin" />
+              <ImageIcon size={32} color={theme.colors.text.secondary} weight="thin" />
             </Box>
             <Text
               size="2"
               style={{
-                color: "var(--gray-11)",
-                marginTop: "12px",
+                color: theme.colors.text.secondary,
+                marginTop: theme.spacing.semantic.component.md,
               }}
             >
               Rendering image...
@@ -290,8 +332,8 @@ export function ImageViewer({
             <Text
               size="1"
               style={{
-                color: "var(--gray-9)",
-                marginTop: "4px",
+                color: theme.colors.text.tertiary,
+                marginTop: theme.spacing.semantic.component.xs,
               }}
             >
               Image {currentImageIndex + 1} of {dataset.data.length}
@@ -309,7 +351,7 @@ export function ImageViewer({
               height: "100%",
               objectFit: "contain",
               opacity: imageLoading ? 0 : 1,
-              transition: "opacity 0.3s ease",
+              transition: theme.animations.transitions.all,
             }}
             onLoad={() => {
               console.log(`Image ${currentImageIndex + 1} loaded successfully`);

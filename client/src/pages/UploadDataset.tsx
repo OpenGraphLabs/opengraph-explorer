@@ -1,4 +1,7 @@
-import { Box, Flex, Text, Heading, Card } from "@radix-ui/themes";
+import { Box, Flex } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { useTheme } from "@/shared/ui/design-system";
 import {
   useDatasetUpload,
   DatasetMetadataForm,
@@ -9,6 +12,7 @@ import {
 } from "@/features/dataset";
 
 export function UploadDataset() {
+  const { theme } = useTheme();
   const {
     // State
     metadata,
@@ -35,30 +39,32 @@ export function UploadDataset() {
   } = useDatasetUpload();
 
   return (
-    <Box style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+    <Box
+      style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
+        padding: `0 ${theme.spacing.semantic.layout.md}`,
+      }}
+    >
       {/* Page Header */}
-      <Flex direction="column" gap="2" mb="6">
-        <Heading size={{ initial: "7", md: "8" }} style={{ fontWeight: 700 }}>
-          Upload Dataset
-        </Heading>
-        <Text size="3" style={{ color: "var(--gray-11)", maxWidth: "600px" }}>
-          Create a new dataset for machine learning training. Define annotation labels and upload
-          your data files to get started.
-        </Text>
-      </Flex>
+      <PageHeader
+        title="Upload Dataset"
+        description="Create a new dataset for machine learning training. Define annotation labels and upload your data files to get started."
+      />
 
-      <Flex direction="column" gap="6">
+      <Flex direction="column" gap={theme.spacing.semantic.section.md}>
         {/* Dataset Metadata Section */}
         <Card
+          elevation="medium"
           style={{
-            padding: "32px",
-            borderRadius: "16px",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-            border: "1px solid var(--gray-4)",
-            background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
+            padding: theme.spacing.semantic.component.xl,
+            borderRadius: theme.borders.radius.lg,
+            boxShadow: theme.shadows.semantic.card.high,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.card,
           }}
         >
-          <Flex direction="column" gap="6">
+          <Flex direction="column" gap={theme.spacing.semantic.section.sm}>
             <StepHeader
               stepNumber={1}
               title="Dataset Information"
@@ -76,15 +82,16 @@ export function UploadDataset() {
 
         {/* File Upload Section */}
         <Card
+          elevation="medium"
           style={{
-            padding: "32px",
-            borderRadius: "16px",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-            border: "1px solid var(--gray-4)",
-            background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
+            padding: theme.spacing.semantic.component.xl,
+            borderRadius: theme.borders.radius.lg,
+            boxShadow: theme.shadows.semantic.card.high,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.card,
           }}
         >
-          <Flex direction="column" gap="6">
+          <Flex direction="column" gap={theme.spacing.semantic.section.sm}>
             <StepHeader
               stepNumber={2}
               title="Upload Data Files"

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Box, Flex, Text, Heading } from "@radix-ui/themes";
+import { Box, Flex, Text } from "@/shared/ui/design-system/components";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { useTheme } from "@/shared/ui/design-system";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 import {
   DatasetSelector,
@@ -9,6 +11,8 @@ import {
 } from "@/features/annotation";
 
 export function Annotator() {
+  const { theme } = useTheme();
+
   // Dataset state
   const [datasets, setDatasets] = useState<DatasetObject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,9 +140,16 @@ export function Annotator() {
 
   if (loading || error) {
     return (
-      <Box p="5">
-        <Flex direction="column" gap="4">
-          <Heading size="6">Dataset Annotator</Heading>
+      <Box
+        style={{
+          padding: theme.spacing.semantic.layout.md,
+        }}
+      >
+        <Flex direction="column" gap={theme.spacing.semantic.section.md}>
+          <PageHeader
+            title="Dataset Annotator"
+            description="Add annotations to your image datasets for machine learning training."
+          />
           <DatasetSelector
             datasets={datasets}
             selectedDataset={selectedDataset}
@@ -152,9 +163,16 @@ export function Annotator() {
   }
 
   return (
-    <Box p="5">
-      <Flex direction="column" gap="4">
-        <Heading size="6">Dataset Annotator</Heading>
+    <Box
+      style={{
+        padding: theme.spacing.semantic.layout.md,
+      }}
+    >
+      <Flex direction="column" gap={theme.spacing.semantic.section.md}>
+        <PageHeader
+          title="Dataset Annotator"
+          description="Add annotations to your image datasets for machine learning training."
+        />
 
         {/* Dataset Selection */}
         <DatasetSelector
@@ -165,8 +183,8 @@ export function Annotator() {
 
         {/* Annotation Interface */}
         {selectedDataset && getCurrentImage() && isImageType(selectedDataset.dataType) && (
-          <Flex direction="column" gap="4">
-            <Flex gap="4">
+          <Flex direction="column" gap={theme.spacing.semantic.section.md}>
+            <Flex gap={theme.spacing.semantic.section.md}>
               {/* Main Content */}
               <Box style={{ flex: 1 }}>
                 <ImageViewer
@@ -183,11 +201,10 @@ export function Annotator() {
                 {/* Annotation Input */}
                 <Flex
                   direction="column"
-                  gap="3"
-                  mt="4"
+                  gap={theme.spacing.semantic.component.md}
                   style={{
                     maxWidth: "600px",
-                    margin: "16px auto 0",
+                    margin: `${theme.spacing.semantic.component.md} auto 0`,
                     width: "100%",
                   }}
                 >
@@ -205,49 +222,83 @@ export function Annotator() {
                       width: "100%",
                       resize: "none",
                       height: "44px",
-                      padding: "10px 16px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--gray-6)",
+                      padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                      borderRadius: theme.borders.radius.md,
+                      border: `1px solid ${theme.colors.border.primary}`,
                       fontSize: "14px",
                       lineHeight: "24px",
                       opacity: blobManager.isCurrentImageBlobLoading(getCurrentImage()) ? 0.6 : 1,
                       cursor: blobManager.isCurrentImageBlobLoading(getCurrentImage())
                         ? "not-allowed"
                         : "text",
-                      background: "white",
+                      background: theme.colors.background.primary,
+                      color: theme.colors.text.primary,
                       outline: "none",
+                      transition: theme.animations.transitions.focus,
                     }}
                   />
                   {blobManager.isCurrentImageBlobLoading(getCurrentImage()) && (
-                    <Text size="1" style={{ color: "var(--gray-11)", textAlign: "center" }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.secondary,
+                        textAlign: "center",
+                      }}
+                    >
                       Please wait for the image data to load before annotating
                     </Text>
                   )}
                 </Flex>
               </Box>
 
-              {/* Pending Annotations Panel - Simple version for now */}
+              {/* Pending Annotations Panel */}
               <Box style={{ width: "240px" }}>
-                <Flex direction="column" gap="2">
-                  <Text size="2" weight="bold">
+                <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
+                  <Text
+                    size="2"
+                    style={{
+                      fontWeight: theme.typography.h3.fontWeight,
+                      color: theme.colors.text.primary,
+                    }}
+                  >
                     Pending Annotations ({annotationManager.pendingAnnotations.length})
                   </Text>
                   <Box
                     style={{
                       height: "300px",
                       overflow: "auto",
-                      background: "var(--gray-2)",
-                      borderRadius: "8px",
-                      padding: "8px",
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.md,
+                      padding: theme.spacing.semantic.component.sm,
+                      border: `1px solid ${theme.colors.border.secondary}`,
                     }}
                   >
                     {annotationManager.pendingAnnotations.map((annotation, index) => (
-                      <Box key={index} style={{ marginBottom: "8px", fontSize: "12px" }}>
-                        <Text size="1" weight="bold">
+                      <Box
+                        key={index}
+                        style={{
+                          marginBottom: theme.spacing.semantic.component.sm,
+                          fontSize: "12px",
+                        }}
+                      >
+                        <Text
+                          size="1"
+                          style={{
+                            fontWeight: theme.typography.label.fontWeight,
+                            color: theme.colors.text.primary,
+                          }}
+                        >
                           {annotation.path}
                         </Text>
                         <br />
-                        <Text size="1">{annotation.label.join(", ")}</Text>
+                        <Text
+                          size="1"
+                          style={{
+                            color: theme.colors.text.secondary,
+                          }}
+                        >
+                          {annotation.label.join(", ")}
+                        </Text>
                       </Box>
                     ))}
                   </Box>
@@ -257,7 +308,12 @@ export function Annotator() {
 
             {/* Save Button */}
             {annotationManager.pendingAnnotations.length > 0 && (
-              <Flex justify="center" p="4">
+              <Flex
+                justify="center"
+                style={{
+                  padding: theme.spacing.semantic.section.sm,
+                }}
+              >
                 <button
                   onClick={() =>
                     selectedDataset && annotationManager.savePendingAnnotations(selectedDataset)
@@ -267,15 +323,21 @@ export function Annotator() {
                     annotationManager.transactionStatus.status === "pending"
                   }
                   style={{
-                    background: "#FF5733",
-                    color: "white",
-                    padding: "12px 24px",
-                    borderRadius: "8px",
+                    background: annotationManager.saving
+                      ? theme.colors.interactive.disabled
+                      : theme.colors.interactive.primary,
+                    color: theme.colors.text.inverse,
+                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.xl}`,
+                    borderRadius: theme.borders.radius.md,
                     border: "none",
                     cursor: annotationManager.saving ? "not-allowed" : "pointer",
                     opacity: annotationManager.saving ? 0.6 : 1,
                     fontSize: "14px",
-                    fontWeight: "500",
+                    fontWeight: "600",
+                    boxShadow: annotationManager.saving
+                      ? "none"
+                      : theme.shadows.semantic.card.medium,
+                    transition: theme.animations.transitions.all,
                   }}
                 >
                   {annotationManager.saving
@@ -288,25 +350,37 @@ export function Annotator() {
             {/* Transaction Status */}
             {annotationManager.transactionStatus.status !== "idle" && (
               <Box
-                p="4"
                 style={{
+                  padding: theme.spacing.semantic.component.lg,
                   background:
                     annotationManager.transactionStatus.status === "success"
-                      ? "var(--green-3)"
+                      ? theme.colors.status.success
                       : annotationManager.transactionStatus.status === "failed"
-                        ? "var(--red-3)"
-                        : "var(--blue-3)",
-                  borderRadius: "8px",
+                        ? theme.colors.status.error
+                        : theme.colors.status.info,
+                  borderRadius: theme.borders.radius.md,
                   textAlign: "center",
+                  boxShadow: theme.shadows.semantic.card.low,
                 }}
               >
-                <Text size="2" weight="bold">
+                <Text
+                  size="2"
+                  style={{
+                    fontWeight: theme.typography.body.fontWeight,
+                    color: theme.colors.text.inverse,
+                  }}
+                >
                   {annotationManager.transactionStatus.message}
                 </Text>
                 {annotationManager.transactionStatus.txHash && (
                   <Text
                     size="1"
-                    style={{ display: "block", marginTop: "4px", fontFamily: "monospace" }}
+                    style={{
+                      display: "block",
+                      marginTop: theme.spacing.semantic.component.xs,
+                      fontFamily: "monospace",
+                      color: theme.colors.text.inverse,
+                    }}
                   >
                     TX: {annotationManager.transactionStatus.txHash.substring(0, 20)}...
                   </Text>
@@ -318,10 +392,20 @@ export function Annotator() {
 
         {selectedDataset && !isImageType(selectedDataset.dataType) && (
           <Box
-            p="4"
-            style={{ background: "var(--gray-3)", borderRadius: "8px", textAlign: "center" }}
+            style={{
+              padding: theme.spacing.semantic.component.lg,
+              background: theme.colors.background.secondary,
+              borderRadius: theme.borders.radius.md,
+              textAlign: "center",
+              border: `1px solid ${theme.colors.border.secondary}`,
+            }}
           >
-            <Text size="3" style={{ color: "var(--gray-11)" }}>
+            <Text
+              size="3"
+              style={{
+                color: theme.colors.text.secondary,
+              }}
+            >
               This dataset contains {selectedDataset.dataType} data. Only image datasets are
               currently supported for annotation.
             </Text>

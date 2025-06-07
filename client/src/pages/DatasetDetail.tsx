@@ -1,5 +1,7 @@
 import { useParams } from "react-router-dom";
-import { Box, Flex, Text, Tabs, Card, Heading, Badge } from "@radix-ui/themes";
+import { Box, Flex, Text, Tabs, Badge, Heading } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircle, Users } from "phosphor-react";
 import {
   useDatasetDetail,
@@ -16,6 +18,7 @@ import { DatasetImageModal } from "@/features/dataset/components/DatasetImageMod
 import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 
 export function DatasetDetail() {
+  const { theme } = useTheme();
   const { addConfirmedAnnotationLabels } = useDatasetSuiService();
   const { id } = useParams<{ id: string }>();
 
@@ -108,7 +111,14 @@ export function DatasetDetail() {
 
   if (loading) {
     return (
-      <Flex align="center" justify="center" style={{ height: "80vh" }}>
+      <Flex
+        align="center"
+        justify="center"
+        style={{
+          height: "80vh",
+          color: theme.colors.text.secondary,
+        }}
+      >
         <Text size="3">Loading dataset...</Text>
       </Flex>
     );
@@ -116,25 +126,37 @@ export function DatasetDetail() {
 
   if (error || !dataset) {
     return (
-      <Flex align="center" justify="center" style={{ height: "80vh" }}>
-        <Text size="3" color="red">
-          {error || "Dataset not found"}
-        </Text>
+      <Flex
+        align="center"
+        justify="center"
+        style={{
+          height: "80vh",
+          color: theme.colors.status.error,
+        }}
+      >
+        <Text size="3">{error || "Dataset not found"}</Text>
       </Flex>
     );
   }
 
   return (
-    <Box style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 32px" }}>
+    <Box
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: `0 ${theme.spacing.semantic.layout.md}`,
+      }}
+    >
       {/* 데이터셋 헤더 */}
       <Card
+        elevation="low"
         style={{
-          padding: "32px",
-          borderRadius: "16px",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-          marginBottom: "32px",
-          border: "1px solid var(--gray-4)",
-          background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
+          padding: theme.spacing.semantic.component.xl,
+          borderRadius: theme.borders.radius.lg,
+          boxShadow: theme.shadows.semantic.card.medium,
+          marginBottom: theme.spacing.semantic.section.md,
+          border: `1px solid ${theme.colors.border.primary}`,
+          background: theme.colors.background.card,
         }}
       >
         <DatasetHeader dataset={dataset} uniqueBlobId={getUniqueBlobId() || undefined} />
@@ -145,18 +167,25 @@ export function DatasetDetail() {
 
       {/* 데이터셋 콘텐츠 */}
       <Card
+        elevation="low"
         style={{
-          padding: "32px",
-          borderRadius: "16px",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-          border: "1px solid var(--gray-4)",
-          background: "linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)",
+          padding: theme.spacing.semantic.component.xl,
+          borderRadius: theme.borders.radius.lg,
+          boxShadow: theme.shadows.semantic.card.medium,
+          border: `1px solid ${theme.colors.border.primary}`,
+          background: theme.colors.background.card,
         }}
       >
         <Flex direction="column" gap="6">
           <Flex align="center" justify="between">
             <Flex direction="column" gap="2">
-              <Heading size="5" style={{ fontWeight: 600 }}>
+              <Heading
+                size="5"
+                style={{
+                  fontWeight: 600,
+                  color: theme.colors.text.primary,
+                }}
+              >
                 Dataset Contents
               </Heading>
 
@@ -167,13 +196,18 @@ export function DatasetDetail() {
                     style={{
                       width: "16px",
                       height: "16px",
-                      border: "2px solid var(--gray-4)",
-                      borderTop: "2px solid var(--blue-9)",
+                      border: `2px solid ${theme.colors.border.primary}`,
+                      borderTop: `2px solid ${theme.colors.interactive.primary}`,
                       borderRadius: "50%",
                       animation: "spin 1s linear infinite",
                     }}
                   />
-                  <Text size="2" style={{ color: "var(--gray-11)" }}>
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.text.secondary,
+                    }}
+                  >
                     Loading images...
                   </Text>
                 </Flex>
@@ -189,13 +223,18 @@ export function DatasetDetail() {
               <Tabs.Trigger
                 value="confirmed"
                 style={{
-                  padding: "12px 24px",
-                  borderRadius: "8px 8px 0 0",
+                  padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                  borderRadius: `${theme.borders.radius.md} ${theme.borders.radius.md} 0 0`,
                   border: "none",
-                  background: activeTab === "confirmed" ? "var(--green-3)" : "transparent",
-                  color: activeTab === "confirmed" ? "var(--green-11)" : "var(--gray-11)",
+                  background:
+                    activeTab === "confirmed" ? theme.colors.status.success : "transparent",
+                  color:
+                    activeTab === "confirmed"
+                      ? theme.colors.text.inverse
+                      : theme.colors.text.secondary,
                   fontWeight: "600",
                   position: "relative",
+                  transition: theme.animations.transitions.colors,
                 }}
               >
                 <Flex align="center" gap="2">
@@ -203,8 +242,14 @@ export function DatasetDetail() {
                   Confirmed
                   <Badge
                     style={{
-                      background: activeTab === "confirmed" ? "var(--green-9)" : "var(--gray-5)",
-                      color: activeTab === "confirmed" ? "white" : "var(--gray-11)",
+                      background:
+                        activeTab === "confirmed"
+                          ? theme.colors.background.card
+                          : theme.colors.background.secondary,
+                      color:
+                        activeTab === "confirmed"
+                          ? theme.colors.status.success
+                          : theme.colors.text.secondary,
                       fontSize: "11px",
                       fontWeight: "600",
                     }}
@@ -216,13 +261,17 @@ export function DatasetDetail() {
               <Tabs.Trigger
                 value="pending"
                 style={{
-                  padding: "12px 24px",
-                  borderRadius: "8px 8px 0 0",
+                  padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                  borderRadius: `${theme.borders.radius.md} ${theme.borders.radius.md} 0 0`,
                   border: "none",
-                  background: activeTab === "pending" ? "var(--orange-3)" : "transparent",
-                  color: activeTab === "pending" ? "var(--orange-11)" : "var(--gray-11)",
+                  background: activeTab === "pending" ? theme.colors.status.warning : "transparent",
+                  color:
+                    activeTab === "pending"
+                      ? theme.colors.text.inverse
+                      : theme.colors.text.secondary,
                   fontWeight: "600",
                   position: "relative",
+                  transition: theme.animations.transitions.colors,
                 }}
               >
                 <Flex align="center" gap="2">
@@ -230,8 +279,14 @@ export function DatasetDetail() {
                   Pending
                   <Badge
                     style={{
-                      background: activeTab === "pending" ? "var(--orange-9)" : "var(--gray-5)",
-                      color: activeTab === "pending" ? "white" : "var(--gray-11)",
+                      background:
+                        activeTab === "pending"
+                          ? theme.colors.background.card
+                          : theme.colors.background.secondary,
+                      color:
+                        activeTab === "pending"
+                          ? theme.colors.status.warning
+                          : theme.colors.text.secondary,
                       fontSize: "11px",
                       fontWeight: "600",
                     }}
@@ -242,7 +297,7 @@ export function DatasetDetail() {
               </Tabs.Trigger>
             </Tabs.List>
 
-            <Box style={{ marginTop: "24px" }}>
+            <Box style={{ marginTop: theme.spacing.semantic.component.lg }}>
               <DatasetImageGallery
                 items={getPaginatedItems(activeTab === "confirmed" ? confirmedPage : pendingPage)}
                 loading={isAnyBlobLoading()}
@@ -302,15 +357,15 @@ export function DatasetDetail() {
             opacity: 0.9;
           }
           .hover-effect:hover {
-            color: #FF5733 !important;
+            color: ${theme.colors.interactive.primary} !important;
           }
           .item-card-hover:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+            box-shadow: ${theme.shadows.semantic.interactive.hover} !important;
           }
           .annotation-badge-hover:hover {
             transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: ${theme.shadows.semantic.interactive.default};
           }
           @keyframes spin {
             from { transform: rotate(0deg); }
@@ -348,11 +403,11 @@ export function DatasetDetail() {
             transform: translateX(-50%) translateY(-4px);
           }
           .image-container {
-            transition: all 0.2s ease;
+            transition: ${theme.animations.transitions.transform};
           }
 
           .image-container.verified:hover {
-            background: var(--gray-3) !important;
+            background: ${theme.colors.background.secondary} !important;
           }
 
           .image-container.verified:hover .click-overlay {

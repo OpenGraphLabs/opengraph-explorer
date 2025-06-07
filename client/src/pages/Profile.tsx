@@ -1,47 +1,78 @@
 import { useState } from "react";
-import { Box, Flex, Heading, Text, Card, Tabs, Avatar, Button } from "@radix-ui/themes";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Button,
+  Tabs,
+  Avatar,
+} from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
+import { useTheme } from "@/shared/ui/design-system";
 import { CalendarIcon, HeartIcon, DownloadIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useCurrentWallet } from "@mysten/dapp-kit";
-import styles from "../styles/Card.module.css";
 
 export function Profile() {
+  const { theme } = useTheme();
   const { isConnected, currentWallet } = useCurrentWallet();
   const [activeTab, setActiveTab] = useState("models");
 
   // If wallet is not connected, show a message
   if (!isConnected) {
     return (
-      <Card
+      <Box
         style={{
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-          padding: "24px",
-          border: "none",
+          padding: theme.spacing.semantic.layout.md,
         }}
       >
-        <Flex direction="column" align="center" gap="4" py="6">
-          <Box
-            style={{
-              width: "64px",
-              height: "64px",
-              borderRadius: "50%",
-              background: "#F5F5F5",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <GitHubLogoIcon width={32} height={32} style={{ color: "#555" }} />
-          </Box>
-          <Heading size="4" style={{ color: "#333" }}>
-            Connect Your Wallet
-          </Heading>
-          <Text align="center" style={{ maxWidth: "400px", color: "#555", lineHeight: "1.6" }}>
-            To view your profile, please connect your Sui wallet using the button in the top right
-            corner.
-          </Text>
-        </Flex>
-      </Card>
+        <PageHeader
+          title="Profile"
+          description="Manage your models, datasets, and account settings."
+        />
+
+        <Card
+          style={{
+            padding: theme.spacing.semantic.component.xl,
+            textAlign: "center",
+          }}
+        >
+          <Flex direction="column" align="center" gap={theme.spacing.semantic.component.lg}>
+            <Box
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "50%",
+                background: theme.colors.background.accent,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <GitHubLogoIcon width={32} height={32} style={{ color: theme.colors.text.primary }} />
+            </Box>
+            <Heading
+              size="4"
+              style={{
+                color: theme.colors.text.primary,
+              }}
+            >
+              Connect Your Wallet
+            </Heading>
+            <Text
+              style={{
+                maxWidth: "400px",
+                color: theme.colors.text.secondary,
+                lineHeight: "1.6",
+              }}
+            >
+              To view your profile, please connect your Sui wallet using the button in the top right
+              corner.
+            </Text>
+          </Flex>
+        </Card>
+      </Box>
     );
   }
 
@@ -150,7 +181,7 @@ export function Profile() {
     switch (activity.type) {
       case "upload":
         return {
-          icon: <UploadIcon style={{ color: "#4CAF50" }} />,
+          icon: <UploadIcon style={{ color: theme.colors.status.success }} />,
           text: `Uploaded model "${activity.modelName}"`,
         };
       case "like":
@@ -160,7 +191,7 @@ export function Profile() {
         };
       case "download":
         return {
-          icon: <DownloadIcon style={{ color: "#2196F3" }} />,
+          icon: <DownloadIcon style={{ color: theme.colors.status.info }} />,
           text: `Downloaded model "${activity.modelName}"`,
         };
       default:
@@ -172,61 +203,121 @@ export function Profile() {
   };
 
   return (
-    <Box>
+    <Box
+      style={{
+        padding: theme.spacing.semantic.layout.md,
+      }}
+    >
+      <PageHeader
+        title="Profile"
+        description="Manage your models, datasets, and account settings."
+      />
+
       {/* Profile Header */}
       <Card
         style={{
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-          padding: "24px",
-          marginBottom: "24px",
-          border: "none",
+          padding: theme.spacing.semantic.component.xl,
+          marginBottom: theme.spacing.semantic.component.xl,
         }}
       >
-        <Flex gap="4" align="start">
+        <Flex gap={theme.spacing.semantic.component.lg} align="start">
           <Avatar
             size="6"
             fallback={userAddress[0]}
             style={{
-              background: "#FF5733",
-              color: "white",
+              background: theme.colors.interactive.primary,
+              color: theme.colors.text.inverse,
               fontSize: "24px",
-              fontWeight: "bold",
+              fontWeight: "700",
             }}
           />
 
           <Box style={{ flex: 1 }}>
-            <Heading size="6" style={{ fontWeight: 700, color: "#333" }}>
+            <Heading
+              size="6"
+              style={{
+                fontWeight: "700",
+                color: theme.colors.text.primary,
+              }}
+            >
               {formatAddress(userAddress)}
             </Heading>
 
-            <Flex align="center" gap="2" mt="1">
-              <CalendarIcon style={{ color: "#777" }} />
-              <Text size="2" style={{ color: "#777" }}>
+            <Flex
+              align="center"
+              gap={theme.spacing.semantic.component.sm}
+              style={{
+                marginTop: theme.spacing.semantic.component.xs,
+              }}
+            >
+              <CalendarIcon style={{ color: theme.colors.text.secondary }} />
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                }}
+              >
                 Joined {formatDate(new Date().toISOString().slice(0, 10))}
               </Text>
             </Flex>
 
-            <Flex mt="4" gap="3">
+            <Flex
+              style={{
+                marginTop: theme.spacing.semantic.component.lg,
+              }}
+              gap={theme.spacing.semantic.component.md}
+            >
               <Box>
-                <Text size="1" style={{ color: "#777" }}>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.secondary,
+                  }}
+                >
                   Models
                 </Text>
-                <Text style={{ fontWeight: 600 }}>{userModels.length}</Text>
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    color: theme.colors.text.primary,
+                  }}
+                >
+                  {userModels.length}
+                </Text>
               </Box>
               <Box>
-                <Text size="1" style={{ color: "#777" }}>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.secondary,
+                  }}
+                >
                   Downloads
                 </Text>
-                <Text style={{ fontWeight: 600 }}>
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    color: theme.colors.text.primary,
+                  }}
+                >
                   {userModels.reduce((sum, model) => sum + model.downloads, 0)}
                 </Text>
               </Box>
               <Box>
-                <Text size="1" style={{ color: "#777" }}>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.secondary,
+                  }}
+                >
                   Likes
                 </Text>
-                <Text style={{ fontWeight: 600 }}>
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    color: theme.colors.text.primary,
+                  }}
+                >
                   {userModels.reduce((sum, model) => sum + model.likes, 0)}
                 </Text>
               </Box>
@@ -236,303 +327,493 @@ export function Profile() {
       </Card>
 
       {/* Tabs Navigation */}
-      <Tabs.Root
-        value={activeTab}
-        onValueChange={setActiveTab}
-        style={{
-          borderRadius: "12px",
-          overflow: "hidden",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
-        }}
-      >
-        <Tabs.List
-          style={{
-            background: "var(--gray-2)",
-            padding: "8px",
-            borderBottom: "1px solid var(--gray-4)",
-          }}
-        >
-          <Tabs.Trigger value="models" style={{ fontWeight: 600 }}>
-            My Models
-          </Tabs.Trigger>
-          <Tabs.Trigger value="favorites" style={{ fontWeight: 600 }}>
-            Favorites
-          </Tabs.Trigger>
-          <Tabs.Trigger value="activity" style={{ fontWeight: 600 }}>
-            Activity
-          </Tabs.Trigger>
-          <Tabs.Trigger value="settings" style={{ fontWeight: 600 }}>
-            Settings
-          </Tabs.Trigger>
-        </Tabs.List>
+      <Card>
+        <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
+          <Tabs.List
+            style={{
+              background: theme.colors.background.secondary,
+              padding: theme.spacing.semantic.component.sm,
+              borderBottom: `1px solid ${theme.colors.border.secondary}`,
+            }}
+          >
+            <Tabs.Trigger
+              value="models"
+              style={{
+                fontWeight: "600",
+                color:
+                  activeTab === "models"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
+              }}
+            >
+              My Models
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="favorites"
+              style={{
+                fontWeight: "600",
+                color:
+                  activeTab === "favorites"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
+              }}
+            >
+              Favorites
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="activity"
+              style={{
+                fontWeight: "600",
+                color:
+                  activeTab === "activity"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
+              }}
+            >
+              Activity
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="settings"
+              style={{
+                fontWeight: "600",
+                color:
+                  activeTab === "settings"
+                    ? theme.colors.interactive.primary
+                    : theme.colors.text.secondary,
+              }}
+            >
+              Settings
+            </Tabs.Trigger>
+          </Tabs.List>
 
-        <Box py="4" px="3" style={{ background: "white" }}>
-          {/* My Models Tab */}
-          <Tabs.Content value="models">
-            <Box>
-              <Flex justify="between" align="center" mb="4">
-                <Heading size="4" style={{ color: "#333", fontWeight: 700 }}>
-                  My Models
-                </Heading>
-                <Button
-                  onClick={() => (window.location.href = "/upload")}
+          <Box
+            style={{
+              padding: theme.spacing.semantic.component.lg,
+              background: theme.colors.background.primary,
+            }}
+          >
+            {/* My Models Tab */}
+            <Tabs.Content value="models">
+              <Box>
+                <Flex
+                  justify="between"
+                  align="center"
                   style={{
-                    background: "#FF5733",
-                    color: "white",
-                    borderRadius: "8px",
+                    marginBottom: theme.spacing.semantic.component.lg,
                   }}
                 >
-                  Upload New Model
-                </Button>
-              </Flex>
+                  <Heading
+                    size="4"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: "700",
+                    }}
+                  >
+                    My Models
+                  </Heading>
+                  <Button
+                    onClick={() => (window.location.href = "/upload")}
+                    style={{
+                      background: theme.colors.interactive.primary,
+                      color: theme.colors.text.inverse,
+                      borderRadius: theme.borders.radius.md,
+                    }}
+                  >
+                    Upload New Model
+                  </Button>
+                </Flex>
 
-              {userModels.length === 0 ? (
-                <Card
-                  style={{
-                    padding: "24px",
-                    textAlign: "center",
-                    borderRadius: "8px",
-                    background: "#F5F5F5",
-                    border: "none",
-                  }}
-                >
-                  <Text>You haven't uploaded any models yet.</Text>
-                </Card>
-              ) : (
-                <Flex direction="column" gap="3">
-                  {userModels.map(model => (
-                    <Card
-                      key={model.id}
-                      className={styles.modelCard}
-                      onClick={() => (window.location.href = `/models/${model.id}`)}
+                {userModels.length === 0 ? (
+                  <Card
+                    style={{
+                      padding: theme.spacing.semantic.component.xl,
+                      textAlign: "center",
+                      background: theme.colors.background.secondary,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.text.secondary,
+                      }}
                     >
-                      <Flex direction="column" gap="2">
-                        <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
-                          {model.name}
-                        </Heading>
-                        <Text size="2" style={{ color: "#555", lineHeight: "1.5" }}>
-                          {model.description}
-                        </Text>
-
-                        <Flex mt="2" justify="between" align="center">
-                          <Card
+                      You haven't uploaded any models yet.
+                    </Text>
+                  </Card>
+                ) : (
+                  <Flex direction="column" gap={theme.spacing.semantic.component.md}>
+                    {userModels.map(model => (
+                      <Card
+                        key={model.id}
+                        style={{
+                          padding: theme.spacing.semantic.component.lg,
+                          cursor: "pointer",
+                          transition: theme.animations.transitions.all,
+                        }}
+                        onClick={() => (window.location.href = `/models/${model.id}`)}
+                      >
+                        <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
+                          <Heading
+                            size="3"
                             style={{
-                              background: "#F5F5F5",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              border: "none",
+                              color: theme.colors.text.primary,
+                              fontWeight: "600",
                             }}
                           >
-                            <Text size="1" style={{ color: "#555" }}>
-                              {getTaskName(model.task)}
-                            </Text>
-                          </Card>
-
-                          <Flex gap="3" align="center">
-                            <Flex align="center" gap="1">
-                              <DownloadIcon style={{ color: "#2196F3", width: 14, height: 14 }} />
-                              <Text size="1" style={{ color: "#555" }}>
-                                {model.downloads}
-                              </Text>
-                            </Flex>
-                            <Flex align="center" gap="1">
-                              <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
-                              <Text size="1" style={{ color: "#555" }}>
-                                {model.likes}
-                              </Text>
-                            </Flex>
-                          </Flex>
-                        </Flex>
-                      </Flex>
-                    </Card>
-                  ))}
-                </Flex>
-              )}
-            </Box>
-          </Tabs.Content>
-
-          {/* Favorites Tab */}
-          <Tabs.Content value="favorites">
-            <Box>
-              <Heading size="4" mb="4" style={{ color: "#333", fontWeight: 700 }}>
-                Favorite Models
-              </Heading>
-
-              {favoriteModels.length === 0 ? (
-                <Card
-                  style={{
-                    padding: "24px",
-                    textAlign: "center",
-                    borderRadius: "8px",
-                    background: "#F5F5F5",
-                    border: "none",
-                  }}
-                >
-                  <Text>You haven't favorited any models yet.</Text>
-                </Card>
-              ) : (
-                <Flex direction="column" gap="3">
-                  {favoriteModels.map(model => (
-                    <Card
-                      key={model.id}
-                      className={styles.modelCard}
-                      onClick={() => (window.location.href = `/models/${model.id}`)}
-                    >
-                      <Flex direction="column" gap="2">
-                        <Flex justify="between">
-                          <Heading size="3" style={{ color: "#333", fontWeight: 600 }}>
                             {model.name}
                           </Heading>
-                          <Button variant="ghost" style={{ color: "#F06292" }}>
-                            <HeartIcon style={{ color: "#F06292" }} />
-                          </Button>
-                        </Flex>
-
-                        <Flex align="center" gap="1">
-                          <Avatar
-                            size="1"
-                            fallback={model.creator[0]}
-                            style={{ background: "#FF5733" }}
-                          />
-                          <Text size="1" style={{ color: "#777" }}>
-                            {model.creator}
-                          </Text>
-                        </Flex>
-
-                        <Text size="2" style={{ color: "#555", lineHeight: "1.5" }}>
-                          {model.description}
-                        </Text>
-
-                        <Flex mt="2" justify="between" align="center">
-                          <Card
+                          <Text
+                            size="2"
                             style={{
-                              background: "#F5F5F5",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              border: "none",
+                              color: theme.colors.text.secondary,
+                              lineHeight: "1.5",
                             }}
                           >
-                            <Text size="1" style={{ color: "#555" }}>
-                              {getTaskName(model.task)}
-                            </Text>
-                          </Card>
+                            {model.description}
+                          </Text>
 
-                          <Flex gap="3" align="center">
-                            <Flex align="center" gap="1">
-                              <DownloadIcon style={{ color: "#2196F3", width: 14, height: 14 }} />
-                              <Text size="1" style={{ color: "#555" }}>
-                                {model.downloads}
+                          <Flex
+                            style={{
+                              marginTop: theme.spacing.semantic.component.sm,
+                            }}
+                            justify="between"
+                            align="center"
+                          >
+                            <Box
+                              style={{
+                                background: theme.colors.background.accent,
+                                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                                borderRadius: theme.borders.radius.sm,
+                              }}
+                            >
+                              <Text
+                                size="1"
+                                style={{
+                                  color: theme.colors.text.primary,
+                                }}
+                              >
+                                {getTaskName(model.task)}
                               </Text>
-                            </Flex>
-                            <Flex align="center" gap="1">
-                              <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
-                              <Text size="1" style={{ color: "#555" }}>
-                                {model.likes}
-                              </Text>
+                            </Box>
+
+                            <Flex gap={theme.spacing.semantic.component.md} align="center">
+                              <Flex align="center" gap={theme.spacing.semantic.component.xs}>
+                                <DownloadIcon
+                                  style={{ color: theme.colors.status.info, width: 14, height: 14 }}
+                                />
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: theme.colors.text.secondary,
+                                  }}
+                                >
+                                  {model.downloads}
+                                </Text>
+                              </Flex>
+                              <Flex align="center" gap={theme.spacing.semantic.component.xs}>
+                                <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: theme.colors.text.secondary,
+                                  }}
+                                >
+                                  {model.likes}
+                                </Text>
+                              </Flex>
                             </Flex>
                           </Flex>
                         </Flex>
-                      </Flex>
-                    </Card>
-                  ))}
-                </Flex>
-              )}
-            </Box>
-          </Tabs.Content>
+                      </Card>
+                    ))}
+                  </Flex>
+                )}
+              </Box>
+            </Tabs.Content>
 
-          {/* Activity Tab */}
-          <Tabs.Content value="activity">
-            <Box>
-              <Heading size="4" mb="4" style={{ color: "#333", fontWeight: 700 }}>
-                Recent Activity
-              </Heading>
-
-              {userActivities.length === 0 ? (
-                <Card
+            {/* Favorites Tab */}
+            <Tabs.Content value="favorites">
+              <Box>
+                <Heading
+                  size="4"
                   style={{
-                    padding: "24px",
-                    textAlign: "center",
-                    borderRadius: "8px",
-                    background: "#F5F5F5",
-                    border: "none",
+                    marginBottom: theme.spacing.semantic.component.lg,
+                    color: theme.colors.text.primary,
+                    fontWeight: "700",
                   }}
                 >
-                  <Text>No recent activity.</Text>
-                </Card>
-              ) : (
-                <Card
-                  style={{
-                    borderRadius: "8px",
-                    padding: "0",
-                    border: "1px solid var(--gray-4)",
-                    overflow: "hidden",
-                  }}
-                >
-                  {userActivities.map((activity, index) => {
-                    const { icon, text } = getActivityInfo(activity);
-                    return (
-                      <Flex
-                        key={activity.id}
-                        p="3"
-                        gap="3"
-                        align="center"
+                  Favorite Models
+                </Heading>
+
+                {favoriteModels.length === 0 ? (
+                  <Card
+                    style={{
+                      padding: theme.spacing.semantic.component.xl,
+                      textAlign: "center",
+                      background: theme.colors.background.secondary,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
+                      You haven't favorited any models yet.
+                    </Text>
+                  </Card>
+                ) : (
+                  <Flex direction="column" gap={theme.spacing.semantic.component.md}>
+                    {favoriteModels.map(model => (
+                      <Card
+                        key={model.id}
                         style={{
-                          borderBottom:
-                            index < userActivities.length - 1 ? "1px solid var(--gray-4)" : "none",
-                          background: index % 2 === 0 ? "white" : "#F9F9F9",
+                          padding: theme.spacing.semantic.component.lg,
+                          cursor: "pointer",
+                          transition: theme.animations.transitions.all,
                         }}
+                        onClick={() => (window.location.href = `/models/${model.id}`)}
                       >
-                        <Box
-                          style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                            background: "#F5F5F5",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {icon}
-                        </Box>
-                        <Box style={{ flex: 1 }}>
-                          <Text style={{ color: "#333" }}>{text}</Text>
-                          <Text size="1" style={{ color: "#777" }}>
-                            {formatDate(activity.date)}
-                          </Text>
-                        </Box>
-                        <Button variant="soft" size="1" style={{ borderRadius: "4px" }}>
-                          View
-                        </Button>
-                      </Flex>
-                    );
-                  })}
-                </Card>
-              )}
-            </Box>
-          </Tabs.Content>
+                        <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
+                          <Flex justify="between">
+                            <Heading
+                              size="3"
+                              style={{
+                                color: theme.colors.text.primary,
+                                fontWeight: "600",
+                              }}
+                            >
+                              {model.name}
+                            </Heading>
+                            <Button
+                              style={{
+                                color: "#F06292",
+                                background: "transparent",
+                                border: "none",
+                                padding: "0",
+                              }}
+                            >
+                              <HeartIcon style={{ color: "#F06292" }} />
+                            </Button>
+                          </Flex>
 
-          {/* Settings Tab */}
-          <Tabs.Content value="settings">
-            <Box>
-              <Heading size="4" mb="4" style={{ color: "#333", fontWeight: 700 }}>
-                Account Settings
-              </Heading>
-              <Card
-                style={{
-                  padding: "24px",
-                  textAlign: "center",
-                  borderRadius: "8px",
-                  background: "#F5F5F5",
-                  border: "none",
-                }}
-              >
-                <Text>Settings functionality coming soon.</Text>
-              </Card>
-            </Box>
-          </Tabs.Content>
-        </Box>
-      </Tabs.Root>
+                          <Flex align="center" gap={theme.spacing.semantic.component.xs}>
+                            <Avatar
+                              size="1"
+                              fallback={model.creator[0]}
+                              style={{
+                                background: theme.colors.interactive.primary,
+                                color: theme.colors.text.inverse,
+                              }}
+                            />
+                            <Text
+                              size="1"
+                              style={{
+                                color: theme.colors.text.secondary,
+                              }}
+                            >
+                              {model.creator}
+                            </Text>
+                          </Flex>
+
+                          <Text
+                            size="2"
+                            style={{
+                              color: theme.colors.text.secondary,
+                              lineHeight: "1.5",
+                            }}
+                          >
+                            {model.description}
+                          </Text>
+
+                          <Flex
+                            style={{
+                              marginTop: theme.spacing.semantic.component.sm,
+                            }}
+                            justify="between"
+                            align="center"
+                          >
+                            <Box
+                              style={{
+                                background: theme.colors.background.accent,
+                                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                                borderRadius: theme.borders.radius.sm,
+                              }}
+                            >
+                              <Text
+                                size="1"
+                                style={{
+                                  color: theme.colors.text.primary,
+                                }}
+                              >
+                                {getTaskName(model.task)}
+                              </Text>
+                            </Box>
+
+                            <Flex gap={theme.spacing.semantic.component.md} align="center">
+                              <Flex align="center" gap={theme.spacing.semantic.component.xs}>
+                                <DownloadIcon
+                                  style={{ color: theme.colors.status.info, width: 14, height: 14 }}
+                                />
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: theme.colors.text.secondary,
+                                  }}
+                                >
+                                  {model.downloads}
+                                </Text>
+                              </Flex>
+                              <Flex align="center" gap={theme.spacing.semantic.component.xs}>
+                                <HeartIcon style={{ color: "#F06292", width: 14, height: 14 }} />
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: theme.colors.text.secondary,
+                                  }}
+                                >
+                                  {model.likes}
+                                </Text>
+                              </Flex>
+                            </Flex>
+                          </Flex>
+                        </Flex>
+                      </Card>
+                    ))}
+                  </Flex>
+                )}
+              </Box>
+            </Tabs.Content>
+
+            {/* Activity Tab */}
+            <Tabs.Content value="activity">
+              <Box>
+                <Heading
+                  size="4"
+                  style={{
+                    marginBottom: theme.spacing.semantic.component.lg,
+                    color: theme.colors.text.primary,
+                    fontWeight: "700",
+                  }}
+                >
+                  Recent Activity
+                </Heading>
+
+                {userActivities.length === 0 ? (
+                  <Card
+                    style={{
+                      padding: theme.spacing.semantic.component.xl,
+                      textAlign: "center",
+                      background: theme.colors.background.secondary,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
+                      No recent activity.
+                    </Text>
+                  </Card>
+                ) : (
+                  <Card>
+                    {userActivities.map((activity, index) => {
+                      const { icon, text } = getActivityInfo(activity);
+                      return (
+                        <Flex
+                          key={activity.id}
+                          style={{
+                            padding: theme.spacing.semantic.component.md,
+                            borderBottom:
+                              index < userActivities.length - 1
+                                ? `1px solid ${theme.colors.border.secondary}`
+                                : "none",
+                            background:
+                              index % 2 === 0
+                                ? theme.colors.background.primary
+                                : theme.colors.background.secondary,
+                          }}
+                          gap={theme.spacing.semantic.component.md}
+                          align="center"
+                        >
+                          <Box
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "50%",
+                              background: theme.colors.background.accent,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {icon}
+                          </Box>
+                          <Box style={{ flex: 1 }}>
+                            <Text
+                              style={{
+                                color: theme.colors.text.primary,
+                              }}
+                            >
+                              {text}
+                            </Text>
+                            <Text
+                              size="1"
+                              style={{
+                                color: theme.colors.text.secondary,
+                              }}
+                            >
+                              {formatDate(activity.date)}
+                            </Text>
+                          </Box>
+                          <Button
+                            style={{
+                              borderRadius: theme.borders.radius.sm,
+                              fontSize: "12px",
+                              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                            }}
+                          >
+                            View
+                          </Button>
+                        </Flex>
+                      );
+                    })}
+                  </Card>
+                )}
+              </Box>
+            </Tabs.Content>
+
+            {/* Settings Tab */}
+            <Tabs.Content value="settings">
+              <Box>
+                <Heading
+                  size="4"
+                  style={{
+                    marginBottom: theme.spacing.semantic.component.lg,
+                    color: theme.colors.text.primary,
+                    fontWeight: "700",
+                  }}
+                >
+                  Account Settings
+                </Heading>
+                <Card
+                  style={{
+                    padding: theme.spacing.semantic.component.xl,
+                    textAlign: "center",
+                    background: theme.colors.background.secondary,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: theme.colors.text.secondary,
+                    }}
+                  >
+                    Settings functionality coming soon.
+                  </Text>
+                </Card>
+              </Box>
+            </Tabs.Content>
+          </Box>
+        </Tabs.Root>
+      </Card>
     </Box>
   );
 }
