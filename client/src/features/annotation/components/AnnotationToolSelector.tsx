@@ -3,13 +3,19 @@ import { useTheme } from "@/shared/ui/design-system";
 import { AnnotationType } from '@/features/annotation/types/workspace';
 import { useAnnotationTools } from '@/features/annotation/hooks/useAnnotationTools';
 import { ToolConfig, AnnotationToolConfig } from '@/features/annotation/types/annotation';
+import { ChallengePhase } from '@/features/challenge';
 
 interface AnnotationToolSelectorProps {
   config: ToolConfig;
   onToolChange: (tool: AnnotationType) => void;
+  phaseConstraints?: {
+    currentPhase: ChallengePhase;
+    isToolAllowed: (tool: AnnotationType) => boolean;
+    getDisallowedMessage: (tool: AnnotationType) => string;
+  };
 }
 
-export function AnnotationToolSelector({ config, onToolChange }: AnnotationToolSelectorProps) {
+export function AnnotationToolSelector({ config, onToolChange, phaseConstraints }: AnnotationToolSelectorProps) {
   const { theme } = useTheme();
   const { tools } = useAnnotationTools(config);
 
@@ -26,21 +32,44 @@ export function AnnotationToolSelector({ config, onToolChange }: AnnotationToolS
         Annotation Tools
       </Text>
       <Flex direction="column" gap="2">
-        {tools.map((tool: AnnotationToolConfig) => (
-          <Box
-            key={tool.type}
-            onClick={() => onToolChange(tool.type)}
-            style={{
-              width: "100%",
-              padding: theme.spacing.semantic.component.md,
-              background: config.currentTool === tool.type ? theme.colors.interactive.primary : theme.colors.background.card,
-              color: config.currentTool === tool.type ? theme.colors.text.inverse : theme.colors.text.primary,
-              border: `1px solid ${config.currentTool === tool.type ? theme.colors.interactive.primary : theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.md,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
+        {tools.map((tool: AnnotationToolConfig) => {
+          const isAllowed = phaseConstraints?.isToolAllowed(tool.type) ?? true;
+          const disallowedMessage = phaseConstraints?.getDisallowedMessage(tool.type) ?? '';
+          const isSelected = config.currentTool === tool.type;
+          
+          return (
+            <Box
+              key={tool.type}
+              onClick={() => {
+                if (isAllowed) {
+                  onToolChange(tool.type);
+                }
+              }}
+              style={{
+                width: "100%",
+                padding: theme.spacing.semantic.component.md,
+                background: isSelected 
+                  ? theme.colors.interactive.primary 
+                  : isAllowed 
+                    ? theme.colors.background.card 
+                    : theme.colors.background.secondary,
+                color: isSelected 
+                  ? theme.colors.text.inverse 
+                  : isAllowed 
+                    ? theme.colors.text.primary 
+                    : theme.colors.text.tertiary,
+                border: `1px solid ${isSelected 
+                  ? theme.colors.interactive.primary 
+                  : isAllowed 
+                    ? theme.colors.border.primary 
+                    : theme.colors.border.secondary}`,
+                borderRadius: theme.borders.radius.md,
+                cursor: isAllowed ? "pointer" : "not-allowed",
+                opacity: isAllowed ? 1 : 0.6,
+                transition: "all 0.2s ease",
+              }}
+              title={!isAllowed ? disallowedMessage : undefined}
+            >
             <Flex align="center" gap="3">
               <Box style={{ fontSize: "18px" }}>
                 {tool.icon}
@@ -58,9 +87,9 @@ export function AnnotationToolSelector({ config, onToolChange }: AnnotationToolS
                   </Text>
                   <Badge
                     style={{
-                      background: config.currentTool === tool.type ? `${theme.colors.text.inverse}20` : `${theme.colors.interactive.primary}15`,
-                      color: config.currentTool === tool.type ? theme.colors.text.inverse : theme.colors.interactive.primary,
-                      border: `1px solid ${config.currentTool === tool.type ? `${theme.colors.text.inverse}40` : `${theme.colors.interactive.primary}30`}`,
+                      background: isSelected ? `${theme.colors.text.inverse}20` : `${theme.colors.interactive.primary}15`,
+                      color: isSelected ? theme.colors.text.inverse : theme.colors.interactive.primary,
+                      border: `1px solid ${isSelected ? `${theme.colors.text.inverse}40` : `${theme.colors.interactive.primary}30`}`,
                       padding: "1px 4px",
                       borderRadius: theme.borders.radius.full,
                       fontSize: "9px",
@@ -73,7 +102,7 @@ export function AnnotationToolSelector({ config, onToolChange }: AnnotationToolS
                 <Text 
                   size="1" 
                   style={{ 
-                    color: config.currentTool === tool.type ? `${theme.colors.text.inverse}80` : theme.colors.text.secondary,
+                    color: isSelected ? `${theme.colors.text.inverse}80` : theme.colors.text.secondary,
                     lineHeight: 1.3
                   }}
                 >
@@ -82,7 +111,8 @@ export function AnnotationToolSelector({ config, onToolChange }: AnnotationToolS
               </Box>
             </Flex>
           </Box>
-        ))}
+          );
+        })}
       </Flex>
     </Box>
   );

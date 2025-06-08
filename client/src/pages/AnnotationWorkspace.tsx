@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -16,11 +16,14 @@ import {
   Palette,
   Image,
   Target,
+  Warning,
 } from "phosphor-react";
 import { useWorkspace } from '@/features/annotation/hooks/useWorkspace';
 import { ImageViewer } from '@/features/annotation/components/ImageViewer';
 import { mockImages } from '@/features/annotation/data/mockImages';
 import { AnnotationType } from '@/features/annotation/types/workspace';
+import { useChallenge } from '@/features/challenge';
+import { usePhaseConstraints, PhaseConstraintsBanner } from '@/features/annotation';
 
 // Import new modular components
 import { AnnotationSidebar } from '@/widgets/annotation-sidebar';
@@ -36,9 +39,20 @@ export function AnnotationWorkspace() {
   const { theme } = useTheme();
   const [selectedAnnotation, setSelectedAnnotation] = useState<{type: AnnotationType, id: string} | null>(null);
   
+  // Challenge data
+  const { challenge, loading: challengeLoading, error: challengeError } = useChallenge(challengeId || '');
+  
+  // Phase constraints
+  const currentPhase = challenge?.currentPhase || 'label';
+  const { 
+    isToolAllowed, 
+    getDisallowedMessage, 
+    canAnnotate 
+  } = usePhaseConstraints(currentPhase);
+  
   const { state, actions } = useWorkspace(challengeId || '', mockImages);
 
-  // Use new hooks
+  // Enhanced tool configuration with phase constraints
   const toolConfig = {
     currentTool: state.currentTool,
     selectedLabel: state.selectedLabel,
@@ -47,6 +61,15 @@ export function AnnotationWorkspace() {
   };
 
   const { getToolConstraintMessage } = useAnnotationTools(toolConfig);
+
+  // Custom tool change handler with phase constraints
+  const handleToolChange = useCallback((tool: AnnotationType) => {
+    if (!isToolAllowed(tool)) {
+      // Show constraint message instead of changing tool
+      return;
+    }
+    actions.setCurrentTool(tool);
+  }, [isToolAllowed, actions]);
   
   const {
     currentImageIndex,
@@ -80,7 +103,7 @@ export function AnnotationWorkspace() {
   const totalAnnotations = state.annotations.labels.length + state.annotations.boundingBoxes.length + state.annotations.polygons.length;
 
   // Loading state
-  if (!state.currentImage) {
+  if (challengeLoading || !state.currentImage) {
     return (
       <Box
         style={{
@@ -113,8 +136,77 @@ export function AnnotationWorkspace() {
               color: theme.colors.text.primary,
             }}
           >
-            Loading Annotation Workspace...
+            {challengeLoading ? 'Loading Challenge...' : 'Loading Annotation Workspace...'}
           </Text>
+        </Flex>
+      </Box>
+    );
+  }
+
+  // Error state
+  if (challengeError) {
+    return (
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
+          style={{
+            background: theme.colors.background.card,
+            padding: theme.spacing.semantic.layout.lg,
+            borderRadius: theme.borders.radius.lg,
+            border: `1px solid ${theme.colors.status.error}40`,
+            boxShadow: theme.shadows.semantic.card.medium,
+            maxWidth: "400px",
+          }}
+        >
+          <Warning size={48} style={{ color: theme.colors.status.error }} />
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
+            >
+              Challenge Not Found
+            </Text>
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                lineHeight: 1.5,
+                marginBottom: theme.spacing.semantic.component.md,
+              }}
+            >
+              {challengeError}
+            </Text>
+            <Button
+              onClick={() => navigate('/challenges')}
+              style={{
+                background: theme.colors.interactive.primary,
+                color: theme.colors.text.inverse,
+                border: "none",
+                borderRadius: theme.borders.radius.sm,
+                padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                fontWeight: 600,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              Back to Challenges
+            </Button>
+          </Box>
         </Flex>
       </Box>
     );
@@ -153,11 +245,16 @@ export function AnnotationWorkspace() {
         boundingBoxes={state.annotations.boundingBoxes}
         zoom={state.zoom}
         panOffset={state.panOffset}
-        onToolChange={actions.setCurrentTool}
+        onToolChange={handleToolChange}
         onAddLabel={actions.addLabel}
         onSelectLabel={actions.setSelectedLabel}
         onZoomChange={actions.setZoom}
         onPanChange={actions.setPanOffset}
+        phaseConstraints={{
+          currentPhase,
+          isToolAllowed,
+          getDisallowedMessage
+        }}
       />
     ),
   };
@@ -203,15 +300,56 @@ export function AnnotationWorkspace() {
               </Button>
               
               <Box>
-                <Text
-                  size="2"
-                  style={{
-                    fontWeight: 600,
-                    color: theme.colors.text.secondary,
-                  }}
-                >
-                  Challenge: Medical Image Classification
-                </Text>
+                <Flex align="center" gap="2">
+                  <Text
+                    size="2"
+                    style={{
+                      fontWeight: 600,
+                      color: theme.colors.text.secondary,
+                    }}
+                  >
+                    Challenge: {challenge?.title || 'Loading...'}
+                  </Text>
+                  
+                  {/* Compact Phase Indicator */}
+                  {challenge && (
+                    <Box
+                      style={{
+                        padding: "2px 8px",
+                        background: currentPhase === 'label' 
+                          ? `${theme.colors.status.info}15` 
+                          : currentPhase === 'bbox'
+                            ? `${theme.colors.status.warning}15`
+                            : currentPhase === 'segmentation'
+                              ? `${theme.colors.status.success}15`
+                              : `${theme.colors.interactive.accent}15`,
+                        color: currentPhase === 'label' 
+                          ? theme.colors.status.info
+                          : currentPhase === 'bbox'
+                            ? theme.colors.status.warning
+                            : currentPhase === 'segmentation'
+                              ? theme.colors.status.success
+                              : theme.colors.interactive.accent,
+                        border: `1px solid ${currentPhase === 'label' 
+                          ? theme.colors.status.info
+                          : currentPhase === 'bbox'
+                            ? theme.colors.status.warning
+                            : currentPhase === 'segmentation'
+                              ? theme.colors.status.success
+                              : theme.colors.interactive.accent}30`,
+                        borderRadius: theme.borders.radius.full,
+                        fontSize: "10px",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "help",
+                      }}
+                      title={`Current Phase: ${currentPhase}\n${canAnnotate ? `Available tools: ${isToolAllowed('label') ? 'Labels' : ''}${isToolAllowed('bbox') ? (isToolAllowed('label') ? ', ' : '') + 'BBoxes' : ''}${isToolAllowed('segmentation') ? (isToolAllowed('label') || isToolAllowed('bbox') ? ', ' : '') + 'Segmentation' : ''}` : 'Annotation is currently disabled'}`}
+                    >
+                      {currentPhase} Phase
+                    </Box>
+                  )}
+                </Flex>
               </Box>
             </Flex>
 
@@ -283,6 +421,8 @@ export function AnnotationWorkspace() {
           </Box>
         </Box>
 
+
+
         {/* Main Content */}
         <Flex style={{ flex: 1, overflow: "hidden" }}>
           {/* Navigation Panel */}
@@ -314,8 +454,16 @@ export function AnnotationWorkspace() {
             isDrawing={state.isDrawing}
             onZoomChange={actions.setZoom}
             onPanChange={actions.setPanOffset}
-            onAddBoundingBox={actions.addBoundingBox}
-            onAddPolygon={actions.addPolygon}
+            onAddBoundingBox={(bbox) => {
+              if (isToolAllowed('bbox')) {
+                actions.addBoundingBox(bbox);
+              }
+            }}
+            onAddPolygon={(polygon) => {
+              if (isToolAllowed('segmentation')) {
+                actions.addPolygon(polygon);
+              }
+            }}
             onSelectAnnotation={handleSelectAnnotation}
             onDeleteAnnotation={handleDeleteAnnotation}
             onUpdateBoundingBox={actions.updateBoundingBox}
@@ -343,6 +491,11 @@ export function AnnotationWorkspace() {
           zoom={state.zoom}
           unsavedChanges={state.unsavedChanges}
           constraintMessage={getToolConstraintMessage}
+          currentPhase={currentPhase}
+          phaseConstraintMessage={!isToolAllowed(state.currentTool) 
+            ? getDisallowedMessage(state.currentTool)
+            : undefined
+          }
         />
       </Box>
     </SidebarLayout>

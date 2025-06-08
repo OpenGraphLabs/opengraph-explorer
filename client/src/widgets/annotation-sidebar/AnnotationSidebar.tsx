@@ -2,6 +2,7 @@ import { Flex } from "@/shared/ui/design-system/components";
 import { AnnotationToolSelector, ToolConfigPanel } from '@/features/annotation';
 import { ViewControls } from '@/features/workspace-controls';
 import { AnnotationType } from '@/features/annotation/types/workspace';
+import { ChallengePhase } from '@/features/challenge';
 
 interface AnnotationSidebarProps {
   currentTool: AnnotationType;
@@ -22,6 +23,11 @@ interface AnnotationSidebarProps {
   onSelectLabel: (label: string) => void;
   onZoomChange: (zoom: number) => void;
   onPanChange: (offset: { x: number; y: number }) => void;
+  phaseConstraints?: {
+    currentPhase: ChallengePhase;
+    isToolAllowed: (tool: AnnotationType) => boolean;
+    getDisallowedMessage: (tool: AnnotationType) => string;
+  };
 }
 
 export function AnnotationSidebar({
@@ -36,6 +42,7 @@ export function AnnotationSidebar({
   onSelectLabel,
   onZoomChange,
   onPanChange,
+  phaseConstraints,
 }: AnnotationSidebarProps) {
   const toolConfig = {
     currentTool,
@@ -49,6 +56,7 @@ export function AnnotationSidebar({
       <AnnotationToolSelector
         config={toolConfig}
         onToolChange={onToolChange}
+        phaseConstraints={phaseConstraints}
       />
 
       <ToolConfigPanel
