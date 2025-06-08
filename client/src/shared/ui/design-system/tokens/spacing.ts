@@ -59,6 +59,7 @@ export const semanticSpacing = {
 
   // Section spacing
   section: {
+    xxs: spacing[4], // 16px
     xs: spacing[8], // 32px
     sm: spacing[12], // 48px
     md: spacing[16], // 64px
