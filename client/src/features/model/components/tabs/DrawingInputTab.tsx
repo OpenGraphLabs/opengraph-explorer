@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { PencilSimple, Eraser, Minus, Diamond } from "phosphor-react";
 import { VectorInfoDisplay, ImageData, FormattedVector } from "./VectorInfoDisplay";
 import { motion } from "framer-motion";
+import { useTheme } from "@/shared/ui/design-system";
 
 interface DrawingInputTabProps {
   getFirstLayerDimension: () => number;
@@ -16,6 +17,8 @@ export function DrawingInputTab({
   getModelScale,
   onVectorGenerated,
 }: DrawingInputTabProps) {
+  const { theme } = useTheme();
+  
   // 상태 관리
   const [imageData, setImageData] = useState<ImageData>({ dataUrl: null, vector: null });
 
@@ -380,22 +383,30 @@ export function DrawingInputTab({
     <Flex direction="column" gap="3" style={{ flex: 1, minWidth: "320px" }}>
       {/* 간소화된 그리기 도구 모음 */}
       <Flex gap="4" align="center" mb="2">
-        <Flex style={{ background: "rgba(0,0,0,0.03)", borderRadius: "6px", padding: "2px" }}>
+        <Flex style={{ background: theme.colors.background.secondary, borderRadius: "6px", padding: "2px" }}>
           <IconButton
             size="1"
-            color={tool === "pen" ? "orange" : "gray"}
             variant={tool === "pen" ? "solid" : "soft"}
             onClick={() => setTool("pen")}
-            style={{ borderRadius: "4px 0 0 4px", cursor: "pointer" }}
+            style={{ 
+              borderRadius: "4px 0 0 4px", 
+              cursor: "pointer",
+              background: tool === "pen" ? theme.colors.interactive.primary : "transparent",
+              color: tool === "pen" ? theme.colors.text.inverse : theme.colors.text.secondary
+            }}
           >
             <PencilSimple size={14} weight="bold" />
           </IconButton>
           <IconButton
             size="1"
-            color={tool === "eraser" ? "orange" : "gray"}
             variant={tool === "eraser" ? "solid" : "soft"}
             onClick={() => setTool("eraser")}
-            style={{ borderRadius: "0 4px 4px 0", cursor: "pointer" }}
+            style={{ 
+              borderRadius: "0 4px 4px 0", 
+              cursor: "pointer",
+              background: tool === "eraser" ? theme.colors.interactive.primary : "transparent",
+              color: tool === "eraser" ? theme.colors.text.inverse : theme.colors.text.secondary
+            }}
           >
             <Eraser size={14} weight="bold" />
           </IconButton>
@@ -405,9 +416,12 @@ export function DrawingInputTab({
           <IconButton
             size="1"
             variant="soft"
-            color="red"
             onClick={clearCanvas}
-            style={{ cursor: "pointer" }}
+            style={{ 
+              cursor: "pointer",
+              background: theme.colors.status.error + "20",
+              color: theme.colors.status.error
+            }}
           >
             <ResetIcon />
           </IconButton>
@@ -421,10 +435,14 @@ export function DrawingInputTab({
             <IconButton
               key={style}
               size="1"
-              color={brushStyle === style ? "orange" : "gray"}
               variant={brushStyle === style ? "solid" : "soft"}
               onClick={() => setBrushStyle(style)}
-              style={{ cursor: "pointer", padding: "2px" }}
+              style={{ 
+                cursor: "pointer", 
+                padding: "2px",
+                background: brushStyle === style ? theme.colors.interactive.primary : "transparent",
+                color: brushStyle === style ? theme.colors.text.inverse : theme.colors.text.secondary
+              }}
             >
               {getBrushStyleIcon(style)}
             </IconButton>
@@ -434,7 +452,7 @@ export function DrawingInputTab({
         <Separator orientation="vertical" />
 
         <Flex align="center" gap="1">
-          <Text size="1" style={{ color: "#888", marginRight: "2px" }}>
+          <Text size="1" style={{ color: theme.colors.text.secondary, marginRight: "2px" }}>
             Size:
           </Text>
           <Slider
@@ -460,7 +478,7 @@ export function DrawingInputTab({
           aspectRatio: "1/1",
           borderRadius: "12px",
           overflow: "hidden",
-          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+          boxShadow: theme.shadows.semantic.card.medium,
           margin: "0 auto",
         }}
       >
@@ -515,8 +533,8 @@ export function DrawingInputTab({
       <Flex justify="end" align="center" mt="1">
         <Tooltip content="Draw digits with high contrast for best results">
           <Flex align="center" gap="1">
-            <InfoCircledIcon style={{ color: "#999", width: "12px", height: "12px" }} />
-            <Text size="1" style={{ color: "#999" }}>
+            <InfoCircledIcon style={{ color: theme.colors.text.muted, width: "12px", height: "12px" }} />
+            <Text size="1" style={{ color: theme.colors.text.muted }}>
               {Math.round(Math.sqrt(getFirstLayerDimension()))}×
               {Math.round(Math.sqrt(getFirstLayerDimension()))} input
             </Text>
@@ -549,8 +567,8 @@ export function DrawingInputTab({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#F8F9FA",
-            border: "1px dashed #DDD",
+            background: theme.colors.background.secondary,
+            border: `1px dashed ${theme.colors.border.primary}`,
             borderRadius: "12px",
           }}
         >
@@ -565,18 +583,18 @@ export function DrawingInputTab({
                 width: "120px",
                 height: "120px",
                 borderRadius: "60px",
-                background: "rgba(0,0,0,0.03)",
+                background: theme.colors.background.tertiary,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <PencilSimple size={48} weight="duotone" style={{ color: "#CCC" }} />
+              <PencilSimple size={48} weight="duotone" style={{ color: theme.colors.text.tertiary }} />
             </Box>
-            <Text size="3" style={{ color: "#888", fontWeight: 500 }}>
+            <Text size="3" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
               Draw something to see vector conversion
             </Text>
-            <Text size="1" style={{ color: "#AAA", maxWidth: "300px" }}>
+            <Text size="1" style={{ color: theme.colors.text.muted, maxWidth: "300px" }}>
               As you draw on the canvas, your drawing will be converted into a vector that can be
               used for model inference.
             </Text>

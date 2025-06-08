@@ -53,21 +53,22 @@ export function VectorInputTab({ firstLayerDimension, onVectorGenerated }: Vecto
         style={{
           minHeight: "80px",
           borderRadius: "8px",
-          border: "1px solid #FFE8E2",
+          border: `1px solid ${theme.colors.border.primary}`,
           padding: "12px",
           fontSize: "14px",
           fontFamily: "monospace",
-          background: "#FDFDFD",
+          background: theme.colors.background.primary,
+          color: theme.colors.text.primary,
         }}
       />
 
-      <Text size="1" style={{ color: "#666" }}>
+      <Text size="1" style={{ color: theme.colors.text.secondary }}>
         Enter comma-separated values representing your input vector. These values will be processed
         using the model's scale factor.
       </Text>
 
       {error && (
-        <Text size="1" style={{ color: "red" }}>
+        <Text size="1" style={{ color: theme.colors.status.error }}>
           {error}
         </Text>
       )}

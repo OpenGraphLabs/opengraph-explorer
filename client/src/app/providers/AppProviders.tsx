@@ -30,8 +30,8 @@ export function AppProviders({ children }: AppProvidersProps) {
             <ThemeProvider defaultMode="light">
               <RadixTheme
                 appearance="inherit" // Will inherit from our ThemeProvider
-                accentColor="orange"
-                grayColor="gray"
+                accentColor="gray"
+                grayColor="slate"
                 radius="medium"
                 scaling="100%"
               >
