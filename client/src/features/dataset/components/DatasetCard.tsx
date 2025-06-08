@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Box, Card, Flex, Text, Badge } from "@radix-ui/themes";
-import { FileText, Shield, Clock, Archive, User } from "phosphor-react";
+import { FileText, Shield, Archive } from "phosphor-react";
 import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
-import { formatDataSize, getDataTypeIcon, getDataTypeColor, truncateAddress } from "../utils";
+import { formatDataSize, getDataTypeColor, truncateAddress } from "../utils";
 import { useTheme } from "@/shared/ui/design-system";
 
 interface DatasetCardProps {

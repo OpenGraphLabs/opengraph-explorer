@@ -1,10 +1,8 @@
 import { Box, Flex, Heading, Text, Card, Grid, Table, Badge } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import { Stack, Brain, Cube, Activity, Hash, ChartLine, Code } from "phosphor-react";
+import { Stack, Cube, Activity, Hash, ChartLine, Code } from "phosphor-react";
 
 import { ModelObject } from "@/shared/api/graphql/modelGraphQLService";
-import { getSuiScanUrl } from "@/shared/utils/sui";
-import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
 import { useTheme } from "@/shared/ui/design-system";
 
 interface ModelOverviewTabProps {
@@ -43,21 +41,6 @@ function calculateLayerStats(layer: any) {
   };
 }
 
-// Enhanced task name conversion with more professional terminology
-function getTaskName(taskId: string): string {
-  const taskMap: Record<string, string> = {
-    "text-generation": "Natural Language Generation",
-    "image-classification": "Computer Vision Classification",
-    "object-detection": "Object Detection & Localization",
-    "text-to-image": "Multimodal Text-to-Image Synthesis",
-    translation: "Neural Machine Translation",
-    classification: "Classification",
-    regression: "Regression Analysis",
-    "reinforcement-learning": "Reinforcement Learning",
-  };
-  return taskMap[taskId] || taskId.charAt(0).toUpperCase() + taskId.slice(1).replace(/-/g, " ");
-}
-
 export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
   const { theme } = useTheme();
 
@@ -67,11 +50,6 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
     model.graphs?.[0]?.layers?.reduce((total, layer) => {
       const stats = calculateLayerStats(layer);
       return total + stats.totalParams;
-    }, 0) || 0;
-
-  const totalWeights =
-    model.graphs?.[0]?.layers?.reduce((total, layer) => {
-      return total + (layer.weight_tensor?.magnitude?.length || 0);
     }, 0) || 0;
 
   const avgSparsity =

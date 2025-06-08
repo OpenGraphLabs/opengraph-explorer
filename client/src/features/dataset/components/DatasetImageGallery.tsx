@@ -1,17 +1,15 @@
-import { Box, Flex, Text, Card, Badge, Grid } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import {
   Tag,
-  Image as ImageIcon,
   FileImage,
   Clock,
   CheckCircle,
   Hash,
   Database,
-  Eye,
   ArrowRight,
 } from "phosphor-react";
-import { isImageType, getDataTypeIcon, getDataTypeColor } from "../utils";
+import { isImageType } from "../utils";
 import { ActiveTab } from "../types";
 
 interface DatasetImageGalleryProps {

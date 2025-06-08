@@ -4,7 +4,6 @@ import {
   Flex,
   Text,
   Badge,
-  Heading,
   Dialog,
   Grid,
   Separator,
@@ -16,17 +15,12 @@ import {
   Users,
   X,
   Tag,
-  Eye,
   Hash,
-  Download,
   WarningCircle,
   CheckSquare,
   Clock,
-  ArrowLeft,
-  ArrowRight,
   Cursor,
   Image as ImageIcon,
-  FileImage,
 } from "phosphor-react";
 import { ConfirmationStatus } from "../types";
 
@@ -66,7 +60,6 @@ export function DatasetImageModal({
   confirmationStatus,
   onTogglePendingAnnotation,
   onConfirmSelectedAnnotations,
-  onCloseModal,
   getConfirmedLabels,
 }: DatasetImageModalProps) {
   const { theme } = useTheme();

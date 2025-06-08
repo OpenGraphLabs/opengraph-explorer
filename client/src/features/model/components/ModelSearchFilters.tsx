@@ -3,7 +3,7 @@ import { Flex, Box, Select, Badge } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import { useTheme } from "@/shared/ui/design-system";
 import { ModelFilters, TaskFilter } from "../types";
-import { TASK_COLORS, TASK_NAMES, TASK_TYPES } from "@/shared/constants/suiConfig.ts";
+import { TASK_NAMES, TASK_TYPES } from "@/shared/constants/suiConfig.ts";
 
 interface ModelSearchFiltersProps {
   filters: ModelFilters;

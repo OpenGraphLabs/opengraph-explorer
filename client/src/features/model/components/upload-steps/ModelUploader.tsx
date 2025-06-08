@@ -63,28 +63,6 @@ export function ModelUploader({
     }
   };
 
-  const handleRemoveFile = (index: number) => {
-    URL.revokeObjectURL(previewUrls[index]);
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
-    // Update file list
-    const newFiles = Array.from(fileInputRef.current?.files || []).filter((_, i) => i !== index);
-    if (fileInputRef.current) {
-      const dataTransfer = new DataTransfer();
-      newFiles.forEach(file => dataTransfer.items.add(file));
-      fileInputRef.current.files = dataTransfer.files;
-    }
-    onFileSelect(newFiles);
-  };
-
-  const handleClearAll = () => {
-    previewUrls.forEach(url => URL.revokeObjectURL(url));
-    setPreviewUrls([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    onFileSelect([]);
-  };
-
   const handleBrowseClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Box, Flex, Heading, Text, Card, Button } from "@radix-ui/themes";
 import { ReloadIcon, ResetIcon, UploadIcon } from "@radix-ui/react-icons";
 import { ImageSquare } from "phosphor-react";
@@ -17,12 +17,8 @@ export function ImageInputTab({
   onVectorGenerated,
 }: ImageInputTabProps) {
   const { theme } = useTheme();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imageData, setImageData] = useState<ImageData | null>(null);
-  const [processedVector, setProcessedVector] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // 이미지를 벡터로 변환
   const imageToVector = async (dataUrl: string, dimension: number): Promise<number[]> => {

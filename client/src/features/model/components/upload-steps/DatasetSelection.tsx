@@ -1,5 +1,4 @@
-import React from "react";
-import { Box, Card, Flex, Text, Grid, Button } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Database, TestTube, Brain, Flask } from "phosphor-react";
 import { DatasetFilters } from "@/features/model/components/DatasetFilters";
@@ -33,7 +32,6 @@ interface DatasetSelectionProps {
 export function DatasetSelection({
   filters,
   filteredDatasets,
-  searchQuery,
   allTags,
   selectedTrainingDataset,
   selectedTestDatasets,

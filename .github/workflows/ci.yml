@@ -1,20 +1,26 @@
-name: Deploy
+name: CI
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  deploy:
+  client:
     runs-on: ubuntu-latest
+    name: Client Build
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-  
-      - name: Set up Node.js
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.15.0'
+          cache: 'yarn'
+          cache-dependency-path: './client/yarn.lock'
 
       - name: Install dependencies
         working-directory: ./client
@@ -24,13 +30,6 @@ jobs:
         working-directory: ./client
         run: yarn tsc --noEmit
 
-      - name: Build React app
+      - name: Build application
         working-directory: ./client
         run: yarn build
-
-      - name: Deploy to Walrus Sites with SLSA
-        uses: zktx-io/walrus-sites-provenance@v0.0.12
-        with:
-          config-path: './client/site.config.json'
-        env:
-          ED25519_PRIVATE_KEY: ${{ secrets.ED25519_PRIVATE_KEY }}

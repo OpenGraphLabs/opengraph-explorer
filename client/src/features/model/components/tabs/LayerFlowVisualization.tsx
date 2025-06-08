@@ -287,8 +287,6 @@ export function LayerFlowVisualization({
   inferenceTableRef,
   txDigest,
 }: LayerFlowVisualizationProps) {
-  const { theme } = useTheme();
-
   // Prepare data for visualization
   const generateLayerData = (layerIndex: number) => {
     const result = predictResults.find(r => r.layerIdx === layerIndex);

@@ -1,4 +1,4 @@
-import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Database, Image as ImageIcon } from "phosphor-react";
 import { ImageViewerProps } from "../types";
@@ -44,11 +44,9 @@ export function ImageViewer({
   dataset,
   currentImageIndex,
   blobLoading,
-  imageUrls,
   imageLoading,
   onImageLoadingChange,
   getImageUrl,
-  onNavigate,
 }: ImageViewerProps) {
   const { theme } = useTheme();
   const currentImage = dataset.data[currentImageIndex];
