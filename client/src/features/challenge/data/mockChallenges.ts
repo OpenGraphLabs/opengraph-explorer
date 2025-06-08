@@ -1,12 +1,12 @@
 import { Challenge, Participation, AnnotationSubmission } from '../types/challenge';
 
-// Mock Challenge Data
+// Mock Challenge Data with real SUI-compatible dataset IDs
 export const mockChallenges: Challenge[] = [
   {
     id: 'challenge-1',
     title: 'Urban Traffic Object Detection',
     description: 'Annotate vehicles, pedestrians, traffic signs, and traffic lights in urban street scenes for autonomous driving research.',
-    datasetId: 'dataset-1',
+    datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
     datasetName: 'Urban Street Scenes',
     ownerId: 'owner-1',
     ownerAddress: '0x1234...abcd',
@@ -74,7 +74,7 @@ export const mockChallenges: Challenge[] = [
     id: 'challenge-2',
     title: 'Medical Image Segmentation',
     description: 'Precise segmentation of anatomical structures in MRI scans for medical AI development.',
-    datasetId: 'dataset-2',
+    datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
     datasetName: 'Brain MRI Scan Collection',
     ownerId: 'owner-2',
     ownerAddress: '0x5678...efgh',
@@ -142,7 +142,7 @@ export const mockChallenges: Challenge[] = [
     id: 'challenge-3',
     title: 'Wildlife Species Classification',
     description: 'Identify and classify different wildlife species in camera trap images for conservation research.',
-    datasetId: 'dataset-3',
+    datasetId: '0x857a14ce08cc70ab60246af66b643fe1386ab3258339d7dc28fb54661e5c76f9',
     datasetName: 'Camera Trap Wildlife Dataset',
     ownerId: 'owner-3',
     ownerAddress: '0x9abc...ijkl',
@@ -209,7 +209,7 @@ export const mockChallenges: Challenge[] = [
     id: 'challenge-4',
     title: 'Industrial Defect Detection',
     description: 'Detect and classify manufacturing defects in industrial parts for quality control automation.',
-    datasetId: 'dataset-4',
+    datasetId: '0x857a14ce08cc70ab60246af66b643fe1386ab3258339d7dc28fb54661e5c76f9',
     datasetName: 'Manufacturing Quality Control Images',
     ownerId: 'owner-1',
     ownerAddress: '0x1234...abcd',
@@ -277,7 +277,7 @@ export const mockChallenges: Challenge[] = [
     id: 'challenge-5',
     title: 'Satellite Image Land Cover Classification',
     description: 'Classify different land cover types in satellite imagery for environmental monitoring.',
-    datasetId: 'dataset-5',
+    datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
     datasetName: 'Satellite Land Cover Dataset',
     ownerId: 'owner-4',
     ownerAddress: '0xdef0...mnop',
