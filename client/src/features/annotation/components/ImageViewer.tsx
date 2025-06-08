@@ -56,6 +56,35 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   setDrawing
 }) => {
   const { theme } = useTheme();
+
+  // Generate consistent color for each label using HSL color space
+  const getLabelColor = useCallback((label: string): string => {
+    // Enhanced hash function for better distribution
+    let hash = 0;
+    for (let i = 0; i < label.length; i++) {
+      const char = label.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Use absolute value and ensure positive
+    const positiveHash = Math.abs(hash);
+    
+    // Generate hue (0-360) for maximum color variety
+    const hue = positiveHash % 360;
+    
+    // Use multiple hash variations for saturation and lightness
+    const satHash = Math.abs(hash * 7919) % 100; // Prime number for better distribution
+    const lightHash = Math.abs(hash * 9973) % 100; // Another prime number
+    
+    // Ensure good saturation (60-90%) for vibrant colors
+    const saturation = 60 + (satHash % 31); // 60-90%
+    
+    // Ensure good lightness (40-65%) for good contrast and readability
+    const lightness = 40 + (lightHash % 26); // 40-65%
+    
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>();
@@ -459,14 +488,32 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     // Draw bounding boxes
     boundingBoxes.forEach((bbox) => {
       const isSelected = bbox.id === selectedBboxId;
+      const labelColor = getLabelColor(bbox.label);
       
-      ctx.strokeStyle = isSelected ? theme.colors.interactive.primary : theme.colors.status.success;
+      // Use label-specific color, but make selected ones brighter
+      ctx.strokeStyle = isSelected ? theme.colors.interactive.primary : labelColor;
       ctx.lineWidth = (isSelected ? 3 : 2) / zoom;
       ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
       
-      // Draw label
-      ctx.fillStyle = isSelected ? theme.colors.interactive.primary : theme.colors.status.success;
+      // Draw label background for better readability
+      ctx.fillStyle = isSelected ? theme.colors.interactive.primary : labelColor;
       ctx.font = `${14 / zoom}px sans-serif`;
+      
+      // Measure text for background
+      const textMetrics = ctx.measureText(bbox.label);
+      const textHeight = 14 / zoom;
+      const padding = 4 / zoom;
+      
+      // Draw label background
+      ctx.fillRect(
+        bbox.x - padding, 
+        bbox.y - textHeight - padding, 
+        textMetrics.width + (padding * 2), 
+        textHeight + (padding * 2)
+      );
+      
+      // Draw label text in white for better contrast
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillText(bbox.label, bbox.x, bbox.y - 5 / zoom);
       
       // Draw handles for selected bbox
@@ -501,6 +548,8 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     // Draw polygons
     polygons.forEach((polygon) => {
       if (polygon.points.length > 1) {
+        const labelColor = getLabelColor(polygon.label);
+        
         ctx.beginPath();
         ctx.moveTo(polygon.points[0].x, polygon.points[0].y);
         
@@ -509,14 +558,30 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         }
         
         ctx.closePath();
-        ctx.strokeStyle = theme.colors.status.warning;
+        ctx.strokeStyle = labelColor;
         ctx.lineWidth = 2 / zoom;
         ctx.stroke();
         
-        // Draw label
-        ctx.fillStyle = theme.colors.status.warning;
-        ctx.font = `${14 / zoom}px sans-serif`;
+        // Draw label with background
         if (polygon.points.length > 0) {
+          ctx.fillStyle = labelColor;
+          ctx.font = `${14 / zoom}px sans-serif`;
+          
+          // Measure text for background
+          const textMetrics = ctx.measureText(polygon.label);
+          const textHeight = 14 / zoom;
+          const padding = 4 / zoom;
+          
+          // Draw label background
+          ctx.fillRect(
+            polygon.points[0].x - padding, 
+            polygon.points[0].y - textHeight - padding, 
+            textMetrics.width + (padding * 2), 
+            textHeight + (padding * 2)
+          );
+          
+          // Draw label text in white for better contrast
+          ctx.fillStyle = '#FFFFFF';
           ctx.fillText(polygon.label, polygon.points[0].x, polygon.points[0].y - 5 / zoom);
         }
       }
