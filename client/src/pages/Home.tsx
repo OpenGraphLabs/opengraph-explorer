@@ -6,12 +6,11 @@ import {
   Text,
   Grid,
   Button,
-  ModelCard,
-  FeatureCard,
+  Badge,
   type ModelData,
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { RocketIcon, GitHubLogoIcon, Share1Icon, CodeIcon, CubeIcon, LayersIcon } from "@radix-ui/react-icons";
+import { RocketIcon, GitHubLogoIcon, Share1Icon, CodeIcon, CubeIcon, LayersIcon, Pencil1Icon } from "@radix-ui/react-icons";
 
 export function Home() {
   const { theme } = useTheme();
@@ -57,30 +56,89 @@ export function Home() {
 
           <Flex gap="3" mt="3">
             <Link to="/models">
-              <Button
-                variant="primary"
-                size="md"
+              <Box
                 style={{
-                  fontSize: theme.typography.bodySmall.fontSize,
-                  padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
-                  height: "36px",
+                  display: "inline-block",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                  const button = e.currentTarget.querySelector('button');
+                  if (button) {
+                    button.style.background = theme.colors.interactive.accent;
+                    button.style.boxShadow = `0 4px 12px ${theme.colors.interactive.accent}35`;
+                    button.style.transform = "translateY(-1px)";
+                  }
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                  const button = e.currentTarget.querySelector('button');
+                  if (button) {
+                    button.style.background = theme.colors.interactive.primary;
+                    button.style.boxShadow = `0 2px 8px ${theme.colors.interactive.primary}25`;
+                    button.style.transform = "translateY(0)";
+                  }
                 }}
               >
-                Explore Models
-              </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  style={{
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
+                    height: "40px",
+                    background: theme.colors.interactive.primary,
+                    color: theme.colors.text.inverse,
+                    border: "none",
+                    borderRadius: theme.borders.radius.sm,
+                    boxShadow: `0 2px 8px ${theme.colors.interactive.primary}25`,
+                    transition: "all 0.2s ease",
+                    fontWeight: 600,
+                  }}
+                >
+                  Explore Models
+                </Button>
+              </Box>
             </Link>
             <Link to="/upload">
-              <Button
-                variant="secondary"
-                size="md"
+              <Box
                 style={{
-                  fontSize: theme.typography.bodySmall.fontSize,
-                  padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
-                  height: "36px",
+                  display: "inline-block",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                  const button = e.currentTarget.querySelector('button');
+                  if (button) {
+                    button.style.borderColor = theme.colors.interactive.primary;
+                    button.style.background = `${theme.colors.interactive.primary}08`;
+                    button.style.transform = "translateY(-1px)";
+                  }
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                  const button = e.currentTarget.querySelector('button');
+                  if (button) {
+                    button.style.borderColor = theme.colors.border.primary;
+                    button.style.background = theme.colors.background.card;
+                    button.style.transform = "translateY(0)";
+                  }
                 }}
               >
-                Upload Model
-              </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  style={{
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
+                    height: "40px",
+                    background: theme.colors.background.card,
+                    color: theme.colors.text.primary,
+                    border: `1px solid ${theme.colors.border.primary}`,
+                    borderRadius: theme.borders.radius.sm,
+                    transition: "all 0.2s ease",
+                    fontWeight: 500,
+                  }}
+                >
+                  Upload Model
+                </Button>
+              </Box>
             </Link>
           </Flex>
         </Flex>
@@ -135,6 +193,8 @@ export function Home() {
                 style={{
                   fontSize: theme.typography.caption.fontSize,
                   color: theme.colors.text.secondary,
+                  background: "transparent",
+                  border: "none",
                 }}
               >
                 View All →
@@ -143,8 +203,78 @@ export function Home() {
           </Flex>
 
           <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
-            {featuredModels.map(model => (
-              <ModelCard key={model.id} model={model} />
+            {featuredModels.slice(0, 6).map(model => (
+              <Box
+                key={model.id}
+                style={{
+                  background: theme.colors.background.card,
+                  borderRadius: theme.borders.radius.md,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  padding: theme.spacing.base[3],
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow: theme.shadows.semantic.card.low,
+                }}
+                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                  e.currentTarget.style.borderColor = theme.colors.interactive.primary;
+                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.medium;
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                  e.currentTarget.style.borderColor = theme.colors.border.primary;
+                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                <Flex direction="column" gap="2">
+                  <Text
+                    size="2"
+                    style={{
+                      fontWeight: 600,
+                      color: theme.colors.text.primary,
+                      lineHeight: "1.3",
+                    }}
+                  >
+                    {model.name}
+                  </Text>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.secondary,
+                      lineHeight: "1.4",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {model.description}
+                  </Text>
+                  <Flex justify="between" align="center" mt="1">
+                    <Badge
+                      style={{
+                        background: `${theme.colors.interactive.accent}15`,
+                        color: theme.colors.interactive.accent,
+                        border: `1px solid ${theme.colors.interactive.accent}30`,
+                        padding: "2px 6px",
+                        borderRadius: theme.borders.radius.sm,
+                        fontSize: "10px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {model.task}
+                    </Badge>
+                    <Flex align="center" gap="3">
+                      <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+                        {model.downloads}↓
+                      </Text>
+                      <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+                        {model.likes}♡
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Flex>
+              </Box>
             ))}
           </Grid>
         </Box>
@@ -280,9 +410,9 @@ export function Home() {
           <Box
             style={{
               padding: theme.spacing.base[3],
-              background: theme.gradients.surface,
+              background: theme.colors.background.card,
               borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.subtle}`,
+              border: `1px solid ${theme.colors.border.primary}`,
               textAlign: "center",
             }}
           >
@@ -312,9 +442,9 @@ export function Home() {
           <Box
             style={{
               padding: theme.spacing.base[3],
-              background: theme.gradients.surface,
+              background: theme.colors.background.card,
               borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.subtle}`,
+              border: `1px solid ${theme.colors.border.primary}`,
               textAlign: "center",
             }}
           >
@@ -344,9 +474,9 @@ export function Home() {
           <Box
             style={{
               padding: theme.spacing.base[3],
-              background: theme.gradients.surface,
+              background: theme.colors.background.card,
               borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.subtle}`,
+              border: `1px solid ${theme.colors.border.primary}`,
               textAlign: "center",
             }}
           >
@@ -376,9 +506,9 @@ export function Home() {
           <Box
             style={{
               padding: theme.spacing.base[3],
-              background: theme.gradients.surface,
+              background: theme.colors.background.card,
               borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.subtle}`,
+              border: `1px solid ${theme.colors.border.primary}`,
               textAlign: "center",
             }}
           >
@@ -463,49 +593,61 @@ export function Home() {
           >
             Quick Actions
           </Heading>
-          <Flex direction="column" gap="2">
-            <Link to="/models/upload" style={{ textDecoration: "none" }}>
-              <Button
-                variant="secondary"
-                style={{
-                  width: "100%",
-                  justifyContent: "flex-start",
-                  padding: theme.spacing.base[3],
-                  height: "auto",
-                }}
-              >
-                <RocketIcon style={{ marginRight: "8px" }} />
-                Upload New Model
-              </Button>
-            </Link>
-            <Link to="/datasets" style={{ textDecoration: "none" }}>
-              <Button
-                variant="tertiary"
-                style={{
-                  width: "100%",
-                  justifyContent: "flex-start",
-                  padding: theme.spacing.base[3],
-                  height: "auto",
-                }}
-              >
-                <LayersIcon style={{ marginRight: "8px" }} />
-                Browse Datasets
-              </Button>
-            </Link>
-            <Link to="/docs" style={{ textDecoration: "none" }}>
-              <Button
-                variant="tertiary"
-                style={{
-                  width: "100%",
-                  justifyContent: "flex-start",
-                  padding: theme.spacing.base[3],
-                  height: "auto",
-                }}
-              >
-                <CodeIcon style={{ marginRight: "8px" }} />
-                API Documentation
-              </Button>
-            </Link>
+          <Flex direction="column" gap="3">
+            {[
+              { 
+                href: "/models/upload", 
+                icon: "rocket", 
+                text: "Upload New Model" 
+              },
+              { 
+                href: "/datasets", 
+                icon: "layers", 
+                text: "Browse Datasets" 
+              },
+                              { 
+                  href: "/annotator", 
+                  icon: "pencil", 
+                  text: "Data Annotator" 
+                },
+            ].map((action, index) => (
+              <Link key={index} to={action.href} style={{ textDecoration: "none" }}>
+                <Box
+                  style={{
+                    width: "100%",
+                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`,
+                    height: "44px",
+                    background: theme.colors.background.card,
+                    color: theme.colors.text.primary,
+                    border: `1px solid ${theme.colors.border.primary}`,
+                    borderRadius: theme.borders.radius.sm,
+                    transition: "all 0.2s ease",
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                    e.currentTarget.style.borderColor = theme.colors.interactive.primary;
+                    e.currentTarget.style.background = `${theme.colors.interactive.primary}08`;
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                    e.currentTarget.style.borderColor = theme.colors.border.primary;
+                    e.currentTarget.style.background = theme.colors.background.card;
+                  }}
+                >
+                  <Flex align="center" gap="2">
+                    <Box style={{ color: theme.colors.interactive.primary }}>
+                      {action.icon === "rocket" && <RocketIcon />}
+                      {action.icon === "layers" && <LayersIcon />}
+                      {action.icon === "pencil" && <Pencil1Icon />}
+                    </Box>
+                    {action.text}
+                  </Flex>
+                </Box>
+              </Link>
+            ))}
           </Flex>
         </Box>
       </Grid>

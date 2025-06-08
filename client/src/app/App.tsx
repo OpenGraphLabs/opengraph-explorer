@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/widgets/layout/AppLayout";
+import { ScrollToTop } from "@/shared/components/ScrollToTop";
 import { Home } from "@/pages/Home";
 import { Models } from "@/pages/Models";
 import { ModelDetail } from "@/pages/ModelDetail";
@@ -13,6 +14,7 @@ import { Annotator } from "@/pages/Annotator";
 export default function App() {
   return (
     <AppLayout>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/models" element={<Models />} />
