@@ -301,25 +301,26 @@ export function AnnotationWorkspace() {
               minHeight: "600px",
             }}
           >
-            <ImageViewer
-              imageUrl={state.currentImage.url}
-              imageWidth={state.currentImage.width}
-              imageHeight={state.currentImage.height}
-              zoom={state.zoom}
-              panOffset={state.panOffset}
-              boundingBoxes={state.annotations.boundingBoxes}
-              polygons={state.annotations.polygons}
-              currentTool={state.currentTool}
-              selectedLabel={state.selectedLabel}
-              isDrawing={state.isDrawing}
-              onZoomChange={actions.setZoom}
-              onPanChange={actions.setPanOffset}
-              onAddBoundingBox={actions.addBoundingBox}
-              onAddPolygon={actions.addPolygon}
-              onSelectAnnotation={handleSelectAnnotation}
-              onDeleteAnnotation={handleDeleteAnnotation}
-              setDrawing={actions.setDrawing}
-            />
+          <ImageViewer
+            imageUrl={state.currentImage.url}
+            imageWidth={state.currentImage.width}
+            imageHeight={state.currentImage.height}
+            zoom={state.zoom}
+            panOffset={state.panOffset}
+            boundingBoxes={state.annotations.boundingBoxes}
+            polygons={state.annotations.polygons}
+            currentTool={state.currentTool}
+            selectedLabel={state.selectedLabel}
+            isDrawing={state.isDrawing}
+            onZoomChange={actions.setZoom}
+            onPanChange={actions.setPanOffset}
+            onAddBoundingBox={actions.addBoundingBox}
+            onAddPolygon={actions.addPolygon}
+            onSelectAnnotation={handleSelectAnnotation}
+            onDeleteAnnotation={handleDeleteAnnotation}
+            onUpdateBoundingBox={actions.updateBoundingBox}
+            setDrawing={actions.setDrawing}
+          />
           </Box>
 
           {/* Right Panel - Annotations List */}

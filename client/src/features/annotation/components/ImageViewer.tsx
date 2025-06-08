@@ -1,7 +1,8 @@
 import React, { useRef, useCallback, useEffect, useState, MouseEvent } from 'react';
-import { Box, Flex, Text } from '@/shared/ui/design-system/components';
+import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
 import { useTheme } from '@/shared/ui/design-system';
 import { BoundingBox, Polygon, Point, AnnotationType } from '../types/workspace';
+import { Hand, PencilSimple } from 'phosphor-react';
 
 interface ImageViewerProps {
   imageUrl: string;
@@ -20,7 +21,18 @@ interface ImageViewerProps {
   onAddPolygon: (polygon: Omit<Polygon, 'id'>) => void;
   onSelectAnnotation?: (type: AnnotationType, id: string) => void;
   onDeleteAnnotation?: (type: AnnotationType, id: string) => void;
+  onUpdateBoundingBox?: (id: string, updates: Partial<BoundingBox>) => void;
   setDrawing: (drawing: boolean) => void;
+}
+
+// BBox handle types for resizing
+type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'move';
+
+interface BBoxHandle {
+  type: ResizeHandle;
+  x: number;
+  y: number;
+  size: number;
 }
 
 export const ImageViewer: React.FC<ImageViewerProps> = ({
@@ -40,17 +52,34 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   onAddPolygon,
   onSelectAnnotation,
   onDeleteAnnotation,
+  onUpdateBoundingBox,
   setDrawing
 }) => {
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number>();
+  
+  // States for interaction
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState<Point>({ x: 0, y: 0 });
   const [isDrawingBbox, setIsDrawingBbox] = useState(false);
   const [drawingStart, setDrawingStart] = useState<Point>({ x: 0, y: 0 });
+  const [drawingCurrent, setDrawingCurrent] = useState<Point>({ x: 0, y: 0 });
   const [currentDrawing, setCurrentDrawing] = useState<Point[]>([]);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  // Mode system states
+  const [isPanMode, setIsPanMode] = useState(true); // Default to pan mode
+  
+  // BBox editing states
+  const [selectedBboxId, setSelectedBboxId] = useState<string | null>(null);
+  const [isDraggingBbox, setIsDraggingBbox] = useState(false);
+  const [dragStartPoint, setDragStartPoint] = useState<Point>({ x: 0, y: 0 });
+  const [activeHandle, setActiveHandle] = useState<ResizeHandle | null>(null);
+  const [originalBbox, setOriginalBbox] = useState<BoundingBox | null>(null);
 
   // Calculate display dimensions
   const displayWidth = imageWidth * zoom;
@@ -75,7 +104,119 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     };
   }, [zoom, panOffset]);
 
-  // Handle mouse wheel for zooming
+  // Get BBox handles for editing
+  const getBBoxHandles = useCallback((bbox: BoundingBox): BBoxHandle[] => {
+    const handleSize = 8 / zoom; // Handle size in image coordinates
+    const handles: BBoxHandle[] = [];
+
+    // Corner handles
+    handles.push(
+      { type: 'nw', x: bbox.x - handleSize/2, y: bbox.y - handleSize/2, size: handleSize },
+      { type: 'ne', x: bbox.x + bbox.width - handleSize/2, y: bbox.y - handleSize/2, size: handleSize },
+      { type: 'se', x: bbox.x + bbox.width - handleSize/2, y: bbox.y + bbox.height - handleSize/2, size: handleSize },
+      { type: 'sw', x: bbox.x - handleSize/2, y: bbox.y + bbox.height - handleSize/2, size: handleSize }
+    );
+
+    // Edge handles
+    handles.push(
+      { type: 'n', x: bbox.x + bbox.width/2 - handleSize/2, y: bbox.y - handleSize/2, size: handleSize },
+      { type: 'e', x: bbox.x + bbox.width - handleSize/2, y: bbox.y + bbox.height/2 - handleSize/2, size: handleSize },
+      { type: 's', x: bbox.x + bbox.width/2 - handleSize/2, y: bbox.y + bbox.height - handleSize/2, size: handleSize },
+      { type: 'w', x: bbox.x - handleSize/2, y: bbox.y + bbox.height/2 - handleSize/2, size: handleSize }
+    );
+
+    return handles;
+  }, [zoom]);
+
+  // Check if point is inside BBox
+  const isPointInBBox = useCallback((point: Point, bbox: BoundingBox): boolean => {
+    return point.x >= bbox.x && point.x <= bbox.x + bbox.width &&
+           point.y >= bbox.y && point.y <= bbox.y + bbox.height;
+  }, []);
+
+  // Check if point is on a handle
+  const getHandleAtPoint = useCallback((point: Point, bbox: BoundingBox): ResizeHandle | null => {
+    const handles = getBBoxHandles(bbox);
+    
+    for (const handle of handles) {
+      if (point.x >= handle.x && point.x <= handle.x + handle.size &&
+          point.y >= handle.y && point.y <= handle.y + handle.size) {
+        return handle.type;
+      }
+    }
+    
+    // Check if inside bbox for move
+    if (isPointInBBox(point, bbox)) {
+      return 'move';
+    }
+    
+    return null;
+  }, [getBBoxHandles, isPointInBBox]);
+
+  // Update BBox based on handle drag
+  const updateBBoxFromHandle = useCallback((
+    originalBbox: BoundingBox, 
+    handle: ResizeHandle, 
+    currentPoint: Point, 
+    startPoint: Point
+  ): Partial<BoundingBox> => {
+    const deltaX = currentPoint.x - startPoint.x;
+    const deltaY = currentPoint.y - startPoint.y;
+
+    switch (handle) {
+      case 'move':
+        return {
+          x: originalBbox.x + deltaX,
+          y: originalBbox.y + deltaY
+        };
+      case 'nw':
+        return {
+          x: originalBbox.x + deltaX,
+          y: originalBbox.y + deltaY,
+          width: Math.max(10, originalBbox.width - deltaX),
+          height: Math.max(10, originalBbox.height - deltaY)
+        };
+      case 'ne':
+        return {
+          y: originalBbox.y + deltaY,
+          width: Math.max(10, originalBbox.width + deltaX),
+          height: Math.max(10, originalBbox.height - deltaY)
+        };
+      case 'se':
+        return {
+          width: Math.max(10, originalBbox.width + deltaX),
+          height: Math.max(10, originalBbox.height + deltaY)
+        };
+      case 'sw':
+        return {
+          x: originalBbox.x + deltaX,
+          width: Math.max(10, originalBbox.width - deltaX),
+          height: Math.max(10, originalBbox.height + deltaY)
+        };
+      case 'n':
+        return {
+          y: originalBbox.y + deltaY,
+          height: Math.max(10, originalBbox.height - deltaY)
+        };
+      case 'e':
+        return {
+          width: Math.max(10, originalBbox.width + deltaX)
+        };
+      case 's':
+        return {
+          height: Math.max(10, originalBbox.height + deltaY)
+        };
+      case 'w':
+        return {
+          x: originalBbox.x + deltaX,
+          width: Math.max(10, originalBbox.width - deltaX)
+        };
+      default:
+        return {};
+    }
+  }, []);
+
+  // Handle mouse wheel for zooming with improved sensitivity
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     
@@ -88,8 +229,13 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     // Calculate zoom point in image coordinates
     const imagePoint = screenToImage(e.clientX, e.clientY);
     
-    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    // Much more gentle zoom sensitivity
+    const zoomIntensity = 0.05; // Reduced from 0.1 (which was 0.9/1.1)
+    const zoomFactor = e.deltaY > 0 ? (1 - zoomIntensity) : (1 + zoomIntensity);
     const newZoom = Math.max(0.1, Math.min(5, zoom * zoomFactor));
+    
+    // Only update if zoom actually changes
+    if (Math.abs(newZoom - zoom) < 0.01) return;
     
     // Calculate new pan offset to keep the zoom point in the same screen position
     const newPanX = mouseX - imagePoint.x * newZoom;
@@ -99,15 +245,50 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     onPanChange({ x: newPanX, y: newPanY });
   }, [zoom, screenToImage, onZoomChange, onPanChange]);
 
-  // Handle mouse down
+  // Handle mouse down with mode awareness
   const handleMouseDown = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !selectedLabel) return;
+    if (!canvasRef.current) return;
     
     const imagePoint = screenToImage(e.clientX, e.clientY);
     
-    if (currentTool === 'bbox') {
+    // In pan mode, only allow panning
+    if (isPanMode) {
+      setIsPanning(true);
+      setLastPanPoint({ x: e.clientX, y: e.clientY });
+      return;
+    }
+    
+    // Check if we're clicking on an existing BBox (only in annotation mode)
+    let clickedBbox: BoundingBox | null = null;
+    let clickedHandle: ResizeHandle | null = null;
+    
+    for (const bbox of boundingBoxes) {
+      const handle = getHandleAtPoint(imagePoint, bbox);
+      if (handle) {
+        clickedBbox = bbox;
+        clickedHandle = handle;
+        break;
+      }
+    }
+
+    if (clickedBbox && clickedHandle) {
+      // Start BBox editing
+      setSelectedBboxId(clickedBbox.id);
+      setIsDraggingBbox(true);
+      setActiveHandle(clickedHandle);
+      setOriginalBbox(clickedBbox);
+      setDragStartPoint(imagePoint);
+      return;
+    }
+
+    // Clear selection if clicking on empty area
+    setSelectedBboxId(null);
+
+    // Annotation tools (only work in annotation mode)
+    if (currentTool === 'bbox' && selectedLabel) {
       setIsDrawingBbox(true);
       setDrawingStart(imagePoint);
+      setDrawingCurrent(imagePoint);
       setDrawing(true);
     } else if (currentTool === 'segmentation') {
       if (!isDrawing) {
@@ -118,34 +299,103 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         // Add point to current polygon
         setCurrentDrawing(prev => [...prev, imagePoint]);
       }
-    } else if (currentTool === 'label') {
-      // For image labels, we don't need mouse interaction
-      return;
     } else {
-      // Pan mode or other tools
+      // Default to pan mode if no specific tool is active
       setIsPanning(true);
       setLastPanPoint({ x: e.clientX, y: e.clientY });
     }
-  }, [currentTool, selectedLabel, screenToImage, isDrawing, setDrawing]);
+  }, [currentTool, selectedLabel, screenToImage, isDrawing, setDrawing, boundingBoxes, getHandleAtPoint, isPanMode]);
 
-  // Handle mouse move
+  // Handle mouse move with RAF for performance and mode awareness
   const handleMouseMove = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
-    if (isPanning && !isDrawingBbox && !isDrawing) {
-      const deltaX = e.clientX - lastPanPoint.x;
-      const deltaY = e.clientY - lastPanPoint.y;
-      
-      onPanChange({
-        x: panOffset.x + deltaX,
-        y: panOffset.y + deltaY
-      });
-      
-      setLastPanPoint({ x: e.clientX, y: e.clientY });
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
     }
-  }, [isPanning, isDrawingBbox, isDrawing, lastPanPoint, panOffset, onPanChange]);
 
-  // Handle mouse up
+    rafRef.current = requestAnimationFrame(() => {
+      const imagePoint = screenToImage(e.clientX, e.clientY);
+
+      if (isDraggingBbox && activeHandle && originalBbox && onUpdateBoundingBox) {
+        // Update BBox position/size
+        const updates = updateBBoxFromHandle(originalBbox, activeHandle, imagePoint, dragStartPoint);
+        onUpdateBoundingBox(originalBbox.id, updates);
+      } else if (isDrawingBbox) {
+        // Update drawing preview
+        setDrawingCurrent(imagePoint);
+      } else if (isPanning) {
+        // Pan the view (available in both modes when dragging)
+        const deltaX = e.clientX - lastPanPoint.x;
+        const deltaY = e.clientY - lastPanPoint.y;
+        
+        onPanChange({
+          x: panOffset.x + deltaX,
+          y: panOffset.y + deltaY
+        });
+        
+        setLastPanPoint({ x: e.clientX, y: e.clientY });
+      } else {
+        // Update cursor based on current mode and what's under mouse
+        if (!canvasRef.current) return;
+        
+        let cursor = 'default';
+        
+        if (isPanMode) {
+          cursor = 'grab';
+        } else if (currentTool === 'bbox') {
+          cursor = 'crosshair';
+        } else if (currentTool === 'segmentation') {
+          cursor = 'crosshair';
+        } else {
+          // Check if hovering over BBox handle (only in annotation mode)
+          for (const bbox of boundingBoxes) {
+            const handle = getHandleAtPoint(imagePoint, bbox);
+            if (handle) {
+              switch (handle) {
+                case 'nw':
+                case 'se':
+                  cursor = 'nw-resize';
+                  break;
+                case 'ne':
+                case 'sw':
+                  cursor = 'ne-resize';
+                  break;
+                case 'n':
+                case 's':
+                  cursor = 'n-resize';
+                  break;
+                case 'e':
+                case 'w':
+                  cursor = 'e-resize';
+                  break;
+                case 'move':
+                  cursor = 'move';
+                  break;
+              }
+              break;
+            }
+          }
+          
+          if (cursor === 'default') {
+            cursor = 'grab';
+          }
+        }
+        
+        canvasRef.current.style.cursor = cursor;
+      }
+    });
+  }, [
+    isDraggingBbox, activeHandle, originalBbox, dragStartPoint, updateBBoxFromHandle, onUpdateBoundingBox,
+    isDrawingBbox, isPanning, lastPanPoint, panOffset, onPanChange, screenToImage,
+    currentTool, boundingBoxes, getHandleAtPoint, isPanMode
+  ]);
+
+  // Handle mouse up with mode awareness
   const handleMouseUp = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
-    if (isDrawingBbox && selectedLabel) {
+    if (isDraggingBbox) {
+      setIsDraggingBbox(false);
+      setActiveHandle(null);
+      setOriginalBbox(null);
+    } else if (isDrawingBbox && selectedLabel) {
       const imagePoint = screenToImage(e.clientX, e.clientY);
       const x = Math.min(drawingStart.x, imagePoint.x);
       const y = Math.min(drawingStart.y, imagePoint.y);
@@ -166,8 +416,11 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       setDrawing(false);
     }
     
-    setIsPanning(false);
-  }, [isDrawingBbox, selectedLabel, screenToImage, drawingStart, onAddBoundingBox, setDrawing]);
+    // Always stop panning when mouse is released
+    if (isPanning) {
+      setIsPanning(false);
+    }
+  }, [isDraggingBbox, isDrawingBbox, selectedLabel, screenToImage, drawingStart, onAddBoundingBox, setDrawing, isPanning]);
 
   // Handle double click to finish polygon
   const handleDoubleClick = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
@@ -182,10 +435,10 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     }
   }, [currentTool, isDrawing, currentDrawing, selectedLabel, onAddPolygon, setDrawing]);
 
-  // Draw on canvas
+  // Draw on canvas with RAF optimization
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !imageLoaded) return;
+    if (!canvas || !loadedImage) return;
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -200,81 +453,103 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     ctx.translate(panOffset.x, panOffset.y);
     ctx.scale(zoom, zoom);
     
-    // Draw image
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, imageWidth, imageHeight);
+    // Draw image (now synchronous with preloaded image)
+    ctx.drawImage(loadedImage, 0, 0, imageWidth, imageHeight);
+    
+    // Draw bounding boxes
+    boundingBoxes.forEach((bbox) => {
+      const isSelected = bbox.id === selectedBboxId;
       
-      // Draw bounding boxes
-      boundingBoxes.forEach((bbox, index) => {
-        ctx.strokeStyle = theme.colors.status.success;
-        ctx.lineWidth = 2 / zoom;
-        ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
-        
-        // Draw label
-        ctx.fillStyle = theme.colors.status.success;
-        ctx.font = `${14 / zoom}px sans-serif`;
-        ctx.fillText(bbox.label, bbox.x, bbox.y - 5 / zoom);
-      });
+      ctx.strokeStyle = isSelected ? theme.colors.interactive.primary : theme.colors.status.success;
+      ctx.lineWidth = (isSelected ? 3 : 2) / zoom;
+      ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
       
-      // Draw polygons
-      polygons.forEach((polygon) => {
-        if (polygon.points.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(polygon.points[0].x, polygon.points[0].y);
-          
-          for (let i = 1; i < polygon.points.length; i++) {
-            ctx.lineTo(polygon.points[i].x, polygon.points[i].y);
-          }
-          
-          ctx.closePath();
-          ctx.strokeStyle = theme.colors.status.warning;
-          ctx.lineWidth = 2 / zoom;
-          ctx.stroke();
-          
-          // Draw label
-          ctx.fillStyle = theme.colors.status.warning;
-          ctx.font = `${14 / zoom}px sans-serif`;
-          if (polygon.points.length > 0) {
-            ctx.fillText(polygon.label, polygon.points[0].x, polygon.points[0].y - 5 / zoom);
-          }
-        }
-      });
+      // Draw label
+      ctx.fillStyle = isSelected ? theme.colors.interactive.primary : theme.colors.status.success;
+      ctx.font = `${14 / zoom}px sans-serif`;
+      ctx.fillText(bbox.label, bbox.x, bbox.y - 5 / zoom);
       
-      // Draw current drawing
-      if (isDrawingBbox && currentTool === 'bbox') {
-        // This will be handled by mouse move events
+      // Draw handles for selected bbox
+      if (isSelected) {
+        const handles = getBBoxHandles(bbox);
+        handles.forEach((handle) => {
+          ctx.fillStyle = theme.colors.interactive.primary;
+          ctx.fillRect(handle.x, handle.y, handle.size, handle.size);
+          
+          // Add white border
+          ctx.strokeStyle = theme.colors.background.card;
+          ctx.lineWidth = 1 / zoom;
+          ctx.strokeRect(handle.x, handle.y, handle.size, handle.size);
+        });
       }
+    });
+    
+    // Draw preview bbox while drawing
+    if (isDrawingBbox && currentTool === 'bbox') {
+      const x = Math.min(drawingStart.x, drawingCurrent.x);
+      const y = Math.min(drawingStart.y, drawingCurrent.y);
+      const width = Math.abs(drawingCurrent.x - drawingStart.x);
+      const height = Math.abs(drawingCurrent.y - drawingStart.y);
       
-      if (isDrawing && currentTool === 'segmentation' && currentDrawing.length > 0) {
+      ctx.strokeStyle = theme.colors.interactive.primary;
+      ctx.lineWidth = 2 / zoom;
+      ctx.setLineDash([5 / zoom, 5 / zoom]);
+      ctx.strokeRect(x, y, width, height);
+      ctx.setLineDash([]);
+    }
+    
+    // Draw polygons
+    polygons.forEach((polygon) => {
+      if (polygon.points.length > 1) {
         ctx.beginPath();
-        ctx.moveTo(currentDrawing[0].x, currentDrawing[0].y);
+        ctx.moveTo(polygon.points[0].x, polygon.points[0].y);
         
-        for (let i = 1; i < currentDrawing.length; i++) {
-          ctx.lineTo(currentDrawing[i].x, currentDrawing[i].y);
+        for (let i = 1; i < polygon.points.length; i++) {
+          ctx.lineTo(polygon.points[i].x, polygon.points[i].y);
         }
         
-        ctx.strokeStyle = theme.colors.interactive.primary;
+        ctx.closePath();
+        ctx.strokeStyle = theme.colors.status.warning;
         ctx.lineWidth = 2 / zoom;
         ctx.stroke();
         
-        // Draw points
-        currentDrawing.forEach((point) => {
-          ctx.beginPath();
-          ctx.arc(point.x, point.y, 3 / zoom, 0, 2 * Math.PI);
-          ctx.fillStyle = theme.colors.interactive.primary;
-          ctx.fill();
-        });
+        // Draw label
+        ctx.fillStyle = theme.colors.status.warning;
+        ctx.font = `${14 / zoom}px sans-serif`;
+        if (polygon.points.length > 0) {
+          ctx.fillText(polygon.label, polygon.points[0].x, polygon.points[0].y - 5 / zoom);
+        }
       }
-    };
-    img.src = imageUrl;
+    });
+    
+    // Draw current polygon drawing
+    if (isDrawing && currentTool === 'segmentation' && currentDrawing.length > 0) {
+      ctx.beginPath();
+      ctx.moveTo(currentDrawing[0].x, currentDrawing[0].y);
+      
+      for (let i = 1; i < currentDrawing.length; i++) {
+        ctx.lineTo(currentDrawing[i].x, currentDrawing[i].y);
+      }
+      
+      ctx.strokeStyle = theme.colors.interactive.primary;
+      ctx.lineWidth = 2 / zoom;
+      ctx.stroke();
+      
+      // Draw points
+      currentDrawing.forEach((point) => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 3 / zoom, 0, 2 * Math.PI);
+        ctx.fillStyle = theme.colors.interactive.primary;
+        ctx.fill();
+      });
+    }
     
     // Restore context
     ctx.restore();
   }, [
-    imageLoaded, panOffset, zoom, imageWidth, imageHeight, imageUrl, 
-    boundingBoxes, polygons, isDrawingBbox, currentTool, isDrawing, 
-    currentDrawing, theme
+    loadedImage, panOffset, zoom, imageWidth, imageHeight,
+    boundingBoxes, selectedBboxId, getBBoxHandles, isDrawingBbox, currentTool,
+    drawingStart, drawingCurrent, polygons, isDrawing, currentDrawing, theme
   ]);
 
   // Setup canvas and event listeners
@@ -297,24 +572,52 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     // Add wheel event listener
     canvas.addEventListener('wheel', handleWheel, { passive: false });
     
-    // Load image to check if it's ready
-    const img = new Image();
-    img.onload = () => {
-      setImageLoaded(true);
-      draw();
-    };
-    img.src = imageUrl;
-    
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       canvas.removeEventListener('wheel', handleWheel);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
-  }, [handleWheel, draw, imageUrl]);
+  }, [handleWheel, draw]);
+
+  // Load image when imageUrl changes
+  useEffect(() => {
+    if (!imageUrl) {
+      setLoadedImage(null);
+      setImageLoaded(false);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      setLoadedImage(img);
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      setLoadedImage(null);
+      setImageLoaded(false);
+    };
+    img.src = imageUrl;
+  }, [imageUrl]);
 
   // Redraw when dependencies change
   useEffect(() => {
     draw();
   }, [draw]);
+
+  // Handle keyboard shortcuts (Delete key only)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' && selectedBboxId && onDeleteAnnotation) {
+        onDeleteAnnotation('bbox', selectedBboxId);
+        setSelectedBboxId(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedBboxId, onDeleteAnnotation]);
 
   if (!imageUrl) {
     return (
@@ -336,6 +639,31 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     );
   }
 
+  if (!loadedImage || !imageLoaded) {
+    return (
+      <Box
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: theme.colors.background.secondary,
+          borderRadius: theme.borders.radius.md,
+        }}
+      >
+        <Flex direction="column" align="center" gap="3">
+          <Text size="3" style={{ color: theme.colors.interactive.primary }}>
+            ⟲
+          </Text>
+          <Text size="2" style={{ color: theme.colors.text.secondary }}>
+            Loading image...
+          </Text>
+        </Flex>
+      </Box>
+    );
+  }
+
   return (
     <Box
       ref={containerRef}
@@ -346,9 +674,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         overflow: 'hidden',
         background: theme.colors.background.secondary,
         borderRadius: theme.borders.radius.md,
-        cursor: currentTool === 'bbox' ? 'crosshair' : 
-               currentTool === 'segmentation' ? 'crosshair' : 
-               isPanning ? 'grabbing' : 'grab'
       }}
     >
       <canvas
@@ -364,38 +689,122 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         }}
       />
       
-      {/* Tool Instructions */}
+      {/* Compact Icon-Based Mode Switcher */}
       <Box
         style={{
           position: 'absolute',
-          top: theme.spacing.semantic.component.md,
-          left: theme.spacing.semantic.component.md,
+          top: theme.spacing.semantic.component.sm,
+          right: theme.spacing.semantic.component.sm,
           background: `${theme.colors.background.card}95`,
-          padding: theme.spacing.semantic.component.sm,
-          borderRadius: theme.borders.radius.sm,
-          border: `1px solid ${theme.colors.border.primary}`,
+          padding: `${theme.spacing.semantic.component.xs}`,
+          borderRadius: theme.borders.radius.md,
+          border: `1px solid ${theme.colors.border.primary}20`,
+          backdropFilter: 'blur(8px)',
+          boxShadow: `0 2px 8px ${theme.colors.background.primary}20`,
         }}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
       >
-        <Text size="1" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
-          {currentTool === 'label' && 'Type a label in the sidebar and click Add to label this image'}
-          {currentTool === 'bbox' && 'Click and drag to draw bounding boxes'}
-          {currentTool === 'segmentation' && (isDrawing ? 'Click to add points, double-click to finish' : 'Click to start drawing polygon')}
-        </Text>
+        <Flex align="center" gap="0">
+          <Box
+            style={{
+              display: 'flex',
+              background: theme.colors.background.secondary,
+              borderRadius: theme.borders.radius.sm,
+              border: `1px solid ${theme.colors.border.primary}30`,
+              overflow: 'hidden',
+            }}
+          >
+            <Button
+              onClick={() => setIsPanMode(true)}
+              style={{
+                padding: `8px 12px`,
+                background: isPanMode ? theme.colors.interactive.primary : 'transparent',
+                color: isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                borderRadius: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Hand size={14} weight="bold" />
+            </Button>
+            <Box style={{ width: '1px', background: theme.colors.border.primary, opacity: 0.3 }} />
+            <Button
+              onClick={() => setIsPanMode(false)}
+              style={{
+                padding: `8px 12px`,
+                background: !isPanMode ? theme.colors.interactive.primary : 'transparent',
+                color: !isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                borderRadius: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <PencilSimple size={14} weight="bold" />
+            </Button>
+          </Box>
+        </Flex>
+        
+        {/* Subtle Tooltip */}
+        {showTooltip && (
+          <Box
+            style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              marginTop: '4px',
+              background: `${theme.colors.background.card}98`,
+              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+              borderRadius: theme.borders.radius.sm,
+              border: `1px solid ${theme.colors.border.primary}30`,
+              backdropFilter: 'blur(8px)',
+              boxShadow: `0 4px 12px ${theme.colors.background.primary}30`,
+              whiteSpace: 'nowrap',
+              zIndex: 1000,
+            }}
+          >
+            <Text size="1" style={{ 
+              color: theme.colors.text.secondary, 
+              fontSize: '9px',
+              fontWeight: 500,
+            }}>
+              {isPanMode ? 'Drag to navigate • Scroll to zoom' : 
+               currentTool === 'bbox' ? 'Draw bounding boxes • Del to delete' :
+               currentTool === 'segmentation' ? 'Click points • Double-click to finish' :
+               'Select annotation tool in sidebar'
+              }
+            </Text>
+          </Box>
+        )}
       </Box>
 
-      {/* Zoom Level Indicator */}
+      {/* Minimal Zoom Indicator */}
       <Box
         style={{
           position: 'absolute',
-          bottom: theme.spacing.semantic.component.md,
-          right: theme.spacing.semantic.component.md,
+          bottom: theme.spacing.semantic.component.sm,
+          left: theme.spacing.semantic.component.sm,
           background: `${theme.colors.background.card}95`,
-          padding: theme.spacing.semantic.component.sm,
+          padding: `2px 6px`,
           borderRadius: theme.borders.radius.sm,
-          border: `1px solid ${theme.colors.border.primary}`,
+          border: `1px solid ${theme.colors.border.primary}20`,
+          backdropFilter: 'blur(8px)',
         }}
       >
-        <Text size="1" style={{ color: theme.colors.text.secondary }}>
+        <Text size="1" style={{ 
+          color: theme.colors.text.tertiary, 
+          fontSize: '9px',
+          fontWeight: 500,
+          letterSpacing: '0.5px'
+        }}>
           {Math.round(zoom * 100)}%
         </Text>
       </Box>

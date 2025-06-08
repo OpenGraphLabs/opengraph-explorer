@@ -140,16 +140,7 @@ export function useWorkspace(challengeId: string, images: ImageData[] = []) {
     availableLabels: [] // User can input custom labels
   });
 
-  // Auto-save functionality
-  useEffect(() => {
-    if (state.unsavedChanges && state.currentImage) {
-      const autoSaveTimer = setTimeout(() => {
-        saveAnnotations();
-      }, 2000); // Auto-save after 2 seconds of inactivity
-
-      return () => clearTimeout(autoSaveTimer);
-    }
-  }, [state.unsavedChanges, state.annotations]);
+  // Auto-save functionality moved after saveAnnotations definition
 
   const setCurrentImage = useCallback((image: ImageData) => {
     dispatch({ type: 'SET_CURRENT_IMAGE', payload: image });
@@ -221,6 +212,17 @@ export function useWorkspace(challengeId: string, images: ImageData[] = []) {
       console.error('Failed to save annotations:', error);
     }
   }, [state.annotations]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (state.unsavedChanges && state.currentImage) {
+      const autoSaveTimer = setTimeout(() => {
+        saveAnnotations();
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(autoSaveTimer);
+    }
+  }, [state.unsavedChanges, state.annotations, saveAnnotations]);
 
   const resetAnnotations = useCallback(() => {
     dispatch({ type: 'RESET_ANNOTATIONS' });
