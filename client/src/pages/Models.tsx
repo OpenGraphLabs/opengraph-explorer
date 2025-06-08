@@ -258,7 +258,7 @@ export function Models() {
       actionButton: {
         text: "Deploy Model",
         icon: <UploadSimple size={14} weight="bold" />,
-        href: "/upload",
+        href: "/models/upload",
       },
     },
     stats: [

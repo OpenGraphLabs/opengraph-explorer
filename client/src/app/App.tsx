@@ -16,10 +16,10 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/models" element={<Models />} />
+        <Route path="/models/upload" element={<UploadModel />} />
         <Route path="/models/:id" element={<ModelDetail />} />
-        <Route path="/upload" element={<UploadModel />} />
-        <Route path="/upload-dataset" element={<UploadDataset />} />
         <Route path="/datasets" element={<Datasets />} />
+        <Route path="/datasets/upload" element={<UploadDataset />} />
         <Route path="/datasets/:id" element={<DatasetDetail />} />
         <Route path="/annotator" element={<Annotator />} />
         <Route path="/profile" element={<Profile />} />
