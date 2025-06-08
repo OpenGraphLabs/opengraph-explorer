@@ -464,7 +464,7 @@ export function Home() {
             Quick Actions
           </Heading>
           <Flex direction="column" gap="2">
-            <Link to="/upload" style={{ textDecoration: "none" }}>
+            <Link to="/models/upload" style={{ textDecoration: "none" }}>
               <Button
                 variant="secondary"
                 style={{

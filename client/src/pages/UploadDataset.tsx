@@ -82,7 +82,7 @@ export function UploadDataset() {
       title: 'Data Files',
       description: 'Upload training data',
       icon: Upload,
-      completed: isFilesReady() && uploadProgress.status === 'success',
+      completed: isFilesReady(),
       active: isMetadataComplete() && !isFilesReady(),
       hasError: !!error && !uploadSuccess
     },
@@ -122,9 +122,15 @@ export function UploadDataset() {
           </Text>
         </Flex>
         <Flex align="center" gap="2">
-          <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-            {steps.filter(s => s.completed).length}/{steps.length} Complete
-          </Text>
+          {uploadSuccess ? (
+            <Text size="1" style={{ color: theme.colors.status.success, fontWeight: 600 }}>
+              ✓ All Steps Complete
+            </Text>
+          ) : (
+            <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+              Step {Math.min(steps.filter(s => s.completed).length + 1, steps.length)} of {steps.length}
+            </Text>
+          )}
         </Flex>
       </Flex>
       
@@ -519,6 +525,89 @@ export function UploadDataset() {
             onUpload={handleUpload}
             isUploadDisabled={isUploadDisabled()}
           />
+
+          {/* Upload Success Guidance */}
+          {uploadSuccess && (
+            <Box
+              style={{
+                marginTop: theme.spacing.semantic.component.lg,
+                padding: theme.spacing.semantic.component.lg,
+                background: `linear-gradient(135deg, ${theme.colors.status.success}08, ${theme.colors.status.success}05)`,
+                borderRadius: theme.borders.radius.lg,
+                border: `1px solid ${theme.colors.status.success}30`,
+              }}
+            >
+              <Flex align="center" gap="3">
+                <Box
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: theme.borders.radius.md,
+                    background: theme.colors.status.success,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <CheckCircle size={16} style={{ color: theme.colors.text.inverse }} />
+                </Box>
+                <Box style={{ flex: 1 }}>
+                  <Text 
+                    size="3" 
+                    style={{ 
+                      fontWeight: 600, 
+                      color: theme.colors.text.primary,
+                      marginBottom: "4px"
+                    }}
+                  >
+                    Dataset Successfully Created!
+                  </Text>
+                  <Text 
+                    size="2" 
+                    style={{ 
+                      color: theme.colors.text.secondary,
+                      lineHeight: 1.4,
+                      marginBottom: theme.spacing.semantic.component.sm
+                    }}
+                  >
+                    Your training dataset has been uploaded to Walrus decentralized storage and metadata is stored on Sui blockchain. It's now ready for machine learning model training.
+                  </Text>
+                  <Flex gap="2" style={{ marginTop: theme.spacing.semantic.component.md }}>
+                    <Button
+                      onClick={() => window.location.href = '/datasets'}
+                      style={{
+                        background: theme.colors.status.success,
+                        color: theme.colors.text.inverse,
+                        border: "none",
+                        borderRadius: theme.borders.radius.sm,
+                        padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.md}`,
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      View All Datasets
+                    </Button>
+                    <Button
+                      onClick={() => window.location.href = '/upload-model'}
+                      style={{
+                        background: "transparent",
+                        color: theme.colors.status.success,
+                        border: `1px solid ${theme.colors.status.success}`,
+                        borderRadius: theme.borders.radius.sm,
+                        padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.md}`,
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Upload ML Model
+                    </Button>
+                  </Flex>
+                </Box>
+              </Flex>
+            </Box>
+          )}
         </Card>
       </Flex>
 

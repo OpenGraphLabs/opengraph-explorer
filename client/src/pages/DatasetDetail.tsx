@@ -62,7 +62,7 @@ export function DatasetDetail() {
     setConfirmationStatus,
   } = useDatasetDetail(id);
 
-  const { getImageUrl, isItemLoading, isAnyBlobLoading, getUniqueBlobId } = useBlobData(dataset);
+  const { getImageUrl, isItemLoading, isAnyBlobLoading } = useBlobData(dataset);
 
   const handleConfirmSelectedAnnotations = async () => {
     if (selectedPendingLabels.size === 0) {
@@ -351,6 +351,39 @@ export function DatasetDetail() {
                     )}
                   </Flex>
                 </Flex>
+
+                {/* Dataset Labels */}
+                {dataset.tags && dataset.tags.length > 0 && (
+                  <Box style={{ marginTop: theme.spacing.semantic.component.xs }}>
+                    <Flex align="start" gap="3">
+                      <Flex wrap="wrap" gap="2" style={{ flex: 1 }}>
+                        {dataset.tags.map((tag: string, index: number) => (
+                          <Badge
+                            key={index}
+                            style={{
+                              background: `${theme.colors.interactive.primary}10`,
+                              color: theme.colors.interactive.primary,
+                              border: `1px solid ${theme.colors.interactive.primary}25`,
+                              borderRadius: theme.borders.radius.full,
+                              padding: `4px 12px`,
+                              fontSize: "11px",
+                              fontWeight: 500,
+                              letterSpacing: "0.025em",
+                              textTransform: "none",
+                              lineHeight: 1,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            <Hash size={10} style={{ opacity: 0.7 }} />
+                            {tag}
+                          </Badge>
+                        ))}
+                      </Flex>
+                    </Flex>
+                  </Box>
+                )}
               </Flex>
             </Box>
 

@@ -38,7 +38,6 @@ export function DatasetImageGallery({
   getImageUrl,
   isItemLoading,
   hasConfirmedAnnotations,
-  getAnnotationColor,
 }: DatasetImageGalleryProps) {
   const { theme } = useTheme();
 
@@ -96,6 +95,7 @@ export function DatasetImageGallery({
             }}>
               No {activeTab} items found
             </Text>
+            <br />
             <Text size="1" style={{ color: theme.colors.text.tertiary, fontSize: "11px" }}>
               {activeTab === "all" 
                 ? "No data items in this dataset yet." 
