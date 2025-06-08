@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  client:
+    runs-on: ubuntu-latest
+    name: Client Build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.15.0'
+          cache: 'yarn'
+          cache-dependency-path: './client/yarn.lock'
+
+      - name: Install dependencies
+        working-directory: ./client
+        run: yarn install --frozen-lockfile
+
+      - name: Type check
+        working-directory: ./client
+        run: yarn tsc --noEmit
+
+      - name: Build application
+        working-directory: ./client
+        run: yarn build
+
+  docker:
+    runs-on: ubuntu-latest
+    name: Docker Build
+    needs: [client]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: docker-compose -f docker-compose.yml build 
