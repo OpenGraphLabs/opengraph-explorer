@@ -1,19 +1,16 @@
-import { Box, Flex, Text, Button, Grid } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
-import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
 import { useTheme } from "@/shared/ui/design-system";
 import { ModelUploader } from "@/features/model/components/upload-steps/ModelUploader.tsx";
 import { DatasetSelection } from "@/features/model/components/upload-steps/DatasetSelection";
-import { DatasetCard, ModelInfoForm, StepHeader, UploadButton } from "@/features/model/components";
+import { ModelInfoForm, UploadButton } from "@/features/model/components";
 import { useDatasetSelection, useModelUploadFlow } from "@/features/model/hooks";
 import {
   ReloadIcon,
-  CheckCircledIcon,
   ExclamationTriangleIcon,
   ChevronRightIcon,
   CheckIcon,
   CircleIcon,
-  ClockIcon,
 } from "@radix-ui/react-icons";
 import {
   Brain,

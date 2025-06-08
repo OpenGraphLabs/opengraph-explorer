@@ -1,5 +1,5 @@
 import { Box, Flex, Text, Badge, Button, Card } from "@radix-ui/themes";
-import { getDataTypeIcon, getDataTypeColor, formatDataSize } from "@/features/model";
+import { formatDataSize } from "@/features/model";
 import type { DatasetObject } from "../types/upload";
 import { useTheme } from "@/shared/ui/design-system";
 import { motion } from "framer-motion";
@@ -14,7 +14,6 @@ import {
   CheckCircle,
   X,
   ArrowRight,
-  Download,
 } from "phosphor-react";
 
 interface DatasetCardProps {

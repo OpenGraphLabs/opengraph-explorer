@@ -6,18 +6,13 @@ import {
   CheckCircle,
   Users,
   Database,
-  FolderOpen,
-  Eye,
-  Download,
   Hash,
-  Calendar,
 } from "phosphor-react";
 import {
   useDatasetDetail,
   useBlobData,
   DatasetImageGallery,
   DatasetPagination,
-  isImageType,
   getAnnotationColor,
   DEFAULT_PAGE_SIZE,
 } from "@/features/dataset";

@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
-import { Box, Flex, Heading, Text, Card, Button, TextArea } from "@radix-ui/themes";
+import { useState } from "react";
+import { Flex, Heading, Text, TextArea } from "@radix-ui/themes";
 import { Brain as BrainCircuit } from "phosphor-react";
-import { VectorInfoDisplay, ImageData, FormattedVector } from "./VectorInfoDisplay";
 import { useTheme } from "@/shared/ui/design-system";
 
 interface VectorInputTabProps {
@@ -9,12 +8,10 @@ interface VectorInputTabProps {
   onVectorGenerated: (vector: number[]) => void;
 }
 
-export function VectorInputTab({ firstLayerDimension, onVectorGenerated }: VectorInputTabProps) {
+export function VectorInputTab({ onVectorGenerated }: VectorInputTabProps) {
   const { theme } = useTheme();
   const [inputText, setInputText] = useState<string>("");
-  const [parsedVector, setParsedVector] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [imageData, setImageData] = useState<ImageData | null>(null);
 
   // 입력된 벡터 문자열을 파싱하여 숫자 배열로 변환
   const handleVectorChange = (value: string) => {
@@ -30,7 +27,6 @@ export function VectorInputTab({ firstLayerDimension, onVectorGenerated }: Vecto
 
       // 유효한 숫자로만 구성된 벡터인 경우 콜백 실행
       if (parsedVector.length > 0 && parsedVector.every(num => !isNaN(num))) {
-        setParsedVector(parsedVector);
         onVectorGenerated(parsedVector);
       }
     } catch (error) {

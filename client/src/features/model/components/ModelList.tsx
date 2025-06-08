@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { Grid, Flex, Text, Spinner, Box, Button } from "@radix-ui/themes";
+import { Grid, Text, Spinner, Box } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, ExclamationTriangleIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { Link } from "react-router-dom";
 import { Model } from "../types";

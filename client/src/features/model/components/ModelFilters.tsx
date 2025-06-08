@@ -1,12 +1,8 @@
 import React from "react";
 import {
   Box,
-  Flex,
   Text,
-  Button,
-  Badge,
   Dropdown,
-  DropdownOption,
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import {
@@ -14,7 +10,6 @@ import {
   X,
   FunnelSimple,
   Tag,
-  Robot,
   Brain,
   Eye,
   ChatCircle,

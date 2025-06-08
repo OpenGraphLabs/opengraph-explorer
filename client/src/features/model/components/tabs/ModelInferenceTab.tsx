@@ -1,12 +1,9 @@
-import { Box, Flex, Heading, Text, Card, Badge, Button, Tabs } from "@radix-ui/themes";
+import { Box, Flex, Heading, Text, Card, Button, Tabs } from "@radix-ui/themes";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useModelInferenceState } from "@/shared/hooks/useModelInference";
 import {
-  Rocket,
-  CircleWavyCheck as CircuitBoard,
-  TreeStructure,
   TextT,
   ImageSquare,
   PencilSimple,
@@ -15,7 +12,6 @@ import {
   Cpu,
   Play,
   Activity,
-  Gear,
 } from "phosphor-react";
 import { ModelObject } from "@/shared/api/graphql/modelGraphQLService";
 import { VectorInputTab } from "./VectorInputTab";
@@ -57,7 +53,6 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
 
   // Use inference hook
   const {
-    inputVector,
     currentLayerIndex,
     predictResults,
     isProcessing,
@@ -66,7 +61,6 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     setInputValues,
     setInputSigns,
     runAllLayersWithPTBOptimization,
-    runAllLayersByInputNodes,
     runAllLayersWithChunkedPTB,
   } = useModelInferenceState(model, getLayerCount());
 
