@@ -44,6 +44,7 @@ export function DatasetDetail() {
     paginationLoading,
     confirmedPage,
     pendingPage,
+    allPage,
     activeTab,
     totalCounts,
     selectedImage,
@@ -187,14 +188,14 @@ export function DatasetDetail() {
       style={{
         background: theme.colors.background.primary,
         minHeight: "100vh",
-        padding: theme.spacing.semantic.layout.md,
+        padding: `${theme.spacing.semantic.layout.sm} ${theme.spacing.semantic.layout.md}`,
       }}
     >
       <Box style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Minimal Impact Header */}
         <Box style={{ 
-          marginBottom: theme.spacing.semantic.section.md,
-          paddingBottom: theme.spacing.semantic.component.lg,
+          marginBottom: theme.spacing.semantic.component.lg,
+          paddingBottom: theme.spacing.semantic.component.md,
           borderBottom: `1px solid ${theme.colors.border.primary}`,
         }}>
           <Grid columns={{ initial: "1", lg: "4" }} gap="6" align="start">
@@ -353,137 +354,137 @@ export function DatasetDetail() {
               </Flex>
             </Box>
 
-                         {/* Key Metrics */}
-             <Box>
-               <Flex direction="column" gap="3">
-                 <Text size="1" style={{ 
-                   color: theme.colors.text.tertiary, 
-                   fontWeight: 600,
-                   textTransform: "uppercase",
-                   letterSpacing: "0.1em",
-                 }}>
-                   Dataset Overview
-                 </Text>
+            {/* Key Metrics */}
+            <Box>
+              <Flex direction="column" gap="3">
+                <Text size="1" style={{ 
+                  color: theme.colors.text.tertiary, 
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                }}>
+                  Dataset Overview
+                </Text>
 
-                 <Flex direction="column" gap="3">
-                   <Box>
-                     <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
-                       <Text size="3" style={{
-                         fontWeight: 700, 
-                         color: theme.colors.text.primary,
-                         fontFeatureSettings: '"tnum"',
-                         lineHeight: 1,
-                       }}>
-                         {totalItems.toLocaleString()}
-                       </Text>
-                       <Text size="1" style={{ 
-                         color: theme.colors.text.tertiary, 
-                         fontWeight: 500,
-                         textTransform: "uppercase",
-                         letterSpacing: "0.05em",
-                       }}>
-                         total items
-                       </Text>
-                     </Flex>
-                     <Box
-                       style={{
-                         width: "100%",
-                         height: "2px",
-                         background: theme.colors.border.secondary,
-                         borderRadius: "1px",
-                         overflow: "hidden",
-                       }}
-                     >
-                       <Box
-                         style={{
-                           width: "100%",
-                           height: "100%",
-                           background: theme.colors.text.primary,
-                         }}
-                       />
-                     </Box>
-                   </Box>
+                <Flex direction="column" gap="3">
+                  <Box>
+                    <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
+                      <Text size="3" style={{
+                        fontWeight: 700, 
+                        color: theme.colors.text.primary,
+                        fontFeatureSettings: '"tnum"',
+                        lineHeight: 1,
+                      }}>
+                        {totalItems.toLocaleString()}
+                      </Text>
+                      <Text size="1" style={{ 
+                        color: theme.colors.text.tertiary, 
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}>
+                        total items
+                      </Text>
+                    </Flex>
+                    <Box
+                      style={{
+                        width: "100%",
+                        height: "2px",
+                        background: theme.colors.border.secondary,
+                        borderRadius: "1px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Box
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          background: theme.colors.text.primary,
+                        }}
+                      />
+                    </Box>
+                  </Box>
 
-                   <Box>
-                     <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
-                       <Text size="2" style={{
-                         fontWeight: 600, 
-                         color: theme.colors.text.primary,
-                         fontFeatureSettings: '"tnum"',
-                         lineHeight: 1,
-                       }}>
-                         {totalCounts.confirmed.toLocaleString()}
-                       </Text>
-                       <Text size="1" style={{ 
-                         color: theme.colors.text.tertiary, 
-                         fontWeight: 500,
-                         textTransform: "uppercase",
-                         letterSpacing: "0.05em",
-                       }}>
-                         verified
-                       </Text>
-                     </Flex>
-                     <Box
-                       style={{
-                         width: "100%",
-                         height: "1px",
-                         background: theme.colors.border.secondary,
-                         borderRadius: "1px",
-                         overflow: "hidden",
-                       }}
-                     >
-                       <Box
-                         style={{
-                           width: `${verificationRate * 100}%`,
-                           height: "100%",
-                           background: theme.colors.text.secondary,
-                           transition: "width 0.5s ease",
-                         }}
-                       />
-                     </Box>
-                   </Box>
+                  <Box>
+                    <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
+                      <Text size="2" style={{
+                        fontWeight: 600, 
+                        color: theme.colors.text.primary,
+                        fontFeatureSettings: '"tnum"',
+                        lineHeight: 1,
+                      }}>
+                        {totalCounts.confirmed.toLocaleString()}
+                      </Text>
+                      <Text size="1" style={{ 
+                        color: theme.colors.text.tertiary, 
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}>
+                        verified
+                      </Text>
+                    </Flex>
+                    <Box
+                      style={{
+                        width: "100%",
+                        height: "1px",
+                        background: theme.colors.border.secondary,
+                        borderRadius: "1px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Box
+                        style={{
+                          width: `${verificationRate * 100}%`,
+                          height: "100%",
+                          background: theme.colors.text.secondary,
+                          transition: "width 0.5s ease",
+                        }}
+                      />
+                    </Box>
+                  </Box>
 
-                   <Box>
-                     <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
-                       <Text size="2" style={{
-                         fontWeight: 600, 
-                         color: theme.colors.text.primary,
-                         fontFeatureSettings: '"tnum"',
-                         lineHeight: 1,
-                       }}>
-                         {totalCounts.pending.toLocaleString()}
-                       </Text>
-                       <Text size="1" style={{ 
-                         color: theme.colors.text.tertiary, 
-                         fontWeight: 500,
-                         textTransform: "uppercase",
-                         letterSpacing: "0.05em",
-                       }}>
-                         pending review
-                       </Text>
-                     </Flex>
-                     <Box
-                       style={{
-                         width: "100%",
-                         height: "1px",
-                         background: theme.colors.border.secondary,
-                         borderRadius: "1px",
-                         overflow: "hidden",
-                       }}
-                     >
-                       <Box
-                         style={{
-                           width: `${totalCounts.pending > 0 ? (totalCounts.pending / totalItems) * 100 : 0}%`,
-                           height: "100%",
-                           background: theme.colors.text.tertiary,
-                           transition: "width 0.5s ease",
-                         }}
-                       />
-                     </Box>
-                   </Box>
-                 </Flex>
-               </Flex>
-             </Box>
+                  <Box>
+                    <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
+                      <Text size="2" style={{
+                        fontWeight: 600, 
+                        color: theme.colors.text.primary,
+                        fontFeatureSettings: '"tnum"',
+                        lineHeight: 1,
+                      }}>
+                        {totalCounts.pending.toLocaleString()}
+                      </Text>
+                      <Text size="1" style={{ 
+                        color: theme.colors.text.tertiary, 
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}>
+                        pending review
+                      </Text>
+                    </Flex>
+                    <Box
+                      style={{
+                        width: "100%",
+                        height: "1px",
+                        background: theme.colors.border.secondary,
+                        borderRadius: "1px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Box
+                        style={{
+                          width: `${totalCounts.pending > 0 ? (totalCounts.pending / totalItems) * 100 : 0}%`,
+                          height: "100%",
+                          background: theme.colors.text.tertiary,
+                          transition: "width 0.5s ease",
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </Flex>
+              </Flex>
+            </Box>
           </Grid>
         </Box>
 
@@ -496,61 +497,66 @@ export function DatasetDetail() {
             overflow: "hidden",
           }}
         >
-          {/* Browser Header */}
-          <Box
-            style={{
-              padding: theme.spacing.semantic.component.lg,
-              borderBottom: `1px solid ${theme.colors.border.secondary}`,
-              background: theme.colors.background.secondary,
-            }}
-          >
-            <Flex align="center" justify="between">
-              <Flex align="center" gap="3">
-                <FolderOpen size={18} style={{ color: theme.colors.text.secondary }} />
-                <Text size="3" style={{ 
-                  color: theme.colors.text.primary, 
-                  fontWeight: 600 
-                }}>
-                  Dataset Browser
-                </Text>
-              </Flex>
-              
-              <Flex align="center" gap="3">
-                <Flex align="center" gap="2">
-                  <Eye size={14} style={{ color: theme.colors.text.tertiary }} />
-                  <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                    Preview
-                  </Text>
-                </Flex>
-                <Flex align="center" gap="2">
-                  <Download size={14} style={{ color: theme.colors.text.tertiary }} />
-                  <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                    Export
-                  </Text>
-                </Flex>
-              </Flex>
-            </Flex>
-          </Box>
-
-          {/* Tab Navigation */}
+          {/* Unified Header with Tabs */}
           <Tabs.Root
             value={activeTab}
-            onValueChange={value => setActiveTab(value as "confirmed" | "pending")}
+            onValueChange={value => setActiveTab(value as "all" | "confirmed" | "pending")}
           >
             <Box
               style={{
-                borderBottom: `1px solid ${theme.colors.border.secondary}`,
-                background: theme.colors.background.card,
+                padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                borderBottom: `1px solid ${theme.colors.border.primary}`,
+                background: theme.colors.background.tertiary,
               }}
             >
-              <Flex style={{ padding: `0 ${theme.spacing.semantic.component.lg}` }}>
+              <Flex align="center" justify="between">
                 <Tabs.List
                   style={{
                     background: "transparent",
                     padding: 0,
-                    gap: 0,
+                    gap: theme.spacing.semantic.component.xs,
                   }}
                 >
+                  <Tabs.Trigger
+                    value="all"
+                    style={{
+                      cursor: "pointer",
+                      fontWeight: 500,
+                      color: activeTab === "all" 
+                        ? theme.colors.text.primary 
+                        : theme.colors.text.tertiary,
+                      background: activeTab === "all" 
+                        ? theme.colors.background.primary 
+                        : "transparent",
+                      border: `1px solid ${activeTab === "all" 
+                        ? theme.colors.border.primary 
+                        : "transparent"}`,
+                      borderRadius: theme.borders.radius.sm,
+                      padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                      transition: "all 0.2s ease",
+                      fontSize: "13px",
+                    }}
+                  >
+                    <Flex align="center" gap="2">
+                      <Database size={12} />
+                      <span>All</span>
+                      <Text
+                        size="1"
+                        style={{
+                          background: theme.colors.background.secondary,
+                          color: theme.colors.text.secondary,
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          padding: "1px 4px",
+                          borderRadius: theme.borders.radius.xs,
+                          fontFeatureSettings: '"tnum"',
+                        }}
+                      >
+                        {totalCounts.total.toLocaleString()}
+                      </Text>
+                    </Flex>
+                  </Tabs.Trigger>
+
                   <Tabs.Trigger
                     value="confirmed"
                     style={{
@@ -558,34 +564,36 @@ export function DatasetDetail() {
                       fontWeight: 500,
                       color: activeTab === "confirmed" 
                         ? theme.colors.text.primary 
-                        : theme.colors.text.secondary,
-                      background: "transparent",
-                      border: "none",
-                      borderBottom: activeTab === "confirmed" 
-                        ? `2px solid ${theme.colors.text.primary}` 
-                        : "2px solid transparent",
-                      padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-                      marginRight: theme.spacing.semantic.component.md,
+                        : theme.colors.text.tertiary,
+                      background: activeTab === "confirmed" 
+                        ? theme.colors.background.primary 
+                        : "transparent",
+                      border: `1px solid ${activeTab === "confirmed" 
+                        ? theme.colors.border.primary 
+                        : "transparent"}`,
+                      borderRadius: theme.borders.radius.sm,
+                      padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                       transition: "all 0.2s ease",
-                      fontSize: "14px",
+                      fontSize: "13px",
                     }}
                   >
                     <Flex align="center" gap="2">
-                      <CheckCircle size={14} />
+                      <CheckCircle size={12} />
                       <span>Verified</span>
-                      <Box
+                      <Text
+                        size="1"
                         style={{
                           background: theme.colors.background.secondary,
                           color: theme.colors.text.secondary,
-                          fontSize: "11px",
+                          fontSize: "10px",
                           fontWeight: 600,
-                          padding: "2px 6px",
-                          borderRadius: theme.borders.radius.sm,
+                          padding: "1px 4px",
+                          borderRadius: theme.borders.radius.xs,
                           fontFeatureSettings: '"tnum"',
                         }}
                       >
                         {totalCounts.confirmed.toLocaleString()}
-                      </Box>
+                      </Text>
                     </Flex>
                   </Tabs.Trigger>
 
@@ -596,43 +604,68 @@ export function DatasetDetail() {
                       fontWeight: 500,
                       color: activeTab === "pending" 
                         ? theme.colors.text.primary 
-                        : theme.colors.text.secondary,
-                      background: "transparent",
-                      border: "none",
-                      borderBottom: activeTab === "pending" 
-                        ? `2px solid ${theme.colors.text.primary}` 
-                        : "2px solid transparent",
-                      padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                        : theme.colors.text.tertiary,
+                      background: activeTab === "pending" 
+                        ? theme.colors.background.primary 
+                        : "transparent",
+                      border: `1px solid ${activeTab === "pending" 
+                        ? theme.colors.border.primary 
+                        : "transparent"}`,
+                      borderRadius: theme.borders.radius.sm,
+                      padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                       transition: "all 0.2s ease",
-                      fontSize: "14px",
+                      fontSize: "13px",
                     }}
                   >
                     <Flex align="center" gap="2">
-                      <Users size={14} />
+                      <Users size={12} />
                       <span>Under Review</span>
-                      <Box
+                      <Text
+                        size="1"
                         style={{
                           background: theme.colors.background.secondary,
                           color: theme.colors.text.secondary,
-                          fontSize: "11px",
+                          fontSize: "10px",
                           fontWeight: 600,
-                          padding: "2px 6px",
-                          borderRadius: theme.borders.radius.sm,
+                          padding: "1px 4px",
+                          borderRadius: theme.borders.radius.xs,
                           fontFeatureSettings: '"tnum"',
                         }}
                       >
                         {totalCounts.pending.toLocaleString()}
-                      </Box>
+                      </Text>
                     </Flex>
                   </Tabs.Trigger>
                 </Tabs.List>
+
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.tertiary,
+                    fontSize: "11px",
+                    fontWeight: 500,
+                    fontFeatureSettings: '"tnum"',
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {(
+                    activeTab === "all" ? totalCounts.total 
+                    : activeTab === "confirmed" ? totalCounts.confirmed 
+                    : totalCounts.pending
+                  ).toLocaleString()} items
+                </Text>
               </Flex>
             </Box>
 
             {/* Content Area */}
-            <Box style={{ padding: theme.spacing.semantic.component.lg }}>
+            <Box>
               <DatasetImageGallery
-                items={getPaginatedItems(activeTab === "confirmed" ? confirmedPage : pendingPage)}
+                items={getPaginatedItems(
+                  activeTab === "all" ? allPage 
+                  : activeTab === "confirmed" ? confirmedPage 
+                  : pendingPage
+                )}
                 loading={isAnyBlobLoading()}
                 activeTab={activeTab}
                 onTabChange={tab => setActiveTab(tab)}
@@ -644,19 +677,36 @@ export function DatasetDetail() {
               />
 
               {/* Pagination */}
-              <Box style={{ marginTop: theme.spacing.semantic.component.xl }}>
+              <Box style={{ marginTop: theme.spacing.semantic.component.md }}>
                 <DatasetPagination
-                  currentPage={activeTab === "confirmed" ? confirmedPage : pendingPage}
+                  currentPage={
+                    activeTab === "all" ? allPage 
+                    : activeTab === "confirmed" ? confirmedPage 
+                    : pendingPage
+                  }
                   hasNextPage={(() => {
-                    const currentPage = activeTab === "confirmed" ? confirmedPage : pendingPage;
+                    const currentPage = 
+                      activeTab === "all" ? allPage 
+                      : activeTab === "confirmed" ? confirmedPage 
+                      : pendingPage;
                     const totalItems =
-                      activeTab === "confirmed" ? totalCounts.confirmed : totalCounts.pending;
+                      activeTab === "all" ? totalCounts.total 
+                      : activeTab === "confirmed" ? totalCounts.confirmed 
+                      : totalCounts.pending;
                     const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
                     return currentPage < totalPages || !!dataset?.pageInfo?.hasNextPage;
                   })()}
-                  hasPrevPage={(activeTab === "confirmed" ? confirmedPage : pendingPage) > 1}
+                  hasPrevPage={(
+                    activeTab === "all" ? allPage 
+                    : activeTab === "confirmed" ? confirmedPage 
+                    : pendingPage
+                  ) > 1}
                   loading={paginationLoading}
-                  totalItems={activeTab === "confirmed" ? totalCounts.confirmed : totalCounts.pending}
+                  totalItems={
+                    activeTab === "all" ? totalCounts.total 
+                    : activeTab === "confirmed" ? totalCounts.confirmed 
+                    : totalCounts.pending
+                  }
                   pageSize={DEFAULT_PAGE_SIZE}
                   onLoadPage={loadPage}
                 />
@@ -703,9 +753,24 @@ export function DatasetDetail() {
             color: ${theme.colors.text.primary} !important;
           }
           
-          .item-card-hover:hover {
-            transform: translateY(-1px);
-            box-shadow: ${theme.shadows.semantic.card.medium} !important;
+          .dataset-row-hover:hover {
+            background: ${theme.colors.background.secondary} !important;
+          }
+          
+          .dataset-row-hover:hover .arrow-icon {
+            color: ${theme.colors.text.primary} !important;
+          }
+          
+          .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
           }
         `}
       </style>

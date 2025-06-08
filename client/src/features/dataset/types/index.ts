@@ -84,7 +84,7 @@ export interface BlobLoading {
   [blobId: string]: boolean;
 }
 
-export type ActiveTab = "confirmed" | "pending";
+export type ActiveTab = "all" | "confirmed" | "pending";
 
 // Re-export upload types
 export type {
