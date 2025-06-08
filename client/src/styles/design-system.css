@@ -33,10 +33,46 @@ body {
   outline-offset: 2px;
 }
 
-/* Selection styles */
-::selection {
-  background-color: var(--og-interactive-primary);
-  color: var(--og-text-inverse);
+/* 
+  Selection styles - use theme-defined colors with maximum specificity
+  use !important to override Radix UI accent color
+ */
+html body ::selection,
+body ::selection,
+* ::selection {
+  background-color: var(--og-selection-bg) !important;
+  color: var(--og-selection-text) !important;
+  text-shadow: none !important;
+}
+
+html body ::-moz-selection,
+body ::-moz-selection,
+* ::-moz-selection {
+  background-color: var(--og-selection-bg) !important;
+  color: var(--og-selection-text) !important;
+  text-shadow: none !important;
+}
+
+/* Ensure text selection is always enabled unless explicitly disabled */
+* {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Only disable selection for interactive elements */
+button, 
+input[type="button"], 
+input[type="submit"], 
+input[type="reset"],
+[role="button"],
+.og-button-primary,
+[data-radix-collection-item] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Scrollbar styles */

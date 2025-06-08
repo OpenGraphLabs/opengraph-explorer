@@ -154,6 +154,10 @@ export function ThemeProvider({ children, defaultMode = "light" }: ThemeProvider
       setProperty(`--og-data-${key}`, value);
     });
 
+    // Selection styles - use theme-defined colors for consistency
+    setProperty("--og-selection-bg", theme.colors.selection.background);
+    setProperty("--og-selection-text", theme.colors.selection.text);
+
     // Set data attribute for theme-aware styling
     root.setAttribute("data-theme", mode);
     root.setAttribute("data-color-scheme", mode);

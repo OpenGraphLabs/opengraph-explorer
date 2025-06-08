@@ -184,6 +184,12 @@ export const lightThemeColors = {
   },
 
   dataType: dataTypeColors,
+
+  // Text selection colors - subtle and natural
+  selection: {
+    background: brandColors.primary[200], // Very subtle blue-gray
+    text: brandColors.primary[800], // Deep blue-gray for gentle contrast
+  },
 } as const;
 
 // Professional dark theme (primary focus - very dark and muted)
@@ -243,6 +249,12 @@ export const darkThemeColors = {
     structured: brandColors.primary[500],
     time_series: "#34D399", // Muted emerald
     graph: "#22D3EE", // Muted cyan
+  },
+
+  // Text selection colors - subtle and eye-friendly for dark theme
+  selection: {
+    background: brandColors.primary[700], // Gentle dark blue-gray
+    text: neutralColors[200], // Soft light gray for comfortable reading
   },
 } as const;
 
