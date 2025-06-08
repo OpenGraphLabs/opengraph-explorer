@@ -1,0 +1,926 @@
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  Grid,
+  Spinner,
+  Badge,
+} from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { SidebarLayout } from "@/widgets/layout/AppLayout";
+import {
+  Trophy,
+  UploadSimple,
+  MagnifyingGlass,
+  Circle,
+  Sparkle,
+  Lightning,
+  ChartLineUp,
+  Clock,
+  Users,
+  CurrencyDollar,
+  Star,
+  Lightning as Bolt,
+  Fire,
+} from "phosphor-react";
+import { useChallenges, Challenge, ChallengeStatus } from "@/features/challenge";
+import { useNavigate } from "react-router-dom";
+
+// Challenge Status Badge Component
+function ChallengeStatusBadge({ status }: { status: ChallengeStatus }) {
+  const { theme } = useTheme();
+  
+  const statusConfig = {
+    active: { 
+      color: theme.colors.status.success, 
+      bg: `${theme.colors.status.success}15`,
+      text: 'Active' 
+    },
+    draft: { 
+      color: theme.colors.text.tertiary, 
+      bg: `${theme.colors.text.tertiary}15`,
+      text: 'Draft' 
+    },
+    completed: { 
+      color: theme.colors.interactive.primary, 
+      bg: `${theme.colors.interactive.primary}15`,
+      text: 'Completed' 
+    },
+    cancelled: { 
+      color: theme.colors.status.error, 
+      bg: `${theme.colors.status.error}15`,
+      text: 'Cancelled' 
+    },
+    validating: { 
+      color: theme.colors.status.warning, 
+      bg: `${theme.colors.status.warning}15`,
+      text: 'Validating' 
+    },
+  };
+
+  const config = statusConfig[status];
+
+  return (
+    <Badge
+      style={{
+        background: config.bg,
+        color: config.color,
+        border: `1px solid ${config.color}30`,
+        padding: "4px 8px",
+        borderRadius: theme.borders.radius.full,
+        fontSize: "11px",
+        fontWeight: 600,
+      }}
+    >
+      {config.text}
+    </Badge>
+  );
+}
+
+// Challenge Difficulty Badge
+function DifficultyBadge({ difficulty }: { difficulty: Challenge['difficulty'] }) {
+  const { theme } = useTheme();
+  
+  const difficultyConfig = {
+    beginner: { 
+      color: theme.colors.status.success, 
+      icon: <Circle size={6} weight="fill" />,
+      text: 'Beginner'
+    },
+    intermediate: { 
+      color: theme.colors.status.warning, 
+      icon: <Star size={8} />,
+      text: 'Intermediate'
+    },
+    advanced: { 
+      color: theme.colors.status.error, 
+      icon: <Fire size={8} />,
+      text: 'Advanced'
+    },
+  };
+
+  const config = difficultyConfig[difficulty];
+
+  return (
+    <Flex align="center" gap="1" style={{ color: config.color }}>
+      {config.icon}
+      <Text size="1" style={{ fontWeight: 600 }}>
+        {config.text}
+      </Text>
+    </Flex>
+  );
+}
+
+// Challenge Card Component
+function ChallengeCard({ challenge, index }: { challenge: Challenge; index: number }) {
+  const { theme } = useTheme();
+  const navigate = useNavigate();
+
+  const daysLeft = Math.max(0, Math.ceil(
+    (challenge.timeline.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  ));
+
+  const progressPercentage = challenge.stats.totalParticipants > 0 
+    ? Math.min(100, (challenge.stats.completedAnnotations / (challenge.stats.totalParticipants * 100)) * 100)
+    : 0;
+
+  return (
+    <Box
+      className={`challenge-card challenge-card-${index}`}
+      onClick={() => navigate(`/challenges/${challenge.id}`)}
+      style={{
+        background: theme.colors.background.card,
+        border: `1px solid ${theme.colors.border.primary}`,
+        borderRadius: theme.borders.radius.lg,
+        padding: theme.spacing.semantic.component.lg,
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        position: "relative",
+        overflow: "hidden",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = theme.shadows.semantic.card.high;
+        e.currentTarget.style.borderColor = theme.colors.interactive.primary;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
+        e.currentTarget.style.borderColor = theme.colors.border.primary;
+      }}
+    >
+      {/* Header */}
+      <Flex justify="between" align="start" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+        <Box style={{ flex: 1 }}>
+          <Text
+            as="div"
+            size="3"
+            style={{
+              fontWeight: 700,
+              color: theme.colors.text.primary,
+              marginBottom: theme.spacing.semantic.component.xs,
+              lineHeight: 1.3,
+            }}
+          >
+            {challenge.title}
+          </Text>
+          <Text
+            as="div"
+            size="2"
+            style={{
+              color: theme.colors.text.secondary,
+              lineHeight: 1.4,
+              marginBottom: theme.spacing.semantic.component.sm,
+            }}
+          >
+            {challenge.description.length > 120 
+              ? `${challenge.description.substring(0, 120)}...`
+              : challenge.description
+            }
+          </Text>
+        </Box>
+        <ChallengeStatusBadge status={challenge.status} />
+      </Flex>
+
+      {/* Dataset Info */}
+      <Flex 
+        align="center" 
+        gap="2" 
+        style={{ 
+          marginBottom: theme.spacing.semantic.component.md,
+          padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+          background: theme.colors.background.secondary,
+          borderRadius: theme.borders.radius.md,
+        }}
+      >
+        <Box
+          style={{
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            background: theme.colors.interactive.primary,
+          }}
+        />
+        <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
+          Dataset: {challenge.datasetName}
+        </Text>
+      </Flex>
+
+      {/* Stats Grid */}
+      <Grid columns="2" gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+        {/* Bounty */}
+        <Flex direction="column" gap="1">
+          <Flex align="center" gap="1">
+            <CurrencyDollar size={12} style={{ color: theme.colors.status.success }} />
+            <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              BOUNTY
+            </Text>
+          </Flex>
+          <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+            {challenge.bounty.totalAmount.toLocaleString()} {challenge.bounty.currency}
+          </Text>
+        </Flex>
+
+        {/* Participants */}
+        <Flex direction="column" gap="1">
+          <Flex align="center" gap="1">
+            <Users size={12} style={{ color: theme.colors.interactive.accent }} />
+            <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              PARTICIPANTS
+            </Text>
+          </Flex>
+          <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+            {challenge.stats.totalParticipants}
+            {challenge.requirements.maxParticipants && (
+              <Text size="1" style={{ color: theme.colors.text.secondary }}>
+                /{challenge.requirements.maxParticipants}
+              </Text>
+            )}
+          </Text>
+        </Flex>
+
+        {/* Time Left */}
+        <Flex direction="column" gap="1">
+          <Flex align="center" gap="1">
+            <Clock size={12} style={{ color: theme.colors.status.warning }} />
+            <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              TIME LEFT
+            </Text>
+          </Flex>
+          <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+            {daysLeft > 0 ? `${daysLeft} days` : 'Ended'}
+          </Text>
+        </Flex>
+
+        {/* Progress */}
+        <Flex direction="column" gap="1">
+          <Flex align="center" gap="1">
+            <Bolt size={12} style={{ color: theme.colors.interactive.primary }} />
+            <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              PROGRESS
+            </Text>
+          </Flex>
+          <Flex align="center" gap="2">
+            <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+              {Math.round(progressPercentage)}%
+            </Text>
+            <Box
+              style={{
+                flex: 1,
+                height: "4px",
+                background: theme.colors.background.secondary,
+                borderRadius: "2px",
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                style={{
+                  height: "100%",
+                  width: `${progressPercentage}%`,
+                  background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.status.success})`,
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </Box>
+          </Flex>
+        </Flex>
+      </Grid>
+
+      {/* Tags & Difficulty */}
+      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+        <Flex gap="1" style={{ flexWrap: "wrap" }}>
+          {challenge.tags.slice(0, 3).map((tag, idx) => (
+            <Badge
+              key={idx}
+              style={{
+                background: `${theme.colors.interactive.primary}10`,
+                color: theme.colors.interactive.primary,
+                border: `1px solid ${theme.colors.interactive.primary}20`,
+                padding: "2px 6px",
+                borderRadius: theme.borders.radius.sm,
+                fontSize: "10px",
+                fontWeight: 500,
+              }}
+            >
+              {tag}
+            </Badge>
+          ))}
+          {challenge.tags.length > 3 && (
+            <Badge
+              style={{
+                background: theme.colors.background.secondary,
+                color: theme.colors.text.tertiary,
+                padding: "2px 6px",
+                borderRadius: theme.borders.radius.sm,
+                fontSize: "10px",
+              }}
+            >
+              +{challenge.tags.length - 3}
+            </Badge>
+          )}
+        </Flex>
+        <DifficultyBadge difficulty={challenge.difficulty} />
+      </Flex>
+
+      {/* Phase Indicator */}
+      <Box
+        style={{
+          padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+          background: `${theme.colors.interactive.accent}10`,
+          border: `1px solid ${theme.colors.interactive.accent}30`,
+          borderRadius: theme.borders.radius.md,
+          textAlign: "center",
+        }}
+      >
+        <Text
+          size="2"
+          style={{
+            color: theme.colors.interactive.accent,
+            fontWeight: 600,
+            textTransform: "capitalize",
+          }}
+        >
+          Current: {challenge.currentPhase} Phase
+        </Text>
+      </Box>
+    </Box>
+  );
+}
+
+// Filter Component
+function ChallengeFilters({ filters, onUpdateFilter, availableTags, onToggleTag, onClearTags }: any) {
+  const { theme } = useTheme();
+
+  return (
+    <Flex direction="column" gap="4">
+      {/* Search */}
+      <Box>
+        <Text
+          size="2"
+          style={{
+            fontWeight: 600,
+            color: theme.colors.text.primary,
+            marginBottom: theme.spacing.semantic.component.sm,
+          }}
+        >
+          Search
+        </Text>
+        <input
+          type="text"
+          placeholder="Search challenges..."
+          value={filters.searchQuery}
+          onChange={(e) => onUpdateFilter('searchQuery', e.target.value)}
+          style={{
+            width: "100%",
+            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+            borderRadius: theme.borders.radius.md,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.primary,
+            color: theme.colors.text.primary,
+            fontSize: "13px",
+            outline: "none",
+          }}
+        />
+      </Box>
+
+      {/* Status Filter */}
+      <Box>
+        <Text
+          size="2"
+          style={{
+            fontWeight: 600,
+            color: theme.colors.text.primary,
+            marginBottom: theme.spacing.semantic.component.sm,
+          }}
+        >
+          Status
+        </Text>
+        <select
+          value={filters.status}
+          onChange={(e) => onUpdateFilter('status', e.target.value)}
+          style={{
+            width: "100%",
+            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+            borderRadius: theme.borders.radius.md,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.primary,
+            color: theme.colors.text.primary,
+            fontSize: "13px",
+            outline: "none",
+          }}
+        >
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="draft">Draft</option>
+          <option value="completed">Completed</option>
+          <option value="validating">Validating</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </Box>
+
+      {/* Difficulty Filter */}
+      <Box>
+        <Text
+          size="2"
+          style={{
+            fontWeight: 600,
+            color: theme.colors.text.primary,
+            marginBottom: theme.spacing.semantic.component.sm,
+          }}
+        >
+          Difficulty
+        </Text>
+        <select
+          value={filters.difficulty}
+          onChange={(e) => onUpdateFilter('difficulty', e.target.value)}
+          style={{
+            width: "100%",
+            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+            borderRadius: theme.borders.radius.md,
+            border: `1px solid ${theme.colors.border.primary}`,
+            background: theme.colors.background.primary,
+            color: theme.colors.text.primary,
+            fontSize: "13px",
+            outline: "none",
+          }}
+        >
+          <option value="all">All Levels</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </Box>
+
+      {/* Tags */}
+      {availableTags.length > 0 && (
+        <Box>
+          <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Text size="2" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
+              Tags
+            </Text>
+            {filters.tags.length > 0 && (
+              <Button
+                onClick={onClearTags}
+                style={{
+                  background: "transparent",
+                  color: theme.colors.interactive.primary,
+                  border: "none",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  padding: "0",
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </Flex>
+          <Flex direction="column" gap="1">
+            {availableTags.slice(0, 10).map((tag: string) => (
+              <Flex
+                key={tag}
+                align="center"
+                gap="2"
+                style={{
+                  padding: `${theme.spacing.semantic.component.xs} 0`,
+                  cursor: "pointer",
+                }}
+                onClick={() => onToggleTag(tag)}
+              >
+                <input
+                  type="checkbox"
+                  checked={filters.tags.includes(tag)}
+                  onChange={() => onToggleTag(tag)}
+                  style={{ cursor: "pointer" }}
+                />
+                <Text
+                  size="2"
+                  style={{
+                    color: filters.tags.includes(tag)
+                      ? theme.colors.text.primary
+                      : theme.colors.text.secondary,
+                    fontWeight: filters.tags.includes(tag) ? 600 : 400,
+                  }}
+                >
+                  {tag}
+                </Text>
+              </Flex>
+            ))}
+          </Flex>
+        </Box>
+      )}
+    </Flex>
+  );
+}
+
+export function Challenges() {
+  const { theme } = useTheme();
+  const {
+    filteredChallenges,
+    loading,
+    error,
+    isLoaded,
+    filters,
+    getAllUniqueTags,
+    toggleTag,
+    clearTags,
+    updateFilter,
+    refetch,
+  } = useChallenges();
+
+  if (loading) {
+    return (
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
+          style={{
+            background: theme.colors.background.card,
+            padding: theme.spacing.semantic.layout.lg,
+            borderRadius: theme.borders.radius.lg,
+            border: `1px solid ${theme.colors.border.primary}`,
+            boxShadow: theme.shadows.semantic.card.low,
+            maxWidth: "400px",
+          }}
+        >
+          <Box
+            style={{
+              position: "relative",
+              width: "48px",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Box
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                background: `linear-gradient(135deg, ${theme.colors.interactive.primary}20, ${theme.colors.interactive.accent}20)`,
+                animation: "pulse 2s infinite",
+              }}
+            />
+            <Spinner />
+          </Box>
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
+            >
+              Loading Challenges
+            </Text>
+          </Box>
+        </Flex>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
+          style={{
+            background: theme.colors.background.card,
+            padding: theme.spacing.semantic.layout.lg,
+            borderRadius: theme.borders.radius.lg,
+            border: `1px solid ${theme.colors.status.error}40`,
+            boxShadow: theme.shadows.semantic.card.medium,
+            maxWidth: "400px",
+          }}
+        >
+          <Box
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              background: `${theme.colors.status.error}15`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Trophy size={24} style={{ color: theme.colors.status.error }} />
+          </Box>
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
+            >
+              Challenge Registry Error
+            </Text>
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                lineHeight: 1.5,
+                marginBottom: theme.spacing.semantic.component.md,
+              }}
+            >
+              {error}
+            </Text>
+            <Button
+              onClick={refetch}
+              style={{
+                background: theme.colors.interactive.primary,
+                color: theme.colors.text.inverse,
+                border: "none",
+                borderRadius: theme.borders.radius.sm,
+                padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                fontWeight: 600,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              Retry
+            </Button>
+          </Box>
+        </Flex>
+      </Box>
+    );
+  }
+
+  // Top Bar Component
+  const topBar = (
+    <Flex justify="between" align="center">
+      <Flex align="center" gap="4">
+        <Flex align="center" gap="2">
+          <ChartLineUp size={18} style={{ color: theme.colors.interactive.primary }} />
+          <Text
+            size="3"
+            style={{
+              fontWeight: 600,
+              color: theme.colors.text.primary,
+            }}
+          >
+            {filteredChallenges.length} {filteredChallenges.length === 1 ? "Challenge" : "Challenges"}
+          </Text>
+        </Flex>
+
+        {/* Active Filters */}
+        <Flex align="center" gap="2">
+          {filters.status !== "all" && (
+            <Badge
+              style={{
+                background: `${theme.colors.interactive.primary}15`,
+                color: theme.colors.interactive.primary,
+                border: `1px solid ${theme.colors.interactive.primary}30`,
+                padding: "2px 8px",
+                borderRadius: theme.borders.radius.full,
+                fontSize: "11px",
+                fontWeight: 600,
+              }}
+            >
+              Status: {filters.status}
+            </Badge>
+          )}
+
+          {filters.searchQuery && (
+            <Badge
+              style={{
+                background: `${theme.colors.status.info}15`,
+                color: theme.colors.status.info,
+                border: `1px solid ${theme.colors.status.info}30`,
+                padding: "2px 8px",
+                borderRadius: theme.borders.radius.full,
+                fontSize: "11px",
+                fontWeight: 500,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <MagnifyingGlass size={10} />
+              "{filters.searchQuery.length > 20 ? filters.searchQuery.substring(0, 20) + "..." : filters.searchQuery}"
+            </Badge>
+          )}
+
+          {filters.tags.length > 0 && (
+            <Badge
+              style={{
+                background: `${theme.colors.status.warning}15`,
+                color: theme.colors.status.warning,
+                border: `1px solid ${theme.colors.status.warning}30`,
+                padding: "2px 8px",
+                borderRadius: theme.borders.radius.full,
+                fontSize: "11px",
+                fontWeight: 500,
+              }}
+            >
+              {filters.tags.length} {filters.tags.length === 1 ? "tag" : "tags"}
+            </Badge>
+          )}
+        </Flex>
+      </Flex>
+
+      {/* Sort */}
+      <Flex align="center" gap="2">
+        <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+          Sort:
+        </Text>
+        <select
+          value={filters.sortBy}
+          onChange={(e) => updateFilter('sortBy', e.target.value as any)}
+          style={{
+            background: theme.colors.background.primary,
+            border: `1px solid ${theme.colors.border.primary}`,
+            borderRadius: theme.borders.radius.sm,
+            padding: `4px 8px`,
+            fontSize: "12px",
+            color: theme.colors.text.primary,
+            outline: "none",
+          }}
+        >
+          <option value="createdAt">Created Date</option>
+          <option value="bounty">Bounty Amount</option>
+          <option value="participants">Participants</option>
+          <option value="deadline">Deadline</option>
+        </select>
+      </Flex>
+    </Flex>
+  );
+
+  // Sidebar configuration
+  const sidebarConfig = {
+    section: {
+      icon: <Trophy size={16} style={{ color: theme.colors.text.inverse }} />,
+      title: "Challenge Hub",
+      actionButton: {
+        text: "Create Challenge",
+        icon: <UploadSimple size={14} weight="bold" />,
+        href: "/challenges/create",
+      },
+    },
+    stats: [
+      {
+        icon: <Circle size={6} weight="fill" style={{ color: theme.colors.status.success }} />,
+        text: `${filteredChallenges.filter(c => c.status === 'active').length} Active`,
+      },
+      {
+        icon: <Lightning size={10} style={{ color: theme.colors.interactive.accent }} />,
+        text: "Blockchain Verified",
+      },
+      {
+        icon: <Sparkle size={10} style={{ color: theme.colors.status.warning }} />,
+        text: "Decentralized Rewards",
+      },
+    ],
+    filters: (
+      <ChallengeFilters
+        filters={filters}
+        availableTags={getAllUniqueTags()}
+        onUpdateFilter={updateFilter}
+        onToggleTag={toggleTag}
+        onClearTags={clearTags}
+      />
+    ),
+  };
+
+  return (
+    <SidebarLayout sidebar={sidebarConfig} topBar={topBar}>
+      {filteredChallenges.length === 0 ? (
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          gap="4"
+          style={{
+            height: "60vh",
+            background: theme.colors.background.card,
+            borderRadius: theme.borders.radius.lg,
+            border: `1px solid ${theme.colors.border.primary}`,
+            padding: theme.spacing.semantic.layout.lg,
+          }}
+        >
+          <Box
+            style={{
+              width: "64px",
+              height: "64px",
+              borderRadius: "50%",
+              background: `${theme.colors.text.tertiary}10`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Trophy size={28} style={{ color: theme.colors.text.tertiary }} />
+          </Box>
+          <Box style={{ textAlign: "center", maxWidth: "320px" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
+            >
+              No Challenges Found
+            </Text>
+            <br />
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                lineHeight: 1.5,
+              }}
+            >
+              Try adjusting your filters or search terms
+            </Text>
+          </Box>
+        </Flex>
+      ) : (
+        <Grid
+          columns={{ initial: "1", sm: "1", md: "2" }}
+          gap="4"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(480px, 1fr))",
+          }}
+          className={isLoaded ? "pageLoaded" : ""}
+        >
+          {filteredChallenges.map((challenge, index) => (
+            <Box
+              key={challenge.id}
+              className={isLoaded ? "visible" : ""}
+              style={{
+                animationDelay: `${index * 0.1}s`,
+              }}
+            >
+              <ChallengeCard challenge={challenge} index={index} />
+            </Box>
+          ))}
+        </Grid>
+      )}
+
+      <style>
+        {`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        
+        .pageLoaded {
+          animation: fadeIn 0.6s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+          from { 
+            opacity: 0.8; 
+            transform: translateY(10px);
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0);
+          }
+        }
+        
+        .visible {
+          animation: cardSlideIn 0.4s ease forwards;
+        }
+        
+        @keyframes cardSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        `}
+      </style>
+    </SidebarLayout>
+  );
+}
