@@ -81,17 +81,20 @@ export function DatasetMetadataForm({
     e.target.style.boxShadow = "none";
   };
 
-  const completedFields = [
-    metadata.name.trim(),
-    metadata.description.trim(),
-  ].filter(Boolean).length;
+  const completedFields = [metadata.name.trim(), metadata.description.trim()].filter(
+    Boolean
+  ).length;
 
   return (
     <Box>
       <Flex direction="column" gap={theme.spacing.semantic.component.lg}>
         {/* Dataset Name */}
         <Box>
-          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+          <Flex
+            align="center"
+            gap="2"
+            style={{ marginBottom: theme.spacing.semantic.component.sm }}
+          >
             <Info size={14} style={{ color: theme.colors.interactive.primary }} />
             <Text
               as="label"
@@ -136,7 +139,11 @@ export function DatasetMetadataForm({
 
         {/* Description */}
         <Box>
-          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+          <Flex
+            align="center"
+            gap="2"
+            style={{ marginBottom: theme.spacing.semantic.component.sm }}
+          >
             <Text
               as="label"
               size="2"
@@ -184,7 +191,11 @@ export function DatasetMetadataForm({
         >
           {/* Creator */}
           <Box style={{ flex: 1 }}>
-            <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Flex
+              align="center"
+              gap="2"
+              style={{ marginBottom: theme.spacing.semantic.component.sm }}
+            >
               <User size={14} style={{ color: theme.colors.interactive.primary }} />
               <Text
                 as="label"
@@ -220,7 +231,11 @@ export function DatasetMetadataForm({
 
           {/* Tags */}
           <Box style={{ flex: 1 }}>
-            <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Flex
+              align="center"
+              gap="2"
+              style={{ marginBottom: theme.spacing.semantic.component.sm }}
+            >
               <Tag size={14} style={{ color: theme.colors.interactive.primary }} />
               <Text
                 as="label"
@@ -233,12 +248,15 @@ export function DatasetMetadataForm({
                 Tags
               </Text>
             </Flex>
-            <Flex gap={theme.spacing.semantic.component.xs} style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Flex
+              gap={theme.spacing.semantic.component.xs}
+              style={{ marginBottom: theme.spacing.semantic.component.sm }}
+            >
               <input
                 type="text"
                 placeholder="computer-vision, nlp, medical..."
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
+                onChange={e => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
                 style={{ ...inputStyle, flex: 1 }}
                 onFocus={handleFocus}
@@ -251,8 +269,8 @@ export function DatasetMetadataForm({
                   height: "42px",
                   padding: "0 16px",
                   borderRadius: theme.borders.radius.md,
-                  backgroundColor: tagInput.trim() 
-                    ? theme.colors.interactive.primary 
+                  backgroundColor: tagInput.trim()
+                    ? theme.colors.interactive.primary
                     : theme.colors.interactive.disabled,
                   border: "none",
                   color: theme.colors.text.inverse,
@@ -287,7 +305,9 @@ export function DatasetMetadataForm({
                       fontWeight: 500,
                     }}
                   >
-                    <Text size="1" style={{ color: "inherit" }}>{tag}</Text>
+                    <Text size="1" style={{ color: "inherit" }}>
+                      {tag}
+                    </Text>
                     <button
                       onClick={() => onRemoveTag(tag)}
                       style={{
@@ -340,7 +360,9 @@ export function DatasetMetadataForm({
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: metadata.name.trim() ? theme.colors.status.success : theme.colors.text.tertiary,
+                  background: metadata.name.trim()
+                    ? theme.colors.status.success
+                    : theme.colors.text.tertiary,
                 }}
               />
               <Box
@@ -348,7 +370,9 @@ export function DatasetMetadataForm({
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: metadata.description.trim() ? theme.colors.status.success : theme.colors.text.tertiary,
+                  background: metadata.description.trim()
+                    ? theme.colors.status.success
+                    : theme.colors.text.tertiary,
                 }}
               />
               <Text

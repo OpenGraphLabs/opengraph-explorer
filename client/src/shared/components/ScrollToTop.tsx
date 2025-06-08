@@ -10,4 +10,4 @@ export function ScrollToTop() {
   }, [pathname]);
 
   return null; // This component doesn't render anything
-} 
+}

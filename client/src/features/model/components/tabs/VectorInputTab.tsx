@@ -42,7 +42,11 @@ export function VectorInputTab({ firstLayerDimension, onVectorGenerated }: Vecto
   return (
     <Flex direction="column" gap="4">
       <Flex align="center" gap="3" mb="4">
-        <BrainCircuit size={20} weight="duotone" style={{ color: theme.colors.interactive.primary }} />
+        <BrainCircuit
+          size={20}
+          weight="duotone"
+          style={{ color: theme.colors.interactive.primary }}
+        />
         <Heading size="3">Input Vector</Heading>
       </Flex>
 

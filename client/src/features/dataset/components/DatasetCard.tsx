@@ -1,18 +1,6 @@
 import { Link } from "react-router-dom";
-import {
-  Box,
-  Card,
-  Flex,
-  Text,
-  Badge,
-} from "@radix-ui/themes";
-import { 
-  FileText,
-  Shield,
-  Clock,
-  Archive,
-  User
-} from "phosphor-react";
+import { Box, Card, Flex, Text, Badge } from "@radix-ui/themes";
+import { FileText, Shield, Clock, Archive, User } from "phosphor-react";
 import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
 import { formatDataSize, getDataTypeIcon, getDataTypeColor, truncateAddress } from "../utils";
 import { useTheme } from "@/shared/ui/design-system";
@@ -56,12 +44,12 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
             transition: theme.animations.transitions.hover,
             cursor: "pointer",
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             e.currentTarget.style.transform = "translateY(-2px)";
             e.currentTarget.style.boxShadow = theme.shadows.semantic.card.medium;
             e.currentTarget.style.borderColor = `${theme.colors.interactive.primary}40`;
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
             e.currentTarget.style.borderColor = theme.colors.border.primary;
@@ -126,35 +114,27 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
             <Flex justify="between" align="center" style={{ marginTop: "auto" }}>
               <Flex gap="3" align="center">
                 <Flex align="center" gap="1">
-                  <FileText 
-                    width="11" 
-                    height="11" 
-                    style={{ color: theme.colors.text.tertiary }} 
-                  />
-                  <Text 
-                    size="1" 
-                    style={{ 
-                      color: theme.colors.text.tertiary, 
+                  <FileText width="11" height="11" style={{ color: theme.colors.text.tertiary }} />
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
                       fontWeight: "500",
-                      fontSize: "10px"
+                      fontSize: "10px",
                     }}
                   >
                     {formatNumber(dataset.dataCount || 0)}
                   </Text>
                 </Flex>
-                
+
                 <Flex align="center" gap="1">
-                  <Archive 
-                    width="11" 
-                    height="11" 
-                    style={{ color: theme.colors.text.tertiary }} 
-                  />
-                  <Text 
-                    size="1" 
-                    style={{ 
-                      color: theme.colors.text.tertiary, 
+                  <Archive width="11" height="11" style={{ color: theme.colors.text.tertiary }} />
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
                       fontWeight: "500",
-                      fontSize: "10px"
+                      fontSize: "10px",
                     }}
                   >
                     {formatDataSize(dataset.dataSize)}
@@ -163,17 +143,13 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
               </Flex>
 
               <Flex align="center" gap="1">
-                <Shield 
-                  width="11" 
-                  height="11" 
-                  style={{ color: theme.colors.status.success }} 
-                />
-                <Text 
-                  size="1" 
-                  style={{ 
-                    color: theme.colors.text.muted, 
+                <Shield width="11" height="11" style={{ color: theme.colors.status.success }} />
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.muted,
                     fontWeight: "500",
-                    fontSize: "9px"
+                    fontSize: "9px",
                   }}
                 >
                   Verified

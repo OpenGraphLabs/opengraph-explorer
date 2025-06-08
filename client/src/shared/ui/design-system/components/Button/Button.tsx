@@ -103,22 +103,22 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       opacity: disabled ? 0.6 : 1,
       fontWeight: theme.typography.label.fontWeight, // Use available typography
       letterSpacing: theme.typography.label.letterSpacing,
-      
+
       // Professional styling enhancements
       ...(variant === "primary" && {
         boxShadow: theme.shadows.semantic.interactive.default,
       }),
-      
+
       ...(variant === "secondary" && {
         boxShadow: theme.shadows.semantic.interactive.default,
       }),
-      
+
       ...(loading && {
         position: "relative",
         color: "transparent",
         pointerEvents: "none",
       }),
-      
+
       ...style, // Apply custom styles last
     };
 
@@ -128,8 +128,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       top: "50%",
       left: "50%",
       transform: "translate(-50%, -50%)",
-      width: size === "lg" || size === "xl" ? "18px" : size === "sm" || size === "xs" ? "14px" : "16px",
-      height: size === "lg" || size === "xl" ? "18px" : size === "sm" || size === "xs" ? "14px" : "16px",
+      width:
+        size === "lg" || size === "xl" ? "18px" : size === "sm" || size === "xs" ? "14px" : "16px",
+      height:
+        size === "lg" || size === "xl" ? "18px" : size === "sm" || size === "xs" ? "14px" : "16px",
       border: "2px solid transparent",
       borderTop: "2px solid currentColor",
       borderRight: "2px solid currentColor",
@@ -152,7 +154,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             }
           `}
         </style>
-        
+
         <RadixButton
           ref={ref}
           variant={getRadixVariant(variant)}

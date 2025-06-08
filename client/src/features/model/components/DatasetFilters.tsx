@@ -57,7 +57,7 @@ export function DatasetFilters({
             <input
               placeholder="Search datasets..."
               value={filters.searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={e => onSearchChange(e.target.value)}
               style={{
                 width: "100%",
                 padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.sm}`,
@@ -71,11 +71,11 @@ export function DatasetFilters({
                 outline: "none",
                 transition: "border-color 0.2s ease",
               }}
-              onFocus={(e) => {
+              onFocus={e => {
                 e.target.style.borderColor = theme.colors.interactive.primary;
                 e.target.style.boxShadow = `0 0 0 2px ${theme.colors.interactive.primary}20`;
               }}
-              onBlur={(e) => {
+              onBlur={e => {
                 e.target.style.borderColor = theme.colors.border.primary;
                 e.target.style.boxShadow = "none";
               }}
@@ -102,7 +102,11 @@ export function DatasetFilters({
 
         {/* Tags Section */}
         <Box>
-          <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+          <Flex
+            justify="between"
+            align="center"
+            style={{ marginBottom: theme.spacing.semantic.component.xs }}
+          >
             <Flex align="center" gap="1">
               <Tag size={12} style={{ color: theme.colors.text.secondary }} />
               <Text
@@ -128,7 +132,7 @@ export function DatasetFilters({
                 {allTags.length}
               </Badge>
             </Flex>
-            
+
             {filters.selectedTags.length > 0 && (
               <Button
                 onClick={onClearTags}
@@ -214,9 +218,7 @@ export function DatasetFilters({
                         background: isSelected
                           ? `${theme.colors.status.success}15`
                           : theme.colors.background.secondary,
-                        color: isSelected
-                          ? theme.colors.status.success
-                          : theme.colors.text.primary,
+                        color: isSelected ? theme.colors.status.success : theme.colors.text.primary,
                         border: isSelected
                           ? `1px solid ${theme.colors.status.success}40`
                           : `1px solid ${theme.colors.border.primary}`,
@@ -249,7 +251,7 @@ export function DatasetFilters({
           >
             Showing {filteredCount} of {totalCount} datasets
           </Text>
-          
+
           {/* Active Filter Indicators */}
           <Flex align="center" gap="1">
             {filters.searchQuery && (

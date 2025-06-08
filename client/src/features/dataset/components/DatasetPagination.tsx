@@ -1,11 +1,7 @@
 import { Box, Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  ArrowLeft, 
-  ArrowRight,
-  ChartBar
-} from "phosphor-react";
+import { ArrowLeft, ArrowRight, ChartBar } from "phosphor-react";
 
 interface DatasetPaginationProps {
   currentPage: number;
@@ -53,46 +49,60 @@ export function DatasetPagination({
           <Flex align="center" gap="4">
             <Flex align="center" gap="2">
               <ChartBar size={16} style={{ color: theme.colors.text.secondary }} />
-              <Text size="2" style={{ 
-                color: theme.colors.text.secondary, 
-                fontWeight: 500 
-              }}>
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  fontWeight: 500,
+                }}
+              >
                 Dataset Range
               </Text>
             </Flex>
-            
-            <Box style={{
-              width: "1px",
-              height: "16px",
-              background: theme.colors.border.secondary,
-            }} />
-            
+
+            <Box
+              style={{
+                width: "1px",
+                height: "16px",
+                background: theme.colors.border.secondary,
+              }}
+            />
+
             <Flex align="center" gap="2">
-              <Text size="3" style={{ 
-                color: theme.colors.text.primary, 
-                fontWeight: 600,
-                fontFeatureSettings: '"tnum"',
-              }}>
+              <Text
+                size="3"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: 600,
+                  fontFeatureSettings: '"tnum"',
+                }}
+              >
                 {startItem.toLocaleString()}
               </Text>
               <Text size="2" style={{ color: theme.colors.text.tertiary }}>
                 —
               </Text>
-              <Text size="3" style={{ 
-                color: theme.colors.text.primary, 
-                fontWeight: 600,
-                fontFeatureSettings: '"tnum"',
-              }}>
+              <Text
+                size="3"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: 600,
+                  fontFeatureSettings: '"tnum"',
+                }}
+              >
                 {endItem.toLocaleString()}
               </Text>
               <Text size="2" style={{ color: theme.colors.text.secondary }}>
                 of
               </Text>
-              <Text size="3" style={{ 
-                color: theme.colors.text.primary, 
-                fontWeight: 600,
-                fontFeatureSettings: '"tnum"',
-              }}>
+              <Text
+                size="3"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: 600,
+                  fontFeatureSettings: '"tnum"',
+                }}
+              >
                 {totalItems.toLocaleString()}
               </Text>
             </Flex>
@@ -113,7 +123,7 @@ export function DatasetPagination({
             >
               Page {currentPage} of {totalPages}
             </Badge>
-            
+
             <Badge
               style={{
                 background: theme.colors.background.primary,
@@ -138,8 +148,10 @@ export function DatasetPagination({
           {/* Previous Button */}
           <Box
             style={{
-              background: hasPrevPage && !loading ? "transparent" : theme.colors.background.secondary,
-              color: hasPrevPage && !loading ? theme.colors.text.primary : theme.colors.text.tertiary,
+              background:
+                hasPrevPage && !loading ? "transparent" : theme.colors.background.secondary,
+              color:
+                hasPrevPage && !loading ? theme.colors.text.primary : theme.colors.text.tertiary,
               border: `1px solid ${theme.colors.border.primary}`,
               borderRadius: theme.borders.radius.sm,
               padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -153,7 +165,9 @@ export function DatasetPagination({
           >
             <Flex align="center" gap="2">
               <ArrowLeft size={14} />
-              <Text size="2" style={{ fontWeight: 500 }}>Previous</Text>
+              <Text size="2" style={{ fontWeight: 500 }}>
+                Previous
+              </Text>
             </Flex>
           </Box>
 
@@ -180,7 +194,7 @@ export function DatasetPagination({
                 }}
               />
             </Box>
-            
+
             {/* Loading Indicator */}
             {loading && (
               <Box
@@ -199,8 +213,10 @@ export function DatasetPagination({
           {/* Next Button */}
           <Box
             style={{
-              background: hasNextPage && !loading ? "transparent" : theme.colors.background.secondary,
-              color: hasNextPage && !loading ? theme.colors.text.primary : theme.colors.text.tertiary,
+              background:
+                hasNextPage && !loading ? "transparent" : theme.colors.background.secondary,
+              color:
+                hasNextPage && !loading ? theme.colors.text.primary : theme.colors.text.tertiary,
               border: `1px solid ${theme.colors.border.primary}`,
               borderRadius: theme.borders.radius.sm,
               padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -213,7 +229,9 @@ export function DatasetPagination({
             className="pagination-button"
           >
             <Flex align="center" gap="2">
-              <Text size="2" style={{ fontWeight: 500 }}>Next</Text>
+              <Text size="2" style={{ fontWeight: 500 }}>
+                Next
+              </Text>
               <ArrowRight size={14} />
             </Flex>
           </Box>
@@ -221,13 +239,21 @@ export function DatasetPagination({
 
         {/* Additional Info */}
         {totalItems > 0 && (
-          <Flex align="center" justify="center" style={{ marginTop: theme.spacing.semantic.component.md }}>
-            <Text size="1" style={{ 
-              color: theme.colors.text.tertiary,
-              fontWeight: 500,
-              letterSpacing: "0.05em",
-            }}>
-              Showing {((endItem - startItem + 1) / totalItems * 100).toFixed(1)}% of total dataset
+          <Flex
+            align="center"
+            justify="center"
+            style={{ marginTop: theme.spacing.semantic.component.md }}
+          >
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.tertiary,
+                fontWeight: 500,
+                letterSpacing: "0.05em",
+              }}
+            >
+              Showing {(((endItem - startItem + 1) / totalItems) * 100).toFixed(1)}% of total
+              dataset
             </Text>
           </Flex>
         )}

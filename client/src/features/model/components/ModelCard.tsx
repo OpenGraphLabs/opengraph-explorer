@@ -11,36 +11,36 @@ interface ModelCardProps {
 
 export function ModelCard({ model, onClick }: ModelCardProps) {
   const { theme } = useTheme();
-  
+
   const getTaskTypeColor = (taskType: string): { bg: string; color: string } => {
     const taskTypeLower = taskType.toLowerCase();
     if (taskTypeLower.includes("classification")) {
-      return { 
-        bg: theme.colors.status.info + "20", 
-        color: theme.colors.status.info 
+      return {
+        bg: theme.colors.status.info + "20",
+        color: theme.colors.status.info,
       };
     }
     if (taskTypeLower.includes("regression")) {
-      return { 
-        bg: theme.colors.interactive.primary + "20", 
-        color: theme.colors.interactive.primary 
+      return {
+        bg: theme.colors.interactive.primary + "20",
+        color: theme.colors.interactive.primary,
       };
     }
     if (taskTypeLower.includes("detection")) {
-      return { 
-        bg: theme.colors.status.warning + "20", 
-        color: theme.colors.status.warning 
+      return {
+        bg: theme.colors.status.warning + "20",
+        color: theme.colors.status.warning,
       };
     }
     if (taskTypeLower.includes("generation")) {
-      return { 
-        bg: theme.colors.status.success + "20", 
-        color: theme.colors.status.success 
+      return {
+        bg: theme.colors.status.success + "20",
+        color: theme.colors.status.success,
       };
     }
-    return { 
-      bg: theme.colors.background.secondary, 
-      color: theme.colors.text.secondary 
+    return {
+      bg: theme.colors.background.secondary,
+      color: theme.colors.text.secondary,
     };
   };
 
@@ -127,35 +127,27 @@ export function ModelCard({ model, onClick }: ModelCardProps) {
         <Flex justify="between" align="center" style={{ marginTop: "auto" }}>
           <Flex gap="3" align="center">
             <Flex align="center" gap="1">
-              <HeartIcon 
-                width="11" 
-                height="11" 
-                style={{ color: theme.colors.status.error }} 
-              />
-              <Text 
-                size="1" 
-                style={{ 
-                  color: theme.colors.text.tertiary, 
+              <HeartIcon width="11" height="11" style={{ color: theme.colors.status.error }} />
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
                   fontWeight: "500",
-                  fontSize: "10px"
+                  fontSize: "10px",
                 }}
               >
                 {formatNumber(model.likes)}
               </Text>
             </Flex>
-            
+
             <Flex align="center" gap="1">
-              <DownloadIcon 
-                width="11" 
-                height="11" 
-                style={{ color: theme.colors.text.tertiary }} 
-              />
-              <Text 
-                size="1" 
-                style={{ 
-                  color: theme.colors.text.tertiary, 
+              <DownloadIcon width="11" height="11" style={{ color: theme.colors.text.tertiary }} />
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
                   fontWeight: "500",
-                  fontSize: "10px"
+                  fontSize: "10px",
                 }}
               >
                 {formatNumber(model.downloads)}
@@ -163,12 +155,12 @@ export function ModelCard({ model, onClick }: ModelCardProps) {
             </Flex>
           </Flex>
 
-          <Text 
-            size="1" 
-            style={{ 
-              color: theme.colors.text.muted, 
+          <Text
+            size="1"
+            style={{
+              color: theme.colors.text.muted,
               fontWeight: "500",
-              fontSize: "9px"
+              fontSize: "9px",
             }}
           >
             SUI

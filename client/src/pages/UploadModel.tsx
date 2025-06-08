@@ -4,24 +4,19 @@ import { PageHeader } from "@/shared/ui/design-system/components/PageHeader";
 import { useTheme } from "@/shared/ui/design-system";
 import { ModelUploader } from "@/features/model/components/upload-steps/ModelUploader.tsx";
 import { DatasetSelection } from "@/features/model/components/upload-steps/DatasetSelection";
-import {
-  DatasetCard,
-  ModelInfoForm,
-  StepHeader,
-  UploadButton,
-} from "@/features/model/components";
+import { DatasetCard, ModelInfoForm, StepHeader, UploadButton } from "@/features/model/components";
 import { useDatasetSelection, useModelUploadFlow } from "@/features/model/hooks";
-import { 
-  ReloadIcon, 
-  CheckCircledIcon, 
+import {
+  ReloadIcon,
+  CheckCircledIcon,
   ExclamationTriangleIcon,
   ChevronRightIcon,
   CheckIcon,
   CircleIcon,
-  ClockIcon
+  ClockIcon,
 } from "@radix-ui/react-icons";
-import { 
-  Brain, 
+import {
+  Brain,
   Upload,
   Database,
   TestTube,
@@ -30,7 +25,7 @@ import {
   CheckCircle,
   Clock,
   Warning,
-  Sparkle
+  Sparkle,
 } from "phosphor-react";
 
 export function UploadModel() {
@@ -78,58 +73,68 @@ export function UploadModel() {
 
   // Helper function to check if model conversion is complete
   const isModelConversionComplete = () => {
-    return selectedFile && !isConverting && !conversionError && convertedModel && 
-           (conversionStatus.includes('completed') || conversionStatus.includes('conversion completed'));
+    return (
+      selectedFile &&
+      !isConverting &&
+      !conversionError &&
+      convertedModel &&
+      (conversionStatus.includes("completed") || conversionStatus.includes("conversion completed"))
+    );
   };
 
   // Step completion logic
   const steps = [
     {
-      key: 'upload',
-      title: 'Model Upload',
-      description: 'Upload your .h5 model file',
+      key: "upload",
+      title: "Model Upload",
+      description: "Upload your .h5 model file",
       icon: Upload,
       completed: isModelConversionComplete(),
       active: !selectedFile || isConverting || conversionError,
-      hasError: !!conversionError
+      hasError: !!conversionError,
     },
     {
-      key: 'training',
-      title: 'Training Dataset',
-      description: 'Select training data',
+      key: "training",
+      title: "Training Dataset",
+      description: "Select training data",
       icon: Database,
       completed: !!datasetInfo.selectedTrainingDataset,
       active: isModelConversionComplete() && !datasetInfo.selectedTrainingDataset,
-      hasError: false
+      hasError: false,
     },
     {
-      key: 'testing',
-      title: 'Test Datasets',
-      description: 'Optional test data',
+      key: "testing",
+      title: "Test Datasets",
+      description: "Optional test data",
       icon: TestTube,
       completed: datasetInfo.selectedTestDatasets.length > 0,
-      active: isModelConversionComplete() && datasetInfo.selectedTrainingDataset && datasetInfo.selectedTestDatasets.length === 0,
+      active:
+        isModelConversionComplete() &&
+        datasetInfo.selectedTrainingDataset &&
+        datasetInfo.selectedTestDatasets.length === 0,
       hasError: false,
-      optional: true
+      optional: true,
     },
     {
-      key: 'info',
-      title: 'Model Details',
-      description: 'Metadata & configuration',
+      key: "info",
+      title: "Model Details",
+      description: "Metadata & configuration",
       icon: Info,
       completed: modelInfo.name && modelInfo.description && modelInfo.modelType,
-      active: !!datasetInfo.selectedTrainingDataset && (!modelInfo.name || !modelInfo.description || !modelInfo.modelType),
-      hasError: false
+      active:
+        !!datasetInfo.selectedTrainingDataset &&
+        (!modelInfo.name || !modelInfo.description || !modelInfo.modelType),
+      hasError: false,
     },
     {
-      key: 'deploy',
-      title: 'Deploy',
-      description: 'Deploy to Sui blockchain',
+      key: "deploy",
+      title: "Deploy",
+      description: "Deploy to Sui blockchain",
       icon: Rocket,
       completed: uploadState.uploadSuccess,
       active: isReadyForUpload() && !uploadState.transactionInProgress,
-      hasError: !!uploadState.uploadError
-    }
+      hasError: !!uploadState.uploadError,
+    },
   ];
 
   // Progress indicator component
@@ -149,7 +154,11 @@ export function UploadModel() {
         boxShadow: `0 4px 12px ${theme.colors.background.overlay}20`,
       }}
     >
-      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+      <Flex
+        justify="between"
+        align="center"
+        style={{ marginBottom: theme.spacing.semantic.component.md }}
+      >
         <Flex align="center" gap="2">
           <Brain size={18} style={{ color: theme.colors.interactive.primary }} />
           <Text size="3" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
@@ -158,7 +167,10 @@ export function UploadModel() {
         </Flex>
         <Flex align="center" gap="2">
           <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-            {steps.filter(s => s.completed).length}/{steps.filter(s => !s.optional).length + (datasetInfo.selectedTestDatasets.length > 0 ? 1 : 0)} Complete
+            {steps.filter(s => s.completed).length}/
+            {steps.filter(s => !s.optional).length +
+              (datasetInfo.selectedTestDatasets.length > 0 ? 1 : 0)}{" "}
+            Complete
           </Text>
           {datasetInfo.selectedTestDatasets.length === 0 && (
             <Text size="1" style={{ color: theme.colors.text.tertiary, fontStyle: "italic" }}>
@@ -167,36 +179,38 @@ export function UploadModel() {
           )}
         </Flex>
       </Flex>
-      
+
       <Flex align="center" gap="2">
         {steps.map((step: any, index) => (
           <Flex key={step.key} align="center" style={{ flex: 1 }}>
-            <Flex 
-              align="center" 
+            <Flex
+              align="center"
               justify="center"
               style={{
                 width: "32px",
                 height: "32px",
                 borderRadius: "50%",
-                background: step.completed 
-                  ? theme.colors.status.success 
-                  : step.hasError 
+                background: step.completed
+                  ? theme.colors.status.success
+                  : step.hasError
                     ? theme.colors.status.error
-                    : step.active 
-                      ? theme.colors.interactive.primary 
+                    : step.active
+                      ? theme.colors.interactive.primary
                       : step.optional
                         ? `${theme.colors.text.tertiary}20`
                         : theme.colors.background.secondary,
-                color: step.completed || step.hasError || step.active 
-                  ? theme.colors.text.inverse 
-                  : step.optional 
-                    ? theme.colors.text.tertiary
-                    : theme.colors.text.inverse,
-                border: step.active && !step.completed 
-                  ? `2px solid ${theme.colors.interactive.primary}` 
-                  : step.optional && !step.completed && !step.active
-                    ? `1px dashed ${theme.colors.text.tertiary}40`
-                    : "none",
+                color:
+                  step.completed || step.hasError || step.active
+                    ? theme.colors.text.inverse
+                    : step.optional
+                      ? theme.colors.text.tertiary
+                      : theme.colors.text.inverse,
+                border:
+                  step.active && !step.completed
+                    ? `2px solid ${theme.colors.interactive.primary}`
+                    : step.optional && !step.completed && !step.active
+                      ? `1px dashed ${theme.colors.text.tertiary}40`
+                      : "none",
               }}
             >
               {step.completed ? (
@@ -206,48 +220,54 @@ export function UploadModel() {
               ) : step.active ? (
                 <CircleIcon style={{ width: 8, height: 8 }} />
               ) : step.optional ? (
-                <Text size="1" style={{ fontWeight: 600, fontSize: "10px" }}>?</Text>
+                <Text size="1" style={{ fontWeight: 600, fontSize: "10px" }}>
+                  ?
+                </Text>
               ) : (
                 <step.icon size={14} />
               )}
             </Flex>
-            
+
             <Box style={{ marginLeft: theme.spacing.semantic.component.xs, flex: 1 }}>
-              <Text 
-                size="1" 
-                style={{ 
-                  fontWeight: 600, 
-                  color: step.completed || step.active ? theme.colors.text.primary : theme.colors.text.tertiary,
-                  display: "block"
+              <Text
+                size="1"
+                style={{
+                  fontWeight: 600,
+                  color:
+                    step.completed || step.active
+                      ? theme.colors.text.primary
+                      : theme.colors.text.tertiary,
+                  display: "block",
                 }}
               >
                 {step.title}
               </Text>
-              <Text 
-                size="1" 
-                style={{ 
+              <Text
+                size="1"
+                style={{
                   color: theme.colors.text.tertiary,
-                  fontSize: "10px"
+                  fontSize: "10px",
                 }}
               >
                 {step.description}
               </Text>
             </Box>
-            
+
             {index < steps.length - 1 && (
               <Box
                 style={{
                   width: "24px",
                   height: step.optional && !step.completed && !step.active ? "0px" : "1px",
-                  background: step.completed 
-                    ? theme.colors.status.success 
+                  background: step.completed
+                    ? theme.colors.status.success
                     : step.optional && !step.active
                       ? `${theme.colors.text.tertiary}30`
                       : theme.colors.border.primary,
                   marginLeft: theme.spacing.semantic.component.xs,
-                  borderTop: step.optional && !step.completed && !step.active
-                    ? `1px dashed ${theme.colors.text.tertiary}40`
-                    : "none",
+                  borderTop:
+                    step.optional && !step.completed && !step.active
+                      ? `1px dashed ${theme.colors.text.tertiary}40`
+                      : "none",
                 }}
               />
             )}
@@ -258,29 +278,29 @@ export function UploadModel() {
   );
 
   // Enhanced section header component
-  const SectionHeader = ({ 
-    icon, 
-    title, 
-    description, 
+  const SectionHeader = ({
+    icon,
+    title,
+    description,
     status,
     isActive,
-    onExpand 
+    onExpand,
   }: {
     icon: React.ReactNode;
     title: string;
     description: string;
-    status?: 'completed' | 'error' | 'active' | 'pending';
+    status?: "completed" | "error" | "active" | "pending";
     isActive?: boolean;
     onExpand?: () => void;
   }) => (
-    <Flex 
-      justify="between" 
-      align="center" 
-      style={{ 
-                 marginBottom: theme.spacing.semantic.component.md,
-         padding: `${theme.spacing.semantic.component.sm} 0`,
-         borderBottom: `1px solid ${theme.colors.border.primary}20`,
-        cursor: onExpand ? "pointer" : "default"
+    <Flex
+      justify="between"
+      align="center"
+      style={{
+        marginBottom: theme.spacing.semantic.component.md,
+        padding: `${theme.spacing.semantic.component.sm} 0`,
+        borderBottom: `1px solid ${theme.colors.border.primary}20`,
+        cursor: onExpand ? "pointer" : "default",
       }}
       onClick={onExpand}
     >
@@ -290,19 +310,20 @@ export function UploadModel() {
             width: "40px",
             height: "40px",
             borderRadius: theme.borders.radius.md,
-            background: status === 'completed' 
-              ? `${theme.colors.status.success}15`
-              : status === 'error'
-                ? `${theme.colors.status.error}15`
-                : isActive 
-                  ? `${theme.colors.interactive.primary}15`
-                  : `${theme.colors.text.tertiary}10`,
+            background:
+              status === "completed"
+                ? `${theme.colors.status.success}15`
+                : status === "error"
+                  ? `${theme.colors.status.error}15`
+                  : isActive
+                    ? `${theme.colors.interactive.primary}15`
+                    : `${theme.colors.text.tertiary}10`,
             border: `1px solid ${
-              status === 'completed' 
+              status === "completed"
                 ? `${theme.colors.status.success}30`
-                : status === 'error'
+                : status === "error"
                   ? `${theme.colors.status.error}30`
-                  : isActive 
+                  : isActive
                     ? `${theme.colors.interactive.primary}30`
                     : `${theme.colors.text.tertiary}20`
             }`,
@@ -314,64 +335,76 @@ export function UploadModel() {
           {icon}
         </Box>
         <Box>
-          <Text 
-            size="4" 
-            style={{ 
-              fontWeight: 600, 
+          <Text
+            size="4"
+            style={{
+              fontWeight: 600,
               color: theme.colors.text.primary,
-              marginBottom: "2px"
+              marginBottom: "2px",
             }}
           >
             {title}
           </Text>
           <br />
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               color: theme.colors.text.secondary,
-              lineHeight: 1.4
+              lineHeight: 1.4,
             }}
           >
             {description}
           </Text>
         </Box>
       </Flex>
-      
+
       {status && (
         <Flex align="center" gap="2">
-          {status === 'completed' && (
-            <Flex align="center" gap="1" style={{
-              background: `${theme.colors.status.success}15`,
-              padding: "4px 8px",
-              borderRadius: theme.borders.radius.full,
-              border: `1px solid ${theme.colors.status.success}30`
-            }}>
+          {status === "completed" && (
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: `${theme.colors.status.success}15`,
+                padding: "4px 8px",
+                borderRadius: theme.borders.radius.full,
+                border: `1px solid ${theme.colors.status.success}30`,
+              }}
+            >
               <CheckCircle size={12} style={{ color: theme.colors.status.success }} />
               <Text size="1" style={{ color: theme.colors.status.success, fontWeight: 500 }}>
                 Complete
               </Text>
             </Flex>
           )}
-          {status === 'error' && (
-            <Flex align="center" gap="1" style={{
-              background: `${theme.colors.status.error}15`,
-              padding: "4px 8px",
-              borderRadius: theme.borders.radius.full,
-              border: `1px solid ${theme.colors.status.error}30`
-            }}>
-                             <Warning size={12} style={{ color: theme.colors.status.error }} />
+          {status === "error" && (
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: `${theme.colors.status.error}15`,
+                padding: "4px 8px",
+                borderRadius: theme.borders.radius.full,
+                border: `1px solid ${theme.colors.status.error}30`,
+              }}
+            >
+              <Warning size={12} style={{ color: theme.colors.status.error }} />
               <Text size="1" style={{ color: theme.colors.status.error, fontWeight: 500 }}>
                 Error
               </Text>
             </Flex>
           )}
-          {status === 'active' && (
-            <Flex align="center" gap="1" style={{
-              background: `${theme.colors.interactive.primary}15`,
-              padding: "4px 8px", 
-              borderRadius: theme.borders.radius.full,
-              border: `1px solid ${theme.colors.interactive.primary}30`
-            }}>
+          {status === "active" && (
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: `${theme.colors.interactive.primary}15`,
+                padding: "4px 8px",
+                borderRadius: theme.borders.radius.full,
+                border: `1px solid ${theme.colors.interactive.primary}30`,
+              }}
+            >
               <Clock size={12} style={{ color: theme.colors.interactive.primary }} />
               <Text size="1" style={{ color: theme.colors.interactive.primary, fontWeight: 500 }}>
                 In Progress
@@ -379,12 +412,12 @@ export function UploadModel() {
             </Flex>
           )}
           {onExpand && (
-            <ChevronRightIcon 
-              style={{ 
+            <ChevronRightIcon
+              style={{
                 color: theme.colors.text.tertiary,
                 transform: isActive ? "rotate(90deg)" : "rotate(0deg)",
-                transition: "transform 0.2s ease"
-              }} 
+                transition: "transform 0.2s ease",
+              }}
             />
           )}
         </Flex>
@@ -396,7 +429,7 @@ export function UploadModel() {
     <Box
       style={{
         maxWidth: "1200px",
-        margin: "0 auto", 
+        margin: "0 auto",
         padding: `0 ${theme.spacing.semantic.layout.md}`,
         background: theme.colors.background.primary,
         minHeight: "100vh",
@@ -425,7 +458,7 @@ export function UploadModel() {
                 fontWeight: 700,
                 color: theme.colors.text.primary,
                 letterSpacing: "-0.02em",
-                marginBottom: "4px"
+                marginBottom: "4px",
               }}
             >
               Deploy AI Model
@@ -438,7 +471,8 @@ export function UploadModel() {
                 lineHeight: 1.5,
               }}
             >
-              Transform your machine learning model into a fully onchain, verifiable AI agent on Sui blockchain
+              Transform your machine learning model into a fully onchain, verifiable AI agent on Sui
+              blockchain
             </Text>
           </Box>
         </Flex>
@@ -454,28 +488,35 @@ export function UploadModel() {
           style={{
             padding: theme.spacing.semantic.component.lg,
             borderRadius: theme.borders.radius.lg,
-                          border: `1px solid ${
-                conversionError 
-                  ? theme.colors.status.error + "40"
-                  : isModelConversionComplete()
-                    ? theme.colors.status.success + "40"
-                    : theme.colors.border.primary
-              }`,
+            border: `1px solid ${
+              conversionError
+                ? theme.colors.status.error + "40"
+                : isModelConversionComplete()
+                  ? theme.colors.status.success + "40"
+                  : theme.colors.border.primary
+            }`,
             background: theme.colors.background.card,
             transition: "all 0.2s ease",
           }}
         >
           <SectionHeader
-            icon={<Upload size={18} style={{ 
-              color: conversionError 
-                ? theme.colors.status.error 
-                : isModelConversionComplete() 
-                  ? theme.colors.status.success 
-                  : theme.colors.interactive.primary
-            }} />}
+            icon={
+              <Upload
+                size={18}
+                style={{
+                  color: conversionError
+                    ? theme.colors.status.error
+                    : isModelConversionComplete()
+                      ? theme.colors.status.success
+                      : theme.colors.interactive.primary,
+                }}
+              />
+            }
             title="Upload & Convert Model"
             description="Upload your .h5 model file for automatic conversion to onchain format"
-                          status={conversionError ? 'error' : isModelConversionComplete() ? 'completed' : 'active'}
+            status={
+              conversionError ? "error" : isModelConversionComplete() ? "completed" : "active"
+            }
             isActive={!selectedFile || isConverting}
           />
 
@@ -503,26 +544,30 @@ export function UploadModel() {
             overflow: "hidden",
           }}
         >
-
-        <SectionHeader
-          icon={<Database size={18} style={{ 
-            color: datasetInfo.selectedTrainingDataset
-              ? datasetInfo.selectedTestDatasets.length > 0
-                ? theme.colors.status.success
-                : theme.colors.interactive.primary  
-              : theme.colors.text.tertiary
-          }} />}
-          title="Dataset Selection"
-          description="Choose training data and optional test datasets for your model deployment"
-          status={
-            datasetInfo.selectedTrainingDataset
-              ? datasetInfo.selectedTestDatasets.length > 0
-                ? "completed"
-                : "active"  
-              : "pending"
-          }
-          isActive={!!isModelConversionComplete()}
-        />
+          <SectionHeader
+            icon={
+              <Database
+                size={18}
+                style={{
+                  color: datasetInfo.selectedTrainingDataset
+                    ? datasetInfo.selectedTestDatasets.length > 0
+                      ? theme.colors.status.success
+                      : theme.colors.interactive.primary
+                    : theme.colors.text.tertiary,
+                }}
+              />
+            }
+            title="Dataset Selection"
+            description="Choose training data and optional test datasets for your model deployment"
+            status={
+              datasetInfo.selectedTrainingDataset
+                ? datasetInfo.selectedTestDatasets.length > 0
+                  ? "completed"
+                  : "active"
+                : "pending"
+            }
+            isActive={!!isModelConversionComplete()}
+          />
 
           <DatasetSelection
             filters={filters}
@@ -554,22 +599,35 @@ export function UploadModel() {
                 ? theme.colors.status.success + "40"
                 : theme.colors.border.primary
             }`,
-            background: datasetInfo.selectedTrainingDataset 
+            background: datasetInfo.selectedTrainingDataset
               ? theme.colors.background.card
               : `${theme.colors.background.card}80`,
             transition: "all 0.2s ease",
           }}
         >
           <SectionHeader
-            icon={<Info size={18} style={{ 
-              color: modelInfo.name && modelInfo.description && modelInfo.modelType 
-                ? theme.colors.status.success 
-                : theme.colors.text.tertiary
-            }} />}
+            icon={
+              <Info
+                size={18}
+                style={{
+                  color:
+                    modelInfo.name && modelInfo.description && modelInfo.modelType
+                      ? theme.colors.status.success
+                      : theme.colors.text.tertiary,
+                }}
+              />
+            }
             title="Model Metadata"
             description="Provide model details for onchain registry and discoverability"
-            status={modelInfo.name && modelInfo.description && modelInfo.modelType ? 'completed' : 'pending'}
-            isActive={!!datasetInfo.selectedTrainingDataset && (!modelInfo.name || !modelInfo.description || !modelInfo.modelType)}
+            status={
+              modelInfo.name && modelInfo.description && modelInfo.modelType
+                ? "completed"
+                : "pending"
+            }
+            isActive={
+              !!datasetInfo.selectedTrainingDataset &&
+              (!modelInfo.name || !modelInfo.description || !modelInfo.modelType)
+            }
           />
 
           <ModelInfoForm modelInfo={modelInfo} onUpdate={updateModelInfo} />
@@ -582,13 +640,13 @@ export function UploadModel() {
             padding: theme.spacing.semantic.component.lg,
             borderRadius: theme.borders.radius.lg,
             border: `2px solid ${
-              uploadState.uploadSuccess 
+              uploadState.uploadSuccess
                 ? theme.colors.status.success
                 : uploadState.uploadError
                   ? theme.colors.status.error
                   : theme.colors.interactive.primary
             }`,
-            background: uploadState.uploadSuccess 
+            background: uploadState.uploadSuccess
               ? `${theme.colors.status.success}05`
               : uploadState.uploadError
                 ? `${theme.colors.status.error}05`
@@ -598,16 +656,23 @@ export function UploadModel() {
           }}
         >
           <SectionHeader
-            icon={<Rocket size={18} style={{ 
-              color: uploadState.uploadSuccess 
-                ? theme.colors.status.success 
-                : uploadState.uploadError 
-                  ? theme.colors.status.error 
-                  : theme.colors.interactive.primary
-            }} />}
+            icon={
+              <Rocket
+                size={18}
+                style={{
+                  color: uploadState.uploadSuccess
+                    ? theme.colors.status.success
+                    : uploadState.uploadError
+                      ? theme.colors.status.error
+                      : theme.colors.interactive.primary,
+                }}
+              />
+            }
             title="Deploy to Blockchain"
             description="Finalize deployment to Sui blockchain with full onchain inference capabilities"
-            status={uploadState.uploadSuccess ? 'completed' : uploadState.uploadError ? 'error' : 'active'}
+            status={
+              uploadState.uploadSuccess ? "completed" : uploadState.uploadError ? "error" : "active"
+            }
           />
 
           <UploadButton
@@ -638,12 +703,12 @@ export function UploadModel() {
           }}
         >
           <Flex direction="column" gap="3">
-                         <Flex align="center" gap="3">
-               <Warning size={20} style={{ color: theme.colors.text.inverse }} />
-               <Text style={{ color: theme.colors.text.inverse, fontWeight: 600 }}>
-                 Deployment Failed
-               </Text>
-             </Flex>
+            <Flex align="center" gap="3">
+              <Warning size={20} style={{ color: theme.colors.text.inverse }} />
+              <Text style={{ color: theme.colors.text.inverse, fontWeight: 600 }}>
+                Deployment Failed
+              </Text>
+            </Flex>
             <Text
               size="2"
               style={{
@@ -738,7 +803,7 @@ export function UploadModel() {
                     fontWeight: 500,
                   }}
                 >
-                                              TX: {uploadState.transactionHash?.substring(0, 16)}...
+                  TX: {uploadState.transactionHash?.substring(0, 16)}...
                 </Text>
               </Box>
             )}

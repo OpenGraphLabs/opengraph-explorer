@@ -10,9 +10,9 @@ import {
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/widgets/layout/AppLayout";
-import { 
-  Brain, 
-  UploadSimple, 
+import {
+  Brain,
+  UploadSimple,
   MagnifyingGlass,
   Circle,
   Sparkle,
@@ -232,8 +232,11 @@ export function Models() {
                 gap: "4px",
               }}
             >
-              <MagnifyingGlass size={10} />
-              "{filters.searchQuery.length > 20 ? filters.searchQuery.substring(0, 20) + "..." : filters.searchQuery}"
+              <MagnifyingGlass size={10} />"
+              {filters.searchQuery.length > 20
+                ? filters.searchQuery.substring(0, 20) + "..."
+                : filters.searchQuery}
+              "
             </Badge>
           )}
         </Flex>
@@ -275,12 +278,7 @@ export function Models() {
         text: "Neural Networks",
       },
     ],
-    filters: (
-      <ModelFiltersComponent
-        filters={filters}
-        onUpdateFilter={updateFilter}
-      />
-    ),
+    filters: <ModelFiltersComponent filters={filters} onUpdateFilter={updateFilter} />,
   };
 
   return (
@@ -344,11 +342,7 @@ export function Models() {
           }}
         >
           {filteredModels.map((model, _) => (
-            <ModelCard 
-              key={model.id} 
-              model={model} 
-              onClick={() => handleModelClick(model)}
-            />
+            <ModelCard key={model.id} model={model} onClick={() => handleModelClick(model)} />
           ))}
         </Grid>
       )}

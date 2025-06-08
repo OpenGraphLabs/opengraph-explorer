@@ -30,10 +30,11 @@ export const Dropdown: React.FC<DropdownProps> = ({
   // Filter options based on search query
   const filteredOptions = useMemo(() => {
     if (!searchable || !searchQuery.trim()) return options;
-    
-    return options.filter(option => 
-      option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      option.value.toLowerCase().includes(searchQuery.toLowerCase())
+
+    return options.filter(
+      option =>
+        option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        option.value.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [options, searchQuery, searchable]);
 
@@ -51,7 +52,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
       minWidth: "120px",
     },
     md: {
-      height: "36px", 
+      height: "36px",
       padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
       paddingRight: clearable && value ? "60px" : "40px",
       fontSize: "13px",
@@ -138,8 +139,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
   // Basic HTML select for non-searchable dropdowns
   if (!searchable) {
     return (
-      <Box 
-        style={{ 
+      <Box
+        style={{
           width: fullWidth ? "100%" : "auto",
           position: "relative",
         }}
@@ -155,50 +156,44 @@ export const Dropdown: React.FC<DropdownProps> = ({
             height: currentSizeStyle.height,
             padding: currentSizeStyle.padding,
             paddingRight: currentSizeStyle.paddingRight,
-            background: error 
-              ? `${theme.colors.status.error}10` 
-              : currentVariantStyle.background,
-            border: error
-              ? `1px solid ${theme.colors.status.error}`
-              : currentVariantStyle.border,
+            background: error ? `${theme.colors.status.error}10` : currentVariantStyle.background,
+            border: error ? `1px solid ${theme.colors.status.error}` : currentVariantStyle.border,
             borderRadius: theme.borders.radius.md,
-            color: disabled 
-              ? theme.colors.interactive.disabled 
-              : theme.colors.text.primary,
+            color: disabled ? theme.colors.interactive.disabled : theme.colors.text.primary,
             fontSize: currentSizeStyle.fontSize,
             fontWeight: value ? 600 : 500,
             cursor: disabled ? "not-allowed" : "pointer",
             outline: "none",
-            boxShadow: loading 
+            boxShadow: loading
               ? `0 2px 4px ${theme.colors.background.primary}30`
               : theme.shadows.semantic.card.low,
             transition: theme.animations.transitions.hover,
             opacity: disabled ? 0.6 : 1,
           }}
-          onFocus={(e) => {
+          onFocus={e => {
             if (!disabled) {
               e.target.style.borderColor = currentVariantStyle.focusBorderColor;
               e.target.style.boxShadow = currentVariantStyle.focusShadow;
             }
           }}
-          onBlur={(e) => {
+          onBlur={e => {
             if (!disabled) {
-              e.target.style.borderColor = error 
+              e.target.style.borderColor = error
                 ? theme.colors.status.error
                 : currentVariantStyle.border.split(" ")[2] || theme.colors.border.primary;
               e.target.style.boxShadow = theme.shadows.semantic.card.low;
             }
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             if (!disabled) {
-              e.currentTarget.style.background = error 
+              e.currentTarget.style.background = error
                 ? `${theme.colors.status.error}15`
                 : `${theme.colors.background.secondary}`;
             }
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             if (!disabled) {
-              e.currentTarget.style.background = error 
+              e.currentTarget.style.background = error
                 ? `${theme.colors.status.error}10`
                 : currentVariantStyle.background;
             }
@@ -208,13 +203,13 @@ export const Dropdown: React.FC<DropdownProps> = ({
           <option value="" disabled style={{ color: theme.colors.text.tertiary }}>
             {loading ? "Loading..." : placeholder}
           </option>
-          {options.map((option) => (
-            <option 
-              key={option.value} 
+          {options.map(option => (
+            <option
+              key={option.value}
               value={option.value}
               disabled={option.disabled}
-              style={{ 
-                color: option.disabled 
+              style={{
+                color: option.disabled
                   ? theme.colors.interactive.disabled
                   : theme.colors.text.primary,
               }}
@@ -244,11 +239,11 @@ export const Dropdown: React.FC<DropdownProps> = ({
               transition: theme.animations.transitions.hover,
               zIndex: 1,
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={e => {
               e.currentTarget.style.color = theme.colors.text.primary;
               e.currentTarget.style.background = `${theme.colors.border.primary}80`;
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={e => {
               e.currentTarget.style.color = theme.colors.text.tertiary;
               e.currentTarget.style.background = "transparent";
             }}
@@ -273,11 +268,11 @@ export const Dropdown: React.FC<DropdownProps> = ({
             justifyContent: "center",
           }}
         >
-          <CaretDown 
-            size={currentSizeStyle.iconSize} 
-            style={{ 
+          <CaretDown
+            size={currentSizeStyle.iconSize}
+            style={{
               color: theme.colors.interactive.primary,
-            }} 
+            }}
           />
         </Box>
       </Box>
@@ -286,8 +281,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   // Custom searchable dropdown
   return (
-    <Box 
-      style={{ 
+    <Box
+      style={{
         width: fullWidth ? "100%" : "auto",
         position: "relative",
       }}
@@ -301,16 +296,10 @@ export const Dropdown: React.FC<DropdownProps> = ({
           height: currentSizeStyle.height,
           padding: currentSizeStyle.padding,
           paddingRight: currentSizeStyle.paddingRight,
-          background: error 
-            ? `${theme.colors.status.error}10` 
-            : currentVariantStyle.background,
-          border: error
-            ? `1px solid ${theme.colors.status.error}`
-            : currentVariantStyle.border,
+          background: error ? `${theme.colors.status.error}10` : currentVariantStyle.background,
+          border: error ? `1px solid ${theme.colors.status.error}` : currentVariantStyle.border,
           borderRadius: theme.borders.radius.md,
-          color: disabled 
-            ? theme.colors.interactive.disabled 
-            : theme.colors.text.primary,
+          color: disabled ? theme.colors.interactive.disabled : theme.colors.text.primary,
           fontSize: currentSizeStyle.fontSize,
           fontWeight: value ? 600 : 500,
           cursor: disabled ? "not-allowed" : "pointer",
@@ -323,34 +312,35 @@ export const Dropdown: React.FC<DropdownProps> = ({
         }}
       >
         {/* Content */}
-        <Box style={{ 
-          flex: 1, 
-          display: "flex", 
-          alignItems: "center", 
-          gap: theme.spacing.semantic.component.xs,
-          minWidth: 0,
-        }}>
+        <Box
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: theme.spacing.semantic.component.xs,
+            minWidth: 0,
+          }}
+        >
           {selectedOption?.icon && (
-            <Box style={{ 
-              color: theme.colors.text.secondary,
-              flexShrink: 0,
-            }}>
+            <Box
+              style={{
+                color: theme.colors.text.secondary,
+                flexShrink: 0,
+              }}
+            >
               {selectedOption.icon}
             </Box>
           )}
-          <Box style={{
-            color: value 
-              ? theme.colors.text.primary 
-              : theme.colors.text.tertiary,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            flex: 1,
-          }}>
-            {loading 
-              ? "Loading..." 
-              : selectedOption?.label || placeholder
-            }
+          <Box
+            style={{
+              color: value ? theme.colors.text.primary : theme.colors.text.tertiary,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+            }}
+          >
+            {loading ? "Loading..." : selectedOption?.label || placeholder}
           </Box>
         </Box>
       </Box>
@@ -374,11 +364,11 @@ export const Dropdown: React.FC<DropdownProps> = ({
             transition: theme.animations.transitions.hover,
             zIndex: 2,
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             e.currentTarget.style.color = theme.colors.text.primary;
             e.currentTarget.style.background = `${theme.colors.border.primary}80`;
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             e.currentTarget.style.color = theme.colors.text.tertiary;
             e.currentTarget.style.background = "transparent";
           }}
@@ -403,11 +393,11 @@ export const Dropdown: React.FC<DropdownProps> = ({
           justifyContent: "center",
         }}
       >
-        <CaretDown 
-          size={currentSizeStyle.iconSize} 
-          style={{ 
+        <CaretDown
+          size={currentSizeStyle.iconSize}
+          style={{
             color: theme.colors.interactive.primary,
-          }} 
+          }}
         />
       </Box>
 
@@ -431,11 +421,13 @@ export const Dropdown: React.FC<DropdownProps> = ({
           }}
         >
           {/* Search Input */}
-          <Box style={{ 
-            padding: theme.spacing.semantic.component.xs,
-            borderBottom: `1px solid ${theme.colors.border.primary}`,
-            marginBottom: theme.spacing.semantic.component.xs,
-          }}>
+          <Box
+            style={{
+              padding: theme.spacing.semantic.component.xs,
+              borderBottom: `1px solid ${theme.colors.border.primary}`,
+              marginBottom: theme.spacing.semantic.component.xs,
+            }}
+          >
             <Box style={{ position: "relative" }}>
               <Box
                 style={{
@@ -451,7 +443,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
               <input
                 placeholder="Search options..."
                 value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={e => handleSearch(e.target.value)}
                 style={{
                   width: "100%",
                   padding: `6px 8px 6px 28px`,
@@ -462,10 +454,10 @@ export const Dropdown: React.FC<DropdownProps> = ({
                   fontSize: "12px",
                   outline: "none",
                 }}
-                onFocus={(e) => {
+                onFocus={e => {
                   e.target.style.borderColor = theme.colors.interactive.primary;
                 }}
-                onBlur={(e) => {
+                onBlur={e => {
                   e.target.style.borderColor = theme.colors.border.secondary;
                 }}
               />
@@ -486,7 +478,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
               {searchQuery ? "No results found" : "No options available"}
             </Box>
           ) : (
-            filteredOptions.map((option) => (
+            filteredOptions.map(option => (
               <Box
                 key={option.value}
                 onClick={() => !option.disabled && handleSearchOptionClick(option.value)}
@@ -499,59 +491,74 @@ export const Dropdown: React.FC<DropdownProps> = ({
                   fontSize: currentSizeStyle.fontSize,
                   fontWeight: 500,
                   cursor: option.disabled ? "not-allowed" : "pointer",
-                  color: option.disabled 
+                  color: option.disabled
                     ? theme.colors.interactive.disabled
                     : theme.colors.text.primary,
                   margin: "1px 0",
                   opacity: option.disabled ? 0.5 : 1,
                   transition: theme.animations.transitions.hover,
-                  background: value === option.value 
-                    ? `${theme.colors.interactive.primary}15`
-                    : "transparent",
+                  background:
+                    value === option.value
+                      ? `${theme.colors.interactive.primary}15`
+                      : "transparent",
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   if (!option.disabled) {
                     e.currentTarget.style.background = `${theme.colors.background.secondary}`;
                   }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (!option.disabled) {
-                    e.currentTarget.style.background = value === option.value 
-                      ? `${theme.colors.interactive.primary}15`
-                      : "transparent";
+                    e.currentTarget.style.background =
+                      value === option.value
+                        ? `${theme.colors.interactive.primary}15`
+                        : "transparent";
                   }
                 }}
               >
-                <Box style={{ flex: 1, display: "flex", alignItems: "center", gap: theme.spacing.semantic.component.xs }}>
+                <Box
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.xs,
+                  }}
+                >
                   {option.icon && (
-                    <Box style={{ 
-                      color: theme.colors.text.secondary,
-                      flexShrink: 0,
-                    }}>
+                    <Box
+                      style={{
+                        color: theme.colors.text.secondary,
+                        flexShrink: 0,
+                      }}
+                    >
                       {option.icon}
                     </Box>
                   )}
                   <Box style={{ flex: 1, minWidth: 0 }}>
-                    <Box style={{
-                      color: option.disabled 
-                        ? theme.colors.interactive.disabled
-                        : theme.colors.text.primary,
-                      fontWeight: 500,
-                    }}>
+                    <Box
+                      style={{
+                        color: option.disabled
+                          ? theme.colors.interactive.disabled
+                          : theme.colors.text.primary,
+                        fontWeight: 500,
+                      }}
+                    >
                       {option.label}
                     </Box>
                     {option.description && (
-                      <Box style={{
-                        color: theme.colors.text.tertiary,
-                        fontSize: "11px",
-                        marginTop: "2px",
-                      }}>
+                      <Box
+                        style={{
+                          color: theme.colors.text.tertiary,
+                          fontSize: "11px",
+                          marginTop: "2px",
+                        }}
+                      >
                         {option.description}
                       </Box>
                     )}
                   </Box>
                 </Box>
-                
+
                 {value === option.value && (
                   <Box
                     style={{
@@ -570,4 +577,4 @@ export const Dropdown: React.FC<DropdownProps> = ({
       )}
     </Box>
   );
-}; 
+};

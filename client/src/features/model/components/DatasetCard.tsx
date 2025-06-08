@@ -3,18 +3,18 @@ import { getDataTypeIcon, getDataTypeColor, formatDataSize } from "@/features/mo
 import type { DatasetObject } from "../types/upload";
 import { useTheme } from "@/shared/ui/design-system";
 import { motion } from "framer-motion";
-import { 
-  Database, 
-  FileText, 
-  Image, 
-  MusicNote, 
+import {
+  Database,
+  FileText,
+  Image,
+  MusicNote,
   VideoCamera,
   GridFour,
   Cube,
   CheckCircle,
   X,
   ArrowRight,
-  Download
+  Download,
 } from "phosphor-react";
 
 interface DatasetCardProps {
@@ -30,13 +30,13 @@ interface DatasetCardProps {
 // Enhanced data type icon mapping
 function getEnhancedDataTypeIcon(dataType: string, size: number = 16) {
   const iconProps = { size, weight: "duotone" as const };
-  
+
   if (dataType.includes("image")) return <Image {...iconProps} />;
   if (dataType.includes("text")) return <FileText {...iconProps} />;
   if (dataType.includes("audio")) return <MusicNote {...iconProps} />;
   if (dataType.includes("video")) return <VideoCamera {...iconProps} />;
   if (dataType.includes("tabular")) return <GridFour {...iconProps} />;
-  
+
   return <Database {...iconProps} />;
 }
 
@@ -70,7 +70,7 @@ function getEnhancedDataTypeColor(dataType: string, theme: any) {
       border: `${theme.colors.status.error}30`,
     };
   }
-  
+
   return {
     bg: `${theme.colors.interactive.accent}15`,
     text: theme.colors.interactive.accent,
@@ -89,7 +89,7 @@ export function DatasetCard({
 }: DatasetCardProps) {
   const { theme } = useTheme();
   const colorScheme = getEnhancedDataTypeColor(dataset.dataType, theme);
-  
+
   const typeConfig = {
     training: {
       color: theme.colors.status.success,
@@ -116,14 +116,12 @@ export function DatasetCard({
         style={{
           padding: theme.spacing.semantic.component.lg,
           borderRadius: theme.borders.radius.lg,
-          border: isSelected 
-            ? `2px solid ${theme.colors.interactive.primary}` 
-            : isDisabled 
-            ? `1px solid ${theme.colors.border.secondary}` 
-            : `1px solid ${theme.colors.border.primary}`,
-          background: isDisabled 
-            ? theme.colors.background.secondary 
-            : theme.colors.background.card,
+          border: isSelected
+            ? `2px solid ${theme.colors.interactive.primary}`
+            : isDisabled
+              ? `1px solid ${theme.colors.border.secondary}`
+              : `1px solid ${theme.colors.border.primary}`,
+          background: isDisabled ? theme.colors.background.secondary : theme.colors.background.card,
           cursor: onSelect && !isDisabled ? "pointer" : "default",
           opacity: isDisabled ? 0.6 : 1,
           minHeight: "180px",
@@ -132,8 +130,8 @@ export function DatasetCard({
           position: "relative",
           overflow: "hidden",
           transition: theme.animations.transitions.all,
-          boxShadow: isSelected 
-            ? theme.shadows.semantic.card.medium 
+          boxShadow: isSelected
+            ? theme.shadows.semantic.card.medium
             : theme.shadows.semantic.card.low,
         }}
         onClick={onSelect && !isDisabled ? () => onSelect(dataset) : undefined}
@@ -222,7 +220,7 @@ export function DatasetCard({
                 >
                   {dataset.name}
                 </Text>
-                
+
                 <Flex align="center" gap="2">
                   <Badge
                     style={{
@@ -241,7 +239,7 @@ export function DatasetCard({
                     {typeConfig[type].icon}
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </Badge>
-                  
+
                   <Badge
                     style={{
                       background: colorScheme.bg,
@@ -439,8 +437,8 @@ export function DatasetCard({
                 width: "24px",
                 height: "24px",
                 borderRadius: theme.borders.radius.full,
-                background: isSelected 
-                  ? theme.colors.interactive.primary 
+                background: isSelected
+                  ? theme.colors.interactive.primary
                   : `${theme.colors.text.tertiary}20`,
                 display: "flex",
                 alignItems: "center",

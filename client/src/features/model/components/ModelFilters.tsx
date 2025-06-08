@@ -1,9 +1,17 @@
 import React from "react";
-import { Box, Flex, Text, Button, Badge, Dropdown, DropdownOption } from "@/shared/ui/design-system/components";
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  Badge,
+  Dropdown,
+  DropdownOption,
+} from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  MagnifyingGlass, 
-  X, 
+import {
+  MagnifyingGlass,
+  X,
   FunnelSimple,
   Tag,
   Robot,
@@ -11,7 +19,7 @@ import {
   Eye,
   ChatCircle,
   Image,
-  Translate
+  Translate,
 } from "phosphor-react";
 import { ModelFilters as ModelFiltersType } from "../types";
 import { TASK_NAMES, TASK_TYPES } from "@/shared/constants/suiConfig.ts";
@@ -23,24 +31,45 @@ interface ModelFiltersProps {
 
 const TASK_FILTERS = [
   { value: "all", label: "All Tasks", icon: <FunnelSimple size={14} /> },
-  { value: TASK_TYPES.TEXT_GENERATION, label: TASK_NAMES[TASK_TYPES.TEXT_GENERATION], icon: <ChatCircle size={14} /> },
-  { value: TASK_TYPES.TEXT_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION], icon: <Tag size={14} /> },
-  { value: TASK_TYPES.IMAGE_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION], icon: <Eye size={14} /> },
-  { value: TASK_TYPES.OBJECT_DETECTION, label: TASK_NAMES[TASK_TYPES.OBJECT_DETECTION], icon: <Brain size={14} /> },
-  { value: TASK_TYPES.TEXT_TO_IMAGE, label: TASK_NAMES[TASK_TYPES.TEXT_TO_IMAGE], icon: <Image size={14} /> },
-  { value: TASK_TYPES.TRANSLATION, label: TASK_NAMES[TASK_TYPES.TRANSLATION], icon: <Translate size={14} /> },
+  {
+    value: TASK_TYPES.TEXT_GENERATION,
+    label: TASK_NAMES[TASK_TYPES.TEXT_GENERATION],
+    icon: <ChatCircle size={14} />,
+  },
+  {
+    value: TASK_TYPES.TEXT_CLASSIFICATION,
+    label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION],
+    icon: <Tag size={14} />,
+  },
+  {
+    value: TASK_TYPES.IMAGE_CLASSIFICATION,
+    label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION],
+    icon: <Eye size={14} />,
+  },
+  {
+    value: TASK_TYPES.OBJECT_DETECTION,
+    label: TASK_NAMES[TASK_TYPES.OBJECT_DETECTION],
+    icon: <Brain size={14} />,
+  },
+  {
+    value: TASK_TYPES.TEXT_TO_IMAGE,
+    label: TASK_NAMES[TASK_TYPES.TEXT_TO_IMAGE],
+    icon: <Image size={14} />,
+  },
+  {
+    value: TASK_TYPES.TRANSLATION,
+    label: TASK_NAMES[TASK_TYPES.TRANSLATION],
+    icon: <Translate size={14} />,
+  },
 ];
 
 const SORT_OPTIONS = [
   { value: "downloads", label: "Most Downloaded" },
-  { value: "likes", label: "Most Liked" }, 
+  { value: "likes", label: "Most Liked" },
   { value: "newest", label: "Newest First" },
 ];
 
-export const ModelFiltersComponent = ({
-  filters,
-  onUpdateFilter,
-}: ModelFiltersProps) => {
+export const ModelFiltersComponent = ({ filters, onUpdateFilter }: ModelFiltersProps) => {
   const { theme } = useTheme();
 
   return (
@@ -89,10 +118,10 @@ export const ModelFiltersComponent = ({
               fontWeight: 500,
               outline: "none",
             }}
-            onFocus={(e) => {
+            onFocus={e => {
               e.target.style.borderColor = theme.colors.interactive.primary;
             }}
-            onBlur={(e) => {
+            onBlur={e => {
               e.target.style.borderColor = theme.colors.border.primary;
             }}
           />
@@ -187,4 +216,4 @@ export const ModelFiltersComponent = ({
       </Box>
     </Box>
   );
-}; 
+};

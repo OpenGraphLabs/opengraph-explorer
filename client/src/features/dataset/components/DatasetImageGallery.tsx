@@ -1,15 +1,15 @@
 import { Box, Flex, Text, Card, Badge, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  Tag, 
-  Image as ImageIcon, 
-  FileImage, 
-  Clock, 
+import {
+  Tag,
+  Image as ImageIcon,
+  FileImage,
+  Clock,
   CheckCircle,
   Hash,
   Database,
   Eye,
-  ArrowRight
+  ArrowRight,
 } from "phosphor-react";
 import { isImageType, getDataTypeIcon, getDataTypeColor } from "../utils";
 import { ActiveTab } from "../types";
@@ -51,7 +51,13 @@ export function DatasetImageGallery({
           border: `1px solid ${theme.colors.border.secondary}`,
         }}
       >
-        <Flex direction="column" align="center" justify="center" gap="3" style={{ minHeight: "200px" }}>
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          gap="3"
+          style={{ minHeight: "200px" }}
+        >
           <Box
             style={{
               width: "24px",
@@ -62,11 +68,14 @@ export function DatasetImageGallery({
               animation: "spin 1s linear infinite",
             }}
           />
-          <Text size="2" style={{ 
-            color: theme.colors.text.tertiary, 
-            fontWeight: 500,
-            fontSize: "11px"
-          }}>
+          <Text
+            size="2"
+            style={{
+              color: theme.colors.text.tertiary,
+              fontWeight: 500,
+              fontSize: "11px",
+            }}
+          >
             Loading dataset items...
           </Text>
         </Flex>
@@ -86,23 +95,29 @@ export function DatasetImageGallery({
         }}
       >
         <Flex direction="column" align="center" gap="3">
-          <Database size={32} style={{ color: theme.colors.text.tertiary, opacity: 0.6 }} weight="light" />
+          <Database
+            size={32}
+            style={{ color: theme.colors.text.tertiary, opacity: 0.6 }}
+            weight="light"
+          />
           <Box>
-            <Text size="3" style={{ 
-              color: theme.colors.text.primary, 
-              fontWeight: 500,
-              marginBottom: theme.spacing.semantic.component.xs 
-            }}>
+            <Text
+              size="3"
+              style={{
+                color: theme.colors.text.primary,
+                fontWeight: 500,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
+            >
               No {activeTab} items found
             </Text>
             <br />
             <Text size="1" style={{ color: theme.colors.text.tertiary, fontSize: "11px" }}>
-              {activeTab === "all" 
-                ? "No data items in this dataset yet." 
-                : activeTab === "confirmed" 
-                ? "No verified annotations in this dataset yet." 
-                : "No pending annotations awaiting review."
-              }
+              {activeTab === "all"
+                ? "No data items in this dataset yet."
+                : activeTab === "confirmed"
+                  ? "No verified annotations in this dataset yet."
+                  : "No pending annotations awaiting review."}
             </Text>
           </Box>
         </Flex>
@@ -123,40 +138,52 @@ export function DatasetImageGallery({
         }}
       >
         <Grid columns={{ initial: "6fr 2fr 2fr 2fr 1fr" }} gap="4" align="center">
-          <Text size="1" style={{ 
-            color: theme.colors.text.tertiary, 
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            fontSize: "11px",
-          }}>
+          <Text
+            size="1"
+            style={{
+              color: theme.colors.text.tertiary,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              fontSize: "11px",
+            }}
+          >
             Item
           </Text>
-          <Text size="1" style={{ 
-            color: theme.colors.text.tertiary, 
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            fontSize: "11px",
-          }}>
+          <Text
+            size="1"
+            style={{
+              color: theme.colors.text.tertiary,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              fontSize: "11px",
+            }}
+          >
             Type
           </Text>
-          <Text size="1" style={{ 
-            color: theme.colors.text.tertiary, 
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            fontSize: "11px",
-          }}>
+          <Text
+            size="1"
+            style={{
+              color: theme.colors.text.tertiary,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              fontSize: "11px",
+            }}
+          >
             Status
           </Text>
-          <Text size="1" style={{ 
-            color: theme.colors.text.tertiary, 
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            fontSize: "11px",
-          }}>
+          <Text
+            size="1"
+            style={{
+              color: theme.colors.text.tertiary,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              fontSize: "11px",
+            }}
+          >
             Labels
           </Text>
           <Box />
@@ -176,12 +203,13 @@ export function DatasetImageGallery({
           const isLoading = isItemLoading(item);
           const hasAnnotations = hasConfirmedAnnotations(item);
           const annotationCount = item.annotations?.length || 0;
-          
+
           return (
             <Box
               key={`${item.blobId}_${item.path}_${index}`}
               style={{
-                borderBottom: index < items.length - 1 ? `1px solid ${theme.colors.border.primary}` : "none",
+                borderBottom:
+                  index < items.length - 1 ? `1px solid ${theme.colors.border.primary}` : "none",
                 transition: "all 0.2s ease",
                 cursor: isLoading ? "default" : "pointer",
                 position: "relative",
@@ -189,9 +217,9 @@ export function DatasetImageGallery({
               className="dataset-row-hover"
               onClick={() => !isLoading && onImageClick(item, index, getImageUrl)}
             >
-              <Grid 
-                columns={{ initial: "6fr 2fr 2fr 2fr 1fr" }} 
-                gap="3" 
+              <Grid
+                columns={{ initial: "6fr 2fr 2fr 2fr 1fr" }}
+                gap="3"
                 align="center"
                 style={{
                   padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -233,7 +261,7 @@ export function DatasetImageGallery({
                         }}
                         onError={e => {
                           (e.target as HTMLImageElement).style.display = "none";
-                          (e.target as HTMLImageElement).parentElement!.innerHTML = 
+                          (e.target as HTMLImageElement).parentElement!.innerHTML =
                             `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: ${theme.colors.text.tertiary}"><svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M216,42H40A14,14,0,0,0,26,56V200a14,14,0,0,0,14,14H216a14,14,0,0,0,14-14V56A14,14,0,0,0,216,42ZM40,54H216a2,2,0,0,1,2,2v92.2L188.8,119a14.1,14.1,0,0,0-19.6,0l-20.6,20.6L116.8,107.8a14.1,14.1,0,0,0-19.6,0L38,167V56A2,2,0,0,1,40,54ZM38,180.8l68-68a2.1,2.1,0,0,1,2.8,0l37.8,37.8a6,6,0,0,0,8.4,0L175.6,130a2.1,2.1,0,0,1,2.8,0L218,169.6V200a2,2,0,0,1-2,2H40a2,2,0,0,1-2-2ZM98,96a10,10,0,1,1,10,10A10,10,0,0,1,98,96Z"/></svg></div>`;
                         }}
                       />
@@ -243,25 +271,31 @@ export function DatasetImageGallery({
                       </Flex>
                     )}
                   </Box>
-                  
+
                   <Flex direction="column" gap="1">
-                    <Text size="2" style={{ 
-                      color: theme.colors.text.primary, 
-                      fontWeight: 500,
-                      fontFamily: "monospace",
-                      lineHeight: 1.2,
-                    }}>
-                      {item.path?.split('/').pop() || `item_${index + 1}`}
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.primary,
+                        fontWeight: 500,
+                        fontFamily: "monospace",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {item.path?.split("/").pop() || `item_${index + 1}`}
                     </Text>
                     <Flex align="center" gap="1">
                       <Hash size={10} style={{ color: theme.colors.text.tertiary }} />
-                      <Text size="1" style={{ 
-                        color: theme.colors.text.tertiary,
-                        fontFamily: "monospace",
-                        letterSpacing: "-0.025em",
-                        fontSize: "10px",
-                      }}>
-                        {item.blobId?.slice(0, 8) || 'loading...'}
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.text.tertiary,
+                          fontFamily: "monospace",
+                          letterSpacing: "-0.025em",
+                          fontSize: "10px",
+                        }}
+                      >
+                        {item.blobId?.slice(0, 8) || "loading..."}
                       </Text>
                     </Flex>
                   </Flex>
@@ -269,14 +303,17 @@ export function DatasetImageGallery({
 
                 {/* Type */}
                 <Box>
-                  <Text size="1" style={{
-                    color: theme.colors.text.secondary,
-                    fontWeight: 500,
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}>
-                    {item.dataType?.split('/')[0] || 'image'}
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.secondary,
+                      fontWeight: 500,
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    {item.dataType?.split("/")[0] || "image"}
                   </Text>
                 </Box>
 
@@ -294,7 +331,10 @@ export function DatasetImageGallery({
                           animation: "spin 1s linear infinite",
                         }}
                       />
-                      <Text size="1" style={{ color: theme.colors.text.secondary, fontSize: "11px" }}>
+                      <Text
+                        size="1"
+                        style={{ color: theme.colors.text.secondary, fontSize: "11px" }}
+                      >
                         Loading
                       </Text>
                     </Flex>
@@ -302,30 +342,66 @@ export function DatasetImageGallery({
                     // For "all" tab, show actual status of each item
                     hasAnnotations ? (
                       <Flex align="center" gap="1">
-                        <CheckCircle size={12} style={{ color: theme.colors.status.success }} weight="fill" />
-                        <Text size="1" style={{ color: theme.colors.status.success, fontWeight: 500, fontSize: "11px" }}>
+                        <CheckCircle
+                          size={12}
+                          style={{ color: theme.colors.status.success }}
+                          weight="fill"
+                        />
+                        <Text
+                          size="1"
+                          style={{
+                            color: theme.colors.status.success,
+                            fontWeight: 500,
+                            fontSize: "11px",
+                          }}
+                        >
                           Verified
                         </Text>
                       </Flex>
                     ) : (
                       <Flex align="center" gap="1">
                         <Clock size={12} style={{ color: theme.colors.status.warning }} />
-                        <Text size="1" style={{ color: theme.colors.status.warning, fontWeight: 500, fontSize: "11px" }}>
+                        <Text
+                          size="1"
+                          style={{
+                            color: theme.colors.status.warning,
+                            fontWeight: 500,
+                            fontSize: "11px",
+                          }}
+                        >
                           Pending
                         </Text>
                       </Flex>
                     )
                   ) : activeTab === "confirmed" ? (
                     <Flex align="center" gap="1">
-                      <CheckCircle size={12} style={{ color: theme.colors.status.success }} weight="fill" />
-                      <Text size="1" style={{ color: theme.colors.status.success, fontWeight: 500, fontSize: "11px" }}>
+                      <CheckCircle
+                        size={12}
+                        style={{ color: theme.colors.status.success }}
+                        weight="fill"
+                      />
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.status.success,
+                          fontWeight: 500,
+                          fontSize: "11px",
+                        }}
+                      >
                         Verified
                       </Text>
                     </Flex>
                   ) : (
                     <Flex align="center" gap="1">
                       <Clock size={12} style={{ color: theme.colors.status.warning }} />
-                      <Text size="1" style={{ color: theme.colors.status.warning, fontWeight: 500, fontSize: "11px" }}>
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.status.warning,
+                          fontWeight: 500,
+                          fontSize: "11px",
+                        }}
+                      >
                         Pending
                       </Text>
                     </Flex>
@@ -337,12 +413,15 @@ export function DatasetImageGallery({
                   {annotationCount > 0 ? (
                     <Flex align="center" gap="1">
                       <Tag size={11} style={{ color: theme.colors.text.tertiary }} />
-                      <Text size="1" style={{ 
-                        color: theme.colors.text.primary, 
-                        fontWeight: 600,
-                        fontFeatureSettings: '"tnum"',
-                        fontSize: "12px",
-                      }}>
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.text.primary,
+                          fontWeight: 600,
+                          fontFeatureSettings: '"tnum"',
+                          fontSize: "12px",
+                        }}
+                      >
                         {annotationCount}
                       </Text>
                     </Flex>
@@ -356,13 +435,13 @@ export function DatasetImageGallery({
                 {/* Action */}
                 <Box>
                   {!isLoading && (
-                    <ArrowRight 
-                      size={14} 
+                    <ArrowRight
+                      size={14}
                       className="arrow-icon"
-                      style={{ 
+                      style={{
                         color: theme.colors.text.tertiary,
                         transition: "color 0.2s ease",
-                      }} 
+                      }}
                     />
                   )}
                 </Box>

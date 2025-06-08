@@ -1,19 +1,8 @@
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  ReloadIcon,
-  Cross2Icon,
-} from "@radix-ui/react-icons";
-import { 
-  CloudArrowUp, 
-  File, 
-  FolderOpen, 
-  Warning,
-  CheckCircle,
-  Trash,
-  Plus
-} from "phosphor-react";
+import { ReloadIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { CloudArrowUp, File, FolderOpen, Warning, CheckCircle, Trash, Plus } from "phosphor-react";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import type { UploadProgress } from "../types/upload";
 
@@ -68,28 +57,31 @@ export function FileUploadSection({
 
   const getFileTypeIcon = (file: File) => {
     const type = file.type.toLowerCase();
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    
-    if (type.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')) {
+    const extension = file.name.split(".").pop()?.toLowerCase();
+
+    if (
+      type.includes("image") ||
+      ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension || "")
+    ) {
       return <File size={14} style={{ color: theme.colors.dataType.image }} />;
     }
-    if (type.includes('video') || ['mp4', 'avi', 'mov', 'mkv', 'webm'].includes(extension || '')) {
+    if (type.includes("video") || ["mp4", "avi", "mov", "mkv", "webm"].includes(extension || "")) {
       return <File size={14} style={{ color: theme.colors.dataType.video }} />;
     }
-    if (type.includes('audio') || ['mp3', 'wav', 'ogg', 'flac'].includes(extension || '')) {
+    if (type.includes("audio") || ["mp3", "wav", "ogg", "flac"].includes(extension || "")) {
       return <File size={14} style={{ color: theme.colors.dataType.audio }} />;
     }
-    if (['csv', 'xlsx', 'xls'].includes(extension || '') || type.includes('spreadsheet')) {
+    if (["csv", "xlsx", "xls"].includes(extension || "") || type.includes("spreadsheet")) {
       return <File size={14} style={{ color: theme.colors.dataType.tabular }} />;
     }
-    if (['json', 'xml', 'yaml', 'yml'].includes(extension || '') || type.includes('json')) {
+    if (["json", "xml", "yaml", "yml"].includes(extension || "") || type.includes("json")) {
       return <File size={14} style={{ color: theme.colors.dataType.structured }} />;
     }
     return <File size={14} style={{ color: theme.colors.text.tertiary }} />;
   };
 
   const getFileExtension = (fileName: string) => {
-    return fileName.split('.').pop()?.toUpperCase() || 'FILE';
+    return fileName.split(".").pop()?.toUpperCase() || "FILE";
   };
 
   const isWalletConnected = currentWallet?.accounts[0]?.address;
@@ -100,12 +92,12 @@ export function FileUploadSection({
       {previewStep === "select" && (
         <Card
           style={{
-            border: isWalletConnected 
-              ? `2px dashed ${theme.colors.border.brand}` 
+            border: isWalletConnected
+              ? `2px dashed ${theme.colors.border.brand}`
               : `2px dashed ${theme.colors.border.primary}`,
             borderRadius: theme.borders.radius.lg,
             padding: theme.spacing.semantic.component.xl,
-            background: isWalletConnected 
+            background: isWalletConnected
               ? `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.accent})`
               : theme.colors.background.secondary,
             cursor: isWalletConnected ? "pointer" : "not-allowed",
@@ -123,7 +115,7 @@ export function FileUploadSection({
             id="dataset-upload"
             accept="*/*"
           />
-          
+
           <label
             htmlFor="dataset-upload"
             style={{
@@ -139,44 +131,48 @@ export function FileUploadSection({
                   width: "56px",
                   height: "56px",
                   borderRadius: theme.borders.radius.full,
-                  background: isWalletConnected 
+                  background: isWalletConnected
                     ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`
                     : theme.colors.background.tertiary,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow: isWalletConnected 
+                  boxShadow: isWalletConnected
                     ? theme.shadows.semantic.interactive.default
                     : "none",
                   transition: theme.animations.transitions.all,
                 }}
               >
-                <CloudArrowUp 
-                  size={28} 
-                  style={{ color: isWalletConnected ? theme.colors.text.inverse : theme.colors.text.tertiary }} 
+                <CloudArrowUp
+                  size={28}
+                  style={{
+                    color: isWalletConnected
+                      ? theme.colors.text.inverse
+                      : theme.colors.text.tertiary,
+                  }}
                 />
               </Box>
 
               {/* Upload Text */}
               <Flex direction="column" align="center" gap="2">
-                <Text 
-                  size="4" 
-                  style={{ 
+                <Text
+                  size="4"
+                  style={{
                     color: theme.colors.text.primary,
                     ...theme.typography.h5,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   {!isWalletConnected
                     ? "Connect wallet to upload files"
                     : "Drop files here or click to browse"}
                 </Text>
-                <Text 
-                  size="2" 
-                  style={{ 
+                <Text
+                  size="2"
+                  style={{
                     color: theme.colors.text.tertiary,
                     ...theme.typography.caption,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   Supports all data formats • Max 100MB per file
@@ -201,12 +197,12 @@ export function FileUploadSection({
               }}
             >
               <Warning size={14} style={{ color: theme.colors.text.inverse }} />
-              <Text 
-                size="1" 
-                style={{ 
+              <Text
+                size="1"
+                style={{
                   color: theme.colors.text.inverse,
                   ...theme.typography.caption,
-                  fontWeight: 500
+                  fontWeight: 500,
                 }}
               >
                 Wallet Required
@@ -227,7 +223,7 @@ export function FileUploadSection({
         accept="*/*"
       />
 
-            {/* File List */}
+      {/* File List */}
       {selectedFiles.length > 0 && (
         <Box style={{ marginTop: theme.spacing.semantic.component.md }}>
           {/* File List Header */}
@@ -242,7 +238,6 @@ export function FileUploadSection({
               overflow: "hidden",
             }}
           >
-            
             <Flex justify="between" align="center">
               <Flex align="center" gap="3">
                 <Box
@@ -261,9 +256,9 @@ export function FileUploadSection({
                 </Box>
                 <Box>
                   <Flex align="center" gap="2">
-                    <Text 
-                      size="2" 
-                      style={{ 
+                    <Text
+                      size="2"
+                      style={{
                         color: theme.colors.text.primary,
                         fontWeight: 600,
                         letterSpacing: "-0.01em",
@@ -284,9 +279,9 @@ export function FileUploadSection({
                         gap: "6px",
                       }}
                     >
-                      <Text 
-                        size="1" 
-                        style={{ 
+                      <Text
+                        size="1"
+                        style={{
                           color: theme.colors.interactive.primary,
                           fontSize: "9px",
                           lineHeight: 1,
@@ -302,9 +297,9 @@ export function FileUploadSection({
                           background: `${theme.colors.interactive.primary}40`,
                         }}
                       />
-                      <Text 
-                        size="1" 
-                        style={{ 
+                      <Text
+                        size="1"
+                        style={{
                           color: theme.colors.interactive.primary,
                           fontWeight: 500,
                           fontSize: "9px",
@@ -383,28 +378,36 @@ export function FileUploadSection({
                 key={`${file.name}-${index}`}
                 style={{
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.md}`,
-                  borderBottom: index < selectedFiles.length - 1 
-                    ? `1px solid ${theme.colors.border.primary}` 
-                    : "none",
-                  background: index % 2 === 0 
-                    ? theme.colors.background.card 
-                    : theme.colors.background.secondary,
+                  borderBottom:
+                    index < selectedFiles.length - 1
+                      ? `1px solid ${theme.colors.border.primary}`
+                      : "none",
+                  background:
+                    index % 2 === 0
+                      ? theme.colors.background.card
+                      : theme.colors.background.secondary,
                   transition: theme.animations.transitions.all,
                   height: "48px",
                   cursor: "default",
                   display: "flex",
                   alignItems: "center",
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   e.currentTarget.style.background = `${theme.colors.interactive.primary}08`;
                 }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = index % 2 === 0 
-                    ? theme.colors.background.card 
-                    : theme.colors.background.secondary;
+                onMouseLeave={e => {
+                  e.currentTarget.style.background =
+                    index % 2 === 0
+                      ? theme.colors.background.card
+                      : theme.colors.background.secondary;
                 }}
               >
-                <Flex justify="between" align="center" gap="2" style={{ width: "100%", height: "100%" }}>
+                <Flex
+                  justify="between"
+                  align="center"
+                  gap="2"
+                  style={{ width: "100%", height: "100%" }}
+                >
                   {/* File Info */}
                   <Flex align="center" gap="2" style={{ flex: 1, minWidth: 0 }}>
                     <Box
@@ -422,8 +425,16 @@ export function FileUploadSection({
                     >
                       {getFileTypeIcon(file)}
                     </Box>
-                    
-                    <Box style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+
+                    <Box
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
                       <Text
                         size="2"
                         style={{
@@ -441,7 +452,7 @@ export function FileUploadSection({
                         {file.name}
                       </Text>
                       <Flex align="center" gap="2" style={{ flexShrink: 0, marginLeft: "8px" }}>
-                        <Text 
+                        <Text
                           style={{
                             background: theme.colors.background.secondary,
                             color: theme.colors.text.tertiary,
@@ -458,9 +469,9 @@ export function FileUploadSection({
                         >
                           {getFileExtension(file.name)}
                         </Text>
-                        <Text 
-                          size="1" 
-                          style={{ 
+                        <Text
+                          size="1"
+                          style={{
                             color: theme.colors.text.tertiary,
                             fontSize: "10px",
                             fontWeight: 500,
@@ -512,7 +523,7 @@ export function FileUploadSection({
           style={{
             borderRadius: theme.borders.radius.lg,
             border: `1px solid ${
-              uploadProgress.status === "success" 
+              uploadProgress.status === "success"
                 ? theme.colors.status.success + "40"
                 : uploadProgress.status === "failed"
                   ? theme.colors.status.error + "40"
@@ -532,11 +543,12 @@ export function FileUploadSection({
                       width: "32px",
                       height: "32px",
                       borderRadius: theme.borders.radius.full,
-                      background: uploadProgress.status === "success" 
-                        ? `${theme.colors.status.success}20`
-                        : uploadProgress.status === "failed"
-                          ? `${theme.colors.status.error}20`
-                          : `${theme.colors.interactive.primary}20`,
+                      background:
+                        uploadProgress.status === "success"
+                          ? `${theme.colors.status.success}20`
+                          : uploadProgress.status === "failed"
+                            ? `${theme.colors.status.error}20`
+                            : `${theme.colors.interactive.primary}20`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -547,25 +559,25 @@ export function FileUploadSection({
                     ) : uploadProgress.status === "failed" ? (
                       <Warning size={16} style={{ color: theme.colors.status.error }} />
                     ) : (
-                      <ReloadIcon 
-                        width={16} 
-                        height={16} 
-                        style={{ 
+                      <ReloadIcon
+                        width={16}
+                        height={16}
+                        style={{
                           color: theme.colors.interactive.primary,
-                          animation: "spin 1s linear infinite"
-                        }} 
+                          animation: "spin 1s linear infinite",
+                        }}
                       />
                     )}
                   </Box>
-                  <Text 
-                    size="4" 
-                    style={{ 
+                  <Text
+                    size="4"
+                    style={{
                       color: theme.colors.text.primary,
-                      ...theme.typography.h6
+                      ...theme.typography.h6,
                     }}
                   >
                     {uploadProgress.status === "uploading" && "Processing Files"}
-                    {uploadProgress.status === "creating" && "Creating Dataset"}  
+                    {uploadProgress.status === "creating" && "Creating Dataset"}
                     {uploadProgress.status === "success" && "Upload Complete"}
                     {uploadProgress.status === "failed" && "Upload Failed"}
                   </Text>
@@ -573,16 +585,18 @@ export function FileUploadSection({
 
                 <Badge
                   style={{
-                    background: uploadProgress.status === "success" 
-                      ? `${theme.colors.status.success}15`
-                      : uploadProgress.status === "failed"
-                        ? `${theme.colors.status.error}15`
-                        : `${theme.colors.interactive.primary}15`,
-                    color: uploadProgress.status === "success" 
-                      ? theme.colors.status.success
-                      : uploadProgress.status === "failed"
-                        ? theme.colors.status.error
-                        : theme.colors.interactive.primary,
+                    background:
+                      uploadProgress.status === "success"
+                        ? `${theme.colors.status.success}15`
+                        : uploadProgress.status === "failed"
+                          ? `${theme.colors.status.error}15`
+                          : `${theme.colors.interactive.primary}15`,
+                    color:
+                      uploadProgress.status === "success"
+                        ? theme.colors.status.success
+                        : uploadProgress.status === "failed"
+                          ? theme.colors.status.error
+                          : theme.colors.interactive.primary,
                     fontSize: theme.typography.caption.fontSize,
                     padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                     borderRadius: theme.borders.radius.full,
@@ -595,12 +609,12 @@ export function FileUploadSection({
               </Flex>
 
               {/* Progress Message */}
-              <Text 
-                size="2" 
-                style={{ 
+              <Text
+                size="2"
+                style={{
                   color: theme.colors.text.secondary,
                   ...theme.typography.bodySmall,
-                  lineHeight: 1.4
+                  lineHeight: 1.4,
                 }}
               >
                 {uploadProgress.message}
@@ -620,11 +634,12 @@ export function FileUploadSection({
                   style={{
                     width: `${uploadProgress.progress}%`,
                     height: "100%",
-                    background: uploadProgress.status === "success" 
-                      ? theme.colors.status.success
-                      : uploadProgress.status === "failed"
-                        ? theme.colors.status.error
-                        : `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                    background:
+                      uploadProgress.status === "success"
+                        ? theme.colors.status.success
+                        : uploadProgress.status === "failed"
+                          ? theme.colors.status.error
+                          : `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
                     borderRadius: theme.borders.radius.full,
                     transition: "width 0.3s ease",
                   }}
@@ -651,9 +666,7 @@ export function FileUploadSection({
           fontSize: theme.typography.buttonLarge.fontSize,
           fontWeight: theme.typography.buttonLarge.fontWeight,
           border: "none",
-          boxShadow: isUploadDisabled 
-            ? "none" 
-            : theme.shadows.semantic.interactive.default,
+          boxShadow: isUploadDisabled ? "none" : theme.shadows.semantic.interactive.default,
           transition: theme.animations.transitions.all,
           display: "flex",
           alignItems: "center",

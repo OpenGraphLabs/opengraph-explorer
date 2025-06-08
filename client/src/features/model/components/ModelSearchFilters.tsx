@@ -16,8 +16,16 @@ interface ModelSearchFiltersProps {
 const taskFilters: TaskFilter[] = [
   { value: "all", label: "All Tasks", icon: "" },
   { value: TASK_TYPES.TEXT_GENERATION, label: TASK_NAMES[TASK_TYPES.TEXT_GENERATION], icon: "" },
-  { value: TASK_TYPES.TEXT_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION], icon: "" },
-  { value: TASK_TYPES.IMAGE_CLASSIFICATION, label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION], icon: "" },
+  {
+    value: TASK_TYPES.TEXT_CLASSIFICATION,
+    label: TASK_NAMES[TASK_TYPES.TEXT_CLASSIFICATION],
+    icon: "",
+  },
+  {
+    value: TASK_TYPES.IMAGE_CLASSIFICATION,
+    label: TASK_NAMES[TASK_TYPES.IMAGE_CLASSIFICATION],
+    icon: "",
+  },
   { value: TASK_TYPES.OBJECT_DETECTION, label: TASK_NAMES[TASK_TYPES.OBJECT_DETECTION], icon: "" },
   { value: TASK_TYPES.TEXT_TO_IMAGE, label: TASK_NAMES[TASK_TYPES.TEXT_TO_IMAGE], icon: "" },
   { value: TASK_TYPES.TRANSLATION, label: TASK_NAMES[TASK_TYPES.TRANSLATION], icon: "" },
@@ -44,12 +52,7 @@ export function ModelSearchFilters({
           boxShadow: theme.shadows.semantic.card.low,
         }}
       >
-        <Flex
-          gap={theme.spacing.base[3]}
-          align="center"
-          wrap="wrap"
-          style={{ minHeight: "32px" }}
-        >
+        <Flex gap={theme.spacing.base[3]} align="center" wrap="wrap" style={{ minHeight: "32px" }}>
           {/* Search Input - Takes up more space */}
           <Box style={{ flex: "1 1 300px", minWidth: "250px" }}>
             <div
@@ -60,7 +63,7 @@ export function ModelSearchFilters({
               }}
             >
               <MagnifyingGlassIcon
-                width="16" 
+                width="16"
                 height="16"
                 style={{
                   position: "absolute",
@@ -86,11 +89,11 @@ export function ModelSearchFilters({
                   outline: "none",
                   transition: theme.animations.transitions.hover,
                 }}
-                onFocus={(e) => {
+                onFocus={e => {
                   e.target.style.borderColor = theme.colors.border.focus;
                   e.target.style.backgroundColor = theme.colors.background.card;
                 }}
-                onBlur={(e) => {
+                onBlur={e => {
                   e.target.style.borderColor = theme.colors.border.secondary;
                   e.target.style.backgroundColor = theme.colors.background.secondary;
                 }}
@@ -128,7 +131,7 @@ export function ModelSearchFilters({
               {TASK_NAMES[filters.selectedTask]}
             </Badge>
           )}
-          
+
           {filters.searchQuery && (
             <Badge
               style={{
@@ -166,7 +169,11 @@ export function ModelSearchFilters({
                 }}
               >
                 {filters.selectedTask === "all" ? "All" : TASK_NAMES[filters.selectedTask]}
-                <ChevronDownIcon width="14" height="14" style={{ color: theme.colors.text.tertiary }} />
+                <ChevronDownIcon
+                  width="14"
+                  height="14"
+                  style={{ color: theme.colors.text.tertiary }}
+                />
               </Select.Trigger>
               <Select.Content
                 position="popper"
@@ -212,10 +219,18 @@ export function ModelSearchFilters({
                   gap: theme.spacing.base[2],
                 }}
               >
-                {filters.selectedSort === "newest" ? "Newest" : 
-                 filters.selectedSort === "oldest" ? "Oldest" :
-                 filters.selectedSort === "popular" ? "Popular" : "Default"}
-                <ChevronDownIcon width="14" height="14" style={{ color: theme.colors.text.tertiary }} />
+                {filters.selectedSort === "newest"
+                  ? "Newest"
+                  : filters.selectedSort === "oldest"
+                    ? "Oldest"
+                    : filters.selectedSort === "popular"
+                      ? "Popular"
+                      : "Default"}
+                <ChevronDownIcon
+                  width="14"
+                  height="14"
+                  style={{ color: theme.colors.text.tertiary }}
+                />
               </Select.Trigger>
               <Select.Content
                 position="popper"

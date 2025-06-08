@@ -12,15 +12,7 @@ import {
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/widgets/layout/AppLayout";
-import { 
-  User, 
-  Rocket, 
-  Gear,
-  Circle,
-  UploadSimple,
-  Database,
-  Lightning,
-} from "phosphor-react";
+import { User, Rocket, Gear, Circle, UploadSimple, Database, Lightning } from "phosphor-react";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 
 export function Profile() {
@@ -110,7 +102,7 @@ export function Profile() {
   // Get user's wallet address
   const userAddress = currentWallet?.accounts[0]?.address || "";
 
-  // Top Bar Component  
+  // Top Bar Component
   const topBar = (
     <Flex justify="between" align="center">
       <Flex align="center" gap="4">
@@ -426,7 +418,7 @@ export function Profile() {
             >
               <Lightning size={20} style={{ color: theme.colors.status.warning }} />
             </Box>
-            
+
             <Box style={{ textAlign: "center" }}>
               <Text
                 size="3"
@@ -447,7 +439,8 @@ export function Profile() {
                   marginTop: theme.spacing.semantic.component.xs,
                 }}
               >
-                OpenGraph is currently in active development. More features will be available in the alpha release.
+                OpenGraph is currently in active development. More features will be available in the
+                alpha release.
               </Text>
             </Box>
           </Flex>

@@ -7,7 +7,7 @@ export const fontFamilies = {
   sans: [
     "Inter", // Primary choice - excellent for interfaces
     "-apple-system",
-    "BlinkMacSystemFont", 
+    "BlinkMacSystemFont",
     "Segoe UI Variable",
     "Segoe UI",
     "system-ui",
@@ -16,22 +16,22 @@ export const fontFamilies = {
     "Arial",
     "sans-serif",
   ],
-  
+
   // Monospace stack (For code and technical content)
   mono: [
     "JetBrains Mono", // Excellent for code
     "SF Mono",
-    "Monaco", 
+    "Monaco",
     "Inconsolata",
     "Roboto Mono",
-    "Fira Code", 
+    "Fira Code",
     "Consolas",
     "Liberation Mono",
     "Menlo",
     "Courier",
     "monospace",
   ],
-  
+
   // Display font for marketing/hero content
   display: [
     "Inter Display", // For large headings
@@ -44,50 +44,50 @@ export const fontFamilies = {
 
 export const fontSizes = {
   // More granular scale for better hierarchy
-  xs: "0.75rem",     // 12px - Small captions, metadata
-  sm: "0.875rem",    // 14px - Body small, labels
-  base: "1rem",      // 16px - Default body text
-  md: "1.125rem",    // 18px - Large body text
-  lg: "1.25rem",     // 20px - Subheadings
-  xl: "1.5rem",      // 24px - H4
+  xs: "0.75rem", // 12px - Small captions, metadata
+  sm: "0.875rem", // 14px - Body small, labels
+  base: "1rem", // 16px - Default body text
+  md: "1.125rem", // 18px - Large body text
+  lg: "1.25rem", // 20px - Subheadings
+  xl: "1.5rem", // 24px - H4
   "2xl": "1.875rem", // 30px - H3
-  "3xl": "2.25rem",  // 36px - H2
-  "4xl": "2.75rem",  // 44px - H1
-  "5xl": "3.5rem",   // 56px - Display large
-  "6xl": "4.5rem",   // 72px - Display XL
-  "7xl": "6rem",     // 96px - Hero displays
+  "3xl": "2.25rem", // 36px - H2
+  "4xl": "2.75rem", // 44px - H1
+  "5xl": "3.5rem", // 56px - Display large
+  "6xl": "4.5rem", // 72px - Display XL
+  "7xl": "6rem", // 96px - Hero displays
 } as const;
 
 export const fontWeights = {
   thin: "100",
-  extralight: "200", 
+  extralight: "200",
   light: "300",
-  normal: "400",     // Default body text
-  medium: "500",     // Emphasized text, labels
-  semibold: "600",   // Subheadings, important UI text
-  bold: "700",       // Headings, strong emphasis
-  extrabold: "800",  // Display headings
-  black: "900",      // Heavy display text
+  normal: "400", // Default body text
+  medium: "500", // Emphasized text, labels
+  semibold: "600", // Subheadings, important UI text
+  bold: "700", // Headings, strong emphasis
+  extrabold: "800", // Display headings
+  black: "900", // Heavy display text
 } as const;
 
 export const lineHeights = {
-  none: "1",         // For tight spaces
-  tight: "1.25",     // Large headings
-  snug: "1.375",     // Subheadings
-  normal: "1.5",     // Body text
-  relaxed: "1.625",  // Comfortable reading
-  loose: "2",        // Very spaced content
-  code: "1.6",       // Optimal for code blocks
+  none: "1", // For tight spaces
+  tight: "1.25", // Large headings
+  snug: "1.375", // Subheadings
+  normal: "1.5", // Body text
+  relaxed: "1.625", // Comfortable reading
+  loose: "2", // Very spaced content
+  code: "1.6", // Optimal for code blocks
 } as const;
 
 export const letterSpacings = {
-  tighter: "-0.05em",  // Large headings
-  tight: "-0.025em",   // Medium headings
-  normal: "0",         // Default
-  wide: "0.025em",     // Small text, labels
-  wider: "0.05em",     // Captions, metadata
-  widest: "0.1em",     // All caps text
-  mono: "-0.02em",     // Slight tightening for mono fonts
+  tighter: "-0.05em", // Large headings
+  tight: "-0.025em", // Medium headings
+  normal: "0", // Default
+  wide: "0.025em", // Small text, labels
+  wider: "0.05em", // Captions, metadata
+  widest: "0.1em", // All caps text
+  mono: "-0.02em", // Slight tightening for mono fonts
 } as const;
 
 // Professional typography scale for consistent text hierarchy
@@ -221,7 +221,7 @@ export const textStyles = {
     lineHeight: lineHeights.code,
     letterSpacing: letterSpacings.mono,
   },
-  
+
   // Interactive elements
   buttonLarge: {
     fontSize: fontSizes.base,
@@ -241,7 +241,7 @@ export const textStyles = {
     lineHeight: lineHeights.none,
     letterSpacing: letterSpacings.wide,
   },
-  
+
   link: {
     fontSize: fontSizes.base,
     fontWeight: fontWeights.medium,

@@ -1,24 +1,16 @@
 import { useParams } from "react-router-dom";
-import {
-  Box,
-  Flex,
-  Text,
-  Tabs,
-  Badge,
-  Heading,
-  Grid,
-} from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Tabs, Badge, Heading, Grid } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  CheckCircle, 
-  Users, 
-  Database, 
+import {
+  CheckCircle,
+  Users,
+  Database,
   FolderOpen,
   Eye,
   Download,
   Hash,
-  Calendar
+  Calendar,
 } from "phosphor-react";
 import {
   useDatasetDetail,
@@ -181,7 +173,7 @@ export function DatasetDetail() {
   }
 
   const totalItems = totalCounts.confirmed + totalCounts.pending;
-  const verificationRate = totalItems > 0 ? (totalCounts.confirmed / totalItems) : 0;
+  const verificationRate = totalItems > 0 ? totalCounts.confirmed / totalItems : 0;
 
   return (
     <Box
@@ -193,11 +185,13 @@ export function DatasetDetail() {
     >
       <Box style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Minimal Impact Header */}
-        <Box style={{ 
-          marginBottom: theme.spacing.semantic.component.lg,
-          paddingBottom: theme.spacing.semantic.component.md,
-          borderBottom: `1px solid ${theme.colors.border.primary}`,
-        }}>
+        <Box
+          style={{
+            marginBottom: theme.spacing.semantic.component.lg,
+            paddingBottom: theme.spacing.semantic.component.md,
+            borderBottom: `1px solid ${theme.colors.border.primary}`,
+          }}
+        >
           <Grid columns={{ initial: "1", lg: "4" }} gap="6" align="start">
             {/* Main Content */}
             <Box style={{ gridColumn: "1 / 4" }}>
@@ -231,43 +225,57 @@ export function DatasetDetail() {
                 {/* Essential Metadata */}
                 <Flex wrap="wrap" gap="4" align="center">
                   <Flex align="center" gap="2">
-                    <Text size="1" style={{ 
-                      color: theme.colors.text.tertiary, 
-                      fontWeight: 500,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                    }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                      }}
+                    >
                       Type
                     </Text>
-                    <Text size="2" style={{ 
-                      color: theme.colors.text.primary, 
-                      fontWeight: 500,
-                      textTransform: "capitalize",
-                    }}>
-                      {dataset.dataType.replace('_', ' ')}
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.primary,
+                        fontWeight: 500,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {dataset.dataType.replace("_", " ")}
                     </Text>
                   </Flex>
 
-                  <Box style={{
-                    width: "1px",
-                    height: "16px",
-                    background: theme.colors.border.secondary,
-                  }} />
+                  <Box
+                    style={{
+                      width: "1px",
+                      height: "16px",
+                      background: theme.colors.border.secondary,
+                    }}
+                  />
 
                   <Flex align="center" gap="2">
-                    <Text size="1" style={{ 
-                      color: theme.colors.text.tertiary, 
-                      fontWeight: 500,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                    }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                      }}
+                    >
                       Size
                     </Text>
-                    <Text size="2" style={{ 
-                      color: theme.colors.text.primary, 
-                      fontWeight: 500,
-                      fontFeatureSettings: '"tnum"',
-                    }}>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.primary,
+                        fontWeight: 500,
+                        fontFeatureSettings: '"tnum"',
+                      }}
+                    >
                       {(() => {
                         const estimatedSizeMB = totalItems * 1.2;
                         if (estimatedSizeMB >= 1024) {
@@ -281,42 +289,55 @@ export function DatasetDetail() {
                     </Text>
                   </Flex>
 
-                  <Box style={{
-                    width: "1px",
-                    height: "16px",
-                    background: theme.colors.border.secondary,
-                  }} />
+                  <Box
+                    style={{
+                      width: "1px",
+                      height: "16px",
+                      background: theme.colors.border.secondary,
+                    }}
+                  />
 
                   <Flex align="center" gap="2">
-                    <Text size="1" style={{ 
-                      color: theme.colors.text.tertiary, 
-                      fontWeight: 500,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                    }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                      }}
+                    >
                       Network
                     </Text>
-                    <Text size="2" style={{ 
-                      color: theme.colors.text.primary, 
-                      fontWeight: 500,
-                    }}>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.primary,
+                        fontWeight: 500,
+                      }}
+                    >
                       SUI
                     </Text>
                   </Flex>
 
-                  <Box style={{
-                    width: "1px",
-                    height: "16px",
-                    background: theme.colors.border.secondary,
-                  }} />
+                  <Box
+                    style={{
+                      width: "1px",
+                      height: "16px",
+                      background: theme.colors.border.secondary,
+                    }}
+                  />
 
                   <Flex align="center" gap="2">
-                    <Text size="1" style={{ 
-                      color: theme.colors.text.tertiary, 
-                      fontWeight: 500,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                    }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                      }}
+                    >
                       Status
                     </Text>
                     {isAnyBlobLoading() ? (
@@ -330,7 +351,10 @@ export function DatasetDetail() {
                             animation: "pulse 1.5s ease-in-out infinite",
                           }}
                         />
-                        <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
+                        <Text
+                          size="2"
+                          style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
+                        >
                           Syncing
                         </Text>
                       </Flex>
@@ -344,7 +368,10 @@ export function DatasetDetail() {
                             borderRadius: "50%",
                           }}
                         />
-                        <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 500 }}>
+                        <Text
+                          size="2"
+                          style={{ color: theme.colors.text.primary, fontWeight: 500 }}
+                        >
                           Ready
                         </Text>
                       </Flex>
@@ -390,32 +417,41 @@ export function DatasetDetail() {
             {/* Key Metrics */}
             <Box>
               <Flex direction="column" gap="3">
-                <Text size="1" style={{ 
-                  color: theme.colors.text.tertiary, 
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                }}>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.tertiary,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                  }}
+                >
                   Dataset Overview
                 </Text>
 
                 <Flex direction="column" gap="3">
                   <Box>
                     <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
-                      <Text size="3" style={{
-                        fontWeight: 700, 
-                        color: theme.colors.text.primary,
-                        fontFeatureSettings: '"tnum"',
-                        lineHeight: 1,
-                      }}>
+                      <Text
+                        size="3"
+                        style={{
+                          fontWeight: 700,
+                          color: theme.colors.text.primary,
+                          fontFeatureSettings: '"tnum"',
+                          lineHeight: 1,
+                        }}
+                      >
                         {totalItems.toLocaleString()}
                       </Text>
-                      <Text size="1" style={{ 
-                        color: theme.colors.text.tertiary, 
-                        fontWeight: 500,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}>
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.text.tertiary,
+                          fontWeight: 500,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
                         total items
                       </Text>
                     </Flex>
@@ -440,20 +476,26 @@ export function DatasetDetail() {
 
                   <Box>
                     <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
-                      <Text size="2" style={{
-                        fontWeight: 600, 
-                        color: theme.colors.text.primary,
-                        fontFeatureSettings: '"tnum"',
-                        lineHeight: 1,
-                      }}>
+                      <Text
+                        size="2"
+                        style={{
+                          fontWeight: 600,
+                          color: theme.colors.text.primary,
+                          fontFeatureSettings: '"tnum"',
+                          lineHeight: 1,
+                        }}
+                      >
                         {totalCounts.confirmed.toLocaleString()}
                       </Text>
-                      <Text size="1" style={{ 
-                        color: theme.colors.text.tertiary, 
-                        fontWeight: 500,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}>
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.text.tertiary,
+                          fontWeight: 500,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
                         verified
                       </Text>
                     </Flex>
@@ -479,20 +521,26 @@ export function DatasetDetail() {
 
                   <Box>
                     <Flex align="baseline" gap="2" style={{ marginBottom: "2px" }}>
-                      <Text size="2" style={{
-                        fontWeight: 600, 
-                        color: theme.colors.text.primary,
-                        fontFeatureSettings: '"tnum"',
-                        lineHeight: 1,
-                      }}>
+                      <Text
+                        size="2"
+                        style={{
+                          fontWeight: 600,
+                          color: theme.colors.text.primary,
+                          fontFeatureSettings: '"tnum"',
+                          lineHeight: 1,
+                        }}
+                      >
                         {totalCounts.pending.toLocaleString()}
                       </Text>
-                      <Text size="1" style={{ 
-                        color: theme.colors.text.tertiary, 
-                        fontWeight: 500,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}>
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.text.tertiary,
+                          fontWeight: 500,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
                         pending review
                       </Text>
                     </Flex>
@@ -555,15 +603,15 @@ export function DatasetDetail() {
                     style={{
                       cursor: "pointer",
                       fontWeight: 500,
-                      color: activeTab === "all" 
-                        ? theme.colors.text.primary 
-                        : theme.colors.text.tertiary,
-                      background: activeTab === "all" 
-                        ? theme.colors.background.primary 
-                        : "transparent",
-                      border: `1px solid ${activeTab === "all" 
-                        ? theme.colors.border.primary 
-                        : "transparent"}`,
+                      color:
+                        activeTab === "all"
+                          ? theme.colors.text.primary
+                          : theme.colors.text.tertiary,
+                      background:
+                        activeTab === "all" ? theme.colors.background.primary : "transparent",
+                      border: `1px solid ${
+                        activeTab === "all" ? theme.colors.border.primary : "transparent"
+                      }`,
                       borderRadius: theme.borders.radius.sm,
                       padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                       transition: "all 0.2s ease",
@@ -595,15 +643,15 @@ export function DatasetDetail() {
                     style={{
                       cursor: "pointer",
                       fontWeight: 500,
-                      color: activeTab === "confirmed" 
-                        ? theme.colors.text.primary 
-                        : theme.colors.text.tertiary,
-                      background: activeTab === "confirmed" 
-                        ? theme.colors.background.primary 
-                        : "transparent",
-                      border: `1px solid ${activeTab === "confirmed" 
-                        ? theme.colors.border.primary 
-                        : "transparent"}`,
+                      color:
+                        activeTab === "confirmed"
+                          ? theme.colors.text.primary
+                          : theme.colors.text.tertiary,
+                      background:
+                        activeTab === "confirmed" ? theme.colors.background.primary : "transparent",
+                      border: `1px solid ${
+                        activeTab === "confirmed" ? theme.colors.border.primary : "transparent"
+                      }`,
                       borderRadius: theme.borders.radius.sm,
                       padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                       transition: "all 0.2s ease",
@@ -635,15 +683,15 @@ export function DatasetDetail() {
                     style={{
                       cursor: "pointer",
                       fontWeight: 500,
-                      color: activeTab === "pending" 
-                        ? theme.colors.text.primary 
-                        : theme.colors.text.tertiary,
-                      background: activeTab === "pending" 
-                        ? theme.colors.background.primary 
-                        : "transparent",
-                      border: `1px solid ${activeTab === "pending" 
-                        ? theme.colors.border.primary 
-                        : "transparent"}`,
+                      color:
+                        activeTab === "pending"
+                          ? theme.colors.text.primary
+                          : theme.colors.text.tertiary,
+                      background:
+                        activeTab === "pending" ? theme.colors.background.primary : "transparent",
+                      border: `1px solid ${
+                        activeTab === "pending" ? theme.colors.border.primary : "transparent"
+                      }`,
                       borderRadius: theme.borders.radius.sm,
                       padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                       transition: "all 0.2s ease",
@@ -682,11 +730,13 @@ export function DatasetDetail() {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  {(
-                    activeTab === "all" ? totalCounts.total 
-                    : activeTab === "confirmed" ? totalCounts.confirmed 
-                    : totalCounts.pending
-                  ).toLocaleString()} items
+                  {(activeTab === "all"
+                    ? totalCounts.total
+                    : activeTab === "confirmed"
+                      ? totalCounts.confirmed
+                      : totalCounts.pending
+                  ).toLocaleString()}{" "}
+                  items
                 </Text>
               </Flex>
             </Box>
@@ -695,9 +745,11 @@ export function DatasetDetail() {
             <Box>
               <DatasetImageGallery
                 items={getPaginatedItems(
-                  activeTab === "all" ? allPage 
-                  : activeTab === "confirmed" ? confirmedPage 
-                  : pendingPage
+                  activeTab === "all"
+                    ? allPage
+                    : activeTab === "confirmed"
+                      ? confirmedPage
+                      : pendingPage
                 )}
                 loading={isAnyBlobLoading()}
                 activeTab={activeTab}
@@ -713,32 +765,42 @@ export function DatasetDetail() {
               <Box style={{ marginTop: theme.spacing.semantic.component.md }}>
                 <DatasetPagination
                   currentPage={
-                    activeTab === "all" ? allPage 
-                    : activeTab === "confirmed" ? confirmedPage 
-                    : pendingPage
+                    activeTab === "all"
+                      ? allPage
+                      : activeTab === "confirmed"
+                        ? confirmedPage
+                        : pendingPage
                   }
                   hasNextPage={(() => {
-                    const currentPage = 
-                      activeTab === "all" ? allPage 
-                      : activeTab === "confirmed" ? confirmedPage 
-                      : pendingPage;
+                    const currentPage =
+                      activeTab === "all"
+                        ? allPage
+                        : activeTab === "confirmed"
+                          ? confirmedPage
+                          : pendingPage;
                     const totalItems =
-                      activeTab === "all" ? totalCounts.total 
-                      : activeTab === "confirmed" ? totalCounts.confirmed 
-                      : totalCounts.pending;
+                      activeTab === "all"
+                        ? totalCounts.total
+                        : activeTab === "confirmed"
+                          ? totalCounts.confirmed
+                          : totalCounts.pending;
                     const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
                     return currentPage < totalPages || !!dataset?.pageInfo?.hasNextPage;
                   })()}
-                  hasPrevPage={(
-                    activeTab === "all" ? allPage 
-                    : activeTab === "confirmed" ? confirmedPage 
-                    : pendingPage
-                  ) > 1}
+                  hasPrevPage={
+                    (activeTab === "all"
+                      ? allPage
+                      : activeTab === "confirmed"
+                        ? confirmedPage
+                        : pendingPage) > 1
+                  }
                   loading={paginationLoading}
                   totalItems={
-                    activeTab === "all" ? totalCounts.total 
-                    : activeTab === "confirmed" ? totalCounts.confirmed 
-                    : totalCounts.pending
+                    activeTab === "all"
+                      ? totalCounts.total
+                      : activeTab === "confirmed"
+                        ? totalCounts.confirmed
+                        : totalCounts.pending
                   }
                   pageSize={DEFAULT_PAGE_SIZE}
                   onLoadPage={loadPage}

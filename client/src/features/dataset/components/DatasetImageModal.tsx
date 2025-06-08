@@ -11,10 +11,10 @@ import {
 } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  CheckCircle, 
-  Users, 
-  X, 
+import {
+  CheckCircle,
+  Users,
+  X,
   Tag,
   Eye,
   Hash,
@@ -26,7 +26,7 @@ import {
   ArrowRight,
   Cursor,
   Image as ImageIcon,
-  FileImage
+  FileImage,
 } from "phosphor-react";
 import { ConfirmationStatus } from "../types";
 
@@ -71,12 +71,16 @@ export function DatasetImageModal({
 }: DatasetImageModalProps) {
   const { theme } = useTheme();
   const [isDrawingMode, setIsDrawingMode] = useState(false);
-  const [selectedConfirmedAnnotation, setSelectedConfirmedAnnotation] = useState<string | null>(null);
+  const [selectedConfirmedAnnotation, setSelectedConfirmedAnnotation] = useState<string | null>(
+    null
+  );
   const [boundingBoxes, setBoundingBoxes] = useState<BoundingBox[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
   const [currentBoundingBox, setCurrentBoundingBox] = useState<BoundingBox | null>(null);
-  const [annotationColors, setAnnotationColors] = useState<Record<string, { stroke: string; bg: string; text: string }>>({});
+  const [annotationColors, setAnnotationColors] = useState<
+    Record<string, { stroke: string; bg: string; text: string }>
+  >({});
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -266,10 +270,13 @@ export function DatasetImageModal({
           <Flex align="center" gap="3">
             <Box style={{ color: config.text }}>{config.icon}</Box>
             <Flex direction="column" gap="1">
-              <Text size="3" style={{ 
-                color: config.text, 
-                fontWeight: 600 
-              }}>
+              <Text
+                size="3"
+                style={{
+                  color: config.text,
+                  fontWeight: 600,
+                }}
+              >
                 {config.title}
               </Text>
               <Text size="2" style={{ color: theme.colors.text.secondary }}>
@@ -311,19 +318,25 @@ export function DatasetImageModal({
             <Flex align="center" gap="3">
               <ImageIcon size={20} style={{ color: theme.colors.text.primary }} />
               <Box>
-                <Text size="4" style={{ 
-                  color: theme.colors.text.primary, 
-                  fontWeight: 600 
-                }}>
+                <Text
+                  size="4"
+                  style={{
+                    color: theme.colors.text.primary,
+                    fontWeight: 600,
+                  }}
+                >
                   Image Analysis
                 </Text>
                 <Flex align="center" gap="2" style={{ marginTop: "2px" }}>
                   <Hash size={12} style={{ color: theme.colors.text.tertiary }} />
-                  <Text size="1" style={{ 
-                    color: theme.colors.text.tertiary,
-                    fontFamily: "monospace",
-                  }}>
-                    {selectedImageData.blobId?.slice(0, 12) || 'loading...'}
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {selectedImageData.blobId?.slice(0, 12) || "loading..."}
                   </Text>
                 </Flex>
               </Box>
@@ -343,7 +356,7 @@ export function DatasetImageModal({
               >
                 Item {selectedImageIndex + 1}
               </Badge>
-              
+
               <Box
                 style={{
                   width: "32px",
@@ -453,20 +466,33 @@ export function DatasetImageModal({
               flexDirection: "column",
             }}
           >
-            <Box style={{ 
-              padding: theme.spacing.semantic.component.lg,
-              flexGrow: 1,
-            }}>
+            <Box
+              style={{
+                padding: theme.spacing.semantic.component.lg,
+                flexGrow: 1,
+              }}
+            >
               <ConfirmationStatusDisplay />
 
               {/* Confirmed Annotations */}
               <Box style={{ marginBottom: theme.spacing.semantic.component.xl }}>
-                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
-                  <CheckCircle size={18} style={{ color: theme.colors.status.success }} weight="fill" />
-                  <Text size="4" style={{ 
-                    color: theme.colors.text.primary, 
-                    fontWeight: 600 
-                  }}>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.md }}
+                >
+                  <CheckCircle
+                    size={18}
+                    style={{ color: theme.colors.status.success }}
+                    weight="fill"
+                  />
+                  <Text
+                    size="4"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 600,
+                    }}
+                  >
                     Verified Annotations
                   </Text>
                   <Badge
@@ -508,9 +534,7 @@ export function DatasetImageModal({
                           }}
                           onClick={() => {
                             if (isDrawingMode) {
-                              setSelectedConfirmedAnnotation(
-                                isSelected ? null : annotation.label
-                              );
+                              setSelectedConfirmedAnnotation(isSelected ? null : annotation.label);
                             }
                           }}
                           className="annotation-item"
@@ -524,14 +548,21 @@ export function DatasetImageModal({
                                 borderRadius: theme.borders.radius.sm,
                               }}
                             />
-                            <Text size="2" style={{ 
-                              color: theme.colors.text.primary,
-                              fontWeight: 500,
-                            }}>
+                            <Text
+                              size="2"
+                              style={{
+                                color: theme.colors.text.primary,
+                                fontWeight: 500,
+                              }}
+                            >
                               {annotation.label}
                             </Text>
                             {isSelected && isDrawingMode && (
-                              <CheckSquare size={14} style={{ color: color.stroke }} weight="fill" />
+                              <CheckSquare
+                                size={14}
+                                style={{ color: color.stroke }}
+                                weight="fill"
+                              />
                             )}
                           </Flex>
                         </Box>
@@ -555,19 +586,29 @@ export function DatasetImageModal({
                 )}
               </Box>
 
-              <Separator size="4" style={{ 
-                background: theme.colors.border.primary,
-                margin: `${theme.spacing.semantic.component.lg} 0`,
-              }} />
+              <Separator
+                size="4"
+                style={{
+                  background: theme.colors.border.primary,
+                  margin: `${theme.spacing.semantic.component.lg} 0`,
+                }}
+              />
 
               {/* Pending Annotations */}
               <Box>
-                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.md }}
+                >
                   <Users size={18} style={{ color: theme.colors.status.warning }} weight="fill" />
-                  <Text size="4" style={{ 
-                    color: theme.colors.text.primary, 
-                    fontWeight: 600 
-                  }}>
+                  <Text
+                    size="4"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 600,
+                    }}
+                  >
                     Pending Annotations
                   </Text>
                   <Badge
@@ -598,16 +639,18 @@ export function DatasetImageModal({
                           <Box
                             key={index}
                             style={{
-                              background: isSelected 
-                                ? theme.colors.status.warning + "10" 
-                                : isAlreadyConfirmed 
-                                  ? theme.colors.background.secondary 
+                              background: isSelected
+                                ? theme.colors.status.warning + "10"
+                                : isAlreadyConfirmed
+                                  ? theme.colors.background.secondary
                                   : theme.colors.background.primary,
-                              border: `2px solid ${isSelected 
-                                ? theme.colors.status.warning 
-                                : isAlreadyConfirmed 
-                                  ? theme.colors.border.secondary 
-                                  : theme.colors.border.primary}`,
+                              border: `2px solid ${
+                                isSelected
+                                  ? theme.colors.status.warning
+                                  : isAlreadyConfirmed
+                                    ? theme.colors.border.secondary
+                                    : theme.colors.border.primary
+                              }`,
                               borderRadius: theme.borders.radius.sm,
                               padding: theme.spacing.semantic.component.sm,
                               cursor: isAlreadyConfirmed ? "not-allowed" : "pointer",
@@ -615,22 +658,30 @@ export function DatasetImageModal({
                               marginBottom: theme.spacing.semantic.component.sm,
                               opacity: isAlreadyConfirmed ? 0.6 : 1,
                             }}
-                            onClick={() => !isAlreadyConfirmed && onTogglePendingAnnotation(stat.label)}
+                            onClick={() =>
+                              !isAlreadyConfirmed && onTogglePendingAnnotation(stat.label)
+                            }
                             className="pending-annotation-item"
                           >
                             <Flex align="center" justify="between">
                               <Flex align="center" gap="2">
-                                <Tag size={14} style={{ 
-                                  color: isAlreadyConfirmed 
-                                    ? theme.colors.text.tertiary 
-                                    : theme.colors.text.secondary 
-                                }} />
-                                <Text size="2" style={{ 
-                                  color: isAlreadyConfirmed 
-                                    ? theme.colors.text.tertiary 
-                                    : theme.colors.text.primary,
-                                  fontWeight: 500,
-                                }}>
+                                <Tag
+                                  size={14}
+                                  style={{
+                                    color: isAlreadyConfirmed
+                                      ? theme.colors.text.tertiary
+                                      : theme.colors.text.secondary,
+                                  }}
+                                />
+                                <Text
+                                  size="2"
+                                  style={{
+                                    color: isAlreadyConfirmed
+                                      ? theme.colors.text.tertiary
+                                      : theme.colors.text.primary,
+                                    fontWeight: 500,
+                                  }}
+                                >
                                   {stat.label}
                                 </Text>
                                 {isAlreadyConfirmed && (
@@ -663,7 +714,11 @@ export function DatasetImageModal({
                                   {stat.count}
                                 </Badge>
                                 {isSelected && !isAlreadyConfirmed && (
-                                  <CheckSquare size={14} style={{ color: theme.colors.status.warning }} weight="fill" />
+                                  <CheckSquare
+                                    size={14}
+                                    style={{ color: theme.colors.status.warning }}
+                                    weight="fill"
+                                  />
                                 )}
                               </Flex>
                             </Flex>
@@ -692,12 +747,14 @@ export function DatasetImageModal({
                   <Box style={{ marginTop: theme.spacing.semantic.component.lg }}>
                     <Box
                       style={{
-                        background: confirmationStatus.status === "pending" 
-                          ? theme.colors.background.secondary 
-                          : theme.colors.status.warning,
-                        color: confirmationStatus.status === "pending" 
-                          ? theme.colors.text.secondary 
-                          : "white",
+                        background:
+                          confirmationStatus.status === "pending"
+                            ? theme.colors.background.secondary
+                            : theme.colors.status.warning,
+                        color:
+                          confirmationStatus.status === "pending"
+                            ? theme.colors.text.secondary
+                            : "white",
                         border: `1px solid ${theme.colors.status.warning}`,
                         borderRadius: theme.borders.radius.md,
                         padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -707,7 +764,11 @@ export function DatasetImageModal({
                         fontWeight: 600,
                         fontSize: "14px",
                       }}
-                      onClick={confirmationStatus.status === "pending" ? undefined : onConfirmSelectedAnnotations}
+                      onClick={
+                        confirmationStatus.status === "pending"
+                          ? undefined
+                          : onConfirmSelectedAnnotations
+                      }
                       className="confirm-button"
                     >
                       {confirmationStatus.status === "pending" ? (

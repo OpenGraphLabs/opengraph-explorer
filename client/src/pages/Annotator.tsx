@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Box, Flex, Text, Badge, Card } from "@radix-ui/themes";
-import { 
-  ArrowLeft, 
-  ArrowRight, 
+import {
+  ArrowLeft,
+  ArrowRight,
   Database,
   Tag,
   CheckCircle,
   Clock,
-  FloppyDisk
+  FloppyDisk,
 } from "phosphor-react";
 import { useTheme } from "@/shared/ui/design-system";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
@@ -17,7 +17,7 @@ import {
   useAnnotationState,
   ImageViewer,
 } from "@/features/annotation";
-import { Spinner} from "@/shared/ui/design-system/components";
+import { Spinner } from "@/shared/ui/design-system/components";
 
 export function Annotator() {
   const { theme } = useTheme();
@@ -149,135 +149,137 @@ export function Annotator() {
 
   const getProgressPercentage = () => {
     if (!selectedDataset) return 0;
-    return Math.round((annotationManager.pendingAnnotations.length / selectedDataset.data.length) * 100);
+    return Math.round(
+      (annotationManager.pendingAnnotations.length / selectedDataset.data.length) * 100
+    );
   };
 
   if (loading || error) {
     return (
-        <Box
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
+          style={{
+            background: theme.colors.background.card,
+            padding: theme.spacing.semantic.layout.lg,
+            borderRadius: theme.borders.radius.lg,
+            border: `1px solid ${theme.colors.border.primary}`,
+            boxShadow: theme.shadows.semantic.card.low,
+            maxWidth: "400px",
+          }}
+        >
+          <Box
             style={{
-              background: theme.colors.background.primary,
-              minHeight: "100vh",
+              position: "relative",
+              width: "48px",
+              height: "48px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: theme.spacing.semantic.layout.lg,
             }}
-        >
-          <Flex
-              direction="column"
-              align="center"
-              gap="4"
-              style={{
-                background: theme.colors.background.card,
-                padding: theme.spacing.semantic.layout.lg,
-                borderRadius: theme.borders.radius.lg,
-                border: `1px solid ${theme.colors.border.primary}`,
-                boxShadow: theme.shadows.semantic.card.low,
-                maxWidth: "400px",
-              }}
           >
             <Box
-                style={{
-                  position: "relative",
-                  width: "48px",
-                  height: "48px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                background: `linear-gradient(135deg, ${theme.colors.interactive.primary}20, ${theme.colors.interactive.accent}20)`,
+                animation: "pulse 2s infinite",
+              }}
+            />
+            <Spinner />
+          </Box>
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
             >
-              <Box
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: "50%",
-                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}20, ${theme.colors.interactive.accent}20)`,
-                    animation: "pulse 2s infinite",
-                  }}
-              />
-              <Spinner />
-            </Box>
-            <Box style={{ textAlign: "center" }}>
-              <Text
-                  size="4"
-                  style={{
-                    fontWeight: 600,
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.semantic.component.xs,
-                  }}
-              >
-                Loading Annotator
-              </Text>
-            </Box>
-          </Flex>
-        </Box>
+              Loading Annotator
+            </Text>
+          </Box>
+        </Flex>
+      </Box>
     );
   }
 
   if (error) {
     return (
-        <Box
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
+          style={{
+            background: theme.colors.background.card,
+            padding: theme.spacing.semantic.layout.lg,
+            borderRadius: theme.borders.radius.lg,
+            border: `1px solid ${theme.colors.status.error}40`,
+            boxShadow: theme.shadows.semantic.card.medium,
+            maxWidth: "400px",
+          }}
+        >
+          <Box
             style={{
-              background: theme.colors.background.primary,
-              minHeight: "100vh",
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              background: `${theme.colors.status.error}15`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: theme.spacing.semantic.layout.lg,
             }}
-        >
-          <Flex
-              direction="column"
-              align="center"
-              gap="4"
-              style={{
-                background: theme.colors.background.card,
-                padding: theme.spacing.semantic.layout.lg,
-                borderRadius: theme.borders.radius.lg,
-                border: `1px solid ${theme.colors.status.error}40`,
-                boxShadow: theme.shadows.semantic.card.medium,
-                maxWidth: "400px",
-              }}
           >
-            <Box
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  background: `${theme.colors.status.error}15`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+            <Database size={24} style={{ color: theme.colors.status.error }} />
+          </Box>
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
             >
-              <Database size={24} style={{ color: theme.colors.status.error }} />
-            </Box>
-            <Box style={{ textAlign: "center" }}>
-              <Text
-                  size="4"
-                  style={{
-                    fontWeight: 600,
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.semantic.component.xs,
-                  }}
-              >
-                Annotator Error
-              </Text>
-              <Text
-                  size="2"
-                  style={{
-                    color: theme.colors.text.secondary,
-                    lineHeight: 1.5,
-                    marginBottom: theme.spacing.semantic.component.md,
-                  }}
-              >
-                {error}
-              </Text>
-            </Box>
-          </Flex>
-        </Box>
+              Annotator Error
+            </Text>
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                lineHeight: 1.5,
+                marginBottom: theme.spacing.semantic.component.md,
+              }}
+            >
+              {error}
+            </Text>
+          </Box>
+        </Flex>
+      </Box>
     );
   }
 
@@ -289,15 +291,21 @@ export function Annotator() {
       }}
     >
       {/* Professional Header Bar */}
-      <Box 
-        style={{ 
+      <Box
+        style={{
           background: `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.secondary})`,
           borderBottom: `1px solid ${theme.colors.border.primary}`,
           boxShadow: `0 1px 3px ${theme.colors.background.primary}40`,
           padding: `${theme.spacing.semantic.component.md} 0`,
         }}
       >
-        <Box style={{ maxWidth: "1600px", margin: "0 auto", padding: `0 ${theme.spacing.semantic.component.md}` }}>
+        <Box
+          style={{
+            maxWidth: "1600px",
+            margin: "0 auto",
+            padding: `0 ${theme.spacing.semantic.component.md}`,
+          }}
+        >
           <Flex justify="between" align="center">
             {/* Left Section: Branding + Dataset Selector */}
             <Flex align="center" gap={theme.spacing.semantic.component.md}>
@@ -339,12 +347,12 @@ export function Annotator() {
                 error={error}
               />
             </Flex>
-            
+
             {/* Right Section: Progress Dashboard */}
             {selectedDataset && (
               <Flex align="center" gap={theme.spacing.semantic.component.md}>
-                <Flex 
-                  align="center" 
+                <Flex
+                  align="center"
                   gap={theme.spacing.semantic.component.sm}
                   style={{
                     background: theme.colors.background.primary,
@@ -356,14 +364,28 @@ export function Annotator() {
                   }}
                 >
                   <Flex direction="column" align="center">
-                    <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: "700", lineHeight: "1.2" }}>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.primary,
+                        fontWeight: "700",
+                        lineHeight: "1.2",
+                      }}
+                    >
                       {annotationManager.pendingAnnotations.length}
                     </Text>
-                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500", fontSize: "10px" }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.secondary,
+                        fontWeight: "500",
+                        fontSize: "10px",
+                      }}
+                    >
                       Annotated
                     </Text>
                   </Flex>
-                  
+
                   <Box
                     style={{
                       width: "1px",
@@ -372,16 +394,30 @@ export function Annotator() {
                       borderRadius: "1px",
                     }}
                   />
-                  
+
                   <Flex direction="column" align="center">
-                    <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: "700", lineHeight: "1.2" }}>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.primary,
+                        fontWeight: "700",
+                        lineHeight: "1.2",
+                      }}
+                    >
                       {selectedDataset.data.length}
                     </Text>
-                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: "500", fontSize: "10px" }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.secondary,
+                        fontWeight: "500",
+                        fontSize: "10px",
+                      }}
+                    >
                       Total
                     </Text>
                   </Flex>
-                  
+
                   <Box
                     style={{
                       width: "1px",
@@ -390,9 +426,16 @@ export function Annotator() {
                       borderRadius: "1px",
                     }}
                   />
-                  
+
                   <Flex direction="column" align="center">
-                    <Text size="2" style={{ color: theme.colors.interactive.primary, fontWeight: "700", lineHeight: "1.2" }}>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.interactive.primary,
+                        fontWeight: "700",
+                        lineHeight: "1.2",
+                      }}
+                    >
                       {getProgressPercentage()}%
                     </Text>
                     <Box
@@ -423,14 +466,20 @@ export function Annotator() {
       </Box>
 
       {/* Main Content */}
-      <Box style={{ 
-        maxWidth: "1600px", 
-        margin: "0 auto", 
-        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-        height: "calc(100vh - 70px)",
-        overflow: "hidden"
-      }}>
-        <Flex direction="column" gap={theme.spacing.semantic.component.xs} style={{ height: "100%" }}>
+      <Box
+        style={{
+          maxWidth: "1600px",
+          margin: "0 auto",
+          padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+          height: "calc(100vh - 70px)",
+          overflow: "hidden",
+        }}
+      >
+        <Flex
+          direction="column"
+          gap={theme.spacing.semantic.component.xs}
+          style={{ height: "100%" }}
+        >
           {/* Main Annotation Interface */}
           {selectedDataset && getCurrentImage() && isImageType(selectedDataset.dataType) && (
             <Flex gap={theme.spacing.semantic.component.md} style={{ height: "100%" }}>
@@ -450,15 +499,17 @@ export function Annotator() {
                   }}
                 >
                   {/* Full-Width Image Viewer */}
-                  <Box style={{ 
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 0,
-                    width: "100%",
-                    height: "100%",
-                  }}>
+                  <Box
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minHeight: 0,
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
                     <Box
                       style={{
                         width: "100%",
@@ -491,11 +542,7 @@ export function Annotator() {
                       flexShrink: 0,
                     }}
                   >
-                    <Flex
-                      align="center"
-                      justify="center"
-                      gap={theme.spacing.semantic.component.sm}
-                    >
+                    <Flex align="center" justify="center" gap={theme.spacing.semantic.component.sm}>
                       <button
                         onClick={() => handleNavigation("prev")}
                         disabled={currentImageIndex === 0}
@@ -503,32 +550,42 @@ export function Annotator() {
                           width: "36px",
                           height: "36px",
                           borderRadius: "50%",
-                          background: currentImageIndex === 0 
-                            ? theme.colors.background.secondary
-                            : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-                          border: `1px solid ${currentImageIndex === 0 ? theme.colors.border.secondary : 'transparent'}`,
+                          background:
+                            currentImageIndex === 0
+                              ? theme.colors.background.secondary
+                              : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                          border: `1px solid ${currentImageIndex === 0 ? theme.colors.border.secondary : "transparent"}`,
                           cursor: currentImageIndex === 0 ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           opacity: currentImageIndex === 0 ? 0.5 : 1,
                           transition: "all 0.2s ease",
-                          boxShadow: currentImageIndex === 0 ? "none" : `0 2px 8px ${theme.colors.interactive.primary}30`,
+                          boxShadow:
+                            currentImageIndex === 0
+                              ? "none"
+                              : `0 2px 8px ${theme.colors.interactive.primary}30`,
                         }}
-                        onMouseEnter={(e) => {
+                        onMouseEnter={e => {
                           if (currentImageIndex > 0) {
                             e.currentTarget.style.transform = "scale(1.05)";
                           }
                         }}
-                        onMouseLeave={(e) => {
+                        onMouseLeave={e => {
                           e.currentTarget.style.transform = "scale(1)";
                         }}
                       >
-                        <ArrowLeft size={16} style={{ 
-                          color: currentImageIndex === 0 ? theme.colors.text.muted : theme.colors.text.inverse 
-                        }} />
+                        <ArrowLeft
+                          size={16}
+                          style={{
+                            color:
+                              currentImageIndex === 0
+                                ? theme.colors.text.muted
+                                : theme.colors.text.inverse,
+                          }}
+                        />
                       </button>
-                      
+
                       <Box
                         style={{
                           background: theme.colors.background.primary,
@@ -540,15 +597,18 @@ export function Annotator() {
                           boxShadow: `inset 0 1px 2px ${theme.colors.background.primary}40`,
                         }}
                       >
-                        <Text size="3" style={{ 
-                          fontWeight: "700", 
-                          color: theme.colors.text.primary,
-                          fontFamily: "monospace",
-                        }}>
+                        <Text
+                          size="3"
+                          style={{
+                            fontWeight: "700",
+                            color: theme.colors.text.primary,
+                            fontFamily: "monospace",
+                          }}
+                        >
                           {currentImageIndex + 1}/{selectedDataset.data.length}
                         </Text>
                       </Box>
-                      
+
                       <button
                         onClick={() => handleNavigation("next")}
                         disabled={currentImageIndex === selectedDataset.data.length - 1}
@@ -556,30 +616,43 @@ export function Annotator() {
                           width: "36px",
                           height: "36px",
                           borderRadius: "50%",
-                          background: currentImageIndex === selectedDataset.data.length - 1 
-                            ? theme.colors.background.secondary
-                            : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-                          border: `1px solid ${currentImageIndex === selectedDataset.data.length - 1 ? theme.colors.border.secondary : 'transparent'}`,
-                          cursor: currentImageIndex === selectedDataset.data.length - 1 ? "not-allowed" : "pointer",
+                          background:
+                            currentImageIndex === selectedDataset.data.length - 1
+                              ? theme.colors.background.secondary
+                              : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                          border: `1px solid ${currentImageIndex === selectedDataset.data.length - 1 ? theme.colors.border.secondary : "transparent"}`,
+                          cursor:
+                            currentImageIndex === selectedDataset.data.length - 1
+                              ? "not-allowed"
+                              : "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           opacity: currentImageIndex === selectedDataset.data.length - 1 ? 0.5 : 1,
                           transition: "all 0.2s ease",
-                          boxShadow: currentImageIndex === selectedDataset.data.length - 1 ? "none" : `0 2px 8px ${theme.colors.interactive.primary}30`,
+                          boxShadow:
+                            currentImageIndex === selectedDataset.data.length - 1
+                              ? "none"
+                              : `0 2px 8px ${theme.colors.interactive.primary}30`,
                         }}
-                        onMouseEnter={(e) => {
+                        onMouseEnter={e => {
                           if (currentImageIndex < selectedDataset.data.length - 1) {
                             e.currentTarget.style.transform = "scale(1.05)";
                           }
                         }}
-                        onMouseLeave={(e) => {
+                        onMouseLeave={e => {
                           e.currentTarget.style.transform = "scale(1)";
                         }}
                       >
-                        <ArrowRight size={16} style={{ 
-                          color: currentImageIndex === selectedDataset.data.length - 1 ? theme.colors.text.muted : theme.colors.text.inverse 
-                        }} />
+                        <ArrowRight
+                          size={16}
+                          style={{
+                            color:
+                              currentImageIndex === selectedDataset.data.length - 1
+                                ? theme.colors.text.muted
+                                : theme.colors.text.inverse,
+                          }}
+                        />
                       </button>
                     </Flex>
                   </Box>
@@ -612,13 +685,13 @@ export function Annotator() {
                       outline: "none",
                       fontFamily: "inherit",
                     }}
-                    onFocus={(e) => {
+                    onFocus={e => {
                       if (!blobManager.isCurrentImageBlobLoading(getCurrentImage())) {
                         e.target.style.borderColor = theme.colors.interactive.primary;
                         e.target.style.boxShadow = `0 0 0 2px ${theme.colors.interactive.primary}20`;
                       }
                     }}
-                    onBlur={(e) => {
+                    onBlur={e => {
                       e.target.style.borderColor = theme.colors.border.primary;
                       e.target.style.boxShadow = "none";
                     }}
@@ -642,11 +715,20 @@ export function Annotator() {
                   <Flex direction="column" gap={theme.spacing.semantic.component.sm}>
                     {/* Compact Header */}
                     <Flex justify="between" align="center">
-                      <Text size="2" style={{ fontWeight: "600", color: theme.colors.text.primary }}>
+                      <Text
+                        size="2"
+                        style={{ fontWeight: "600", color: theme.colors.text.primary }}
+                      >
                         Annotations
                       </Text>
                       {annotationManager.pendingAnnotations.length > 0 && (
-                        <Badge size="1" style={{ background: theme.colors.interactive.primary, color: theme.colors.text.inverse }}>
+                        <Badge
+                          size="1"
+                          style={{
+                            background: theme.colors.interactive.primary,
+                            color: theme.colors.text.inverse,
+                          }}
+                        >
                           {annotationManager.pendingAnnotations.length}
                         </Badge>
                       )}
@@ -655,12 +737,14 @@ export function Annotator() {
                     {/* Annotations List */}
                     <Box style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
                       {annotationManager.pendingAnnotations.length === 0 ? (
-                        <Box style={{ 
-                          padding: theme.spacing.semantic.component.md, 
-                          textAlign: "center",
-                          borderRadius: theme.borders.radius.sm,
-                          background: theme.colors.background.secondary,
-                        }}>
+                        <Box
+                          style={{
+                            padding: theme.spacing.semantic.component.md,
+                            textAlign: "center",
+                            borderRadius: theme.borders.radius.sm,
+                            background: theme.colors.background.secondary,
+                          }}
+                        >
                           <Text size="1" style={{ color: theme.colors.text.secondary }}>
                             No annotations
                           </Text>
@@ -715,7 +799,8 @@ export function Annotator() {
                     {annotationManager.pendingAnnotations.length > 0 && (
                       <button
                         onClick={() =>
-                          selectedDataset && annotationManager.savePendingAnnotations(selectedDataset)
+                          selectedDataset &&
+                          annotationManager.savePendingAnnotations(selectedDataset)
                         }
                         disabled={
                           annotationManager.saving ||
@@ -740,7 +825,9 @@ export function Annotator() {
                         }}
                       >
                         <FloppyDisk size={12} />
-                        {annotationManager.saving ? "Saving..." : `Save ${annotationManager.pendingAnnotations.length}`}
+                        {annotationManager.saving
+                          ? "Saving..."
+                          : `Save ${annotationManager.pendingAnnotations.length}`}
                       </button>
                     )}
                   </Flex>
@@ -847,7 +934,8 @@ export function Annotator() {
                       marginTop: theme.spacing.semantic.component.xs,
                     }}
                   >
-                    This dataset contains {selectedDataset.dataType} data. Currently, only image datasets are supported for annotation.
+                    This dataset contains {selectedDataset.dataType} data. Currently, only image
+                    datasets are supported for annotation.
                   </Text>
                 </Box>
               </Flex>

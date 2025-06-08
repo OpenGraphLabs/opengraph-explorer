@@ -1,7 +1,7 @@
 import { Dropdown, DropdownOption } from "@/shared/ui/design-system/components";
 import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
 import { Database } from "phosphor-react";
-import {Box} from "@radix-ui/themes";
+import { Box } from "@radix-ui/themes";
 
 interface DatasetSelectorProps {
   datasets: DatasetObject[];
@@ -32,32 +32,32 @@ export function DatasetSelector({
       onDatasetSelect(null);
       return;
     }
-    
+
     const dataset = datasets.find(d => d.id === value);
     if (dataset) onDatasetSelect(dataset);
   };
 
-  const placeholder = loading 
-    ? "Loading datasets..." 
-    : error 
-    ? "Error loading datasets" 
-    : "Choose dataset to annotate...";
+  const placeholder = loading
+    ? "Loading datasets..."
+    : error
+      ? "Error loading datasets"
+      : "Choose dataset to annotate...";
 
   return (
     <Box>
       <Dropdown
-          options={options}
-          value={selectedDataset?.id || ""}
-          onValueChange={handleValueChange}
-          placeholder={placeholder}
-          size="lg"
-          variant="default"
-          disabled={loading || !!error}
-          loading={loading}
-          error={!!error}
-          searchable={datasets.length > 5}
-          clearable={!!selectedDataset}
-          fullWidth
+        options={options}
+        value={selectedDataset?.id || ""}
+        onValueChange={handleValueChange}
+        placeholder={placeholder}
+        size="lg"
+        variant="default"
+        disabled={loading || !!error}
+        loading={loading}
+        error={!!error}
+        searchable={datasets.length > 5}
+        clearable={!!selectedDataset}
+        fullWidth
       />
     </Box>
   );

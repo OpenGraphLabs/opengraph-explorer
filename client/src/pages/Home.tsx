@@ -10,7 +10,15 @@ import {
   type ModelData,
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { RocketIcon, GitHubLogoIcon, Share1Icon, CodeIcon, CubeIcon, LayersIcon, Pencil1Icon } from "@radix-ui/react-icons";
+import {
+  RocketIcon,
+  GitHubLogoIcon,
+  Share1Icon,
+  CodeIcon,
+  CubeIcon,
+  LayersIcon,
+  Pencil1Icon,
+} from "@radix-ui/react-icons";
 
 export function Home() {
   const { theme } = useTheme();
@@ -51,7 +59,8 @@ export function Home() {
               lineHeight: "1.4",
             }}
           >
-            Onchain machine learning with complete transparency. Build, verify, and deploy ML models on Sui & Walrus.
+            Onchain machine learning with complete transparency. Build, verify, and deploy ML models
+            on Sui & Walrus.
           </Text>
 
           <Flex gap="3" mt="3">
@@ -62,7 +71,7 @@ export function Home() {
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector('button');
+                  const button = e.currentTarget.querySelector("button");
                   if (button) {
                     button.style.background = theme.colors.interactive.accent;
                     button.style.boxShadow = `0 4px 12px ${theme.colors.interactive.accent}35`;
@@ -70,7 +79,7 @@ export function Home() {
                   }
                 }}
                 onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector('button');
+                  const button = e.currentTarget.querySelector("button");
                   if (button) {
                     button.style.background = theme.colors.interactive.primary;
                     button.style.boxShadow = `0 2px 8px ${theme.colors.interactive.primary}25`;
@@ -105,7 +114,7 @@ export function Home() {
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector('button');
+                  const button = e.currentTarget.querySelector("button");
                   if (button) {
                     button.style.borderColor = theme.colors.interactive.primary;
                     button.style.background = `${theme.colors.interactive.primary}08`;
@@ -113,7 +122,7 @@ export function Home() {
                   }
                 }}
                 onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector('button');
+                  const button = e.currentTarget.querySelector("button");
                   if (button) {
                     button.style.borderColor = theme.colors.border.primary;
                     button.style.background = theme.colors.background.card;
@@ -146,26 +155,65 @@ export function Home() {
         {/* Compact Stats Row */}
         <Flex justify="center" gap="8" py="3">
           <Flex direction="column" align="center" gap="1">
-            <Text size="4" style={{ fontWeight: theme.typography.h4.fontWeight, color: theme.colors.text.primary }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: theme.typography.h4.fontWeight,
+                color: theme.colors.text.primary,
+              }}
+            >
               1,250+
             </Text>
-            <Text size="1" style={{ color: theme.colors.text.secondary, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
               Models
             </Text>
           </Flex>
           <Flex direction="column" align="center" gap="1">
-            <Text size="4" style={{ fontWeight: theme.typography.h4.fontWeight, color: theme.colors.text.primary }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: theme.typography.h4.fontWeight,
+                color: theme.colors.text.primary,
+              }}
+            >
               340TB
             </Text>
-            <Text size="1" style={{ color: theme.colors.text.secondary, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
               On-chain Data
             </Text>
           </Flex>
           <Flex direction="column" align="center" gap="1">
-            <Text size="4" style={{ fontWeight: theme.typography.h4.fontWeight, color: theme.colors.text.primary }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: theme.typography.h4.fontWeight,
+                color: theme.colors.text.primary,
+              }}
+            >
               99.9%
             </Text>
-            <Text size="1" style={{ color: theme.colors.text.secondary, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
               Verifiable
             </Text>
           </Flex>
@@ -303,7 +351,11 @@ export function Home() {
               }}
             >
               <Flex align="center" gap="2" mb="2">
-                <CubeIcon width="16" height="16" style={{ color: theme.colors.interactive.primary }} />
+                <CubeIcon
+                  width="16"
+                  height="16"
+                  style={{ color: theme.colors.interactive.primary }}
+                />
                 <Text
                   size="2"
                   style={{
@@ -335,7 +387,11 @@ export function Home() {
               }}
             >
               <Flex align="center" gap="2" mb="2">
-                <LayersIcon width="16" height="16" style={{ color: theme.colors.interactive.accent }} />
+                <LayersIcon
+                  width="16"
+                  height="16"
+                  style={{ color: theme.colors.interactive.accent }}
+                />
                 <Text
                   size="2"
                   style={{
@@ -416,7 +472,11 @@ export function Home() {
               textAlign: "center",
             }}
           >
-            <RocketIcon width="20" height="20" style={{ color: theme.colors.interactive.primary, margin: "0 auto 8px" }} />
+            <RocketIcon
+              width="20"
+              height="20"
+              style={{ color: theme.colors.interactive.primary, margin: "0 auto 8px" }}
+            />
             <Text
               size="2"
               style={{
@@ -448,7 +508,11 @@ export function Home() {
               textAlign: "center",
             }}
           >
-            <Share1Icon width="20" height="20" style={{ color: theme.colors.interactive.accent, margin: "0 auto 8px" }} />
+            <Share1Icon
+              width="20"
+              height="20"
+              style={{ color: theme.colors.interactive.accent, margin: "0 auto 8px" }}
+            />
             <Text
               size="2"
               style={{
@@ -480,7 +544,11 @@ export function Home() {
               textAlign: "center",
             }}
           >
-            <CodeIcon width="20" height="20" style={{ color: theme.colors.status.success, margin: "0 auto 8px" }} />
+            <CodeIcon
+              width="20"
+              height="20"
+              style={{ color: theme.colors.status.success, margin: "0 auto 8px" }}
+            />
             <Text
               size="2"
               style={{
@@ -512,7 +580,11 @@ export function Home() {
               textAlign: "center",
             }}
           >
-            <GitHubLogoIcon width="20" height="20" style={{ color: theme.colors.text.secondary, margin: "0 auto 8px" }} />
+            <GitHubLogoIcon
+              width="20"
+              height="20"
+              style={{ color: theme.colors.text.secondary, margin: "0 auto 8px" }}
+            />
             <Text
               size="2"
               style={{
@@ -595,21 +667,21 @@ export function Home() {
           </Heading>
           <Flex direction="column" gap="3">
             {[
-              { 
-                href: "/models/upload", 
-                icon: "rocket", 
-                text: "Upload New Model" 
+              {
+                href: "/models/upload",
+                icon: "rocket",
+                text: "Upload New Model",
               },
-              { 
-                href: "/datasets", 
-                icon: "layers", 
-                text: "Browse Datasets" 
+              {
+                href: "/datasets",
+                icon: "layers",
+                text: "Browse Datasets",
               },
-                              { 
-                  href: "/annotator", 
-                  icon: "pencil", 
-                  text: "Data Annotator" 
-                },
+              {
+                href: "/annotator",
+                icon: "pencil",
+                text: "Data Annotator",
+              },
             ].map((action, index) => (
               <Link key={index} to={action.href} style={{ textDecoration: "none" }}>
                 <Box
@@ -668,7 +740,7 @@ const featuredModels: ModelData[] = [
     frameworks: ["TensorFlow", "SUI"],
   },
   {
-    id: "2", 
+    id: "2",
     name: "Sentiment Analyzer",
     description: "Advanced NLP model for sentiment classification",
     creator: "0xabcd...efgh",

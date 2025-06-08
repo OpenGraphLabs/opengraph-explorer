@@ -9,14 +9,14 @@ import {
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/widgets/layout/AppLayout";
-import { 
-  Database, 
-  UploadSimple, 
+import {
+  Database,
+  UploadSimple,
   MagnifyingGlass,
   Circle,
   Sparkle,
   Lightning,
-  ChartLineUp
+  ChartLineUp,
 } from "phosphor-react";
 import {
   useDatasets,
@@ -236,8 +236,11 @@ export function Datasets() {
                 gap: "4px",
               }}
             >
-              <MagnifyingGlass size={10} />
-              "{filters.searchQuery.length > 20 ? filters.searchQuery.substring(0, 20) + "..." : filters.searchQuery}"
+              <MagnifyingGlass size={10} />"
+              {filters.searchQuery.length > 20
+                ? filters.searchQuery.substring(0, 20) + "..."
+                : filters.searchQuery}
+              "
             </Badge>
           )}
 
@@ -261,7 +264,9 @@ export function Datasets() {
 
       {/* Sort */}
       <Flex align="center" gap="2">
-        <Text size="1" style={{ color: theme.colors.text.tertiary }}>Sort:</Text>
+        <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+          Sort:
+        </Text>
         <DatasetSortSelector
           selectedSort={filters.selectedSort}
           onSortChange={value => updateFilter("selectedSort", value)}
@@ -368,12 +373,7 @@ export function Datasets() {
           }}
         >
           {filteredDatasets.map((dataset, index) => (
-            <DatasetCard 
-              key={dataset.id} 
-              dataset={dataset} 
-              index={index} 
-              isLoaded={isLoaded} 
-            />
+            <DatasetCard key={dataset.id} dataset={dataset} index={index} isLoaded={isLoaded} />
           ))}
         </Grid>
       )}

@@ -17,9 +17,9 @@ import { motion } from "framer-motion";
 import { useModelById } from "@/shared/hooks/useModels";
 import { ModelOverviewTab, ModelInferenceTab } from "@/features/model";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
-import { 
-  Brain, 
-  Database, 
+import {
+  Brain,
+  Database,
   Lightning,
   Cube,
   Activity,
@@ -90,7 +90,13 @@ export function ModelDetail() {
           padding: theme.spacing.semantic.layout.lg,
         }}
       >
-        <Flex direction="column" align="center" justify="center" gap="6" style={{ minHeight: "70vh" }}>
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          gap="6"
+          style={{ minHeight: "70vh" }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -176,7 +182,13 @@ export function ModelDetail() {
           padding: theme.spacing.semantic.layout.lg,
         }}
       >
-        <Flex direction="column" align="center" justify="center" gap="6" style={{ minHeight: "70vh" }}>
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          gap="6"
+          style={{ minHeight: "70vh" }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -207,7 +219,7 @@ export function ModelDetail() {
               >
                 <Brain size={28} style={{ color: theme.colors.status.error }} />
               </Box>
-              
+
               <Heading
                 size="4"
                 style={{
@@ -218,7 +230,7 @@ export function ModelDetail() {
               >
                 Model Not Found
               </Heading>
-              
+
               <Text
                 size="2"
                 style={{
@@ -229,7 +241,7 @@ export function ModelDetail() {
               >
                 {error || "The requested AI model could not be found in the onchain registry."}
               </Text>
-              
+
               <Button
                 onClick={() => window.history.back()}
                 style={{
@@ -254,11 +266,12 @@ export function ModelDetail() {
 
   // Calculate model metrics for header display
   const layerCount = model?.graphs?.[0]?.layers?.length || 0;
-  const totalParams = model?.graphs?.[0]?.layers?.reduce((total, layer) => {
-    const weightCount = layer.weight_tensor?.magnitude?.length || 0;
-    const biasCount = layer.bias_tensor?.magnitude?.length || 0;
-    return total + weightCount + biasCount;
-  }, 0) || 0;
+  const totalParams =
+    model?.graphs?.[0]?.layers?.reduce((total, layer) => {
+      const weightCount = layer.weight_tensor?.magnitude?.length || 0;
+      const biasCount = layer.bias_tensor?.magnitude?.length || 0;
+      return total + weightCount + biasCount;
+    }, 0) || 0;
 
   return (
     <Box
@@ -268,9 +281,9 @@ export function ModelDetail() {
         padding: theme.spacing.semantic.layout.md,
       }}
     >
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
         style={{ maxWidth: "1400px", margin: "0 auto" }}
       >
@@ -340,7 +353,7 @@ export function ModelDetail() {
                 </Flex>
 
                 <Heading
-                  size="6" 
+                  size="6"
                   style={{
                     fontWeight: 700,
                     background: theme.gradients.primary,
@@ -382,7 +395,8 @@ export function ModelDetail() {
                   <Flex align="center" gap="2">
                     <Gear size={14} style={{ color: theme.colors.interactive.accent }} />
                     <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
-                      {model.task_type.charAt(0).toUpperCase() + model.task_type.slice(1).replace(/-/g, ' ')}
+                      {model.task_type.charAt(0).toUpperCase() +
+                        model.task_type.slice(1).replace(/-/g, " ")}
                     </Text>
                   </Flex>
                 </Flex>
@@ -468,8 +482,12 @@ export function ModelDetail() {
                     style={{
                       cursor: "pointer",
                       fontWeight: theme.typography.label.fontWeight,
-                      color: activeTab === "overview" ? theme.colors.text.inverse : theme.colors.text.secondary,
-                      background: activeTab === "overview" ? theme.colors.interactive.primary : "transparent",
+                      color:
+                        activeTab === "overview"
+                          ? theme.colors.text.inverse
+                          : theme.colors.text.secondary,
+                      background:
+                        activeTab === "overview" ? theme.colors.interactive.primary : "transparent",
                       transition: theme.animations.transitions.all,
                       padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                       borderRadius: theme.borders.radius.md,
@@ -488,8 +506,14 @@ export function ModelDetail() {
                     style={{
                       cursor: "pointer",
                       fontWeight: theme.typography.label.fontWeight,
-                      color: activeTab === "inference" ? theme.colors.text.inverse : theme.colors.text.secondary,
-                      background: activeTab === "inference" ? theme.colors.interactive.primary : "transparent",
+                      color:
+                        activeTab === "inference"
+                          ? theme.colors.text.inverse
+                          : theme.colors.text.secondary,
+                      background:
+                        activeTab === "inference"
+                          ? theme.colors.interactive.primary
+                          : "transparent",
                       transition: theme.animations.transitions.all,
                       padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                       borderRadius: theme.borders.radius.md,

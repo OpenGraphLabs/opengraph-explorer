@@ -1,18 +1,8 @@
 import { Box, Text, Flex, Button } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import {
-  ReloadIcon,
-  InfoCircledIcon,
-} from "@radix-ui/react-icons";
-import { 
-  Upload, 
-  Check, 
-  Warning, 
-  X,
-  File,
-  CloudArrowUp
-} from "phosphor-react";
+import { ReloadIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import { Upload, Check, Warning, X, File, CloudArrowUp } from "phosphor-react";
 import { useRef, useState } from "react";
 
 interface ModelUploaderProps {
@@ -164,12 +154,12 @@ export function ModelUploader({
         style={{
           borderStyle: "dashed",
           borderWidth: "2px",
-          borderColor: selectedFile 
-            ? theme.colors.interactive.primary 
-            : isDragOver 
+          borderColor: selectedFile
+            ? theme.colors.interactive.primary
+            : isDragOver
               ? theme.colors.interactive.accent
               : theme.colors.border.secondary,
-          background: selectedFile 
+          background: selectedFile
             ? `${theme.colors.interactive.primary}08`
             : isDragOver
               ? `${theme.colors.interactive.accent}05`
@@ -191,63 +181,64 @@ export function ModelUploader({
               width: "60px",
               height: "60px",
               borderRadius: "50%",
-              background: selectedFile 
+              background: selectedFile
                 ? `${theme.colors.interactive.primary}15`
                 : isDragOver
                   ? `${theme.colors.interactive.accent}15`
                   : `${theme.colors.text.tertiary}10`,
-              border: `1px solid ${selectedFile 
-                ? `${theme.colors.interactive.primary}30`
-                : isDragOver
-                  ? `${theme.colors.interactive.accent}30`
-                  : `${theme.colors.text.tertiary}20`}`,
+              border: `1px solid ${
+                selectedFile
+                  ? `${theme.colors.interactive.primary}30`
+                  : isDragOver
+                    ? `${theme.colors.interactive.accent}30`
+                    : `${theme.colors.text.tertiary}20`
+              }`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: "all 0.2s ease",
             }}
           >
-            <CloudArrowUp 
-              size={24} 
-              style={{ 
-                color: selectedFile 
+            <CloudArrowUp
+              size={24}
+              style={{
+                color: selectedFile
                   ? theme.colors.interactive.primary
                   : isDragOver
                     ? theme.colors.interactive.accent
-                    : theme.colors.text.tertiary
-              }} 
+                    : theme.colors.text.tertiary,
+              }}
             />
           </Box>
 
           <Box style={{ textAlign: "center" }}>
-            <Text 
+            <Text
               size="3"
-              style={{ 
-                fontWeight: 600, 
+              style={{
+                fontWeight: 600,
                 color: theme.colors.text.primary,
                 marginBottom: "2px",
-                display: "block"
+                display: "block",
               }}
             >
               {selectedFile ? "File Ready for Conversion" : "Upload Your Model File"}
             </Text>
-            <Text 
-              size="1" 
-              style={{ 
+            <Text
+              size="1"
+              style={{
                 color: theme.colors.text.secondary,
-                lineHeight: 1.4
+                lineHeight: 1.4,
               }}
             >
-              {selectedFile 
+              {selectedFile
                 ? "Click to change file or drag new file here"
-                : "Drag and drop your .h5 file here, or click to browse"
-              }
+                : "Drag and drop your .h5 file here, or click to browse"}
             </Text>
           </Box>
 
           {!selectedFile && (
             <Button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 handleBrowseClick();
               }}
@@ -310,22 +301,22 @@ export function ModelUploader({
                 <File size={16} style={{ color: theme.colors.interactive.primary }} />
               </Box>
               <Box>
-                <Text 
-                  size="2" 
-                  style={{ 
+                <Text
+                  size="2"
+                  style={{
                     fontWeight: 600,
                     color: theme.colors.text.primary,
                     marginBottom: "1px",
-                    display: "block"
+                    display: "block",
                   }}
                 >
                   {selectedFile.name}
                 </Text>
-                <Text 
-                  size="1" 
-                  style={{ 
+                <Text
+                  size="1"
+                  style={{
                     color: theme.colors.text.secondary,
-                    fontSize: "11px"
+                    fontSize: "11px",
                   }}
                 >
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • H5 Model File
@@ -348,7 +339,7 @@ export function ModelUploader({
                 gap: theme.spacing.semantic.component.xs,
                 transition: "all 0.2s ease",
               }}
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 resetFile();
               }}
@@ -380,11 +371,11 @@ export function ModelUploader({
         >
           <Flex align="center" gap="2">
             <Warning size={16} style={{ color: theme.colors.status.error }} />
-            <Text 
-              size="2" 
-              style={{ 
+            <Text
+              size="2"
+              style={{
                 color: theme.colors.status.error,
-                fontWeight: 500
+                fontWeight: 500,
               }}
             >
               {error}
@@ -408,22 +399,22 @@ export function ModelUploader({
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
               {isConverting ? (
-                <ReloadIcon 
-                  style={{ 
-                    color: theme.colors.status.success, 
+                <ReloadIcon
+                  style={{
+                    color: theme.colors.status.success,
                     animation: "spin 1s linear infinite",
                     width: 16,
-                    height: 16
-                  }} 
+                    height: 16,
+                  }}
                 />
               ) : (
                 <Check size={16} style={{ color: theme.colors.status.success }} />
               )}
-              <Text 
-                size="2" 
-                style={{ 
-                  color: theme.colors.status.success, 
-                  fontWeight: 600 
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.status.success,
+                  fontWeight: 600,
                 }}
               >
                 {conversionStatus}
@@ -452,22 +443,22 @@ export function ModelUploader({
                   />
                 </Box>
                 <Flex justify="between" style={{ marginTop: theme.spacing.semantic.component.xs }}>
-                  <Text 
-                    size="1" 
-                    style={{ 
+                  <Text
+                    size="1"
+                    style={{
                       color: theme.colors.status.success,
                       fontWeight: 500,
-                      fontSize: "10px"
+                      fontSize: "10px",
                     }}
                   >
                     Progress
                   </Text>
-                  <Text 
-                    size="1" 
-                    style={{ 
-                      color: theme.colors.status.success, 
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.status.success,
                       fontWeight: 600,
-                      fontSize: "10px" 
+                      fontSize: "10px",
                     }}
                   >
                     {conversionProgress}%
@@ -490,21 +481,21 @@ export function ModelUploader({
         }}
       >
         <Flex align="start" gap="2">
-          <InfoCircledIcon 
-            style={{ 
+          <InfoCircledIcon
+            style={{
               color: theme.colors.status.info,
               marginTop: "1px",
-              flexShrink: 0
-            }} 
-            width={14} 
-            height={14} 
+              flexShrink: 0,
+            }}
+            width={14}
+            height={14}
           />
           <Text
             size="1"
-            style={{ 
-              color: theme.colors.text.secondary, 
+            style={{
+              color: theme.colors.text.secondary,
               lineHeight: 1.4,
-              fontSize: "12px"
+              fontSize: "12px",
             }}
           >
             {multiple

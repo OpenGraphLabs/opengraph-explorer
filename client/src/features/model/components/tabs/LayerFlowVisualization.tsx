@@ -74,7 +74,7 @@ function InferenceResultTable({
   layerCount,
 }: InferenceResultTableProps) {
   const { theme } = useTheme();
-  
+
   return (
     <Table.Root>
       <Table.Header>
@@ -101,8 +101,10 @@ function InferenceResultTable({
           <Table.Row
             key={index}
             style={{
-              background: index % 2 === 0 ? theme.colors.background.card : theme.colors.background.secondary,
-              borderLeft: result.status === "error" ? `2px solid ${theme.colors.status.error}20` : "none",
+              background:
+                index % 2 === 0 ? theme.colors.background.card : theme.colors.background.secondary,
+              borderLeft:
+                result.status === "error" ? `2px solid ${theme.colors.status.error}20` : "none",
             }}
             data-layer-idx={result.layerIdx}
           >
@@ -216,7 +218,7 @@ function InferenceResultTable({
             data-processing="true"
           >
             <Table.Cell>
-                                <Badge color="blue" mr="1">
+              <Badge color="blue" mr="1">
                 {currentLayerIndex + 1}
               </Badge>
             </Table.Cell>
@@ -284,11 +286,11 @@ export function LayerFlowVisualization({
   totalLayers,
   inferenceTableRef,
   txDigest,
-  }: LayerFlowVisualizationProps) {
-    const { theme } = useTheme();
-    
-    // Prepare data for visualization
-    const generateLayerData = (layerIndex: number) => {
+}: LayerFlowVisualizationProps) {
+  const { theme } = useTheme();
+
+  // Prepare data for visualization
+  const generateLayerData = (layerIndex: number) => {
     const result = predictResults.find(r => r.layerIdx === layerIndex);
 
     return {

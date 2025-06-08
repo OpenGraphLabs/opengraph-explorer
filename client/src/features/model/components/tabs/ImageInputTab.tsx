@@ -162,7 +162,11 @@ export function ImageInputTab({
   return (
     <Flex direction="column" gap="4">
       <Flex align="center" gap="3">
-        <ImageSquare size={20} weight="duotone" style={{ color: theme.colors.interactive.primary }} />
+        <ImageSquare
+          size={20}
+          weight="duotone"
+          style={{ color: theme.colors.interactive.primary }}
+        />
         <Heading size="3">Image Input</Heading>
       </Flex>
 
@@ -297,7 +301,9 @@ export function ImageInputTab({
                 justifyContent: "center",
               }}
             >
-              <UploadIcon style={{ width: "24px", height: "24px", color: theme.colors.interactive.primary }} />
+              <UploadIcon
+                style={{ width: "24px", height: "24px", color: theme.colors.interactive.primary }}
+              />
             </Box>
             <Text size="2" style={{ fontWeight: 500 }}>
               Drag & Drop Image Here

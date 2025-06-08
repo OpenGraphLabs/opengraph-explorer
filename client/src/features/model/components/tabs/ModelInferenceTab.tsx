@@ -34,7 +34,7 @@ interface ModelInferenceTabProps {
 
 export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
   const { theme } = useTheme();
-  
+
   // Refs for scrolling
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const inferenceTableRef = useRef<HTMLDivElement>(null);
@@ -200,8 +200,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
               const headerElement = tableHeader as HTMLElement;
               const containerElement = tableContainer as HTMLElement;
 
-              const scrollTop =
-                rowElement.offsetTop - headerElement.offsetHeight - 20; // 20px 여백
+              const scrollTop = rowElement.offsetTop - headerElement.offsetHeight - 20; // 20px 여백
 
               containerElement.scrollTo({
                 top: scrollTop,
@@ -309,8 +308,14 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   style={{
                     cursor: "pointer",
                     fontWeight: theme.typography.label.fontWeight,
-                    color: activeInputTab === "vector" ? theme.colors.text.inverse : theme.colors.text.secondary,
-                    background: activeInputTab === "vector" ? theme.colors.interactive.primary : "transparent",
+                    color:
+                      activeInputTab === "vector"
+                        ? theme.colors.text.inverse
+                        : theme.colors.text.secondary,
+                    background:
+                      activeInputTab === "vector"
+                        ? theme.colors.interactive.primary
+                        : "transparent",
                     transition: theme.animations.transitions.all,
                     padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                     borderRadius: theme.borders.radius.sm,
@@ -329,8 +334,14 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   style={{
                     cursor: "pointer",
                     fontWeight: theme.typography.label.fontWeight,
-                    color: activeInputTab === "imageUpload" ? theme.colors.text.inverse : theme.colors.text.secondary,
-                    background: activeInputTab === "imageUpload" ? theme.colors.interactive.primary : "transparent",
+                    color:
+                      activeInputTab === "imageUpload"
+                        ? theme.colors.text.inverse
+                        : theme.colors.text.secondary,
+                    background:
+                      activeInputTab === "imageUpload"
+                        ? theme.colors.interactive.primary
+                        : "transparent",
                     transition: theme.animations.transitions.all,
                     padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                     borderRadius: theme.borders.radius.sm,
@@ -349,8 +360,14 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   style={{
                     cursor: "pointer",
                     fontWeight: theme.typography.label.fontWeight,
-                    color: activeInputTab === "drawing" ? theme.colors.text.inverse : theme.colors.text.secondary,
-                    background: activeInputTab === "drawing" ? theme.colors.interactive.primary : "transparent",
+                    color:
+                      activeInputTab === "drawing"
+                        ? theme.colors.text.inverse
+                        : theme.colors.text.secondary,
+                    background:
+                      activeInputTab === "drawing"
+                        ? theme.colors.interactive.primary
+                        : "transparent",
                     transition: theme.animations.transitions.all,
                     padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                     borderRadius: theme.borders.radius.sm,
@@ -422,7 +439,7 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                   Execution Controls
                 </Heading>
               </Flex>
-              
+
               {/* Status Indicator */}
               <Flex align="center" gap="2">
                 {isProcessing ? (
@@ -477,17 +494,20 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 onClick={runAllLayersWithPTBOptimization}
                 disabled={isProcessing || getCurrentVector().length === 0}
                 style={{
-                  background: isProcessing || getCurrentVector().length === 0 
-                    ? theme.colors.background.secondary 
-                    : theme.colors.interactive.primary,
-                  color: isProcessing || getCurrentVector().length === 0 
-                    ? theme.colors.text.tertiary 
-                    : theme.colors.text.inverse,
+                  background:
+                    isProcessing || getCurrentVector().length === 0
+                      ? theme.colors.background.secondary
+                      : theme.colors.interactive.primary,
+                  color:
+                    isProcessing || getCurrentVector().length === 0
+                      ? theme.colors.text.tertiary
+                      : theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                   fontWeight: theme.typography.label.fontWeight,
-                  cursor: isProcessing || getCurrentVector().length === 0 ? "not-allowed" : "pointer",
+                  cursor:
+                    isProcessing || getCurrentVector().length === 0 ? "not-allowed" : "pointer",
                   transition: theme.animations.transitions.all,
                   display: "flex",
                   alignItems: "center",
@@ -507,17 +527,20 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
                 onClick={runAllLayersWithChunkedPTB}
                 disabled={isProcessing || getCurrentVector().length === 0}
                 style={{
-                  background: isProcessing || getCurrentVector().length === 0 
-                    ? theme.colors.background.secondary 
-                    : theme.colors.background.accent,
-                  color: isProcessing || getCurrentVector().length === 0 
-                    ? theme.colors.text.tertiary 
-                    : theme.colors.text.brand,
+                  background:
+                    isProcessing || getCurrentVector().length === 0
+                      ? theme.colors.background.secondary
+                      : theme.colors.background.accent,
+                  color:
+                    isProcessing || getCurrentVector().length === 0
+                      ? theme.colors.text.tertiary
+                      : theme.colors.text.brand,
                   border: `1px solid ${theme.colors.border.primary}`,
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                   fontWeight: theme.typography.label.fontWeight,
-                  cursor: isProcessing || getCurrentVector().length === 0 ? "not-allowed" : "pointer",
+                  cursor:
+                    isProcessing || getCurrentVector().length === 0 ? "not-allowed" : "pointer",
                   transition: theme.animations.transitions.all,
                   display: "flex",
                   alignItems: "center",

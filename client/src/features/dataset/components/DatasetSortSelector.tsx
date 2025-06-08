@@ -1,11 +1,5 @@
 import { Dropdown, DropdownOption } from "@/shared/ui/design-system/components";
-import {
-  SortAscending,
-  ArrowUp,
-  ArrowDown,
-  TextAa,
-  Archive
-} from "phosphor-react";
+import { SortAscending, ArrowUp, ArrowDown, TextAa, Archive } from "phosphor-react";
 
 interface SortOption {
   value: string;

@@ -18,7 +18,7 @@ export function DrawingInputTab({
   onVectorGenerated,
 }: DrawingInputTabProps) {
   const { theme } = useTheme();
-  
+
   // 상태 관리
   const [imageData, setImageData] = useState<ImageData>({ dataUrl: null, vector: null });
 
@@ -383,16 +383,22 @@ export function DrawingInputTab({
     <Flex direction="column" gap="3" style={{ flex: 1, minWidth: "320px" }}>
       {/* 간소화된 그리기 도구 모음 */}
       <Flex gap="4" align="center" mb="2">
-        <Flex style={{ background: theme.colors.background.secondary, borderRadius: "6px", padding: "2px" }}>
+        <Flex
+          style={{
+            background: theme.colors.background.secondary,
+            borderRadius: "6px",
+            padding: "2px",
+          }}
+        >
           <IconButton
             size="1"
             variant={tool === "pen" ? "solid" : "soft"}
             onClick={() => setTool("pen")}
-            style={{ 
-              borderRadius: "4px 0 0 4px", 
+            style={{
+              borderRadius: "4px 0 0 4px",
               cursor: "pointer",
               background: tool === "pen" ? theme.colors.interactive.primary : "transparent",
-              color: tool === "pen" ? theme.colors.text.inverse : theme.colors.text.secondary
+              color: tool === "pen" ? theme.colors.text.inverse : theme.colors.text.secondary,
             }}
           >
             <PencilSimple size={14} weight="bold" />
@@ -401,11 +407,11 @@ export function DrawingInputTab({
             size="1"
             variant={tool === "eraser" ? "solid" : "soft"}
             onClick={() => setTool("eraser")}
-            style={{ 
-              borderRadius: "0 4px 4px 0", 
+            style={{
+              borderRadius: "0 4px 4px 0",
               cursor: "pointer",
               background: tool === "eraser" ? theme.colors.interactive.primary : "transparent",
-              color: tool === "eraser" ? theme.colors.text.inverse : theme.colors.text.secondary
+              color: tool === "eraser" ? theme.colors.text.inverse : theme.colors.text.secondary,
             }}
           >
             <Eraser size={14} weight="bold" />
@@ -417,10 +423,10 @@ export function DrawingInputTab({
             size="1"
             variant="soft"
             onClick={clearCanvas}
-            style={{ 
+            style={{
               cursor: "pointer",
               background: theme.colors.status.error + "20",
-              color: theme.colors.status.error
+              color: theme.colors.status.error,
             }}
           >
             <ResetIcon />
@@ -437,11 +443,12 @@ export function DrawingInputTab({
               size="1"
               variant={brushStyle === style ? "solid" : "soft"}
               onClick={() => setBrushStyle(style)}
-              style={{ 
-                cursor: "pointer", 
+              style={{
+                cursor: "pointer",
                 padding: "2px",
                 background: brushStyle === style ? theme.colors.interactive.primary : "transparent",
-                color: brushStyle === style ? theme.colors.text.inverse : theme.colors.text.secondary
+                color:
+                  brushStyle === style ? theme.colors.text.inverse : theme.colors.text.secondary,
               }}
             >
               {getBrushStyleIcon(style)}
@@ -533,7 +540,9 @@ export function DrawingInputTab({
       <Flex justify="end" align="center" mt="1">
         <Tooltip content="Draw digits with high contrast for best results">
           <Flex align="center" gap="1">
-            <InfoCircledIcon style={{ color: theme.colors.text.muted, width: "12px", height: "12px" }} />
+            <InfoCircledIcon
+              style={{ color: theme.colors.text.muted, width: "12px", height: "12px" }}
+            />
             <Text size="1" style={{ color: theme.colors.text.muted }}>
               {Math.round(Math.sqrt(getFirstLayerDimension()))}×
               {Math.round(Math.sqrt(getFirstLayerDimension()))} input
@@ -589,7 +598,11 @@ export function DrawingInputTab({
                 justifyContent: "center",
               }}
             >
-              <PencilSimple size={48} weight="duotone" style={{ color: theme.colors.text.tertiary }} />
+              <PencilSimple
+                size={48}
+                weight="duotone"
+                style={{ color: theme.colors.text.tertiary }}
+              />
             </Box>
             <Text size="3" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
               Draw something to see vector conversion

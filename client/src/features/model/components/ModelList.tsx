@@ -78,7 +78,7 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
         >
           <ExclamationTriangleIcon width="24" height="24" style={{ color: "#dc2626" }} />
         </Box>
-        
+
         <Text
           style={{
             fontSize: "16px",
@@ -89,7 +89,7 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
         >
           Unable to Load Models
         </Text>
-        
+
         <Text
           style={{
             fontSize: "13px",
@@ -120,10 +120,10 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
               gap: "6px",
               transition: "background-color 0.2s ease",
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={e => {
               e.currentTarget.style.backgroundColor = "#1f2937";
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={e => {
               e.currentTarget.style.backgroundColor = "#111827";
             }}
           >
@@ -165,7 +165,7 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
         >
           <MagnifyingGlassIcon width="24" height="24" style={{ color: "#9ca3af" }} />
         </Box>
-        
+
         <Text
           style={{
             fontSize: "16px",
@@ -176,7 +176,7 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
         >
           No Models Found
         </Text>
-        
+
         <Text
           style={{
             fontSize: "13px",
@@ -228,11 +228,7 @@ export function ModelList({ models, loading, error, onRetry, onModelClick }: Mod
         }}
       >
         {models.map(model => (
-          <ModelCard
-            key={model.id}
-            model={model}
-            onClick={() => onModelClick(model)}
-          />
+          <ModelCard key={model.id} model={model} onClick={() => onModelClick(model)} />
         ))}
       </Grid>
     </Box>

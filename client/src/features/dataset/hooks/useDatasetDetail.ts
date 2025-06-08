@@ -108,7 +108,7 @@ export const useDatasetDetail = (id: string | undefined) => {
 
   const updateCachedItems = (items: any[]) => {
     let filteredItems: any[];
-    
+
     if (activeTab === "all") {
       filteredItems = items;
     } else if (activeTab === "confirmed") {
@@ -132,20 +132,22 @@ export const useDatasetDetail = (id: string | undefined) => {
     try {
       setPaginationLoading(true);
 
-      const currentPage = 
-        activeTab === "all" ? allPage 
-        : activeTab === "confirmed" ? confirmedPage 
-        : pendingPage;
-        
-      const setPage = 
-        activeTab === "all" ? setAllPage 
-        : activeTab === "confirmed" ? setConfirmedPage 
-        : setPendingPage;
+      const currentPage =
+        activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
 
-      const totalItems = 
-        activeTab === "all" ? totalCounts.total 
-        : activeTab === "confirmed" ? totalCounts.confirmed 
-        : totalCounts.pending;
+      const setPage =
+        activeTab === "all"
+          ? setAllPage
+          : activeTab === "confirmed"
+            ? setConfirmedPage
+            : setPendingPage;
+
+      const totalItems =
+        activeTab === "all"
+          ? totalCounts.total
+          : activeTab === "confirmed"
+            ? totalCounts.confirmed
+            : totalCounts.pending;
       const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
 
       if (direction === "next") {
@@ -197,10 +199,8 @@ export const useDatasetDetail = (id: string | undefined) => {
     index: number,
     getImageUrl: (item: any, index: number) => string
   ) => {
-    const currentPage = 
-      activeTab === "all" ? allPage 
-      : activeTab === "confirmed" ? confirmedPage 
-      : pendingPage;
+    const currentPage =
+      activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
     const absoluteIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE + index;
 
     setSelectedImage(getImageUrl(item, absoluteIndex));

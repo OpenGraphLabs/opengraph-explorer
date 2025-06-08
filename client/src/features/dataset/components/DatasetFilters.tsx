@@ -1,13 +1,7 @@
 import React from "react";
 import { Box, Flex, Text, Badge, Dropdown } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  MagnifyingGlass, 
-  X, 
-  FunnelSimple,
-  Tag,
-  Check
-} from "phosphor-react";
+import { MagnifyingGlass, X, FunnelSimple, Tag, Check } from "phosphor-react";
 import { DatasetFilters } from "../types";
 import { TYPE_FILTERS } from "../constants";
 
@@ -75,11 +69,11 @@ export const DatasetFiltersComponent = ({
               outline: "none",
               transition: "border-color 0.2s ease",
             }}
-            onFocus={(e) => {
+            onFocus={e => {
               e.target.style.borderColor = theme.colors.interactive.primary;
               e.target.style.boxShadow = `0 0 0 2px ${theme.colors.interactive.primary}20`;
             }}
-            onBlur={(e) => {
+            onBlur={e => {
               e.target.style.borderColor = theme.colors.border.primary;
               e.target.style.boxShadow = "none";
             }}
@@ -103,10 +97,10 @@ export const DatasetFiltersComponent = ({
                 borderRadius: theme.borders.radius.sm,
                 transition: "color 0.2s ease",
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 e.currentTarget.style.color = theme.colors.text.primary;
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 e.currentTarget.style.color = theme.colors.text.tertiary;
               }}
             >
@@ -156,7 +150,11 @@ export const DatasetFiltersComponent = ({
 
       {/* Tags Section */}
       <Box>
-        <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+        <Flex
+          justify="between"
+          align="center"
+          style={{ marginBottom: theme.spacing.semantic.component.sm }}
+        >
           <Flex align="center" gap="1">
             <Tag size={14} style={{ color: theme.colors.text.secondary }} />
             <Text
@@ -182,7 +180,7 @@ export const DatasetFiltersComponent = ({
               {availableTags.length}
             </Badge>
           </Flex>
-          
+
           {filters.selectedTags.length > 0 && (
             <button
               onClick={onClearTags}
@@ -197,10 +195,10 @@ export const DatasetFiltersComponent = ({
                 borderRadius: theme.borders.radius.sm,
                 transition: "opacity 0.2s ease",
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 e.currentTarget.style.opacity = "0.8";
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 e.currentTarget.style.opacity = "1";
               }}
             >
@@ -232,11 +230,11 @@ export const DatasetFiltersComponent = ({
                     transition: "all 0.2s ease",
                   }}
                   onClick={() => onToggleTag(tag)}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     e.currentTarget.style.background = theme.colors.interactive.primaryHover;
                     e.currentTarget.style.transform = "translateY(-1px)";
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.background = theme.colors.interactive.primary;
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
@@ -284,9 +282,7 @@ export const DatasetFiltersComponent = ({
                       background: isSelected
                         ? `${theme.colors.status.success}15`
                         : theme.colors.background.card,
-                      color: isSelected
-                        ? theme.colors.status.success
-                        : theme.colors.text.primary,
+                      color: isSelected ? theme.colors.status.success : theme.colors.text.primary,
                       border: isSelected
                         ? `1px solid ${theme.colors.status.success}40`
                         : `1px solid ${theme.colors.border.primary}`,
@@ -301,7 +297,7 @@ export const DatasetFiltersComponent = ({
                       gap: "3px",
                     }}
                     onClick={() => onToggleTag(tag)}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (isSelected) {
                         e.currentTarget.style.background = `${theme.colors.status.success}25`;
                       } else {
@@ -309,7 +305,7 @@ export const DatasetFiltersComponent = ({
                         e.currentTarget.style.borderColor = `${theme.colors.interactive.primary}60`;
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       if (isSelected) {
                         e.currentTarget.style.background = `${theme.colors.status.success}15`;
                       } else {
@@ -319,9 +315,7 @@ export const DatasetFiltersComponent = ({
                     }}
                   >
                     {tag.length > 10 ? tag.substring(0, 10) + "..." : tag}
-                    {isSelected && (
-                      <Check size={10} style={{ opacity: 0.8 }} />
-                    )}
+                    {isSelected && <Check size={10} style={{ opacity: 0.8 }} />}
                   </Badge>
                 );
               })}
@@ -330,7 +324,9 @@ export const DatasetFiltersComponent = ({
         </Box>
 
         {/* Filter Summary */}
-        {(filters.searchQuery || filters.selectedType !== "all" || filters.selectedTags.length > 0) && (
+        {(filters.searchQuery ||
+          filters.selectedType !== "all" ||
+          filters.selectedTags.length > 0) && (
           <Box
             style={{
               marginTop: theme.spacing.semantic.component.sm,
@@ -349,13 +345,14 @@ export const DatasetFiltersComponent = ({
                   fontWeight: 500,
                 }}
               >
-                {`${
-                  [
-                    filters.searchQuery && "search",
-                    filters.selectedType !== "all" && "type",
-                    filters.selectedTags.length > 0 && `${filters.selectedTags.length} tag${filters.selectedTags.length > 1 ? "s" : ""}`
-                  ].filter(Boolean).join(", ")
-                } applied`}
+                {`${[
+                  filters.searchQuery && "search",
+                  filters.selectedType !== "all" && "type",
+                  filters.selectedTags.length > 0 &&
+                    `${filters.selectedTags.length} tag${filters.selectedTags.length > 1 ? "s" : ""}`,
+                ]
+                  .filter(Boolean)
+                  .join(", ")} applied`}
               </Text>
             </Flex>
           </Box>

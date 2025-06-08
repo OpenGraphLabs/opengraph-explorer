@@ -1,20 +1,16 @@
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
+import { useDatasetUpload, DatasetMetadataForm, FileUploadSection } from "@/features/dataset";
 import {
-  useDatasetUpload,
-  DatasetMetadataForm,
-  FileUploadSection,
-} from "@/features/dataset";
-import { 
-  ReloadIcon, 
+  ReloadIcon,
   ExclamationTriangleIcon,
   ChevronRightIcon,
   CheckIcon,
-  CircleIcon
+  CircleIcon,
 } from "@radix-ui/react-icons";
-import { 
-  Database, 
+import {
+  Database,
   Upload,
   FileText,
   Info,
@@ -23,7 +19,7 @@ import {
   Clock,
   Warning,
   Sparkle,
-  ChartLineUp
+  ChartLineUp,
 } from "phosphor-react";
 
 export function UploadDataset() {
@@ -69,32 +65,32 @@ export function UploadDataset() {
   // Step completion logic
   const steps = [
     {
-      key: 'metadata',
-      title: 'Dataset Metadata',
-      description: 'Define dataset properties',
+      key: "metadata",
+      title: "Dataset Metadata",
+      description: "Define dataset properties",
       icon: Info,
       completed: isMetadataComplete(),
       active: !isMetadataComplete(),
-      hasError: false
+      hasError: false,
     },
     {
-      key: 'upload',
-      title: 'Data Files',
-      description: 'Upload training data',
+      key: "upload",
+      title: "Data Files",
+      description: "Upload training data",
       icon: Upload,
       completed: isFilesReady(),
       active: isMetadataComplete() && !isFilesReady(),
-      hasError: !!error && !uploadSuccess
+      hasError: !!error && !uploadSuccess,
     },
     {
-      key: 'deploy',
-      title: 'Blockchain Storage',
-      description: 'Deploy to Sui & Walrus',
+      key: "deploy",
+      title: "Blockchain Storage",
+      description: "Deploy to Sui & Walrus",
       icon: CloudArrowUp,
       completed: uploadSuccess,
       active: isFilesReady() && !uploadSuccess && !error,
-      hasError: !!error && isFilesReady()
-    }
+      hasError: !!error && isFilesReady(),
+    },
   ];
 
   // Progress indicator component
@@ -114,7 +110,11 @@ export function UploadDataset() {
         boxShadow: `0 4px 12px ${theme.colors.background.overlay}20`,
       }}
     >
-      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+      <Flex
+        justify="between"
+        align="center"
+        style={{ marginBottom: theme.spacing.semantic.component.md }}
+      >
         <Flex align="center" gap="2">
           <Database size={18} style={{ color: theme.colors.interactive.primary }} />
           <Text size="3" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
@@ -128,35 +128,38 @@ export function UploadDataset() {
             </Text>
           ) : (
             <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-              Step {Math.min(steps.filter(s => s.completed).length + 1, steps.length)} of {steps.length}
+              Step {Math.min(steps.filter(s => s.completed).length + 1, steps.length)} of{" "}
+              {steps.length}
             </Text>
           )}
         </Flex>
       </Flex>
-      
+
       <Flex align="center" gap="2">
         {steps.map((step: any, index) => (
           <Flex key={step.key} align="center" style={{ flex: 1 }}>
-            <Flex 
-              align="center" 
+            <Flex
+              align="center"
               justify="center"
               style={{
                 width: "32px",
                 height: "32px",
                 borderRadius: "50%",
-                background: step.completed 
-                  ? theme.colors.status.success 
-                  : step.hasError 
+                background: step.completed
+                  ? theme.colors.status.success
+                  : step.hasError
                     ? theme.colors.status.error
-                    : step.active 
-                      ? theme.colors.interactive.primary 
+                    : step.active
+                      ? theme.colors.interactive.primary
                       : theme.colors.background.secondary,
-                color: step.completed || step.hasError || step.active 
-                  ? theme.colors.text.inverse 
-                  : theme.colors.text.inverse,
-                border: step.active && !step.completed 
-                  ? `2px solid ${theme.colors.interactive.primary}` 
-                  : "none",
+                color:
+                  step.completed || step.hasError || step.active
+                    ? theme.colors.text.inverse
+                    : theme.colors.text.inverse,
+                border:
+                  step.active && !step.completed
+                    ? `2px solid ${theme.colors.interactive.primary}`
+                    : "none",
               }}
             >
               {step.completed ? (
@@ -169,36 +172,39 @@ export function UploadDataset() {
                 <step.icon size={14} />
               )}
             </Flex>
-            
+
             <Box style={{ marginLeft: theme.spacing.semantic.component.xs, flex: 1 }}>
-              <Text 
-                size="1" 
-                style={{ 
-                  fontWeight: 600, 
-                  color: step.completed || step.active ? theme.colors.text.primary : theme.colors.text.tertiary,
-                  display: "block"
+              <Text
+                size="1"
+                style={{
+                  fontWeight: 600,
+                  color:
+                    step.completed || step.active
+                      ? theme.colors.text.primary
+                      : theme.colors.text.tertiary,
+                  display: "block",
                 }}
               >
                 {step.title}
               </Text>
-              <Text 
-                size="1" 
-                style={{ 
+              <Text
+                size="1"
+                style={{
                   color: theme.colors.text.tertiary,
-                  fontSize: "10px"
+                  fontSize: "10px",
                 }}
               >
                 {step.description}
               </Text>
             </Box>
-            
+
             {index < steps.length - 1 && (
               <Box
                 style={{
                   width: "24px",
                   height: "1px",
-                  background: step.completed 
-                    ? theme.colors.status.success 
+                  background: step.completed
+                    ? theme.colors.status.success
                     : theme.colors.border.primary,
                   marginLeft: theme.spacing.semantic.component.xs,
                 }}
@@ -211,29 +217,29 @@ export function UploadDataset() {
   );
 
   // Enhanced section header component
-  const SectionHeader = ({ 
-    icon, 
-    title, 
-    description, 
+  const SectionHeader = ({
+    icon,
+    title,
+    description,
     status,
     isActive,
-    onExpand 
+    onExpand,
   }: {
     icon: React.ReactNode;
     title: string;
     description: string;
-    status?: 'completed' | 'error' | 'active' | 'pending';
+    status?: "completed" | "error" | "active" | "pending";
     isActive?: boolean;
     onExpand?: () => void;
   }) => (
-    <Flex 
-      justify="between" 
-      align="center" 
-      style={{ 
+    <Flex
+      justify="between"
+      align="center"
+      style={{
         marginBottom: theme.spacing.semantic.component.md,
         padding: `${theme.spacing.semantic.component.sm} 0`,
         borderBottom: `1px solid ${theme.colors.border.primary}20`,
-        cursor: onExpand ? "pointer" : "default"
+        cursor: onExpand ? "pointer" : "default",
       }}
       onClick={onExpand}
     >
@@ -243,19 +249,20 @@ export function UploadDataset() {
             width: "40px",
             height: "40px",
             borderRadius: theme.borders.radius.md,
-            background: status === 'completed' 
-              ? `${theme.colors.status.success}15`
-              : status === 'error'
-                ? `${theme.colors.status.error}15`
-                : isActive 
-                  ? `${theme.colors.interactive.primary}15`
-                  : `${theme.colors.text.tertiary}10`,
+            background:
+              status === "completed"
+                ? `${theme.colors.status.success}15`
+                : status === "error"
+                  ? `${theme.colors.status.error}15`
+                  : isActive
+                    ? `${theme.colors.interactive.primary}15`
+                    : `${theme.colors.text.tertiary}10`,
             border: `1px solid ${
-              status === 'completed' 
+              status === "completed"
                 ? `${theme.colors.status.success}30`
-                : status === 'error'
+                : status === "error"
                   ? `${theme.colors.status.error}30`
-                  : isActive 
+                  : isActive
                     ? `${theme.colors.interactive.primary}30`
                     : `${theme.colors.text.tertiary}20`
             }`,
@@ -267,64 +274,76 @@ export function UploadDataset() {
           {icon}
         </Box>
         <Box>
-          <Text 
-            size="4" 
-            style={{ 
-              fontWeight: 600, 
+          <Text
+            size="4"
+            style={{
+              fontWeight: 600,
               color: theme.colors.text.primary,
-              marginBottom: "2px"
+              marginBottom: "2px",
             }}
           >
             {title}
           </Text>
           <br />
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               color: theme.colors.text.secondary,
-              lineHeight: 1.4
+              lineHeight: 1.4,
             }}
           >
             {description}
           </Text>
         </Box>
       </Flex>
-      
+
       {status && (
         <Flex align="center" gap="2">
-          {status === 'completed' && (
-            <Flex align="center" gap="1" style={{
-              background: `${theme.colors.status.success}15`,
-              padding: "4px 8px",
-              borderRadius: theme.borders.radius.full,
-              border: `1px solid ${theme.colors.status.success}30`
-            }}>
+          {status === "completed" && (
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: `${theme.colors.status.success}15`,
+                padding: "4px 8px",
+                borderRadius: theme.borders.radius.full,
+                border: `1px solid ${theme.colors.status.success}30`,
+              }}
+            >
               <CheckCircle size={12} style={{ color: theme.colors.status.success }} />
               <Text size="1" style={{ color: theme.colors.status.success, fontWeight: 500 }}>
                 Complete
               </Text>
             </Flex>
           )}
-          {status === 'error' && (
-            <Flex align="center" gap="1" style={{
-              background: `${theme.colors.status.error}15`,
-              padding: "4px 8px",
-              borderRadius: theme.borders.radius.full,
-              border: `1px solid ${theme.colors.status.error}30`
-            }}>
+          {status === "error" && (
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: `${theme.colors.status.error}15`,
+                padding: "4px 8px",
+                borderRadius: theme.borders.radius.full,
+                border: `1px solid ${theme.colors.status.error}30`,
+              }}
+            >
               <Warning size={12} style={{ color: theme.colors.status.error }} />
               <Text size="1" style={{ color: theme.colors.status.error, fontWeight: 500 }}>
                 Error
               </Text>
             </Flex>
           )}
-          {status === 'active' && (
-            <Flex align="center" gap="1" style={{
-              background: `${theme.colors.interactive.primary}15`,
-              padding: "4px 8px", 
-              borderRadius: theme.borders.radius.full,
-              border: `1px solid ${theme.colors.interactive.primary}30`
-            }}>
+          {status === "active" && (
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: `${theme.colors.interactive.primary}15`,
+                padding: "4px 8px",
+                borderRadius: theme.borders.radius.full,
+                border: `1px solid ${theme.colors.interactive.primary}30`,
+              }}
+            >
               <Clock size={12} style={{ color: theme.colors.interactive.primary }} />
               <Text size="1" style={{ color: theme.colors.interactive.primary, fontWeight: 500 }}>
                 In Progress
@@ -332,12 +351,12 @@ export function UploadDataset() {
             </Flex>
           )}
           {onExpand && (
-            <ChevronRightIcon 
-              style={{ 
+            <ChevronRightIcon
+              style={{
                 color: theme.colors.text.tertiary,
                 transform: isActive ? "rotate(90deg)" : "rotate(0deg)",
-                transition: "transform 0.2s ease"
-              }} 
+                transition: "transform 0.2s ease",
+              }}
             />
           )}
         </Flex>
@@ -349,7 +368,7 @@ export function UploadDataset() {
     <Box
       style={{
         maxWidth: "1200px",
-        margin: "0 auto", 
+        margin: "0 auto",
         padding: `0 ${theme.spacing.semantic.layout.md}`,
         background: theme.colors.background.primary,
         minHeight: "100vh",
@@ -378,7 +397,7 @@ export function UploadDataset() {
                 fontWeight: 700,
                 color: theme.colors.text.primary,
                 letterSpacing: "-0.02em",
-                marginBottom: "4px"
+                marginBottom: "4px",
               }}
             >
               Create Training Dataset
@@ -391,21 +410,22 @@ export function UploadDataset() {
                 lineHeight: 1.5,
               }}
             >
-              Build verifiable training datasets for onchain machine learning with decentralized storage
+              Build verifiable training datasets for onchain machine learning with decentralized
+              storage
             </Text>
           </Box>
         </Flex>
 
         {/* Dataset Stats */}
         {(isMetadataComplete() || fileCount > 0) && (
-          <Flex 
-            gap="4" 
-            style={{ 
+          <Flex
+            gap="4"
+            style={{
               marginBottom: theme.spacing.semantic.section.sm,
               padding: theme.spacing.semantic.component.md,
               background: `${theme.colors.interactive.primary}08`,
               borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.interactive.primary}20`
+              border: `1px solid ${theme.colors.interactive.primary}20`,
             }}
           >
             {isMetadataComplete() && (
@@ -420,7 +440,7 @@ export function UploadDataset() {
               <Flex align="center" gap="2">
                 <FileText size={14} style={{ color: theme.colors.interactive.primary }} />
                 <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 500 }}>
-                  {fileCount} {fileCount === 1 ? 'file' : 'files'}
+                  {fileCount} {fileCount === 1 ? "file" : "files"}
                 </Text>
               </Flex>
             )}
@@ -456,14 +476,19 @@ export function UploadDataset() {
           }}
         >
           <SectionHeader
-            icon={<Info size={18} style={{ 
-              color: isMetadataComplete() 
-                ? theme.colors.status.success 
-                : theme.colors.interactive.primary
-            }} />}
+            icon={
+              <Info
+                size={18}
+                style={{
+                  color: isMetadataComplete()
+                    ? theme.colors.status.success
+                    : theme.colors.interactive.primary,
+                }}
+              />
+            }
             title="Dataset Information"
             description="Define dataset properties, labels, and metadata for training verification"
-            status={isMetadataComplete() ? 'completed' : 'active'}
+            status={isMetadataComplete() ? "completed" : "active"}
             isActive={Boolean(!isMetadataComplete())}
           />
 
@@ -484,7 +509,7 @@ export function UploadDataset() {
             border: `1px solid ${
               error && isFilesReady()
                 ? theme.colors.status.error + "40"
-                : uploadSuccess 
+                : uploadSuccess
                   ? theme.colors.status.success + "40"
                   : theme.colors.border.primary
             }`,
@@ -495,21 +520,31 @@ export function UploadDataset() {
           }}
         >
           <SectionHeader
-            icon={<Upload size={18} style={{ 
-              color: error && isFilesReady()
-                ? theme.colors.status.error
-                : uploadSuccess 
-                  ? theme.colors.status.success 
-                  : isMetadataComplete()
-                    ? theme.colors.interactive.primary
-                    : theme.colors.text.tertiary
-            }} />}
+            icon={
+              <Upload
+                size={18}
+                style={{
+                  color:
+                    error && isFilesReady()
+                      ? theme.colors.status.error
+                      : uploadSuccess
+                        ? theme.colors.status.success
+                        : isMetadataComplete()
+                          ? theme.colors.interactive.primary
+                          : theme.colors.text.tertiary,
+                }}
+              />
+            }
             title="Upload Data Files"
             description="Upload training data files for decentralized storage on Walrus network"
             status={
-              error && isFilesReady() ? 'error' :
-              uploadSuccess ? 'completed' :
-              isMetadataComplete() ? 'active' : 'pending'
+              error && isFilesReady()
+                ? "error"
+                : uploadSuccess
+                  ? "completed"
+                  : isMetadataComplete()
+                    ? "active"
+                    : "pending"
             }
             isActive={Boolean(isMetadataComplete() && !uploadSuccess)}
           />
@@ -552,29 +587,31 @@ export function UploadDataset() {
                   <CheckCircle size={16} style={{ color: theme.colors.text.inverse }} />
                 </Box>
                 <Box style={{ flex: 1 }}>
-                  <Text 
-                    size="3" 
-                    style={{ 
-                      fontWeight: 600, 
+                  <Text
+                    size="3"
+                    style={{
+                      fontWeight: 600,
                       color: theme.colors.text.primary,
-                      marginBottom: "4px"
+                      marginBottom: "4px",
                     }}
                   >
                     Dataset Successfully Created!
                   </Text>
-                  <Text 
-                    size="2" 
-                    style={{ 
+                  <Text
+                    size="2"
+                    style={{
                       color: theme.colors.text.secondary,
                       lineHeight: 1.4,
-                      marginBottom: theme.spacing.semantic.component.sm
+                      marginBottom: theme.spacing.semantic.component.sm,
                     }}
                   >
-                    Your training dataset has been uploaded to Walrus decentralized storage and metadata is stored on Sui blockchain. It's now ready for machine learning model training.
+                    Your training dataset has been uploaded to Walrus decentralized storage and
+                    metadata is stored on Sui blockchain. It's now ready for machine learning model
+                    training.
                   </Text>
                   <Flex gap="2" style={{ marginTop: theme.spacing.semantic.component.md }}>
                     <Button
-                      onClick={() => window.location.href = '/datasets'}
+                      onClick={() => (window.location.href = "/datasets")}
                       style={{
                         background: theme.colors.status.success,
                         color: theme.colors.text.inverse,
@@ -589,7 +626,7 @@ export function UploadDataset() {
                       View All Datasets
                     </Button>
                     <Button
-                      onClick={() => window.location.href = '/upload-model'}
+                      onClick={() => (window.location.href = "/upload-model")}
                       style={{
                         background: "transparent",
                         color: theme.colors.status.success,
@@ -644,7 +681,7 @@ export function UploadDataset() {
             >
               {error}
             </Text>
-                         <Flex gap="2" style={{ marginTop: theme.spacing.semantic.component.xs }}>
+            <Flex gap="2" style={{ marginTop: theme.spacing.semantic.component.xs }}>
               <Button
                 onClick={() => setError(null)}
                 style={{
@@ -716,7 +753,7 @@ export function UploadDataset() {
         </Card>
       )}
 
-      {isLoading && uploadProgress.status !== 'idle' && (
+      {isLoading && uploadProgress.status !== "idle" && (
         <Card
           style={{
             position: "fixed",
@@ -743,8 +780,11 @@ export function UploadDataset() {
                 }}
               />
               <Text style={{ color: theme.colors.text.inverse, fontWeight: 600 }}>
-                {uploadProgress.status === 'uploading' ? 'Uploading to Walrus' : 
-                 uploadProgress.status === 'creating' ? 'Creating on Sui' : 'Processing Dataset'}
+                {uploadProgress.status === "uploading"
+                  ? "Uploading to Walrus"
+                  : uploadProgress.status === "creating"
+                    ? "Creating on Sui"
+                    : "Processing Dataset"}
               </Text>
             </Flex>
             <Text
@@ -754,7 +794,7 @@ export function UploadDataset() {
                 lineHeight: 1.4,
               }}
             >
-              {uploadProgress.message || 'Processing your dataset for blockchain storage...'}
+              {uploadProgress.message || "Processing your dataset for blockchain storage..."}
             </Text>
           </Flex>
         </Card>

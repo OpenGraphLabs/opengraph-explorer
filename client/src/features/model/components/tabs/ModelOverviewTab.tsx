@@ -1,14 +1,6 @@
 import { Box, Flex, Heading, Text, Card, Grid, Table, Badge } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import {
-  Stack,
-  Brain,
-  Cube,
-  Activity,
-  Hash,
-  ChartLine,
-  Code,
-} from "phosphor-react";
+import { Stack, Brain, Cube, Activity, Hash, ChartLine, Code } from "phosphor-react";
 
 import { ModelObject } from "@/shared/api/graphql/modelGraphQLService";
 import { getSuiScanUrl } from "@/shared/utils/sui";
@@ -58,12 +50,12 @@ function getTaskName(taskId: string): string {
     "image-classification": "Computer Vision Classification",
     "object-detection": "Object Detection & Localization",
     "text-to-image": "Multimodal Text-to-Image Synthesis",
-    "translation": "Neural Machine Translation",
-    "classification": "Classification",
-    "regression": "Regression Analysis",
+    translation: "Neural Machine Translation",
+    classification: "Classification",
+    regression: "Regression Analysis",
     "reinforcement-learning": "Reinforcement Learning",
   };
-  return taskMap[taskId] || taskId.charAt(0).toUpperCase() + taskId.slice(1).replace(/-/g, ' ');
+  return taskMap[taskId] || taskId.charAt(0).toUpperCase() + taskId.slice(1).replace(/-/g, " ");
 }
 
 export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
@@ -71,19 +63,22 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
 
   // Calculate total model statistics
   const totalLayers = model.graphs?.[0]?.layers?.length || 0;
-  const totalParams = model.graphs?.[0]?.layers?.reduce((total, layer) => {
-    const stats = calculateLayerStats(layer);
-    return total + stats.totalParams;
-  }, 0) || 0;
+  const totalParams =
+    model.graphs?.[0]?.layers?.reduce((total, layer) => {
+      const stats = calculateLayerStats(layer);
+      return total + stats.totalParams;
+    }, 0) || 0;
 
-  const totalWeights = model.graphs?.[0]?.layers?.reduce((total, layer) => {
-    return total + (layer.weight_tensor?.magnitude?.length || 0);
-  }, 0) || 0;
+  const totalWeights =
+    model.graphs?.[0]?.layers?.reduce((total, layer) => {
+      return total + (layer.weight_tensor?.magnitude?.length || 0);
+    }, 0) || 0;
 
-  const avgSparsity = model.graphs?.[0]?.layers?.reduce((total, layer) => {
-    const stats = calculateLayerStats(layer);
-    return total + stats.sparsity;
-  }, 0) / totalLayers || 0;
+  const avgSparsity =
+    model.graphs?.[0]?.layers?.reduce((total, layer) => {
+      const stats = calculateLayerStats(layer);
+      return total + stats.sparsity;
+    }, 0) / totalLayers || 0;
 
   return (
     <Box>
@@ -344,7 +339,7 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                     {model.graphs[0].layers.map((layer, index) => {
                       const stats = calculateLayerStats(layer);
                       const isLastLayer = index === model.graphs[0].layers.length - 1;
-                      
+
                       return (
                         <Flex
                           key={index}
@@ -397,13 +392,19 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                                 <Box>
                                   <Flex direction="column" gap="2">
                                     <Flex align="center" gap="2">
-                                      <Cube size={14} style={{ color: theme.colors.interactive.accent }} />
+                                      <Cube
+                                        size={14}
+                                        style={{ color: theme.colors.interactive.accent }}
+                                      />
                                       <Text size="1" style={{ color: theme.colors.text.secondary }}>
                                         Input: {layer.in_dimension}
                                       </Text>
                                     </Flex>
                                     <Flex align="center" gap="2">
-                                      <Cube size={14} style={{ color: theme.colors.interactive.accent }} />
+                                      <Cube
+                                        size={14}
+                                        style={{ color: theme.colors.interactive.accent }}
+                                      />
                                       <Text size="1" style={{ color: theme.colors.text.secondary }}>
                                         Output: {layer.out_dimension}
                                       </Text>
@@ -422,7 +423,10 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                                   <Grid columns="2" gap="3">
                                     <Box>
                                       <Flex align="center" justify="between" mb="1">
-                                        <Text size="1" style={{ color: theme.colors.text.secondary }}>
+                                        <Text
+                                          size="1"
+                                          style={{ color: theme.colors.text.secondary }}
+                                        >
                                           Weights
                                         </Text>
                                         <Badge
@@ -450,7 +454,10 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
 
                                     <Box>
                                       <Flex align="center" justify="between" mb="1">
-                                        <Text size="1" style={{ color: theme.colors.text.secondary }}>
+                                        <Text
+                                          size="1"
+                                          style={{ color: theme.colors.text.secondary }}
+                                        >
                                           Biases
                                         </Text>
                                         <Badge
@@ -559,19 +566,29 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
               <Table.Root size="1">
                 <Table.Header>
                   <Table.Row style={{ background: theme.colors.background.secondary }}>
-                    <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
                       Layer
                     </Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
                       Shape
                     </Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
                       Parameters
                     </Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
                       Weight Range
                     </Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
                       Sparsity
                     </Table.ColumnHeaderCell>
                   </Table.Row>
@@ -580,9 +597,15 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                   {model.graphs[0].layers.map((layer, index) => {
                     const layerStats = calculateLayerStats(layer);
                     return (
-                      <Table.Row key={index} style={{ 
-                        background: index % 2 === 0 ? theme.colors.background.card : theme.colors.background.secondary 
-                      }}>
+                      <Table.Row
+                        key={index}
+                        style={{
+                          background:
+                            index % 2 === 0
+                              ? theme.colors.background.card
+                              : theme.colors.background.secondary,
+                        }}
+                      >
                         <Table.Cell>
                           <Badge
                             style={{
@@ -596,17 +619,26 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                           </Badge>
                         </Table.Cell>
                         <Table.Cell>
-                          <Text size="1" style={{ color: theme.colors.text.secondary, fontFamily: "monospace" }}>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.secondary, fontFamily: "monospace" }}
+                          >
                             {layer.in_dimension} × {layer.out_dimension}
                           </Text>
                         </Table.Cell>
                         <Table.Cell>
-                          <Text size="1" style={{ color: theme.colors.text.primary, fontWeight: 500 }}>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.primary, fontWeight: 500 }}
+                          >
                             {layerStats.totalParams.toLocaleString()}
                           </Text>
                         </Table.Cell>
                         <Table.Cell>
-                          <Text size="1" style={{ color: theme.colors.text.secondary, fontFamily: "monospace" }}>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.secondary, fontFamily: "monospace" }}
+                          >
                             {layerStats.minWeight.toFixed(2)} ~ {layerStats.maxWeight.toFixed(2)}
                           </Text>
                         </Table.Cell>
@@ -615,7 +647,10 @@ export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
                             <Text
                               size="1"
                               style={{
-                                color: layerStats.sparsity > 10 ? theme.colors.status.warning : theme.colors.text.primary,
+                                color:
+                                  layerStats.sparsity > 10
+                                    ? theme.colors.status.warning
+                                    : theme.colors.text.primary,
                                 fontWeight: 500,
                               }}
                             >

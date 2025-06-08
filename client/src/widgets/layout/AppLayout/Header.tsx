@@ -56,7 +56,9 @@ export function Header() {
           </Link>
 
           {/* Compact Desktop Navigation */}
-          <Flex gap="1" className="hidden md:flex"> {/* Reduced gap */}
+          <Flex gap="1" className="hidden md:flex">
+            {" "}
+            {/* Reduced gap */}
             <NavLink to="/models" current={location.pathname === "/models"}>
               Models
             </NavLink>
@@ -70,11 +72,13 @@ export function Header() {
         </Flex>
 
         {/* Right Side - Compact Actions */}
-        <Flex align="center" gap="2"> {/* Reduced gap */}
+        <Flex align="center" gap="2">
+          {" "}
+          {/* Reduced gap */}
           {/* Mobile Menu Button - RadixUI responsive display */}
-          <Box 
+          <Box
             display={{ initial: "block", md: "none" }}
-            style={{ 
+            style={{
               padding: theme.spacing.base[1], // Smaller padding
               minHeight: "32px",
               minWidth: "32px",
@@ -83,7 +87,7 @@ export function Header() {
             <Button
               variant="tertiary"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ 
+              style={{
                 padding: theme.spacing.base[1],
                 minHeight: "32px",
                 minWidth: "32px",
@@ -92,7 +96,6 @@ export function Header() {
               <HamburgerMenuIcon width="16" height="16" />
             </Button>
           </Box>
-
           {/* Compact Theme Toggle */}
           <Button
             variant="tertiary"
@@ -110,7 +113,6 @@ export function Header() {
               <SunIcon width="16" height="16" />
             )}
           </Button>
-
           {/* Compact GitHub Link */}
           <a
             href="https://github.com/OpenGraphLabs/opengraph-explorer"
@@ -131,7 +133,6 @@ export function Header() {
           >
             <GitHubLogoIcon width="16" height="16" />
           </a>
-
           {/* Compact Connect Button */}
           <ConnectButton
             connectText="Connect"
@@ -148,7 +149,6 @@ export function Header() {
               height: "32px",
             }}
           />
-
           {/* Compact Profile (when connected) */}
           {isConnected && (
             <Link to="/profile" style={{ textDecoration: "none" }}>
@@ -184,7 +184,9 @@ export function Header() {
           }}
           className="block md:hidden"
         >
-          <Flex direction="column" gap="1"> {/* Reduced gap */}
+          <Flex direction="column" gap="1">
+            {" "}
+            {/* Reduced gap */}
             <MobileNavLink
               to="/"
               current={location.pathname === "/"}

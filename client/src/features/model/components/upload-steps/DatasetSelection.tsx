@@ -11,11 +11,11 @@ interface DatasetSelectionProps {
   filteredDatasets: DatasetObject[];
   searchQuery: string;
   allTags: string[];
-  
+
   // Selection state
   selectedTrainingDataset: DatasetObject | null;
   selectedTestDatasets: DatasetObject[];
-  
+
   // Actions
   onSearchChange: (query: string) => void;
   onTagToggle: (tag: string) => void;
@@ -25,7 +25,7 @@ interface DatasetSelectionProps {
   onAddTestDataset: (dataset: DatasetObject) => void;
   onRemoveTestDataset: (dataset: DatasetObject) => void;
   onClearTestDatasets: () => void;
-  
+
   // Other
   availableDatasetCount: number;
 }
@@ -69,7 +69,11 @@ export function DatasetSelection({
       <Grid columns="2" gap="4">
         {/* Training Dataset Section */}
         <Box>
-          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+          <Flex
+            align="center"
+            gap="2"
+            style={{ marginBottom: theme.spacing.semantic.component.md }}
+          >
             <Brain size={16} style={{ color: theme.colors.status.success }} weight="fill" />
             <Text size="3" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
               Training Dataset
@@ -104,10 +108,14 @@ export function DatasetSelection({
 
         {/* Test Datasets Section */}
         <Box>
-          <Flex align="center" justify="between" style={{ 
-            marginBottom: theme.spacing.semantic.component.md,
-            minHeight: "24px" // 일정한 높이 유지
-          }}>
+          <Flex
+            align="center"
+            justify="between"
+            style={{
+              marginBottom: theme.spacing.semantic.component.md,
+              minHeight: "24px", // 일정한 높이 유지
+            }}
+          >
             <Flex align="center" gap="2">
               <Flask size={16} style={{ color: theme.colors.interactive.accent }} weight="fill" />
               <Text size="3" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
@@ -119,11 +127,13 @@ export function DatasetSelection({
                 </Text>
               )}
             </Flex>
-            <Box style={{ 
-              width: "60px", // 고정 너비로 공간 확보
-              display: "flex",
-              justifyContent: "flex-end"
-            }}>
+            <Box
+              style={{
+                width: "60px", // 고정 너비로 공간 확보
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
               {selectedTestDatasets.length > 0 && (
                 <button
                   onClick={onClearTestDatasets}
@@ -142,11 +152,11 @@ export function DatasetSelection({
                     justifyContent: "center",
                     transition: "all 0.2s ease",
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     e.currentTarget.style.background = `${theme.colors.status.error}15`;
                     e.currentTarget.style.borderColor = `${theme.colors.status.error}40`;
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.background = `${theme.colors.status.error}08`;
                     e.currentTarget.style.borderColor = `${theme.colors.status.error}20`;
                   }}
@@ -162,7 +172,7 @@ export function DatasetSelection({
             {filteredDatasets.map(dataset => {
               const isSelected = selectedTestDatasets.some(d => d.id === dataset.id);
               const isDisabled = selectedTrainingDataset?.id === dataset.id;
-              
+
               return (
                 <DatasetCard
                   key={dataset.id}
@@ -197,9 +207,15 @@ interface DatasetCardProps {
   isDisabled?: boolean;
 }
 
-function DatasetCard({ dataset, isSelected, onSelect, variant, isDisabled = false }: DatasetCardProps) {
+function DatasetCard({
+  dataset,
+  isSelected,
+  onSelect,
+  variant,
+  isDisabled = false,
+}: DatasetCardProps) {
   const { theme } = useTheme();
-  
+
   const colors = {
     training: {
       primary: theme.colors.status.success,
@@ -222,28 +238,28 @@ function DatasetCard({ dataset, isSelected, onSelect, variant, isDisabled = fals
         padding: theme.spacing.semantic.component.sm,
         borderRadius: theme.borders.radius.md,
         border: `1px solid ${
-          isDisabled 
+          isDisabled
             ? `${theme.colors.border.secondary}60`
-            : isSelected 
-              ? color.primary 
+            : isSelected
+              ? color.primary
               : theme.colors.border.secondary
         }`,
-        background: isDisabled 
+        background: isDisabled
           ? `${theme.colors.background.secondary}60`
-          : isSelected 
-            ? color.secondary 
+          : isSelected
+            ? color.secondary
             : theme.colors.background.secondary,
         cursor: isDisabled ? "not-allowed" : "pointer",
         transition: "all 0.2s ease",
         opacity: isDisabled ? 0.5 : 1,
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         if (!isSelected && !isDisabled) {
           e.currentTarget.style.borderColor = color.primary;
           e.currentTarget.style.background = `${color.primary}05`;
         }
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={e => {
         if (!isSelected && !isDisabled) {
           e.currentTarget.style.borderColor = theme.colors.border.secondary;
           e.currentTarget.style.background = theme.colors.background.secondary;
@@ -256,10 +272,10 @@ function DatasetCard({ dataset, isSelected, onSelect, variant, isDisabled = fals
             width: "20px",
             height: "20px",
             borderRadius: theme.borders.radius.sm,
-            background: isDisabled 
+            background: isDisabled
               ? `${theme.colors.text.tertiary}20`
-              : isSelected 
-                ? color.primary 
+              : isSelected
+                ? color.primary
                 : `${color.primary}20`,
             display: "flex",
             alignItems: "center",
@@ -267,12 +283,18 @@ function DatasetCard({ dataset, isSelected, onSelect, variant, isDisabled = fals
           }}
         >
           {isDisabled ? (
-            <Text style={{ color: theme.colors.text.tertiary, fontSize: "10px", fontWeight: 600 }}>×</Text>
+            <Text style={{ color: theme.colors.text.tertiary, fontSize: "10px", fontWeight: 600 }}>
+              ×
+            </Text>
           ) : isSelected ? (
             variant === "training" ? (
-              <Text style={{ color: theme.colors.text.inverse, fontSize: "8px", fontWeight: 600 }}>✓</Text>
+              <Text style={{ color: theme.colors.text.inverse, fontSize: "8px", fontWeight: 600 }}>
+                ✓
+              </Text>
             ) : (
-              <Text style={{ color: theme.colors.text.inverse, fontSize: "10px", fontWeight: 600 }}>✓</Text>
+              <Text style={{ color: theme.colors.text.inverse, fontSize: "10px", fontWeight: 600 }}>
+                ✓
+              </Text>
             )
           ) : variant === "training" ? (
             <Database size={10} style={{ color: color.primary }} />
@@ -281,25 +303,25 @@ function DatasetCard({ dataset, isSelected, onSelect, variant, isDisabled = fals
           )}
         </Box>
         <Box style={{ flex: 1, minWidth: 0 }}>
-          <Text 
-            size="2" 
-            style={{ 
-              fontWeight: 600, 
+          <Text
+            size="2"
+            style={{
+              fontWeight: 600,
               color: isDisabled ? theme.colors.text.tertiary : theme.colors.text.primary,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              marginRight: "6px"
+              marginRight: "6px",
             }}
           >
             {dataset.name}
             {isDisabled && (
-              <Text 
-                style={{ 
-                  color: theme.colors.text.tertiary, 
-                  fontSize: "10px", 
+              <Text
+                style={{
+                  color: theme.colors.text.tertiary,
+                  fontSize: "10px",
                   fontWeight: 500,
-                  marginLeft: "6px"
+                  marginLeft: "6px",
                 }}
               >
                 (Selected for Training)
@@ -309,13 +331,13 @@ function DatasetCard({ dataset, isSelected, onSelect, variant, isDisabled = fals
           <Text size="1" style={{ color: theme.colors.text.tertiary }}>
             {dataset.dataCount.toLocaleString()} items
             {isSelected && variant === "training" && (
-              <Text 
-                style={{ 
-                  color: theme.colors.text.tertiary, 
-                  fontSize: "9px", 
+              <Text
+                style={{
+                  color: theme.colors.text.tertiary,
+                  fontSize: "9px",
                   fontWeight: 500,
                   marginLeft: "6px",
-                  fontStyle: "italic"
+                  fontStyle: "italic",
                 }}
               >
                 • Click to deselect
@@ -326,4 +348,4 @@ function DatasetCard({ dataset, isSelected, onSelect, variant, isDisabled = fals
       </Flex>
     </Box>
   );
-} 
+}

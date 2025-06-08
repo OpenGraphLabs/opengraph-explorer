@@ -33,7 +33,11 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
         >
           {/* 모델 이름 */}
           <Box style={{ flex: 1 }}>
-            <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Flex
+              align="center"
+              gap="2"
+              style={{ marginBottom: theme.spacing.semantic.component.sm }}
+            >
               <Text
                 as="label"
                 size="2"
@@ -74,11 +78,11 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                   outline: "none",
                   boxShadow: "none",
                 }}
-                onFocus={(e) => {
+                onFocus={e => {
                   e.target.style.borderColor = theme.colors.interactive.primary;
                   e.target.style.boxShadow = `0 0 0 3px ${theme.colors.interactive.primary}15`;
                 }}
-                onBlur={(e) => {
+                onBlur={e => {
                   e.target.style.borderColor = theme.colors.border.primary;
                   e.target.style.boxShadow = "none";
                 }}
@@ -98,7 +102,11 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
 
           {/* 모델 타입 */}
           <Box style={{ flex: 1 }}>
-            <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Flex
+              align="center"
+              gap="2"
+              style={{ marginBottom: theme.spacing.semantic.component.sm }}
+            >
               <Text
                 as="label"
                 size="2"
@@ -147,8 +155,8 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                 }}
               >
                 <span>
-                  {MODEL_TYPE_OPTIONS.find(option => option.value === modelInfo.modelType)
-                    ?.label || "Select model type..."}
+                  {MODEL_TYPE_OPTIONS.find(option => option.value === modelInfo.modelType)?.label ||
+                    "Select model type..."}
                 </span>
               </Select.Trigger>
               <Select.Content>
@@ -178,7 +186,11 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
 
         {/* 모델 설명 */}
         <Box>
-          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+          <Flex
+            align="center"
+            gap="2"
+            style={{ marginBottom: theme.spacing.semantic.component.sm }}
+          >
             <Text
               as="label"
               size="2"
@@ -221,11 +233,11 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                 resize: "vertical",
                 boxShadow: "none",
               }}
-              onFocus={(e) => {
+              onFocus={e => {
                 e.target.style.borderColor = theme.colors.interactive.primary;
                 e.target.style.boxShadow = `0 0 0 3px ${theme.colors.interactive.primary}15`;
               }}
-              onBlur={(e) => {
+              onBlur={e => {
                 e.target.style.borderColor = theme.colors.border.primary;
                 e.target.style.boxShadow = "none";
               }}
@@ -239,7 +251,8 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
               fontSize: "12px",
             }}
           >
-            Include model architecture details, training methodology, performance benchmarks, and target applications
+            Include model architecture details, training methodology, performance benchmarks, and
+            target applications
           </Text>
         </Box>
 
@@ -259,7 +272,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: modelInfo.name ? theme.colors.status.success : theme.colors.text.tertiary,
+                  background: modelInfo.name
+                    ? theme.colors.status.success
+                    : theme.colors.text.tertiary,
                 }}
               />
               <Box
@@ -267,7 +282,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: modelInfo.modelType ? theme.colors.status.success : theme.colors.text.tertiary,
+                  background: modelInfo.modelType
+                    ? theme.colors.status.success
+                    : theme.colors.text.tertiary,
                 }}
               />
               <Box
@@ -275,7 +292,9 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: modelInfo.description ? theme.colors.status.success : theme.colors.text.tertiary,
+                  background: modelInfo.description
+                    ? theme.colors.status.success
+                    : theme.colors.text.tertiary,
                 }}
               />
               <Text
@@ -287,7 +306,11 @@ export function ModelInfoForm({ modelInfo, onUpdate }: ModelInfoFormProps) {
                   marginLeft: "8px",
                 }}
               >
-                {[modelInfo.name, modelInfo.modelType, modelInfo.description].filter(Boolean).length}/3 fields completed
+                {
+                  [modelInfo.name, modelInfo.modelType, modelInfo.description].filter(Boolean)
+                    .length
+                }
+                /3 fields completed
               </Text>
             </Flex>
             <Text

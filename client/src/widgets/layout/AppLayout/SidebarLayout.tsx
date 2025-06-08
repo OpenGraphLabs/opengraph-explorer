@@ -90,7 +90,11 @@ export function SidebarLayout({ children, sidebar, topBar }: SidebarLayoutProps)
             background: `linear-gradient(135deg, ${theme.colors.background.secondary}, ${theme.colors.background.accent})`,
           }}
         >
-          <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+          <Flex
+            align="center"
+            gap="3"
+            style={{ marginBottom: theme.spacing.semantic.component.lg }}
+          >
             <Box
               style={{
                 width: "32px",
@@ -197,9 +201,7 @@ export function SidebarLayout({ children, sidebar, topBar }: SidebarLayoutProps)
         )}
 
         {/* Filters */}
-        <Box style={{ flex: 1, overflow: "auto" }}>
-          {sidebar.filters}
-        </Box>
+        <Box style={{ flex: 1, overflow: "auto" }}>{sidebar.filters}</Box>
       </Box>
 
       {/* Main Content */}
@@ -230,4 +232,4 @@ export function SidebarLayout({ children, sidebar, topBar }: SidebarLayoutProps)
       </Box>
     </Box>
   );
-} 
+}
