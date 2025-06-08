@@ -14,17 +14,18 @@ export function Header() {
 
   return (
     <>
-      {/* Header */}
+      {/* Compact Professional Header */}
       <Flex
         justify="between"
         align="center"
-        py="4"
+        py="2" // Much smaller vertical padding
         style={{
           borderBottom: `1px solid ${theme.colors.border.primary}`,
           position: "sticky",
           top: 0,
           backgroundColor: theme.colors.background.primary,
           zIndex: 100,
+          height: "56px", // Fixed compact height
         }}
       >
         {/* Logo and Navigation */}
@@ -33,18 +34,19 @@ export function Header() {
             <Flex align="center" gap="2">
               <img
                 src={logoImage}
-                alt="OpenGraph Logo"
+                alt="OpenGraph"
                 style={{
-                  width: "40px",
-                  height: "40px",
+                  width: "28px", // Smaller logo
+                  height: "28px",
                   objectFit: "contain",
                 }}
               />
               <Text
-                size="5"
-                weight="bold"
+                size="3" // Smaller brand text
                 style={{
-                  color: theme.colors.text.brand,
+                  color: theme.colors.text.primary,
+                  fontWeight: theme.typography.h4.fontWeight,
+                  letterSpacing: "-0.01em",
                 }}
                 className="sm:block"
               >
@@ -53,19 +55,15 @@ export function Header() {
             </Flex>
           </Link>
 
-          {/* Desktop Navigation */}
-          <Flex gap="6" className="hidden md:flex">
-            <NavLink to="/" current={location.pathname === "/"}>
-              Home
-            </NavLink>
+          {/* Compact Desktop Navigation */}
+          <Flex gap="1" className="hidden md:flex">
+            {" "}
+            {/* Reduced gap */}
             <NavLink to="/models" current={location.pathname === "/models"}>
               Models
             </NavLink>
             <NavLink to="/datasets" current={location.pathname === "/datasets"}>
               Datasets
-            </NavLink>
-            <NavLink to="/upload" current={location.pathname === "/upload"}>
-              Upload Model
             </NavLink>
             <NavLink to="/annotator" current={location.pathname === "/annotator"}>
               Annotator
@@ -73,74 +71,96 @@ export function Header() {
           </Flex>
         </Flex>
 
-        {/* Right Side - Connect Button and Profile */}
-        <Flex align="center" gap="4">
-          {/* Mobile Menu Button */}
-          <Box className="block md:hidden">
+        {/* Right Side - Compact Actions */}
+        <Flex align="center" gap="2">
+          {" "}
+          {/* Reduced gap */}
+          {/* Mobile Menu Button - RadixUI responsive display */}
+          <Box
+            display={{ initial: "block", md: "none" }}
+            style={{
+              padding: theme.spacing.base[1], // Smaller padding
+              minHeight: "32px",
+              minWidth: "32px",
+            }}
+          >
             <Button
               variant="tertiary"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ padding: "8px" }}
+              style={{
+                padding: theme.spacing.base[1],
+                minHeight: "32px",
+                minWidth: "32px",
+              }}
             >
-              <HamburgerMenuIcon width="20" height="20" />
+              <HamburgerMenuIcon width="16" height="16" />
             </Button>
           </Box>
-
-          {/* Theme Toggle */}
+          {/* Compact Theme Toggle */}
           <Button
             variant="tertiary"
             onClick={toggleTheme}
             style={{
-              padding: "8px",
+              padding: theme.spacing.base[1],
+              minHeight: "32px",
+              minWidth: "32px",
               color: theme.colors.text.secondary,
             }}
           >
             {mode === "light" ? (
-              <MoonIcon width="20" height="20" />
+              <MoonIcon width="16" height="16" />
             ) : (
-              <SunIcon width="20" height="20" />
+              <SunIcon width="16" height="16" />
             )}
           </Button>
-
-          {/* GitHub Link */}
+          {/* Compact GitHub Link */}
           <a
-            href="https://github.com/yourusername/opengraph-explorer"
+            href="https://github.com/OpenGraphLabs/opengraph-explorer"
             target="_blank"
             rel="noopener noreferrer"
             style={{
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               color: theme.colors.text.secondary,
               textDecoration: "none",
+              padding: theme.spacing.base[1],
+              minHeight: "32px",
+              minWidth: "32px",
+              borderRadius: theme.borders.radius.sm,
+              transition: theme.animations.transitions.colors,
             }}
           >
-            <GitHubLogoIcon width="20" height="20" />
+            <GitHubLogoIcon width="16" height="16" />
           </a>
-
-          {/* Connect Button */}
+          {/* Compact Connect Button */}
           <ConnectButton
-            connectText="Connect Wallet"
+            connectText="Connect"
             style={{
-              borderRadius: theme.borders.radius.md,
+              borderRadius: theme.borders.radius.sm,
               background: isConnected
                 ? theme.colors.background.card
                 : theme.colors.interactive.primary,
               color: isConnected ? theme.colors.text.primary : theme.colors.text.inverse,
               border: isConnected ? `1px solid ${theme.colors.border.primary}` : "none",
-              fontWeight: 500,
-              padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
+              fontWeight: theme.typography.label.fontWeight,
+              padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`, // Compact padding
+              fontSize: theme.typography.bodySmall.fontSize,
+              height: "32px",
             }}
           />
-
-          {/* Profile Link (when connected) */}
+          {/* Compact Profile (when connected) */}
           {isConnected && (
             <Link to="/profile" style={{ textDecoration: "none" }}>
               <Avatar
-                size="2"
-                fallback={currentWallet?.accounts[0]?.address[0] || "U"}
+                size="1" // Smaller avatar
+                fallback={currentWallet?.accounts[0]?.address.slice(0, 2) || "0x"}
                 style={{
                   background: theme.colors.interactive.primary,
                   cursor: "pointer",
+                  width: "32px",
+                  height: "32px",
+                  fontSize: "12px",
                 }}
               />
             </Link>
@@ -148,22 +168,25 @@ export function Header() {
         </Flex>
       </Flex>
 
-      {/* Mobile Navigation Menu */}
+      {/* Compact Mobile Navigation Menu */}
       {isMobileMenuOpen && (
         <Box
           style={{
             position: "fixed",
-            top: "64px",
+            top: "56px", // Match header height
             left: 0,
             right: 0,
             backgroundColor: theme.colors.background.primary,
             borderBottom: `1px solid ${theme.colors.border.primary}`,
             zIndex: 99,
-            padding: theme.spacing.base[4],
+            padding: theme.spacing.base[3], // Smaller padding
+            boxShadow: theme.shadows.semantic.overlay.dropdown,
           }}
           className="block md:hidden"
         >
-          <Flex direction="column" gap="3">
+          <Flex direction="column" gap="1">
+            {" "}
+            {/* Reduced gap */}
             <MobileNavLink
               to="/"
               current={location.pathname === "/"}
@@ -206,7 +229,7 @@ export function Header() {
   );
 }
 
-// Navigation Link Components
+// Compact Navigation Link Components
 function NavLink({
   to,
   current,
@@ -223,12 +246,17 @@ function NavLink({
       to={to}
       style={{
         textDecoration: "none",
-        color: current ? theme.colors.text.brand : theme.colors.text.secondary,
-        fontWeight: current ? "600" : "400",
-        padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`,
-        borderRadius: theme.borders.radius.md,
+        color: current ? theme.colors.text.primary : theme.colors.text.secondary,
+        fontWeight: current ? theme.typography.label.fontWeight : theme.typography.body.fontWeight,
+        padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`, // Much smaller padding
+        borderRadius: theme.borders.radius.sm,
         transition: theme.animations.transitions.colors,
-        backgroundColor: current ? theme.colors.background.accent : "transparent",
+        backgroundColor: current ? theme.colors.background.secondary : "transparent",
+        fontSize: theme.typography.bodySmall.fontSize,
+        height: "32px",
+        display: "flex",
+        alignItems: "center",
+        minWidth: "fit-content",
       }}
     >
       {children}
@@ -254,11 +282,14 @@ function MobileNavLink({
       to={to}
       style={{
         textDecoration: "none",
-        padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
-        borderRadius: theme.borders.radius.md,
-        color: current ? theme.colors.text.brand : theme.colors.text.primary,
-        fontWeight: current ? "600" : "400",
-        backgroundColor: current ? theme.colors.background.accent : "transparent",
+        padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`, // Compact mobile padding
+        borderRadius: theme.borders.radius.sm,
+        color: current ? theme.colors.text.primary : theme.colors.text.secondary,
+        fontWeight: current ? theme.typography.label.fontWeight : theme.typography.body.fontWeight,
+        backgroundColor: current ? theme.colors.background.secondary : "transparent",
+        fontSize: theme.typography.bodySmall.fontSize,
+        display: "block",
+        transition: theme.animations.transitions.colors,
       }}
       onClick={onClick}
     >

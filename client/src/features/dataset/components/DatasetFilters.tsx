@@ -1,8 +1,7 @@
 import React from "react";
-import { Box, Flex, Text, Button, Select, Badge } from "@/shared/ui/design-system/components";
-import { Card } from "@/shared/ui/design-system/components/Card";
+import { Box, Flex, Text, Badge, Dropdown } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { MagnifyingGlassIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { MagnifyingGlass, X, FunnelSimple, Tag, Check } from "phosphor-react";
 import { DatasetFilters } from "../types";
 import { TYPE_FILTERS } from "../constants";
 
@@ -24,223 +23,341 @@ export const DatasetFiltersComponent = ({
   const { theme } = useTheme();
 
   return (
-    <Card
-      elevation="low"
-      style={{
-        padding: theme.spacing.semantic.component.lg,
-        borderRadius: theme.borders.radius.lg,
-        boxShadow: theme.shadows.semantic.card.medium,
-        border: `1px solid ${theme.colors.border.primary}`,
-        background: theme.colors.background.card,
-        marginBottom: theme.spacing.semantic.component.md,
-      }}
-    >
-      <Flex direction="column" gap="4">
-        {/* 검색 및 데이터 타입 필터 */}
-        <Flex direction={{ initial: "column", sm: "row" }} gap="4" align="start">
-          <Box style={{ flex: 1 }}>
-            <div className="rt-TextFieldRoot" style={{ width: "100%" }}>
-              <div
-                className="rt-TextFieldSlot"
-                style={{
-                  marginRight: theme.spacing.semantic.component.sm,
-                  color: theme.colors.text.tertiary,
-                }}
-              >
-                <MagnifyingGlassIcon height="16" width="16" />
-              </div>
-              <input
-                className="rt-TextFieldInput"
-                placeholder="Search datasets by name or description..."
-                value={filters.searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  onUpdateFilter("searchQuery", e.target.value)
-                }
-                style={{
-                  backgroundColor: theme.colors.background.secondary,
-                  borderRadius: theme.borders.radius.md,
-                  border: `1px solid ${theme.colors.border.primary}`,
-                  padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                  width: "100%",
-                  color: theme.colors.text.primary,
-                  fontSize: "14px",
-                  transition: theme.animations.transitions.focus,
-                }}
-              />
-            </div>
-          </Box>
-
-          <Select.Root
-            value={filters.selectedType}
-            onValueChange={value => onUpdateFilter("selectedType", value)}
+    <Box style={{ padding: theme.spacing.semantic.component.md }}>
+      {/* Search */}
+      <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
+        <Text
+          size="2"
+          style={{
+            color: theme.colors.text.primary,
+            fontWeight: 600,
+            marginBottom: theme.spacing.semantic.component.xs,
+            display: "block",
+          }}
+        >
+          Search
+        </Text>
+        <Box style={{ position: "relative" }}>
+          <Box
+            style={{
+              position: "absolute",
+              left: theme.spacing.semantic.component.sm,
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: theme.colors.text.tertiary,
+              zIndex: 1,
+            }}
           >
-            <Select.Trigger
-              placeholder="Data Type"
+            <MagnifyingGlass size={14} />
+          </Box>
+          <input
+            placeholder="Search datasets..."
+            value={filters.searchQuery}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onUpdateFilter("searchQuery", e.target.value)
+            }
+            style={{
+              width: "100%",
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.sm}`,
+              paddingLeft: "32px",
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.sm,
+              background: theme.colors.background.card,
+              color: theme.colors.text.primary,
+              fontSize: "13px",
+              fontWeight: 500,
+              outline: "none",
+              transition: "border-color 0.2s ease",
+            }}
+            onFocus={e => {
+              e.target.style.borderColor = theme.colors.interactive.primary;
+              e.target.style.boxShadow = `0 0 0 2px ${theme.colors.interactive.primary}20`;
+            }}
+            onBlur={e => {
+              e.target.style.borderColor = theme.colors.border.primary;
+              e.target.style.boxShadow = "none";
+            }}
+          />
+          {filters.searchQuery && (
+            <button
+              onClick={() => onUpdateFilter("searchQuery", "")}
               style={{
-                minWidth: "160px",
-                backgroundColor: theme.colors.background.secondary,
-                border: `1px solid ${theme.colors.border.primary}`,
-                borderRadius: theme.borders.radius.md,
-                color: theme.colors.text.primary,
+                position: "absolute",
+                right: theme.spacing.semantic.component.sm,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                color: theme.colors.text.tertiary,
                 cursor: "pointer",
-                transition: theme.animations.transitions.focus,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "2px",
+                borderRadius: theme.borders.radius.sm,
+                transition: "color 0.2s ease",
               }}
-            />
-            <Select.Content position="popper">
-              <Select.Group>
-                {TYPE_FILTERS.map(type => (
-                  <Select.Item
-                    key={type.value}
-                    value={type.value}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: theme.spacing.semantic.component.sm,
-                      fontSize: "14px",
-                      cursor: "pointer",
-                      color: theme.colors.text.primary,
-                      transition: theme.animations.transitions.hover,
-                    }}
-                  >
-                    <span style={{ fontSize: "16px" }}>{type.icon}</span>
-                    {type.label}
-                  </Select.Item>
-                ))}
-              </Select.Group>
-            </Select.Content>
-          </Select.Root>
-        </Flex>
+              onMouseEnter={e => {
+                e.currentTarget.style.color = theme.colors.text.primary;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = theme.colors.text.tertiary;
+              }}
+            >
+              <X size={12} />
+            </button>
+          )}
+        </Box>
+      </Box>
 
-        {/* 태그 필터 섹션 */}
-        <Box>
-          <Flex justify="between" align="center" mb="2">
+      {/* Data Type Filter */}
+      <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
+        <Text
+          size="2"
+          style={{
+            color: theme.colors.text.primary,
+            fontWeight: 600,
+            marginBottom: theme.spacing.semantic.component.xs,
+            display: "block",
+          }}
+        >
+          Data Type
+        </Text>
+        <Dropdown
+          options={TYPE_FILTERS.map(type => ({
+            value: type.value,
+            label: type.label,
+            icon: <span style={{ fontSize: "14px" }}>{type.icon}</span>,
+          }))}
+          value={filters.selectedType}
+          onValueChange={(value: string) => onUpdateFilter("selectedType", value)}
+          placeholder="All Types"
+          size="md"
+          variant="default"
+          fullWidth
+          clearable={filters.selectedType !== "all"}
+        />
+      </Box>
+
+      {/* Separator */}
+      <Box
+        style={{
+          height: "1px",
+          background: `${theme.colors.border.primary}40`,
+          margin: `${theme.spacing.semantic.component.md} 0`,
+        }}
+      />
+
+      {/* Tags Section */}
+      <Box>
+        <Flex
+          justify="between"
+          align="center"
+          style={{ marginBottom: theme.spacing.semantic.component.sm }}
+        >
+          <Flex align="center" gap="1">
+            <Tag size={14} style={{ color: theme.colors.text.secondary }} />
             <Text
               size="2"
-              weight="medium"
               style={{
+                color: theme.colors.text.primary,
+                fontWeight: 600,
+              }}
+            >
+              Tags
+            </Text>
+            <Badge
+              style={{
+                background: `${theme.colors.text.tertiary}15`,
                 color: theme.colors.text.secondary,
+                border: `1px solid ${theme.colors.border.primary}30`,
+                padding: "1px 4px",
+                borderRadius: theme.borders.radius.full,
+                fontSize: "10px",
                 fontWeight: 500,
               }}
             >
-              Filter by Tags
-            </Text>
-            {filters.selectedTags.length > 0 && (
-              <Button
-                onClick={onClearTags}
-                style={{
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  padding: "4px 8px",
-                  background: theme.colors.background.tertiary,
-                  color: theme.colors.text.secondary,
-                  border: "none",
-                  borderRadius: theme.borders.radius.sm,
-                  transition: theme.animations.transitions.hover,
-                }}
-              >
-                Clear All
-              </Button>
-            )}
+              {availableTags.length}
+            </Badge>
           </Flex>
 
-          {/* 선택된 태그 섹션 */}
           {filters.selectedTags.length > 0 && (
-            <Box mb="2">
+            <button
+              onClick={onClearTags}
+              style={{
+                background: "none",
+                border: "none",
+                color: theme.colors.interactive.primary,
+                fontSize: "11px",
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: "2px 4px",
+                borderRadius: theme.borders.radius.sm,
+                transition: "opacity 0.2s ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.opacity = "0.8";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.opacity = "1";
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </Flex>
+
+        {/* Selected Tags */}
+        {filters.selectedTags.length > 0 && (
+          <Box style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Flex gap="1" wrap="wrap">
+              {filters.selectedTags.map(tag => (
+                <Badge
+                  key={tag}
+                  style={{
+                    background: theme.colors.interactive.primary,
+                    color: theme.colors.text.inverse,
+                    border: "none",
+                    padding: `4px 8px`,
+                    borderRadius: theme.borders.radius.full,
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    boxShadow: theme.shadows.semantic.card.low,
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => onToggleTag(tag)}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = theme.colors.interactive.primaryHover;
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = theme.colors.interactive.primary;
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  {tag.length > 12 ? tag.substring(0, 12) + "..." : tag}
+                  <X size={10} style={{ opacity: 0.8 }} />
+                </Badge>
+              ))}
+            </Flex>
+          </Box>
+        )}
+
+        {/* Available Tags */}
+        <Box
+          style={{
+            maxHeight: "200px",
+            overflowY: "auto",
+            background: theme.colors.background.secondary,
+            border: `1px solid ${theme.colors.border.primary}`,
+            borderRadius: theme.borders.radius.md,
+            padding: theme.spacing.semantic.component.sm,
+          }}
+        >
+          {availableTags.length === 0 ? (
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.tertiary,
+                fontStyle: "italic",
+                padding: theme.spacing.semantic.component.sm,
+                textAlign: "center",
+                display: "block",
+              }}
+            >
+              No tags available
+            </Text>
+          ) : (
+            <Flex gap="1" wrap="wrap">
+              {availableTags.map(tag => {
+                const isSelected = filters.selectedTags.includes(tag);
+                return (
+                  <Badge
+                    key={tag}
+                    style={{
+                      background: isSelected
+                        ? `${theme.colors.status.success}15`
+                        : theme.colors.background.card,
+                      color: isSelected ? theme.colors.status.success : theme.colors.text.primary,
+                      border: isSelected
+                        ? `1px solid ${theme.colors.status.success}40`
+                        : `1px solid ${theme.colors.border.primary}`,
+                      padding: `3px 6px`,
+                      borderRadius: theme.borders.radius.full,
+                      fontSize: "10px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "3px",
+                    }}
+                    onClick={() => onToggleTag(tag)}
+                    onMouseEnter={e => {
+                      if (isSelected) {
+                        e.currentTarget.style.background = `${theme.colors.status.success}25`;
+                      } else {
+                        e.currentTarget.style.background = `${theme.colors.interactive.primary}10`;
+                        e.currentTarget.style.borderColor = `${theme.colors.interactive.primary}60`;
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (isSelected) {
+                        e.currentTarget.style.background = `${theme.colors.status.success}15`;
+                      } else {
+                        e.currentTarget.style.background = theme.colors.background.card;
+                        e.currentTarget.style.borderColor = theme.colors.border.primary;
+                      }
+                    }}
+                  >
+                    {tag.length > 10 ? tag.substring(0, 10) + "..." : tag}
+                    {isSelected && <Check size={10} style={{ opacity: 0.8 }} />}
+                  </Badge>
+                );
+              })}
+            </Flex>
+          )}
+        </Box>
+
+        {/* Filter Summary */}
+        {(filters.searchQuery ||
+          filters.selectedType !== "all" ||
+          filters.selectedTags.length > 0) && (
+          <Box
+            style={{
+              marginTop: theme.spacing.semantic.component.sm,
+              padding: theme.spacing.semantic.component.xs,
+              background: `${theme.colors.interactive.primary}08`,
+              border: `1px solid ${theme.colors.interactive.primary}20`,
+              borderRadius: theme.borders.radius.sm,
+            }}
+          >
+            <Flex align="center" gap="2">
+              <FunnelSimple size={12} style={{ color: theme.colors.interactive.primary }} />
               <Text
                 size="1"
                 style={{
-                  color: theme.colors.text.tertiary,
-                  marginBottom: "4px",
+                  color: theme.colors.text.secondary,
+                  fontWeight: 500,
                 }}
               >
-                Selected Tags:
+                {`${[
+                  filters.searchQuery && "search",
+                  filters.selectedType !== "all" && "type",
+                  filters.selectedTags.length > 0 &&
+                    `${filters.selectedTags.length} tag${filters.selectedTags.length > 1 ? "s" : ""}`,
+                ]
+                  .filter(Boolean)
+                  .join(", ")} applied`}
               </Text>
-              <Flex gap="2" wrap="wrap">
-                {filters.selectedTags.map(tag => (
-                  <Badge
-                    key={tag}
-                    variant="surface"
-                    style={{
-                      padding: `4px 8px`,
-                      borderRadius: theme.borders.radius.full,
-                      background: theme.colors.status.info,
-                      color: theme.colors.text.inverse,
-                      border: `1px solid ${theme.colors.border.brand}`,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      cursor: "pointer",
-                      margin: "2px",
-                      transition: theme.animations.transitions.hover,
-                      fontSize: "12px",
-                      fontWeight: 500,
-                    }}
-                    onClick={() => onToggleTag(tag)}
-                  >
-                    {tag}
-                    <Cross2Icon width={12} height={12} style={{ opacity: 0.8 }} />
-                  </Badge>
-                ))}
-              </Flex>
-            </Box>
-          )}
-
-          {/* 모든 태그 표시 */}
-          <Box
-            style={{
-              maxHeight: "120px",
-              overflowY: "auto",
-              padding: theme.spacing.semantic.component.sm,
-              marginTop: "4px",
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.md,
-              background: theme.colors.background.secondary,
-            }}
-          >
-            <Flex gap="2" wrap="wrap" p="2">
-              {availableTags.length === 0 ? (
-                <Text
-                  size="1"
-                  style={{
-                    color: theme.colors.text.tertiary,
-                    padding: "8px 12px",
-                  }}
-                >
-                  No tags available in any datasets
-                </Text>
-              ) : (
-                availableTags.map(tag => (
-                  <Badge
-                    key={tag}
-                    variant="surface"
-                    style={{
-                      padding: "4px 10px",
-                      margin: "2px",
-                      borderRadius: theme.borders.radius.full,
-                      background: filters.selectedTags.includes(tag)
-                        ? theme.colors.status.info
-                        : theme.colors.background.card,
-                      color: filters.selectedTags.includes(tag)
-                        ? theme.colors.text.inverse
-                        : theme.colors.text.primary,
-                      border: filters.selectedTags.includes(tag)
-                        ? `1px solid ${theme.colors.border.brand}`
-                        : `1px solid ${theme.colors.border.primary}`,
-                      cursor: "pointer",
-                      transition: theme.animations.transitions.hover,
-                      fontSize: "12px",
-                      fontWeight: 500,
-                    }}
-                    onClick={() => onToggleTag(tag)}
-                  >
-                    {tag}
-                  </Badge>
-                ))
-              )}
             </Flex>
           </Box>
-        </Box>
-      </Flex>
-    </Card>
+        )}
+      </Box>
+    </Box>
   );
 };

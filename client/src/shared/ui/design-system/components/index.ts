@@ -7,6 +7,7 @@ export * from "./LoadingSpinner";
 export * from "./ErrorState";
 export * from "./PageHeader";
 export * from "./DatasetCard";
+export * from "./Dropdown";
 
 // Re-export Radix UI components that we use as-is
 export {

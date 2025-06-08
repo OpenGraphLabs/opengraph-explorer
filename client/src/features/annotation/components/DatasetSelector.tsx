@@ -1,15 +1,12 @@
-import { Box, Flex, Heading, Text, Grid } from "@/shared/ui/design-system/components";
-import { Card } from "@/shared/ui/design-system/components/Card";
-import { LoadingSpinner } from "@/shared/ui/design-system/components/LoadingSpinner";
-import { ErrorState } from "@/shared/ui/design-system/components/ErrorState";
-import { useTheme } from "@/shared/ui/design-system";
-import { Database } from "phosphor-react";
+import { Dropdown, DropdownOption } from "@/shared/ui/design-system/components";
 import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
+import { Database } from "phosphor-react";
+import { Box } from "@radix-ui/themes";
 
 interface DatasetSelectorProps {
   datasets: DatasetObject[];
   selectedDataset: DatasetObject | null;
-  onDatasetSelect: (dataset: DatasetObject) => void;
+  onDatasetSelect: (dataset: DatasetObject | null) => void;
   loading?: boolean;
   error?: string | null;
 }
@@ -21,171 +18,47 @@ export function DatasetSelector({
   loading = false,
   error = null,
 }: DatasetSelectorProps) {
-  const { theme } = useTheme();
+  // Transform datasets to dropdown options
+  const options: DropdownOption[] = datasets.map(dataset => ({
+    value: dataset.id,
+    label: dataset.name,
+    description: `${dataset.dataCount} items • ${dataset.dataType}`,
+    icon: <Database size={14} />,
+  }));
 
-  if (loading) {
-    return (
-      <Card
-        style={{
-          padding: theme.spacing.semantic.component.lg,
-        }}
-      >
-        <Flex direction="column" gap={theme.spacing.semantic.component.md}>
-          <Heading
-            size="3"
-            style={{
-              color: theme.colors.text.primary,
-            }}
-          >
-            Select Dataset
-          </Heading>
-          <Flex
-            align="center"
-            justify="center"
-            style={{ padding: theme.spacing.semantic.component.xl }}
-          >
-            <LoadingSpinner />
-            <Text
-              size="3"
-              style={{
-                color: theme.colors.text.secondary,
-                marginLeft: theme.spacing.semantic.component.sm,
-              }}
-            >
-              Loading datasets...
-            </Text>
-          </Flex>
-        </Flex>
-      </Card>
-    );
-  }
+  const handleValueChange = (value: string) => {
+    if (!value) {
+      // Clear selection - pass null to indicate no dataset selected
+      onDatasetSelect(null);
+      return;
+    }
 
-  if (error) {
-    return (
-      <Card
-        style={{
-          padding: theme.spacing.semantic.component.lg,
-        }}
-      >
-        <Flex direction="column" gap={theme.spacing.semantic.component.md}>
-          <Heading
-            size="3"
-            style={{
-              color: theme.colors.text.primary,
-            }}
-          >
-            Select Dataset
-          </Heading>
-          <ErrorState message={error} onRetry={() => window.location.reload()} />
-        </Flex>
-      </Card>
-    );
-  }
+    const dataset = datasets.find(d => d.id === value);
+    if (dataset) onDatasetSelect(dataset);
+  };
+
+  const placeholder = loading
+    ? "Loading datasets..."
+    : error
+      ? "Error loading datasets"
+      : "Choose dataset to annotate...";
 
   return (
-    <Card
-      style={{
-        padding: theme.spacing.semantic.component.lg,
-      }}
-    >
-      <Flex direction="column" gap={theme.spacing.semantic.component.md}>
-        <Heading
-          size="3"
-          style={{
-            color: theme.colors.text.primary,
-          }}
-        >
-          Select Dataset
-        </Heading>
-        {datasets.length === 0 ? (
-          <Flex
-            align="center"
-            justify="center"
-            style={{
-              padding: theme.spacing.semantic.component.xl,
-            }}
-          >
-            <Text
-              size="3"
-              style={{
-                color: theme.colors.text.secondary,
-              }}
-            >
-              No datasets available
-            </Text>
-          </Flex>
-        ) : (
-          <Grid columns="3" gap={theme.spacing.semantic.component.md}>
-            {datasets.map(dataset => (
-              <Card
-                key={dataset.id}
-                style={{
-                  cursor: "pointer",
-                  border:
-                    selectedDataset?.id === dataset.id
-                      ? `2px solid ${theme.colors.interactive.primary}`
-                      : `1px solid ${theme.colors.border.primary}`,
-                  background:
-                    selectedDataset?.id === dataset.id
-                      ? theme.colors.background.accent
-                      : theme.colors.background.primary,
-                  transition: theme.animations.transitions.all,
-                  boxShadow:
-                    selectedDataset?.id === dataset.id
-                      ? theme.shadows.semantic.interactive.hover
-                      : theme.shadows.semantic.card.low,
-                }}
-                onClick={() => onDatasetSelect(dataset)}
-              >
-                <Flex
-                  align="center"
-                  gap={theme.spacing.semantic.component.sm}
-                  style={{
-                    padding: theme.spacing.semantic.component.sm,
-                  }}
-                >
-                  <Box
-                    style={{
-                      color:
-                        selectedDataset?.id === dataset.id
-                          ? theme.colors.interactive.primary
-                          : theme.colors.text.secondary,
-                    }}
-                  >
-                    <Database size={24} />
-                  </Box>
-                  <Box>
-                    <Text
-                      size="2"
-                      style={{
-                        fontWeight: "600",
-                        color:
-                          selectedDataset?.id === dataset.id
-                            ? theme.colors.interactive.primary
-                            : theme.colors.text.primary,
-                      }}
-                    >
-                      {dataset.name}
-                    </Text>
-                    <Text
-                      size="1"
-                      style={{
-                        marginLeft: theme.spacing.semantic.component.xs,
-                        color:
-                          selectedDataset?.id === dataset.id
-                            ? theme.colors.interactive.primary
-                            : theme.colors.text.secondary,
-                      }}
-                    >
-                      {dataset.dataType} • {dataset.dataCount} items
-                    </Text>
-                  </Box>
-                </Flex>
-              </Card>
-            ))}
-          </Grid>
-        )}
-      </Flex>
-    </Card>
+    <Box>
+      <Dropdown
+        options={options}
+        value={selectedDataset?.id || ""}
+        onValueChange={handleValueChange}
+        placeholder={placeholder}
+        size="lg"
+        variant="default"
+        disabled={loading || !!error}
+        loading={loading}
+        error={!!error}
+        searchable={datasets.length > 5}
+        clearable={!!selectedDataset}
+        fullWidth
+      />
+    </Box>
   );
 }

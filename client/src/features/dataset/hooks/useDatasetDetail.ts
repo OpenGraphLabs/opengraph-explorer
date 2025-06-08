@@ -27,7 +27,8 @@ export const useDatasetDetail = (id: string | undefined) => {
   // 탭별 페이지 상태
   const [confirmedPage, setConfirmedPage] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<ActiveTab>("confirmed");
+  const [allPage, setAllPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("all");
 
   // 캐시된 아이템들
   const [cachedItems, setCachedItems] = useState<any[]>([]);
@@ -106,10 +107,15 @@ export const useDatasetDetail = (id: string | undefined) => {
   };
 
   const updateCachedItems = (items: any[]) => {
-    const filteredItems =
-      activeTab === "confirmed"
-        ? items.filter(item => hasConfirmedAnnotations(item))
-        : items.filter(item => !hasConfirmedAnnotations(item));
+    let filteredItems: any[];
+
+    if (activeTab === "all") {
+      filteredItems = items;
+    } else if (activeTab === "confirmed") {
+      filteredItems = items.filter(item => hasConfirmedAnnotations(item));
+    } else {
+      filteredItems = items.filter(item => !hasConfirmedAnnotations(item));
+    }
 
     setCachedItems(filteredItems);
   };
@@ -126,10 +132,22 @@ export const useDatasetDetail = (id: string | undefined) => {
     try {
       setPaginationLoading(true);
 
-      const currentPage = activeTab === "confirmed" ? confirmedPage : pendingPage;
-      const setPage = activeTab === "confirmed" ? setConfirmedPage : setPendingPage;
+      const currentPage =
+        activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
 
-      const totalItems = activeTab === "confirmed" ? totalCounts.confirmed : totalCounts.pending;
+      const setPage =
+        activeTab === "all"
+          ? setAllPage
+          : activeTab === "confirmed"
+            ? setConfirmedPage
+            : setPendingPage;
+
+      const totalItems =
+        activeTab === "all"
+          ? totalCounts.total
+          : activeTab === "confirmed"
+            ? totalCounts.confirmed
+            : totalCounts.pending;
       const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
 
       if (direction === "next") {
@@ -181,7 +199,8 @@ export const useDatasetDetail = (id: string | undefined) => {
     index: number,
     getImageUrl: (item: any, index: number) => string
   ) => {
-    const currentPage = activeTab === "confirmed" ? confirmedPage : pendingPage;
+    const currentPage =
+      activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
     const absoluteIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE + index;
 
     setSelectedImage(getImageUrl(item, absoluteIndex));
@@ -231,6 +250,7 @@ export const useDatasetDetail = (id: string | undefined) => {
     // 페이지네이션
     confirmedPage,
     pendingPage,
+    allPage,
     activeTab,
     totalCounts,
     cachedItems,

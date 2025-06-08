@@ -1,11 +1,8 @@
-import { Box, Text, Card, Flex, Button, Grid } from "@radix-ui/themes";
-import {
-  UploadIcon,
-  ReloadIcon,
-  CheckCircledIcon,
-  InfoCircledIcon,
-  Cross2Icon,
-} from "@radix-ui/react-icons";
+import { Box, Text, Flex, Button } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
+import { ReloadIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import { Upload, Check, Warning, X, File, CloudArrowUp } from "phosphor-react";
 import { useRef, useState } from "react";
 
 interface ModelUploaderProps {
@@ -31,8 +28,10 @@ export function ModelUploader({
   multiple = false,
   accept = ".h5",
 }: ModelUploaderProps) {
+  const { theme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -95,11 +94,19 @@ export function ModelUploader({
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragOver(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const files = Array.from(e.dataTransfer.files);
@@ -142,64 +149,116 @@ export function ModelUploader({
 
   return (
     <Box>
-      <Card
+      {/* Main Upload Area - Compact */}
+      <Box
         style={{
           borderStyle: "dashed",
           borderWidth: "2px",
-          borderColor: selectedFile ? "var(--accent-6)" : "var(--gray-6)",
-          background: selectedFile ? "var(--accent-1)" : "var(--gray-1)",
-          padding: "36px",
-          borderRadius: "12px",
+          borderColor: selectedFile
+            ? theme.colors.interactive.primary
+            : isDragOver
+              ? theme.colors.interactive.accent
+              : theme.colors.border.secondary,
+          background: selectedFile
+            ? `${theme.colors.interactive.primary}08`
+            : isDragOver
+              ? `${theme.colors.interactive.accent}05`
+              : theme.colors.background.secondary,
+          padding: theme.spacing.semantic.component.lg,
+          borderRadius: theme.borders.radius.md,
           transition: "all 0.2s ease",
-          marginBottom: "20px",
+          marginBottom: theme.spacing.semantic.component.sm,
+          cursor: "pointer",
         }}
         onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={handleBrowseClick}
       >
-        <Flex direction="column" align="center" gap="4">
+        <Flex direction="column" align="center" gap="3">
           <Box
             style={{
-              width: "72px",
-              height: "72px",
+              width: "60px",
+              height: "60px",
               borderRadius: "50%",
-              background: selectedFile ? "var(--accent-2)" : "var(--gray-3)",
+              background: selectedFile
+                ? `${theme.colors.interactive.primary}15`
+                : isDragOver
+                  ? `${theme.colors.interactive.accent}15`
+                  : `${theme.colors.text.tertiary}10`,
+              border: `1px solid ${
+                selectedFile
+                  ? `${theme.colors.interactive.primary}30`
+                  : isDragOver
+                    ? `${theme.colors.interactive.accent}30`
+                    : `${theme.colors.text.tertiary}20`
+              }`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: "all 0.2s ease",
             }}
           >
-            <UploadIcon
-              width={32}
-              height={32}
-              style={{ color: selectedFile ? "#FF5733" : "var(--gray-11)" }}
+            <CloudArrowUp
+              size={24}
+              style={{
+                color: selectedFile
+                  ? theme.colors.interactive.primary
+                  : isDragOver
+                    ? theme.colors.interactive.accent
+                    : theme.colors.text.tertiary,
+              }}
             />
           </Box>
 
-          <Text style={{ fontWeight: 600, fontSize: "18px", letterSpacing: "0.01em" }}>
-            {selectedFile ? "File selected" : "Drag and drop your file(s) here"}
-          </Text>
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="3"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: "2px",
+                display: "block",
+              }}
+            >
+              {selectedFile ? "File Ready for Conversion" : "Upload Your Model File"}
+            </Text>
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                lineHeight: 1.4,
+              }}
+            >
+              {selectedFile
+                ? "Click to change file or drag new file here"
+                : "Drag and drop your .h5 file here, or click to browse"}
+            </Text>
+          </Box>
 
           {!selectedFile && (
-            <>
-              <Text size="2" style={{ color: "var(--gray-11)" }}>
-                or
-              </Text>
-              <Button
-                size="2"
-                onClick={handleBrowseClick}
-                style={{
-                  cursor: "pointer",
-                  background: "#FF5733",
-                  color: "white",
-                  borderRadius: "8px",
-                  fontWeight: 500,
-                  padding: "10px 16px",
-                }}
-              >
-                Browse Files
-              </Button>
-            </>
+            <Button
+              onClick={e => {
+                e.stopPropagation();
+                handleBrowseClick();
+              }}
+              style={{
+                cursor: "pointer",
+                background: theme.colors.interactive.primary,
+                color: theme.colors.text.inverse,
+                borderRadius: theme.borders.radius.sm,
+                fontWeight: 600,
+                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.md}`,
+                border: "none",
+                fontSize: "13px",
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.semantic.component.xs,
+              }}
+            >
+              <Upload size={14} />
+              Browse Files
+            </Button>
           )}
 
           <input
@@ -211,258 +270,237 @@ export function ModelUploader({
             onChange={handleFileChange}
             style={{ display: "none" }}
           />
+        </Flex>
+      </Box>
 
-          {(selectedFile || previewUrls.length > 0) && (
-            <Flex direction="column" style={{ width: "100%" }} gap="4">
-              {selectedFile && (
-                <Card
-                  style={{
-                    padding: "14px 18px",
-                    borderRadius: "8px",
-                    border: "1px solid var(--accent-6)",
-                    background: "var(--accent-2)",
-                  }}
-                >
-                  <Flex align="center" justify="between">
-                    <Flex align="center" gap="3">
-                      <Box
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "6px",
-                          background: "var(--accent-3)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <InfoCircledIcon style={{ color: "#FF5733" }} width={20} height={20} />
-                      </Box>
-                      <Flex direction="column" gap="1">
-                        <Text size="2" style={{ fontWeight: 600 }}>
-                          {selectedFile.name}
-                        </Text>
-                        <Text size="1" style={{ color: "var(--gray-11)" }}>
-                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </Text>
-                      </Flex>
-                    </Flex>
-                    <Button
-                      size="1"
-                      variant="ghost"
-                      onClick={resetFile}
-                      style={{
-                        borderRadius: "50%",
-                        padding: "8px",
-                        color: "var(--gray-11)",
-                      }}
-                    >
-                      <Cross2Icon />
-                    </Button>
-                  </Flex>
-                </Card>
-              )}
-
-              {previewUrls.length > 0 && (
-                <Card
-                  style={{
-                    padding: "16px",
-                    borderRadius: "8px",
-                    border: "1px solid var(--gray-4)",
-                    background: "var(--gray-1)",
-                  }}
-                >
-                  <Flex align="center" justify="between" mb="3">
-                    <Text size="2" style={{ fontWeight: 500 }}>
-                      Image Previews ({previewUrls.length})
-                    </Text>
-                    <Button
-                      size="1"
-                      variant="soft"
-                      onClick={handleClearAll}
-                      style={{ color: "var(--red-11)" }}
-                    >
-                      Clear All
-                    </Button>
-                  </Flex>
-                  <Grid columns="3" gap="4">
-                    {previewUrls.map((url, index) => (
-                      <Box
-                        key={index}
-                        style={{
-                          aspectRatio: "1",
-                          borderRadius: "6px",
-                          overflow: "hidden",
-                          background: "var(--gray-2)",
-                          position: "relative",
-                          padding: "4px",
-                        }}
-                      >
-                        <img
-                          src={url}
-                          alt={`Preview ${index + 1}`}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "contain",
-                            background: "var(--gray-2)",
-                          }}
-                        />
-                        <Button
-                          size="1"
-                          variant="ghost"
-                          onClick={() => handleRemoveFile(index)}
-                          style={{
-                            position: "absolute",
-                            top: "4px",
-                            right: "4px",
-                            background: "rgba(0, 0, 0, 0.5)",
-                            color: "white",
-                            borderRadius: "50%",
-                            padding: "4px",
-                            cursor: "pointer",
-                            width: "24px",
-                            height: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Cross2Icon width={12} height={12} />
-                        </Button>
-                      </Box>
-                    ))}
-                  </Grid>
-                </Card>
-              )}
-
-              {!multiple && (
-                <Button
-                  onClick={() => onFileSelect([selectedFile!])}
+      {/* Selected File Display - Compact */}
+      {selectedFile && (
+        <Card
+          elevation="low"
+          style={{
+            padding: theme.spacing.semantic.component.sm,
+            background: `${theme.colors.interactive.primary}05`,
+            marginBottom: theme.spacing.semantic.component.sm,
+            overflow: "hidden",
+          }}
+        >
+          <Flex align="center" justify="between">
+            <Flex align="center" gap="2">
+              <Box
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: theme.borders.radius.sm,
+                  background: `${theme.colors.interactive.primary}15`,
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <File size={16} style={{ color: theme.colors.interactive.primary }} />
+              </Box>
+              <Box>
+                <Text
                   size="2"
-                  disabled={isConverting}
                   style={{
-                    background: isConverting ? "var(--gray-5)" : "#FF5733",
-                    color: "white",
-                    borderRadius: "8px",
-                    fontWeight: 500,
-                    cursor: isConverting ? "not-allowed" : "pointer",
-                    alignSelf: "center",
-                    opacity: isConverting ? 0.7 : 1,
-                    padding: "10px 16px",
+                    fontWeight: 600,
+                    color: theme.colors.text.primary,
+                    marginBottom: "1px",
+                    display: "block",
                   }}
                 >
-                  {isConverting
-                    ? "Converting..."
-                    : conversionStatus
-                      ? "Convert Again"
-                      : "Convert Model"}
-                </Button>
-              )}
-            </Flex>
-          )}
-
-          {error && (
-            <Card
-              style={{
-                background: "#FFEBEE",
-                padding: "14px 18px",
-                borderRadius: "8px",
-                marginTop: "12px",
-                width: "100%",
-                border: "1px solid #FFCDD2",
-              }}
-            >
-              <Flex align="center" gap="3">
-                <InfoCircledIcon style={{ color: "#D32F2F" }} width={18} height={18} />
-                <Text size="2" style={{ color: "#D32F2F" }}>
-                  {error}
+                  {selectedFile.name}
                 </Text>
-              </Flex>
-            </Card>
-          )}
-
-          {conversionStatus && (
-            <Card
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    fontSize: "11px",
+                  }}
+                >
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • H5 Model File
+                </Text>
+              </Box>
+            </Flex>
+            <Box
               style={{
-                background: "#E8F5E9",
-                padding: "14px 18px",
-                borderRadius: "8px",
-                marginTop: "12px",
-                width: "100%",
-                border: "1px solid #C8E6C9",
+                background: `${theme.colors.status.error}15`,
+                color: theme.colors.status.error,
+                border: `1px solid ${theme.colors.status.error}30`,
+                borderRadius: theme.borders.radius.sm,
+                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: "11px",
+                fontWeight: 500,
+                gap: theme.spacing.semantic.component.xs,
+                transition: "all 0.2s ease",
+              }}
+              onClick={e => {
+                e.stopPropagation();
+                resetFile();
+              }}
+              onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                e.currentTarget.style.background = `${theme.colors.status.error}25`;
+              }}
+              onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                e.currentTarget.style.background = `${theme.colors.status.error}15`;
               }}
             >
-              <Flex direction="column" gap="3">
-                <Flex align="center" gap="3">
-                  {isConverting ? (
-                    <ReloadIcon
-                      style={{ color: "#4CAF50", animation: "spin 1s linear infinite" }}
-                      width={18}
-                      height={18}
-                    />
-                  ) : (
-                    <CheckCircledIcon style={{ color: "#4CAF50" }} width={18} height={18} />
-                  )}
-                  <Text size="2" style={{ color: "#2E7D32", fontWeight: 500 }}>
-                    {conversionStatus}
+              <X size={12} />
+              Remove
+            </Box>
+          </Flex>
+        </Card>
+      )}
+
+      {/* Error Display - Compact */}
+      {error && (
+        <Card
+          elevation="low"
+          style={{
+            background: `${theme.colors.status.error}08`,
+            padding: theme.spacing.semantic.component.sm,
+            borderRadius: theme.borders.radius.md,
+            marginBottom: theme.spacing.semantic.component.sm,
+            overflow: "hidden",
+          }}
+        >
+          <Flex align="center" gap="2">
+            <Warning size={16} style={{ color: theme.colors.status.error }} />
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.status.error,
+                fontWeight: 500,
+              }}
+            >
+              {error}
+            </Text>
+          </Flex>
+        </Card>
+      )}
+
+      {/* Conversion Status - Compact */}
+      {conversionStatus && !error && (
+        <Card
+          elevation="low"
+          style={{
+            background: `${theme.colors.status.success}08`,
+            padding: theme.spacing.semantic.component.sm,
+            borderRadius: theme.borders.radius.md,
+            marginBottom: theme.spacing.semantic.component.sm,
+            overflow: "hidden",
+          }}
+        >
+          <Flex direction="column" gap="2">
+            <Flex align="center" gap="2">
+              {isConverting ? (
+                <ReloadIcon
+                  style={{
+                    color: theme.colors.status.success,
+                    animation: "spin 1s linear infinite",
+                    width: 16,
+                    height: 16,
+                  }}
+                />
+              ) : (
+                <Check size={16} style={{ color: theme.colors.status.success }} />
+              )}
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.status.success,
+                  fontWeight: 600,
+                }}
+              >
+                {conversionStatus}
+              </Text>
+            </Flex>
+
+            {isConverting && conversionProgress > 0 && (
+              <Box>
+                <Box
+                  style={{
+                    width: "100%",
+                    height: "6px",
+                    background: `${theme.colors.status.success}20`,
+                    borderRadius: theme.borders.radius.full,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    style={{
+                      width: `${conversionProgress}%`,
+                      height: "100%",
+                      background: theme.colors.status.success,
+                      transition: "width 0.3s ease-in-out",
+                      borderRadius: theme.borders.radius.full,
+                    }}
+                  />
+                </Box>
+                <Flex justify="between" style={{ marginTop: theme.spacing.semantic.component.xs }}>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.status.success,
+                      fontWeight: 500,
+                      fontSize: "10px",
+                    }}
+                  >
+                    Progress
+                  </Text>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.status.success,
+                      fontWeight: 600,
+                      fontSize: "10px",
+                    }}
+                  >
+                    {conversionProgress}%
                   </Text>
                 </Flex>
+              </Box>
+            )}
+          </Flex>
+        </Card>
+      )}
 
-                {isConverting && conversionProgress > 0 && (
-                  <Box>
-                    <Box
-                      style={{
-                        width: "100%",
-                        height: "10px",
-                        background: "#C8E6C9",
-                        borderRadius: "5px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <Box
-                        style={{
-                          width: `${conversionProgress}%`,
-                          height: "100%",
-                          background: "#4CAF50",
-                          transition: "width 0.3s ease-in-out",
-                          borderRadius: "5px",
-                        }}
-                      />
-                    </Box>
-                    <Flex justify="between" mt="2">
-                      <Text size="1" style={{ color: "#2E7D32" }}>
-                        Progress
-                      </Text>
-                      <Text size="1" style={{ color: "#2E7D32", fontWeight: 500 }}>
-                        {conversionProgress}%
-                      </Text>
-                    </Flex>
-                  </Box>
-                )}
-              </Flex>
-            </Card>
-          )}
-        </Flex>
-      </Card>
-
+      {/* Info Card - Compact */}
       <Card
+        elevation="low"
         style={{
-          background: "var(--gray-2)",
-          padding: "14px 18px",
-          borderRadius: "8px",
-          border: "none",
+          background: `${theme.colors.status.info}05`,
+          padding: theme.spacing.semantic.component.sm,
+          borderRadius: theme.borders.radius.md,
+          overflow: "hidden",
         }}
       >
-        <Flex align="center" gap="3">
-          <InfoCircledIcon style={{ color: "#2196F3" }} width={18} height={18} />
+        <Flex align="start" gap="2">
+          <InfoCircledIcon
+            style={{
+              color: theme.colors.status.info,
+              marginTop: "1px",
+              flexShrink: 0,
+            }}
+            width={14}
+            height={14}
+          />
           <Text
-            size="2"
-            style={{ color: "var(--gray-11)", lineHeight: 1.5, letterSpacing: "0.01em" }}
+            size="1"
+            style={{
+              color: theme.colors.text.secondary,
+              lineHeight: 1.4,
+              fontSize: "12px",
+            }}
           >
             {multiple
               ? "You can upload various file formats including images, text, and CSV files."
-              : "Only .h5 model files are supported. Uploaded models will be automatically converted to OpenGraph format."}
+              : "Only .h5 model files are supported. The uploaded model will be automatically converted to OpenGraph's onchain-compatible format for deployment on Sui blockchain."}
           </Text>
         </Flex>
       </Card>

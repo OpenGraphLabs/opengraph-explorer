@@ -1,4 +1,7 @@
-import { Box, Flex, Text, Badge, Button, TextField, Card } from "@radix-ui/themes";
+import { Box, Flex, Text, Badge, Button } from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
+import { MagnifyingGlass, X, Tag } from "phosphor-react";
 import type { DatasetFilters } from "../types/upload";
 
 interface DatasetFiltersProps {
@@ -22,54 +25,126 @@ export function DatasetFilters({
   onClearTags,
   onClearSearch,
 }: DatasetFiltersProps) {
+  const { theme } = useTheme();
+
   return (
     <Card
-      mt="2"
+      elevation="low"
       style={{
-        padding: "12px",
-        marginBottom: "16px",
-        background: "var(--gray-1)",
-        border: "1px solid var(--gray-4)",
-        borderRadius: "8px",
+        padding: theme.spacing.semantic.component.md,
+        marginBottom: theme.spacing.semantic.component.md,
+        background: theme.colors.background.secondary,
+        border: `1px solid ${theme.colors.border.primary}`,
+        borderRadius: theme.borders.radius.md,
       }}
     >
-      <Flex direction="column" gap="2">
-        {/* 검색 필드 */}
+      <Flex direction="column" gap="3">
+        {/* Search Field */}
         <Flex gap="2" align="center">
-          <Box style={{ flex: 1 }}>
-            <TextField.Root
-              size="2"
+          <Box style={{ flex: 1, position: "relative" }}>
+            <Box
+              style={{
+                position: "absolute",
+                left: theme.spacing.semantic.component.sm,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: theme.colors.text.tertiary,
+                zIndex: 1,
+              }}
+            >
+              <MagnifyingGlass size={14} />
+            </Box>
+            <input
               placeholder="Search datasets..."
               value={filters.searchQuery}
               onChange={e => onSearchChange(e.target.value)}
               style={{
                 width: "100%",
-                borderRadius: "6px",
+                padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.sm}`,
+                paddingLeft: "32px",
+                border: `1px solid ${theme.colors.border.primary}`,
+                borderRadius: theme.borders.radius.sm,
+                background: theme.colors.background.card,
+                color: theme.colors.text.primary,
+                fontSize: "13px",
+                fontWeight: 500,
+                outline: "none",
+                transition: "border-color 0.2s ease",
+              }}
+              onFocus={e => {
+                e.target.style.borderColor = theme.colors.interactive.primary;
+                e.target.style.boxShadow = `0 0 0 2px ${theme.colors.interactive.primary}20`;
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = theme.colors.border.primary;
+                e.target.style.boxShadow = "none";
               }}
             />
           </Box>
           {filters.searchQuery && (
-            <Button size="1" variant="soft" onClick={onClearSearch} style={{ padding: "0 8px" }}>
+            <Button
+              onClick={onClearSearch}
+              style={{
+                background: `${theme.colors.status.error}15`,
+                color: theme.colors.status.error,
+                border: `1px solid ${theme.colors.status.error}30`,
+                borderRadius: theme.borders.radius.sm,
+                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                fontSize: "12px",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
               Clear
             </Button>
           )}
         </Flex>
 
-        {/* 태그 필터 UI */}
+        {/* Tags Section */}
         <Box>
-          <Flex justify="between" align="center" mb="1">
-            <Text size="1" style={{ fontWeight: 500, color: "var(--gray-11)" }}>
-              Filter by Tags
-            </Text>
+          <Flex
+            justify="between"
+            align="center"
+            style={{ marginBottom: theme.spacing.semantic.component.xs }}
+          >
+            <Flex align="center" gap="1">
+              <Tag size={12} style={{ color: theme.colors.text.secondary }} />
+              <Text
+                size="1"
+                style={{
+                  fontWeight: 600,
+                  color: theme.colors.text.primary,
+                }}
+              >
+                Filter by Tags
+              </Text>
+              <Badge
+                style={{
+                  background: `${theme.colors.text.tertiary}15`,
+                  color: theme.colors.text.secondary,
+                  border: `1px solid ${theme.colors.border.primary}30`,
+                  padding: "1px 4px",
+                  borderRadius: theme.borders.radius.full,
+                  fontSize: "9px",
+                  fontWeight: 500,
+                }}
+              >
+                {allTags.length}
+              </Badge>
+            </Flex>
+
             {filters.selectedTags.length > 0 && (
               <Button
-                size="1"
-                variant="soft"
                 onClick={onClearTags}
                 style={{
-                  fontSize: "10px",
-                  padding: "0 6px",
-                  height: "20px",
+                  background: "none",
+                  border: "none",
+                  color: theme.colors.interactive.primary,
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: "2px 4px",
+                  borderRadius: theme.borders.radius.sm,
                 }}
               >
                 Clear All
@@ -77,81 +152,140 @@ export function DatasetFilters({
             )}
           </Flex>
 
-          {/* 선택된 태그 표시 */}
+          {/* Selected Tags */}
           {filters.selectedTags.length > 0 && (
-            <Flex gap="1" wrap="wrap" mb="1">
-              {filters.selectedTags.map(tag => (
-                <Badge
-                  key={tag}
-                  size="1"
-                  style={{
-                    background: "var(--accent-3)",
-                    color: "var(--accent-11)",
-                    padding: "1px 6px",
-                    borderRadius: "4px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    fontSize: "10px",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => onTagToggle(tag)}
-                >
-                  {tag} ✕
-                </Badge>
-              ))}
-            </Flex>
-          )}
-
-          {/* 태그 선택 영역 */}
-          <Box
-            style={{
-              maxHeight: "80px",
-              overflowY: "auto",
-              padding: "4px",
-              marginTop: "4px",
-              border: "1px solid var(--gray-4)",
-              borderRadius: "6px",
-              background: "white",
-            }}
-          >
-            {allTags.length === 0 ? (
-              <Text size="1" color="gray" style={{ padding: "4px" }}>
-                No tags available
-              </Text>
-            ) : (
+            <Box style={{ marginBottom: theme.spacing.semantic.component.xs }}>
               <Flex gap="1" wrap="wrap">
-                {allTags.map(tag => (
+                {filters.selectedTags.map(tag => (
                   <Badge
                     key={tag}
-                    size="1"
                     style={{
-                      background: filters.selectedTags.includes(tag)
-                        ? "var(--accent-3)"
-                        : "var(--gray-3)",
-                      color: filters.selectedTags.includes(tag)
-                        ? "var(--accent-11)"
-                        : "var(--gray-11)",
-                      padding: "1px 6px",
-                      borderRadius: "4px",
+                      background: theme.colors.interactive.primary,
+                      color: theme.colors.text.inverse,
+                      border: "none",
+                      padding: "3px 6px",
+                      borderRadius: theme.borders.radius.full,
                       fontSize: "10px",
+                      fontWeight: 600,
                       cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "3px",
                       transition: "all 0.2s ease",
                     }}
                     onClick={() => onTagToggle(tag)}
                   >
-                    {tag}
+                    {tag.length > 12 ? tag.substring(0, 12) + "..." : tag}
+                    <X size={8} style={{ opacity: 0.8 }} />
                   </Badge>
                 ))}
+              </Flex>
+            </Box>
+          )}
+
+          {/* Available Tags */}
+          <Box
+            style={{
+              maxHeight: "120px",
+              overflowY: "auto",
+              padding: theme.spacing.semantic.component.xs,
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.sm,
+              background: theme.colors.background.card,
+            }}
+          >
+            {allTags.length === 0 ? (
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  fontStyle: "italic",
+                  padding: theme.spacing.semantic.component.xs,
+                  textAlign: "center",
+                  display: "block",
+                }}
+              >
+                No tags available
+              </Text>
+            ) : (
+              <Flex gap="1" wrap="wrap">
+                {allTags.map(tag => {
+                  const isSelected = filters.selectedTags.includes(tag);
+                  return (
+                    <Badge
+                      key={tag}
+                      style={{
+                        background: isSelected
+                          ? `${theme.colors.status.success}15`
+                          : theme.colors.background.secondary,
+                        color: isSelected ? theme.colors.status.success : theme.colors.text.primary,
+                        border: isSelected
+                          ? `1px solid ${theme.colors.status.success}40`
+                          : `1px solid ${theme.colors.border.primary}`,
+                        padding: "2px 5px",
+                        borderRadius: theme.borders.radius.full,
+                        fontSize: "10px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onClick={() => onTagToggle(tag)}
+                    >
+                      {tag.length > 10 ? tag.substring(0, 10) + "..." : tag}
+                    </Badge>
+                  );
+                })}
               </Flex>
             )}
           </Box>
         </Box>
 
-        {/* 필터링 결과 카운트 */}
-        <Text size="1" style={{ color: "var(--gray-11)" }}>
-          Showing {filteredCount} of {totalCount} datasets
-        </Text>
+        {/* Filter Results Summary */}
+        <Flex justify="between" align="center">
+          <Text
+            size="1"
+            style={{
+              color: theme.colors.text.secondary,
+              fontWeight: 500,
+            }}
+          >
+            Showing {filteredCount} of {totalCount} datasets
+          </Text>
+
+          {/* Active Filter Indicators */}
+          <Flex align="center" gap="1">
+            {filters.searchQuery && (
+              <Badge
+                style={{
+                  background: `${theme.colors.status.info}15`,
+                  color: theme.colors.status.info,
+                  border: `1px solid ${theme.colors.status.info}30`,
+                  padding: "1px 4px",
+                  borderRadius: theme.borders.radius.full,
+                  fontSize: "9px",
+                  fontWeight: 500,
+                }}
+              >
+                Search
+              </Badge>
+            )}
+            {filters.selectedTags.length > 0 && (
+              <Badge
+                style={{
+                  background: `${theme.colors.interactive.primary}15`,
+                  color: theme.colors.interactive.primary,
+                  border: `1px solid ${theme.colors.interactive.primary}30`,
+                  padding: "1px 4px",
+                  borderRadius: theme.borders.radius.full,
+                  fontSize: "9px",
+                  fontWeight: 500,
+                }}
+              >
+                {filters.selectedTags.length} Tag{filters.selectedTags.length > 1 ? "s" : ""}
+              </Badge>
+            )}
+          </Flex>
+        </Flex>
       </Flex>
     </Card>
   );

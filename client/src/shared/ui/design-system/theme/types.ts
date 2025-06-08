@@ -47,6 +47,10 @@ export interface BaseColorScheme {
     info: string;
   };
   dataType: Record<string, string>;
+  selection: {
+    background: string;
+    text: string;
+  };
 }
 
 // Base shadow scheme structure

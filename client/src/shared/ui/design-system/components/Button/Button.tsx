@@ -33,7 +33,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const { theme } = useTheme();
 
-    // Map our variants to Radix variants
+    // Map our variants to Radix variants (enhanced for professional look)
     const getRadixVariant = (variant: ComponentVariant) => {
       switch (variant) {
         case "primary":
@@ -73,11 +73,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       }
     };
 
-    // Get color based on variant
+    // Professional color mapping (updated for new brand palette)
     const getColor = (variant: ComponentVariant) => {
       switch (variant) {
         case "primary":
-          return "orange"; // Our brand color
+          return "blue"; // Professional blue instead of orange
         case "secondary":
           return "gray";
         case "tertiary":
@@ -87,71 +87,98 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         case "success":
           return "green";
         case "warning":
-          return "yellow";
+          return "amber"; // More professional than yellow
         case "info":
-          return "blue";
+          return "cyan"; // Tech accent color
         default:
-          return "orange";
+          return "blue";
       }
     };
 
+    // Enhanced button styles for professional appearance
     const buttonStyles: React.CSSProperties = {
       width: fullWidth ? "100%" : undefined,
-      transition: theme.animations.transitions.hover,
+      transition: theme.animations.transitions.all, // Use available transition
       cursor: disabled || loading ? "not-allowed" : "pointer",
       opacity: disabled ? 0.6 : 1,
+      fontWeight: theme.typography.label.fontWeight, // Use available typography
+      letterSpacing: theme.typography.label.letterSpacing,
+
+      // Professional styling enhancements
+      ...(variant === "primary" && {
+        boxShadow: theme.shadows.semantic.interactive.default,
+      }),
+
+      ...(variant === "secondary" && {
+        boxShadow: theme.shadows.semantic.interactive.default,
+      }),
+
       ...(loading && {
         position: "relative",
         color: "transparent",
+        pointerEvents: "none",
       }),
+
       ...style, // Apply custom styles last
     };
 
+    // Professional loading spinner styles
+    const loadingSpinnerStyles: React.CSSProperties = {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width:
+        size === "lg" || size === "xl" ? "18px" : size === "sm" || size === "xs" ? "14px" : "16px",
+      height:
+        size === "lg" || size === "xl" ? "18px" : size === "sm" || size === "xs" ? "14px" : "16px",
+      border: "2px solid transparent",
+      borderTop: "2px solid currentColor",
+      borderRight: "2px solid currentColor",
+      borderRadius: "50%",
+      animation: "professional-spin 0.8s linear infinite",
+    };
+
     return (
-      <RadixButton
-        ref={ref}
-        variant={getRadixVariant(variant)}
-        size={getRadixSize(size)}
-        color={getColor(variant)}
-        disabled={disabled || loading}
-        highContrast={highContrast}
-        style={buttonStyles}
-        className={className}
-        onClick={onClick}
-        type={type}
-        asChild={asChild}
-        {...props}
-      >
-        {loading ? (
-          <>
-            <span style={{ visibility: "hidden" }}>{children}</span>
-            <div
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "16px",
-                height: "16px",
-                border: "2px solid transparent",
-                borderTop: "2px solid currentColor",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            />
-            <style>
-              {`
-                @keyframes spin {
-                  0% { transform: translate(-50%, -50%) rotate(0deg); }
-                  100% { transform: translate(-50%, -50%) rotate(360deg); }
-                }
-              `}
-            </style>
-          </>
-        ) : (
-          children
-        )}
-      </RadixButton>
+      <>
+        {/* Professional loading animation styles */}
+        <style>
+          {`
+            @keyframes professional-spin {
+              0% { 
+                transform: translate(-50%, -50%) rotate(0deg); 
+              }
+              100% { 
+                transform: translate(-50%, -50%) rotate(360deg); 
+              }
+            }
+          `}
+        </style>
+
+        <RadixButton
+          ref={ref}
+          variant={getRadixVariant(variant)}
+          size={getRadixSize(size)}
+          color={getColor(variant)}
+          disabled={disabled || loading}
+          highContrast={highContrast}
+          style={buttonStyles}
+          className={className}
+          onClick={onClick}
+          type={type}
+          asChild={asChild}
+          {...props}
+        >
+          {loading ? (
+            <>
+              <span style={{ visibility: "hidden" }}>{children}</span>
+              <div style={loadingSpinnerStyles} />
+            </>
+          ) : (
+            children
+          )}
+        </RadixButton>
+      </>
     );
   }
 );

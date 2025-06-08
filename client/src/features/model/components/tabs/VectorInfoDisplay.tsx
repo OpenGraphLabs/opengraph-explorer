@@ -10,6 +10,7 @@ import {
 } from "phosphor-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "@/shared/ui/design-system";
 
 // 벡터 정보 표시 인터페이스
 export interface ImageData {
@@ -34,6 +35,7 @@ export function VectorInfoDisplay({
   getModelScale,
   formatVectorForPrediction,
 }: VectorInfoDisplayProps) {
+  const { theme } = useTheme();
   const [showAnimation, setShowAnimation] = useState(true);
   const [activeTab, setActiveTab] = useState<"visual" | "data">("visual");
 
@@ -66,7 +68,7 @@ export function VectorInfoDisplay({
 
     if (!isSquare) {
       return (
-        <Text size="2" style={{ color: "#666" }}>
+        <Text size="2" style={{ color: theme.colors.text.secondary }}>
           Vector cannot be visualized as a square grid.
         </Text>
       );
@@ -84,10 +86,10 @@ export function VectorInfoDisplay({
             aspectRatio: "1/1",
             maxWidth: "130px",
             margin: "0 auto",
-            border: "1px solid #E5E5E5",
+            border: `1px solid ${theme.colors.border.primary}`,
             padding: "2px",
             borderRadius: "4px",
-            background: "#FAFAFA",
+            background: theme.colors.background.primary,
           }}
         >
           {imageData.vector.map((val, idx) => (
@@ -105,7 +107,10 @@ export function VectorInfoDisplay({
           ))}
         </Grid>
 
-        <Text size="1" style={{ textAlign: "center", marginTop: "8px", color: "#666" }}>
+        <Text
+          size="1"
+          style={{ textAlign: "center", marginTop: "8px", color: theme.colors.text.secondary }}
+        >
           {gridSize}×{gridSize} grid visualization
         </Text>
       </Box>
@@ -129,10 +134,20 @@ export function VectorInfoDisplay({
         <Box style={{ padding: "16px" }}>
           <Flex justify="between" align="center" mb="3">
             <Flex align="center" gap="2">
-              <Graph size={20} weight="duotone" style={{ color: "#FF5733" }} />
+              <Graph
+                size={20}
+                weight="duotone"
+                style={{ color: theme.colors.interactive.primary }}
+              />
               <Heading size="3">Vector Conversion</Heading>
             </Flex>
-            <Badge variant="solid" style={{ background: "#FF5733", color: "#FFF" }}>
+            <Badge
+              variant="solid"
+              style={{
+                background: theme.colors.interactive.primary,
+                color: theme.colors.text.inverse,
+              }}
+            >
               {imageData.vector?.length} dimensions
             </Badge>
           </Flex>
@@ -155,7 +170,7 @@ export function VectorInfoDisplay({
                         height: "100px",
                         objectFit: "contain",
                         borderRadius: "8px",
-                        border: "1px solid #DDD",
+                        border: `1px solid ${theme.colors.border.primary}`,
                       }}
                     />
                   )}
@@ -171,7 +186,11 @@ export function VectorInfoDisplay({
                     duration: 1.5,
                   }}
                 >
-                  <ArrowRightIcon width="32" height="32" style={{ color: "#FF5733" }} />
+                  <ArrowRightIcon
+                    width="32"
+                    height="32"
+                    style={{ color: theme.colors.interactive.primary }}
+                  />
                 </motion.div>
 
                 <motion.div
@@ -184,8 +203,8 @@ export function VectorInfoDisplay({
                       width: "100px",
                       height: "100px",
                       borderRadius: "8px",
-                      border: "1px solid #DDD",
-                      background: "#F8F8F8",
+                      border: `1px solid ${theme.colors.border.primary}`,
+                      background: theme.colors.background.tertiary,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -229,7 +248,14 @@ export function VectorInfoDisplay({
                           />
                         ))}
                     </motion.div>
-                    <Text size="1" style={{ color: "#666", fontFamily: "monospace", zIndex: 2 }}>
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.secondary,
+                        fontFamily: "monospace",
+                        zIndex: 2,
+                      }}
+                    >
                       {imageData.vector?.length} values
                     </Text>
                   </Box>
@@ -242,7 +268,7 @@ export function VectorInfoDisplay({
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.9 }}
                 >
-                  <Text size="2" style={{ color: "#444", textAlign: "center" }}>
+                  <Text size="2" style={{ color: theme.colors.text.primary, textAlign: "center" }}>
                     Drawing has been converted to a {imageData.vector?.length}-dimensional vector
                   </Text>
                 </motion.div>
@@ -254,20 +280,34 @@ export function VectorInfoDisplay({
               <Flex gap="2" mb="3">
                 <Button
                   variant={activeTab === "visual" ? "solid" : "soft"}
-                  color="orange"
                   size="2"
                   onClick={() => setActiveTab("visual")}
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    cursor: "pointer",
+                    background:
+                      activeTab === "visual" ? theme.colors.interactive.primary : "transparent",
+                    color:
+                      activeTab === "visual"
+                        ? theme.colors.text.inverse
+                        : theme.colors.text.secondary,
+                  }}
                 >
                   <ChartLine size={16} weight="bold" />
                   Visualization
                 </Button>
                 <Button
                   variant={activeTab === "data" ? "solid" : "soft"}
-                  color="orange"
                   size="2"
                   onClick={() => setActiveTab("data")}
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    cursor: "pointer",
+                    background:
+                      activeTab === "data" ? theme.colors.interactive.primary : "transparent",
+                    color:
+                      activeTab === "data"
+                        ? theme.colors.text.inverse
+                        : theme.colors.text.secondary,
+                  }}
                 >
                   <CodeIcon size={16} weight="bold" />
                   Raw Data
@@ -278,11 +318,20 @@ export function VectorInfoDisplay({
                 /* 시각화 탭 */
                 <Box>
                   {/* 벡터 시각화 */}
-                  <Card style={{ background: "#F9F9F9", marginBottom: "16px" }}>
+                  <Card
+                    style={{ background: theme.colors.background.secondary, marginBottom: "16px" }}
+                  >
                     <Flex direction="column" gap="2">
                       <Flex align="center" gap="2">
-                        <Table size={16} weight="fill" style={{ color: "#666" }} />
-                        <Text size="2" style={{ fontWeight: 500 }}>
+                        <Table
+                          size={16}
+                          weight="fill"
+                          style={{ color: theme.colors.interactive.primary }}
+                        />
+                        <Text
+                          size="2"
+                          style={{ fontWeight: 500, color: theme.colors.text.primary }}
+                        >
                           Vector Visualization
                         </Text>
                       </Flex>
@@ -294,8 +343,12 @@ export function VectorInfoDisplay({
                   {/* 통계 정보 */}
                   <Flex gap="2" direction="column">
                     <Flex align="center" gap="2" mb="1">
-                      <ChartLine size={16} weight="fill" style={{ color: "#666" }} />
-                      <Text size="2" style={{ fontWeight: 500 }}>
+                      <ChartLine
+                        size={16}
+                        weight="fill"
+                        style={{ color: theme.colors.interactive.primary }}
+                      />
+                      <Text size="2" style={{ fontWeight: 500, color: theme.colors.text.primary }}>
                         Vector Statistics
                       </Text>
                     </Flex>
@@ -303,10 +356,13 @@ export function VectorInfoDisplay({
                     <Grid columns="4" gap="2" width="auto">
                       <Card>
                         <Flex direction="column" gap="1">
-                          <Text size="1" style={{ color: "#666" }}>
+                          <Text size="1" style={{ color: theme.colors.text.secondary }}>
                             Mean
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text
+                            size="3"
+                            style={{ fontWeight: 500, color: theme.colors.interactive.primary }}
+                          >
                             {imageData.vector
                               ? (
                                   imageData.vector.reduce((a, b) => a + b, 0) /
@@ -318,30 +374,39 @@ export function VectorInfoDisplay({
                       </Card>
                       <Card>
                         <Flex direction="column" gap="1">
-                          <Text size="1" style={{ color: "#666" }}>
+                          <Text size="1" style={{ color: theme.colors.text.secondary }}>
                             Max
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text
+                            size="3"
+                            style={{ fontWeight: 500, color: theme.colors.interactive.primary }}
+                          >
                             {Math.max(...(imageData.vector || [0])).toFixed(3)}
                           </Text>
                         </Flex>
                       </Card>
                       <Card>
                         <Flex direction="column" gap="1">
-                          <Text size="1" style={{ color: "#666" }}>
+                          <Text size="1" style={{ color: theme.colors.text.secondary }}>
                             Min
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text
+                            size="3"
+                            style={{ fontWeight: 500, color: theme.colors.interactive.primary }}
+                          >
                             {Math.min(...(imageData.vector || [0])).toFixed(3)}
                           </Text>
                         </Flex>
                       </Card>
                       <Card>
                         <Flex direction="column" gap="1">
-                          <Text size="1" style={{ color: "#666" }}>
+                          <Text size="1" style={{ color: theme.colors.text.secondary }}>
                             Non-zero
                           </Text>
-                          <Text size="3" style={{ fontWeight: 500, color: "#FF5733" }}>
+                          <Text
+                            size="3"
+                            style={{ fontWeight: 500, color: theme.colors.interactive.primary }}
+                          >
                             {imageData.vector?.filter(v => v > 0.01).length || 0}
                           </Text>
                         </Flex>
@@ -349,8 +414,12 @@ export function VectorInfoDisplay({
                     </Grid>
 
                     <Flex align="center" gap="2" mt="2">
-                      <CheckCircle size={14} weight="fill" style={{ color: "#4CAF50" }} />
-                      <Text size="1" style={{ color: "#666" }}>
+                      <CheckCircle
+                        size={14}
+                        weight="fill"
+                        style={{ color: theme.colors.status.success }}
+                      />
+                      <Text size="1" style={{ color: theme.colors.text.secondary }}>
                         Ready for model inference. Values normalized to [0, 1] range.
                       </Text>
                     </Flex>
@@ -361,16 +430,23 @@ export function VectorInfoDisplay({
                 <Box>
                   <Flex direction="column" gap="3">
                     {/* OpenGraph 변환 섹션 */}
-                    <Card style={{ background: "#F9F9F9" }}>
+                    <Card style={{ background: theme.colors.background.secondary }}>
                       <Flex direction="column" gap="2">
                         <Flex align="center" gap="2">
-                          <ArrowsHorizontal size={16} weight="fill" style={{ color: "#666" }} />
-                          <Text size="2" style={{ fontWeight: 500 }}>
+                          <ArrowsHorizontal
+                            size={16}
+                            weight="fill"
+                            style={{ color: theme.colors.interactive.primary }}
+                          />
+                          <Text
+                            size="2"
+                            style={{ fontWeight: 500, color: theme.colors.text.primary }}
+                          >
                             OpenGraphLabs Format
                           </Text>
                         </Flex>
 
-                        <Text size="1" style={{ color: "#666" }}>
+                        <Text size="1" style={{ color: theme.colors.text.primary }}>
                           Scale Factor: <Code>10^{getModelScale()}</Code>
                         </Text>
 
@@ -378,7 +454,7 @@ export function VectorInfoDisplay({
                           style={{
                             fontFamily: "monospace",
                             fontSize: "12px",
-                            background: "#F5F5F5",
+                            background: theme.colors.background.tertiary,
                             padding: "8px",
                             borderRadius: "4px",
                             marginTop: "4px",
@@ -395,7 +471,7 @@ export function VectorInfoDisplay({
                               <Flex justify="center" align="center" gap="2">
                                 <Box>{exampleValue.toFixed(6)}</Box>
                                 <ArrowRightIcon />
-                                <Box style={{ color: "#FF5733" }}>
+                                <Box style={{ color: theme.colors.interactive.primary }}>
                                   {formattedResult.magnitudes[0]}
                                   {formattedResult.signs[0] === 1 ? " (negative)" : " (positive)"}
                                 </Box>
@@ -408,13 +484,20 @@ export function VectorInfoDisplay({
 
                     {/* 자세한 벡터 데이터 */}
                     <Flex direction="column" gap="2">
-                      <Text size="2" style={{ fontWeight: 500 }}>
+                      <Text size="2" style={{ fontWeight: 500, color: theme.colors.text.primary }}>
                         Vector Data Format
                       </Text>
 
                       <Grid columns="2" gap="2">
                         <Card>
-                          <Text size="1" style={{ color: "#666", marginBottom: "4px" }}>
+                          <Text
+                            size="1"
+                            style={{
+                              color: theme.colors.text.primary,
+                              marginBottom: "4px",
+                              fontWeight: 500,
+                            }}
+                          >
                             Magnitudes
                           </Text>
                           <Code
@@ -424,8 +507,10 @@ export function VectorInfoDisplay({
                               fontSize: "10px",
                               height: "80px",
                               overflow: "auto",
-                              background: "#F8F8F8",
+                              background: theme.colors.background.primary,
+                              border: `1px solid ${theme.colors.border.primary}`,
                               whiteSpace: "nowrap",
+                              color: theme.colors.text.primary,
                             }}
                           >
                             [
@@ -437,7 +522,14 @@ export function VectorInfoDisplay({
                         </Card>
 
                         <Card>
-                          <Text size="1" style={{ color: "#666", marginBottom: "4px" }}>
+                          <Text
+                            size="1"
+                            style={{
+                              color: theme.colors.text.primary,
+                              marginBottom: "4px",
+                              fontWeight: 500,
+                            }}
+                          >
                             Signs
                           </Text>
                           <Code
@@ -447,8 +539,10 @@ export function VectorInfoDisplay({
                               fontSize: "10px",
                               height: "80px",
                               overflow: "auto",
-                              background: "#F8F8F8",
+                              background: theme.colors.background.primary,
+                              border: `1px solid ${theme.colors.border.primary}`,
                               whiteSpace: "nowrap",
+                              color: theme.colors.text.primary,
                             }}
                           >
                             [{formatVectorForPrediction(imageData.vector || []).signs.join(", ")}]
@@ -458,16 +552,16 @@ export function VectorInfoDisplay({
 
                       <Box
                         style={{
-                          background: "#E3F2FD",
+                          background: theme.colors.interactive.primary + "10",
                           padding: "8px",
                           borderRadius: "4px",
-                          border: "1px solid #90CAF9",
+                          border: `1px solid ${theme.colors.interactive.primary}40`,
                           marginTop: "8px",
                         }}
                       >
                         <Flex align="center" gap="2">
-                          <InfoCircledIcon style={{ color: "#1565C0" }} />
-                          <Text size="1" style={{ color: "#1565C0" }}>
+                          <InfoCircledIcon style={{ color: theme.colors.interactive.primary }} />
+                          <Text size="1" style={{ color: theme.colors.interactive.primary }}>
                             These formatted values are used for on-chain model inference.
                           </Text>
                         </Flex>

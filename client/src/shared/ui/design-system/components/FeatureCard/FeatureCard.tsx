@@ -29,7 +29,7 @@ export function FeatureCard({ icon, title, description, className }: FeatureCard
         {/* Icon Container */}
         <Box
           style={{
-            background: theme.gradients.primaryLight,
+            background: theme.gradients.primary,
             borderRadius: theme.borders.radius.full,
             width: "72px",
             height: "72px",

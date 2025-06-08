@@ -1,34 +1,23 @@
 import { Box, Flex, Heading, Text, Card, Grid, Table, Badge } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import {
-  Cpu,
-  FileCode,
-  Rocket,
-  Calendar,
-  GithubLogo,
-  Barcode,
-  Stack,
-  Database,
-  ArrowRight,
-  Brain,
-  Cube,
-} from "phosphor-react";
+import { Stack, Brain, Cube, Activity, Hash, ChartLine, Code } from "phosphor-react";
 
 import { ModelObject } from "@/shared/api/graphql/modelGraphQLService";
 import { getSuiScanUrl } from "@/shared/utils/sui";
 import { SUI_ADDRESS_DISPLAY_LENGTH } from "@/shared/constants/suiConfig";
+import { useTheme } from "@/shared/ui/design-system";
 
 interface ModelOverviewTabProps {
   model: ModelObject;
 }
 
-// 레이어 파라미터 통계 계산 함수
+// Enhanced layer statistics calculation
 function calculateLayerStats(layer: any) {
   const weightCount = layer.weight_tensor?.magnitude?.length || 0;
   const biasCount = layer.bias_tensor?.magnitude?.length || 0;
   const totalParams = weightCount + biasCount;
 
-  // 가중치의 분포 계산
+  // Weight distribution calculation
   const weightMagnitudes = layer.weight_tensor?.magnitude?.map(Number) || [];
   const weightSigns = layer.weight_tensor?.sign?.map(Number) || [];
   const weights = weightMagnitudes.map((mag: number, i: number) =>
@@ -39,6 +28,10 @@ function calculateLayerStats(layer: any) {
   const minWeight = Math.min(...weights.map(Math.abs));
   const avgWeight = weights.reduce((a: number, b: number) => a + Math.abs(b), 0) / weights.length;
 
+  // Calculate weight sparsity (percentage of zero weights)
+  const zeroWeights = weights.filter((w: number) => Math.abs(w) < 1e-6).length;
+  const sparsity = weightCount > 0 ? (zeroWeights / weightCount) * 100 : 0;
+
   return {
     totalParams,
     weightCount,
@@ -46,525 +39,657 @@ function calculateLayerStats(layer: any) {
     maxWeight: maxWeight || 0,
     minWeight: minWeight || 0,
     avgWeight: avgWeight || 0,
+    sparsity,
   };
 }
 
+// Enhanced task name conversion with more professional terminology
+function getTaskName(taskId: string): string {
+  const taskMap: Record<string, string> = {
+    "text-generation": "Natural Language Generation",
+    "image-classification": "Computer Vision Classification",
+    "object-detection": "Object Detection & Localization",
+    "text-to-image": "Multimodal Text-to-Image Synthesis",
+    translation: "Neural Machine Translation",
+    classification: "Classification",
+    regression: "Regression Analysis",
+    "reinforcement-learning": "Reinforcement Learning",
+  };
+  return taskMap[taskId] || taskId.charAt(0).toUpperCase() + taskId.slice(1).replace(/-/g, " ");
+}
+
 export function ModelOverviewTab({ model }: ModelOverviewTabProps) {
+  const { theme } = useTheme();
+
+  // Calculate total model statistics
+  const totalLayers = model.graphs?.[0]?.layers?.length || 0;
+  const totalParams =
+    model.graphs?.[0]?.layers?.reduce((total, layer) => {
+      const stats = calculateLayerStats(layer);
+      return total + stats.totalParams;
+    }, 0) || 0;
+
+  const totalWeights =
+    model.graphs?.[0]?.layers?.reduce((total, layer) => {
+      return total + (layer.weight_tensor?.magnitude?.length || 0);
+    }, 0) || 0;
+
+  const avgSparsity =
+    model.graphs?.[0]?.layers?.reduce((total, layer) => {
+      const stats = calculateLayerStats(layer);
+      return total + stats.sparsity;
+    }, 0) / totalLayers || 0;
+
   return (
-    <Card style={{ border: "none", boxShadow: "none" }}>
-      <Flex direction="column" gap="4">
+    <Box>
+      <Flex direction="column" gap="5">
+        {/* Compact Model Overview Cards */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Flex align="center" gap="3" mb="4">
-            <Box
+          <Grid columns={{ initial: "2", md: "4" }} gap="3" mb="5">
+            {/* Total Parameters */}
+            <Card
               style={{
-                background: "#FFF4F2",
-                borderRadius: "8px",
-                width: "32px",
-                height: "32px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#FF5733",
+                padding: theme.spacing.semantic.component.md,
+                background: `linear-gradient(135deg, ${theme.colors.interactive.primary}08, ${theme.colors.interactive.primary}03)`,
+                border: `1px solid ${theme.colors.interactive.primary}15`,
+                borderRadius: theme.borders.radius.md,
+                position: "relative",
+                overflow: "hidden",
               }}
             >
-              <Cpu size={20} weight="bold" />
-            </Box>
-            <Heading size="4" style={{ color: "#FF5733", fontWeight: 700 }}>
-              Model Information
-            </Heading>
-          </Flex>
+              <Flex align="center" gap="2" mb="2">
+                <Box
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: theme.borders.radius.sm,
+                    background: theme.colors.interactive.primary,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Code size={12} style={{ color: theme.colors.text.inverse }} />
+                </Box>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.tertiary,
+                    fontWeight: theme.typography.label.fontWeight,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontSize: "10px",
+                  }}
+                >
+                  Parameters
+                </Text>
+              </Flex>
+              <Text
+                size="4"
+                style={{
+                  fontWeight: 700,
+                  color: theme.colors.text.primary,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {totalParams.toLocaleString()}
+              </Text>
+            </Card>
 
-          <Card
-            style={{
-              padding: "28px",
-              borderRadius: "12px",
-              background: "#FFFFFF",
-              border: "1px solid #FFE8E2",
-              boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)",
-            }}
-          >
-            <Grid columns="2" gap="5">
-              <Box>
-                <Flex align="start" gap="4">
-                  <Box style={{ color: "#FF5733", minWidth: "24px" }}>
-                    <FileCode size={24} weight="fill" />
-                  </Box>
-                  <Box style={{ width: "100%" }}>
-                    <Text
-                      size="1"
-                      style={{ color: "#666", marginBottom: "8px", marginRight: "6px" }}
-                    >
-                      Model Name
-                    </Text>
-                    <Text size="2" style={{ fontWeight: 600 }}>
-                      {model.name}
-                    </Text>
-                  </Box>
-                </Flex>
-              </Box>
+            {/* Layer Count */}
+            <Card
+              style={{
+                padding: theme.spacing.semantic.component.md,
+                background: `linear-gradient(135deg, ${theme.colors.interactive.accent}08, ${theme.colors.interactive.accent}03)`,
+                border: `1px solid ${theme.colors.interactive.accent}15`,
+                borderRadius: theme.borders.radius.md,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <Flex align="center" gap="2" mb="2">
+                <Box
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: theme.borders.radius.sm,
+                    background: theme.colors.interactive.accent,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Stack size={12} style={{ color: theme.colors.text.inverse }} />
+                </Box>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.tertiary,
+                    fontWeight: theme.typography.label.fontWeight,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontSize: "10px",
+                  }}
+                >
+                  Layers
+                </Text>
+              </Flex>
+              <Text
+                size="4"
+                style={{
+                  fontWeight: 700,
+                  color: theme.colors.text.primary,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {totalLayers}
+              </Text>
+            </Card>
 
-              <Box>
-                <Flex align="start" gap="4">
-                  <Box style={{ color: "#FF5733", minWidth: "24px" }}>
-                    <Rocket size={24} weight="fill" />
-                  </Box>
-                  <Box style={{ width: "100%" }}>
-                    <Text
-                      size="1"
-                      style={{ color: "#666", marginBottom: "8px", marginRight: "6px" }}
-                    >
-                      Task Type
-                    </Text>
-                    <Text size="2" style={{ fontWeight: 600 }}>
-                      {getTaskName(model.task_type)}
-                    </Text>
-                  </Box>
-                </Flex>
-              </Box>
+            {/* Precision Scale */}
+            <Card
+              style={{
+                padding: theme.spacing.semantic.component.md,
+                background: `linear-gradient(135deg, ${theme.colors.status.info}08, ${theme.colors.status.info}03)`,
+                border: `1px solid ${theme.colors.status.info}15`,
+                borderRadius: theme.borders.radius.md,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <Flex align="center" gap="2" mb="2">
+                <Box
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: theme.borders.radius.sm,
+                    background: theme.colors.status.info,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Hash size={12} style={{ color: theme.colors.text.inverse }} />
+                </Box>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.tertiary,
+                    fontWeight: theme.typography.label.fontWeight,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontSize: "10px",
+                  }}
+                >
+                  Scale
+                </Text>
+              </Flex>
+              <Text
+                size="4"
+                style={{
+                  fontWeight: 700,
+                  color: theme.colors.text.primary,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                10^{model.scale || 6}
+              </Text>
+            </Card>
 
-              <Box>
-                <Flex align="start" gap="4">
-                  <Box style={{ color: "#FF5733", minWidth: "24px" }}>
-                    <GithubLogo size={24} weight="fill" />
-                  </Box>
-                  <Box style={{ width: "100%" }}>
-                    <Text
-                      size="1"
-                      style={{ color: "#666", marginBottom: "8px", marginRight: "6px" }}
-                    >
-                      Developer
-                    </Text>
-                    <Text size="2" style={{ fontWeight: 600 }}>
-                      {model.creator.length > SUI_ADDRESS_DISPLAY_LENGTH
-                        ? model.creator.slice(0, SUI_ADDRESS_DISPLAY_LENGTH) + "..."
-                        : model.creator}
-                    </Text>
-                  </Box>
-                </Flex>
-              </Box>
-
-              <Box>
-                <Flex align="start" gap="4">
-                  <Box style={{ color: "#FF5733", minWidth: "24px" }}>
-                    <Calendar size={24} weight="fill" />
-                  </Box>
-                  <Box style={{ width: "100%" }}>
-                    <Text
-                      size="1"
-                      style={{ color: "#666", marginBottom: "8px", marginRight: "6px" }}
-                    >
-                      Creation Date
-                    </Text>
-                    <Text size="2" style={{ fontWeight: 600 }}>
-                      {new Date(model.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </Text>
-                  </Box>
-                </Flex>
-              </Box>
-
-              <Box>
-                <Flex align="start" gap="4">
-                  <Box style={{ color: "#FF5733", minWidth: "24px" }}>
-                    <Stack size={24} weight="fill" />
-                  </Box>
-                  <Box style={{ width: "100%" }}>
-                    <Text
-                      size="1"
-                      style={{ color: "#666", marginBottom: "8px", marginRight: "6px" }}
-                    >
-                      Layer Count
-                    </Text>
-                    <Text size="2" style={{ fontWeight: 600 }}>
-                      {model.graphs && model.graphs.length > 0 && model.graphs[0].layers
-                        ? model.graphs[0].layers.length
-                        : 0}
-                    </Text>
-                  </Box>
-                </Flex>
-              </Box>
-
-              <Box>
-                <Flex align="start" gap="4">
-                  <Box style={{ color: "#FF5733", minWidth: "24px" }}>
-                    <Barcode size={24} weight="fill" />
-                  </Box>
-                  <Box style={{ width: "100%" }}>
-                    <Text
-                      size="1"
-                      style={{ color: "#666", marginBottom: "8px", marginRight: "6px" }}
-                    >
-                      Model ID
-                    </Text>
-                    <Text
-                      size="2"
-                      style={{
-                        fontWeight: 600,
-                        fontFamily: "monospace",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                        color: "#FF5733",
-                      }}
-                      onClick={() => window.open(getSuiScanUrl("object", model.id), "_blank")}
-                    >
-                      {model.id.substring(0, SUI_ADDRESS_DISPLAY_LENGTH)}...
-                    </Text>
-                  </Box>
-                </Flex>
-              </Box>
-            </Grid>
-          </Card>
+            {/* Sparsity */}
+            <Card
+              style={{
+                padding: theme.spacing.semantic.component.md,
+                background: `linear-gradient(135deg, ${theme.colors.status.success}08, ${theme.colors.status.success}03)`,
+                border: `1px solid ${theme.colors.status.success}15`,
+                borderRadius: theme.borders.radius.md,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <Flex align="center" gap="2" mb="2">
+                <Box
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: theme.borders.radius.sm,
+                    background: theme.colors.status.success,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Activity size={12} style={{ color: theme.colors.text.inverse }} />
+                </Box>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.tertiary,
+                    fontWeight: theme.typography.label.fontWeight,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontSize: "10px",
+                  }}
+                >
+                  Sparsity
+                </Text>
+              </Flex>
+              <Text
+                size="4"
+                style={{
+                  fontWeight: 700,
+                  color: theme.colors.text.primary,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {avgSparsity.toFixed(1)}%
+              </Text>
+            </Card>
+          </Grid>
         </motion.div>
 
+        {/* Compact Neural Network Architecture */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Flex align="center" gap="3" mt="6" mb="4">
-            <Box
-              style={{
-                background: "#FFF4F2",
-                borderRadius: "8px",
-                width: "32px",
-                height: "32px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#FF5733",
-              }}
-            >
-              <Brain size={20} weight="bold" />
-            </Box>
-            <Heading size="4" style={{ color: "#FF5733", fontWeight: 700 }}>
-              Neural Network Architecture
-            </Heading>
-          </Flex>
-
           <Card
             style={{
-              padding: "28px",
-              borderRadius: "12px",
-              background: "#FFFFFF",
-              border: "1px solid #FFE8E2",
-              boxShadow: "0 4px 12px rgba(255, 87, 51, 0.05)",
+              padding: theme.spacing.semantic.component.lg,
+              background: theme.colors.background.card,
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.lg,
+              boxShadow: theme.shadows.semantic.card.low,
             }}
           >
+            <Flex align="center" gap="2" mb="4">
+              <Cube size={18} style={{ color: theme.colors.interactive.accent }} />
+              <Heading
+                size="3"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: theme.typography.h5.fontWeight,
+                }}
+              >
+                Neural Network Architecture
+              </Heading>
+            </Flex>
+
             {model.graphs &&
             model.graphs.length > 0 &&
             model.graphs[0].layers &&
             model.graphs[0].layers.length > 0 ? (
-              <Flex direction="column" gap="5">
-                <Text
+              <Flex direction="column" gap="6">
+                {/* Architecture Flow Visualization */}
+                <Box
                   style={{
-                    lineHeight: "1.7",
-                    fontSize: "15px",
-                    color: "#444",
-                    letterSpacing: "0.01em",
+                    padding: theme.spacing.semantic.component.lg,
+                    background: `linear-gradient(135deg, ${theme.colors.background.secondary}, ${theme.colors.background.secondary}80)`,
+                    borderRadius: theme.borders.radius.lg,
+                    border: `1px solid ${theme.colors.border.secondary}`,
+                    overflowX: "auto",
                   }}
                 >
-                  Detailed visualization of the neural network architecture, including layer
-                  dimensions and parameter statistics.
-                </Text>
+                  <Flex align="center" style={{ minWidth: "max-content", gap: "0" }}>
+                    {model.graphs[0].layers.map((layer, index) => {
+                      const stats = calculateLayerStats(layer);
+                      const isLastLayer = index === model.graphs[0].layers.length - 1;
 
-                {/* Neural Network Visualization */}
-                {/* <Box style={{ marginTop: "24px", marginBottom: "24px" }}>
-                  <NeuralNetworkVisualization model={model} />
-                </Box> */}
-
-                {/* Traditional Layer Flow Visualization */}
-                <Box style={{ marginTop: "40px", marginBottom: "40px" }}>
-                  <Heading size="3" style={{ color: "#FF5733", marginBottom: "16px" }}>
-                    Layer Structure
-                  </Heading>
-                  <Box
-                    style={{
-                      padding: "20px",
-                      border: "1px solid #FFE8E2",
-                      borderRadius: "8px",
-                      overflowX: "auto",
-                    }}
-                  >
-                    <Flex align="center" style={{ minWidth: "max-content" }}>
-                      {model.graphs[0].layers.map((layer, index) => {
-                        const stats = calculateLayerStats(layer);
-                        return (
-                          <Flex
-                            key={index}
-                            direction="column"
-                            align="center"
-                            style={{ position: "relative" }}
+                      return (
+                        <Flex
+                          key={index}
+                          direction="column"
+                          align="center"
+                          style={{ position: "relative" }}
+                        >
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
                           >
-                            <Box
+                            <Card
                               style={{
-                                padding: "16px 20px",
-                                background: "#FFF4F2",
-                                borderRadius: "12px",
-                                border: "1px solid #FFE8E2",
-                                minWidth: "260px",
-                                margin: "0 40px",
+                                padding: theme.spacing.semantic.component.lg,
+                                background: theme.colors.background.card,
+                                borderRadius: theme.borders.radius.lg,
+                                border: `2px solid ${theme.colors.interactive.primary}20`,
+                                minWidth: "280px",
+                                margin: "0 30px",
+                                boxShadow: theme.shadows.semantic.card.low,
                               }}
                             >
-                              <Flex direction="column" gap="3">
+                              <Flex direction="column" gap="4">
+                                {/* Layer Header */}
                                 <Flex align="center" justify="between">
-                                  <Text size="2" style={{ fontWeight: 600, color: "#FF5733" }}>
+                                  <Badge
+                                    style={{
+                                      background: theme.colors.interactive.primary,
+                                      color: theme.colors.text.inverse,
+                                      borderRadius: theme.borders.radius.sm,
+                                      padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                                      fontWeight: theme.typography.label.fontWeight,
+                                    }}
+                                  >
                                     Layer {index + 1}
+                                  </Badge>
+                                  <Text
+                                    size="1"
+                                    style={{
+                                      color: theme.colors.text.tertiary,
+                                      fontFamily: "monospace",
+                                    }}
+                                  >
+                                    Dense
                                   </Text>
                                 </Flex>
 
                                 {/* Dimensions */}
-                                <Box style={{ marginTop: "4px" }}>
-                                  <Flex align="center" gap="2" mb="1">
-                                    <Cube size={14} weight="bold" style={{ color: "#FF5733" }} />
-                                    <Text size="1" style={{ color: "#666" }}>
-                                      Input: {layer.in_dimension}
-                                    </Text>
-                                  </Flex>
-                                  <Flex align="center" gap="2">
-                                    <Cube size={14} weight="bold" style={{ color: "#FF5733" }} />
-                                    <Text size="1" style={{ color: "#666" }}>
-                                      Output: {layer.out_dimension}
-                                    </Text>
+                                <Box>
+                                  <Flex direction="column" gap="2">
+                                    <Flex align="center" gap="2">
+                                      <Cube
+                                        size={14}
+                                        style={{ color: theme.colors.interactive.accent }}
+                                      />
+                                      <Text size="1" style={{ color: theme.colors.text.secondary }}>
+                                        Input: {layer.in_dimension}
+                                      </Text>
+                                    </Flex>
+                                    <Flex align="center" gap="2">
+                                      <Cube
+                                        size={14}
+                                        style={{ color: theme.colors.interactive.accent }}
+                                      />
+                                      <Text size="1" style={{ color: theme.colors.text.secondary }}>
+                                        Output: {layer.out_dimension}
+                                      </Text>
+                                    </Flex>
                                   </Flex>
                                 </Box>
 
                                 {/* Parameters */}
                                 <Box
                                   style={{
-                                    marginTop: "8px",
-                                    padding: "8px",
-                                    background: "white",
-                                    borderRadius: "8px",
+                                    padding: theme.spacing.semantic.component.sm,
+                                    background: theme.colors.background.secondary,
+                                    borderRadius: theme.borders.radius.md,
                                   }}
                                 >
-                                  <Flex direction="column" gap="2">
-                                    {/* Weights */}
+                                  <Grid columns="2" gap="3">
                                     <Box>
                                       <Flex align="center" justify="between" mb="1">
-                                        <Text size="1" style={{ color: "#666" }}>
+                                        <Text
+                                          size="1"
+                                          style={{ color: theme.colors.text.secondary }}
+                                        >
                                           Weights
                                         </Text>
                                         <Badge
                                           size="1"
-                                          style={{ background: "#FFE8E2", color: "#FF5733" }}
+                                          style={{
+                                            background: `${theme.colors.status.info}15`,
+                                            color: theme.colors.status.info,
+                                            fontSize: "10px",
+                                          }}
                                         >
                                           {stats.weightCount.toLocaleString()}
                                         </Badge>
                                       </Flex>
                                       <Text
                                         size="1"
-                                        style={{ color: "#666", fontFamily: "monospace" }}
+                                        style={{
+                                          color: theme.colors.text.tertiary,
+                                          fontFamily: "monospace",
+                                          fontSize: "10px",
+                                        }}
                                       >
-                                        Shape: {layer.weight_tensor?.shape.join(" × ")}
+                                        {layer.weight_tensor?.shape?.join(" × ") || "N/A"}
                                       </Text>
                                     </Box>
 
-                                    {/* Biases */}
-                                    <Box style={{ marginTop: "4px" }}>
+                                    <Box>
                                       <Flex align="center" justify="between" mb="1">
-                                        <Text size="1" style={{ color: "#666" }}>
+                                        <Text
+                                          size="1"
+                                          style={{ color: theme.colors.text.secondary }}
+                                        >
                                           Biases
                                         </Text>
                                         <Badge
                                           size="1"
-                                          style={{ background: "#FFE8E2", color: "#FF5733" }}
+                                          style={{
+                                            background: `${theme.colors.status.success}15`,
+                                            color: theme.colors.status.success,
+                                            fontSize: "10px",
+                                          }}
                                         >
                                           {stats.biasCount.toLocaleString()}
                                         </Badge>
                                       </Flex>
                                       <Text
                                         size="1"
-                                        style={{ color: "#666", fontFamily: "monospace" }}
+                                        style={{
+                                          color: theme.colors.text.tertiary,
+                                          fontFamily: "monospace",
+                                          fontSize: "10px",
+                                        }}
                                       >
-                                        Shape: {layer.bias_tensor?.shape.join(" × ")}
+                                        Sparsity: {stats.sparsity.toFixed(1)}%
                                       </Text>
                                     </Box>
-                                  </Flex>
-                                </Box>
-
-                                {/* Weight Range */}
-                                <Box
-                                  style={{
-                                    marginTop: "4px",
-                                    padding: "8px",
-                                    background: "white",
-                                    borderRadius: "8px",
-                                  }}
-                                >
-                                  <Text size="1" style={{ color: "#666", marginBottom: "4px" }}>
-                                    Weight Range
-                                  </Text>
-                                  <Flex gap="2" align="center">
-                                    <Text size="1" style={{ color: "#FF5733", fontWeight: 500 }}>
-                                      {stats.minWeight.toFixed(3)}
-                                    </Text>
-                                    <Box
-                                      style={{
-                                        height: "2px",
-                                        flex: 1,
-                                        background: "linear-gradient(to right, #FFE8E2, #FF5733)",
-                                      }}
-                                    />
-                                    <Text size="1" style={{ color: "#FF5733", fontWeight: 500 }}>
-                                      {stats.maxWeight.toFixed(3)}
-                                    </Text>
-                                  </Flex>
+                                  </Grid>
                                 </Box>
                               </Flex>
-                            </Box>
+                            </Card>
+                          </motion.div>
 
-                            {index < model.graphs[0].layers.length - 1 && (
+                          {/* Connection Arrow */}
+                          {!isLastLayer && (
+                            <Box
+                              style={{
+                                width: "24px",
+                                height: "2px",
+                                background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                                borderRadius: theme.borders.radius.full,
+                                position: "relative",
+                                marginTop: "8px",
+                              }}
+                            >
                               <Box
                                 style={{
                                   position: "absolute",
-                                  right: "-20px",
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  color: "#FF5733",
-                                  zIndex: 1,
+                                  right: "-3px",
+                                  top: "-3px",
+                                  width: "8px",
+                                  height: "8px",
+                                  background: theme.colors.interactive.accent,
+                                  borderRadius: theme.borders.radius.full,
                                 }}
-                              >
-                                <ArrowRight size={20} weight="bold" />
-                              </Box>
-                            )}
-                          </Flex>
-                        );
-                      })}
-                    </Flex>
-                  </Box>
-                </Box>
-
-                {/* Layer Details Table */}
-                <Box style={{ marginTop: "24px" }}>
-                  <Heading size="3" style={{ color: "#FF5733", marginBottom: "16px" }}>
-                    Layer Details
-                  </Heading>
-                  <Box style={{ overflowX: "auto" }}>
-                    <Table.Root>
-                      <Table.Header>
-                        <Table.Row>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
-                            Layer
-                          </Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
-                            Weights
-                          </Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
-                            Biases
-                          </Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
-                            Weight Stats
-                          </Table.ColumnHeaderCell>
-                          <Table.ColumnHeaderCell style={{ color: "#FF5733" }}>
-                            Dimensions
-                          </Table.ColumnHeaderCell>
-                        </Table.Row>
-                      </Table.Header>
-                      <Table.Body>
-                        {model.graphs[0].layers.map((layer, index) => {
-                          const stats = calculateLayerStats(layer);
-                          return (
-                            <Table.Row key={index}>
-                              <Table.Cell>
-                                <Text style={{ fontWeight: 600 }}>Layer {index + 1}</Text>
-                              </Table.Cell>
-                              <Table.Cell>
-                                <Flex direction="column" gap="1">
-                                  <Text size="1">Count: {stats.weightCount.toLocaleString()}</Text>
-                                  <Text size="1" style={{ color: "#666", fontFamily: "monospace" }}>
-                                    Shape: {layer.weight_tensor?.shape.join(" × ")}
-                                  </Text>
-                                </Flex>
-                              </Table.Cell>
-                              <Table.Cell>
-                                <Flex direction="column" gap="1">
-                                  <Text size="1">Count: {stats.biasCount.toLocaleString()}</Text>
-                                  <Text size="1" style={{ color: "#666", fontFamily: "monospace" }}>
-                                    Shape: {layer.bias_tensor?.shape.join(" × ")}
-                                  </Text>
-                                </Flex>
-                              </Table.Cell>
-                              <Table.Cell>
-                                <Flex direction="column" gap="1">
-                                  <Text size="1">Max: {stats.maxWeight.toFixed(3)}</Text>
-                                  <Text size="1">Min: {stats.minWeight.toFixed(3)}</Text>
-                                  <Text size="1">Avg: {stats.avgWeight.toFixed(3)}</Text>
-                                </Flex>
-                              </Table.Cell>
-                              <Table.Cell>
-                                <Flex direction="column" gap="1">
-                                  <Text size="1">In: {layer.in_dimension}</Text>
-                                  <Text size="1">Out: {layer.out_dimension}</Text>
-                                </Flex>
-                              </Table.Cell>
-                            </Table.Row>
-                          );
-                        })}
-                      </Table.Body>
-                    </Table.Root>
-                  </Box>
+                              />
+                            </Box>
+                          )}
+                        </Flex>
+                      );
+                    })}
+                  </Flex>
                 </Box>
               </Flex>
             ) : (
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                style={{ padding: "40px 0" }}
+              <Text
+                size="3"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  textAlign: "center",
+                  padding: theme.spacing.semantic.component.xl,
+                }}
               >
-                <Box
-                  style={{
-                    background: "#FFF4F2",
-                    borderRadius: "50%",
-                    width: "80px",
-                    height: "80px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: "20px",
-                    color: "#FF5733",
-                  }}
-                >
-                  <Database size={40} weight="light" />
-                </Box>
-                <Text size="4" style={{ fontWeight: 600, marginBottom: "12px" }}>
-                  No Layer Data Found
-                </Text>
-                <Text
-                  size="2"
-                  style={{
-                    color: "#666",
-                    textAlign: "center",
-                    maxWidth: "400px",
-                    lineHeight: "1.6",
-                  }}
-                >
-                  Layer information for this model has not been stored on-chain yet.
-                </Text>
-              </Flex>
+                No neural network architecture data available
+              </Text>
+            )}
+          </Card>
+        </motion.div>
+
+        {/* Compact Parameter Analysis Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card
+            style={{
+              padding: theme.spacing.semantic.component.lg,
+              background: theme.colors.background.card,
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.lg,
+              boxShadow: theme.shadows.semantic.card.low,
+            }}
+          >
+            <Flex align="center" gap="2" mb="4">
+              <ChartLine size={18} style={{ color: theme.colors.status.info }} />
+              <Heading
+                size="3"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: theme.typography.h5.fontWeight,
+                }}
+              >
+                Layer Analysis
+              </Heading>
+            </Flex>
+
+            {model.graphs?.[0]?.layers && model.graphs[0].layers.length > 0 ? (
+              <Table.Root size="1">
+                <Table.Header>
+                  <Table.Row style={{ background: theme.colors.background.secondary }}>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
+                      Layer
+                    </Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
+                      Shape
+                    </Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
+                      Parameters
+                    </Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
+                      Weight Range
+                    </Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell
+                      style={{ color: theme.colors.text.brand, fontWeight: 600, fontSize: "11px" }}
+                    >
+                      Sparsity
+                    </Table.ColumnHeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {model.graphs[0].layers.map((layer, index) => {
+                    const layerStats = calculateLayerStats(layer);
+                    return (
+                      <Table.Row
+                        key={index}
+                        style={{
+                          background:
+                            index % 2 === 0
+                              ? theme.colors.background.card
+                              : theme.colors.background.secondary,
+                        }}
+                      >
+                        <Table.Cell>
+                          <Badge
+                            style={{
+                              backgroundColor: theme.colors.interactive.primary,
+                              color: theme.colors.text.inverse,
+                              fontSize: "10px",
+                              padding: "2px 6px",
+                            }}
+                          >
+                            {index + 1}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.secondary, fontFamily: "monospace" }}
+                          >
+                            {layer.in_dimension} × {layer.out_dimension}
+                          </Text>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.primary, fontWeight: 500 }}
+                          >
+                            {layerStats.totalParams.toLocaleString()}
+                          </Text>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.secondary, fontFamily: "monospace" }}
+                          >
+                            {layerStats.minWeight.toFixed(2)} ~ {layerStats.maxWeight.toFixed(2)}
+                          </Text>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Flex align="center" gap="2">
+                            <Text
+                              size="1"
+                              style={{
+                                color:
+                                  layerStats.sparsity > 10
+                                    ? theme.colors.status.warning
+                                    : theme.colors.text.primary,
+                                fontWeight: 500,
+                              }}
+                            >
+                              {layerStats.sparsity.toFixed(1)}%
+                            </Text>
+                            {layerStats.sparsity > 10 && (
+                              <Badge
+                                style={{
+                                  backgroundColor: theme.colors.status.warning,
+                                  color: theme.colors.text.inverse,
+                                  fontSize: "9px",
+                                  padding: "1px 4px",
+                                }}
+                              >
+                                High
+                              </Badge>
+                            )}
+                          </Flex>
+                        </Table.Cell>
+                      </Table.Row>
+                    );
+                  })}
+                </Table.Body>
+              </Table.Root>
+            ) : (
+              <Text
+                size="3"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  textAlign: "center",
+                  padding: theme.spacing.semantic.component.xl,
+                }}
+              >
+                No layer analysis data available
+              </Text>
             )}
           </Card>
         </motion.div>
       </Flex>
-    </Card>
+    </Box>
   );
-}
-
-// Task name conversion function
-function getTaskName(taskId: string): string {
-  const taskMap: Record<string, string> = {
-    "text-generation": "Text Generation",
-    "image-classification": "Image Classification",
-    "object-detection": "Object Detection",
-    "text-to-image": "Text-to-Image",
-    translation: "Translation",
-  };
-  return taskMap[taskId] || taskId;
 }

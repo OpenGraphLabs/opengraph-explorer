@@ -135,7 +135,7 @@ export function ThemeProvider({ children, defaultMode = "light" }: ThemeProvider
 
     // Gradients
     setProperty("--og-gradient-primary", theme.gradients.primary);
-    setProperty("--og-gradient-primary-light", theme.gradients.primaryLight);
+    setProperty("--og-gradient-primary-light", theme.gradients.primary);
     setProperty("--og-gradient-secondary", theme.gradients.secondary);
     setProperty("--og-gradient-warm", theme.gradients.warm);
     setProperty("--og-gradient-cool", theme.gradients.cool);
@@ -153,6 +153,10 @@ export function ThemeProvider({ children, defaultMode = "light" }: ThemeProvider
     Object.entries(theme.colors.dataType).forEach(([key, value]) => {
       setProperty(`--og-data-${key}`, value);
     });
+
+    // Selection styles - use theme-defined colors for consistency
+    setProperty("--og-selection-bg", theme.colors.selection.background);
+    setProperty("--og-selection-text", theme.colors.selection.text);
 
     // Set data attribute for theme-aware styling
     root.setAttribute("data-theme", mode);

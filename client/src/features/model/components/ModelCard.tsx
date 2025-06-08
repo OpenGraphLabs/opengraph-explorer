@@ -1,201 +1,170 @@
-import { Box, Flex, Text, Card, Badge, Button } from "@radix-ui/themes";
-import { Calendar, Database, Eye, ArrowRight } from "phosphor-react";
+import { Box, Flex, Text, Badge } from "@radix-ui/themes";
+import { HeartIcon, DownloadIcon } from "@radix-ui/react-icons";
+import { Card } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
 import { Model } from "@/features/model";
 
 interface ModelCardProps {
   model: Model;
   onClick: () => void;
-  onViewDetails?: () => void;
 }
 
-export function ModelCard({ model, onClick, onViewDetails }: ModelCardProps) {
+export function ModelCard({ model, onClick }: ModelCardProps) {
+  const { theme } = useTheme();
+
   const getTaskTypeColor = (taskType: string): { bg: string; color: string } => {
     const taskTypeLower = taskType.toLowerCase();
-    if (taskTypeLower.includes("classification")) return { bg: "#E3F2FD", color: "#1565C0" };
-    if (taskTypeLower.includes("regression")) return { bg: "#E8F5E8", color: "#2E7D32" };
-    if (taskTypeLower.includes("detection")) return { bg: "#FFF3E0", color: "#EF6C00" };
-    return { bg: "var(--gray-a3)", color: "var(--gray-11)" };
+    if (taskTypeLower.includes("classification")) {
+      return {
+        bg: theme.colors.status.info + "20",
+        color: theme.colors.status.info,
+      };
+    }
+    if (taskTypeLower.includes("regression")) {
+      return {
+        bg: theme.colors.interactive.primary + "20",
+        color: theme.colors.interactive.primary,
+      };
+    }
+    if (taskTypeLower.includes("detection")) {
+      return {
+        bg: theme.colors.status.warning + "20",
+        color: theme.colors.status.warning,
+      };
+    }
+    if (taskTypeLower.includes("generation")) {
+      return {
+        bg: theme.colors.status.success + "20",
+        color: theme.colors.status.success,
+      };
+    }
+    return {
+      bg: theme.colors.background.secondary,
+      color: theme.colors.text.secondary,
+    };
   };
 
   const taskTypeColor = getTaskTypeColor(model.task_type);
-  const createdDate = new Date(model.createdAt).toLocaleDateString();
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+    return num.toString();
+  };
 
   return (
     <Card
+      interactive
+      elevation="low"
       style={{
-        padding: "24px",
-        borderRadius: "16px",
-        border: "1px solid var(--gray-4)",
-        background: "white",
-        cursor: "pointer",
-        transition: "all 0.2s ease",
-        position: "relative",
+        padding: theme.spacing.semantic.component.md,
+        borderRadius: theme.borders.radius.lg,
+        border: `1px solid ${theme.colors.border.primary}`,
+        backgroundColor: theme.colors.background.card,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "110px",
+        transition: theme.animations.transitions.hover,
       }}
       onClick={onClick}
     >
-      <Flex direction="column" gap="4">
-        {/* Header */}
-        <Flex justify="between" align="start" gap="3">
+      <Flex direction="column" gap="2" style={{ height: "100%" }}>
+        {/* Header: Model Name + Task Badge */}
+        <Flex justify="between" align="start" gap="2">
           <Box style={{ flex: 1, minWidth: 0 }}>
             <Text
-              size="5"
+              size="3"
               weight="bold"
               style={{
-                color: "var(--gray-12)",
+                color: theme.colors.text.primary,
+                marginBottom: "2px",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                display: "block",
-                marginBottom: "8px",
+                lineHeight: "1.3",
               }}
             >
               {model.name}
             </Text>
             <Text
-              size="3"
-              style={
-                {
-                  color: "var(--gray-10)",
-                  lineHeight: "1.4",
-                  display: "-webkit-box",
-                  overflow: "hidden",
-                } as React.CSSProperties
-              }
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                lineHeight: "1.2",
+              }}
             >
-              {model.description || "No description available"}
+              by {model.creator || "Unknown"}
             </Text>
           </Box>
 
           <Badge
+            size="1"
             style={{
-              background: taskTypeColor.bg,
+              backgroundColor: taskTypeColor.bg,
               color: taskTypeColor.color,
-              padding: "6px 12px",
-              borderRadius: "8px",
-              fontSize: "12px",
-              fontWeight: "600",
+              border: `1px solid ${theme.colors.border.secondary}`,
+              borderRadius: theme.borders.radius.sm,
+              padding: "2px 6px",
+              fontSize: "10px",
+              fontWeight: "500",
               whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             {model.task_type}
           </Badge>
         </Flex>
 
-        {/* Stats */}
-        <Flex gap="4" wrap="wrap">
-          <Flex align="center" gap="2">
-            <Database size={16} style={{ color: "var(--gray-9)" }} />
-            <Text size="2" style={{ color: "var(--gray-11)" }}>
-              {model.graphs?.length || 0} Graph{(model.graphs?.length || 0) !== 1 ? "s" : ""}
-            </Text>
-          </Flex>
+        {/* Spacer */}
+        <Box style={{ flex: 1 }} />
 
-          <Flex align="center" gap="2">
-            <Calendar size={16} style={{ color: "var(--gray-9)" }} />
-            <Text size="2" style={{ color: "var(--gray-11)" }}>
-              Created {createdDate}
-            </Text>
-          </Flex>
-
-          {model.scale && (
-            <Flex align="center" gap="2">
-              <Text size="2" style={{ color: "var(--gray-11)" }}>
-                Scale: {model.scale}
+        {/* Footer: Stats */}
+        <Flex justify="between" align="center" style={{ marginTop: "auto" }}>
+          <Flex gap="3" align="center">
+            <Flex align="center" gap="1">
+              <HeartIcon width="11" height="11" style={{ color: theme.colors.status.error }} />
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  fontWeight: "500",
+                  fontSize: "10px",
+                }}
+              >
+                {formatNumber(model.likes)}
               </Text>
             </Flex>
-          )}
-        </Flex>
 
-        {/* Training Dataset Info */}
-        {model.training_dataset_id && (
-          <Box
-            style={{
-              padding: "12px",
-              background: "var(--gray-a2)",
-              borderRadius: "8px",
-              border: "1px solid var(--gray-a4)",
-            }}
-          >
-            <Text size="2" style={{ color: "var(--gray-11)", fontWeight: "500" }}>
-              Training Dataset: {model.training_dataset_id.substring(0, 8)}...
-            </Text>
-          </Box>
-        )}
-
-        {/* Test Datasets */}
-        {model.test_dataset_ids && model.test_dataset_ids.length > 0 && (
-          <Box>
-            <Text size="2" style={{ color: "var(--gray-10)", marginBottom: "8px" }}>
-              Test Datasets ({model.test_dataset_ids.length}):
-            </Text>
-            <Flex gap="2" wrap="wrap">
-              {model.test_dataset_ids.slice(0, 2).map((datasetId: string, index: number) => (
-                <Badge
-                  key={index}
-                  style={{
-                    background: "var(--accent-a3)",
-                    color: "var(--accent-11)",
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    fontSize: "11px",
-                  }}
-                >
-                  {datasetId.substring(0, 8)}...
-                </Badge>
-              ))}
-              {model.test_dataset_ids.length > 2 && (
-                <Badge
-                  style={{
-                    background: "var(--gray-a3)",
-                    color: "var(--gray-11)",
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    fontSize: "11px",
-                  }}
-                >
-                  +{model.test_dataset_ids.length - 2} more
-                </Badge>
-              )}
+            <Flex align="center" gap="1">
+              <DownloadIcon width="11" height="11" style={{ color: theme.colors.text.tertiary }} />
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  fontWeight: "500",
+                  fontSize: "10px",
+                }}
+              >
+                {formatNumber(model.downloads)}
+              </Text>
             </Flex>
-          </Box>
-        )}
+          </Flex>
 
-        {/* Action Buttons */}
-        <Flex gap="3" mt="2">
-          <Button
-            variant="soft"
-            onClick={e => {
-              e.stopPropagation();
-              onViewDetails?.();
-            }}
+          <Text
+            size="1"
             style={{
-              flex: 1,
-              background: "var(--gray-a3)",
-              color: "var(--gray-11)",
-              border: "1px solid var(--gray-6)",
-              borderRadius: "8px",
+              color: theme.colors.text.muted,
+              fontWeight: "500",
+              fontSize: "9px",
             }}
           >
-            <Flex align="center" gap="2">
-              <Eye size={16} />
-              <Text size="2">View Details</Text>
-            </Flex>
-          </Button>
-
-          <Button
-            onClick={e => {
-              e.stopPropagation();
-              onClick();
-            }}
-            style={{
-              background: "var(--accent-9)",
-              color: "white",
-              borderRadius: "8px",
-              padding: "0 16px",
-            }}
-          >
-            <ArrowRight size={16} />
-          </Button>
+            SUI
+          </Text>
         </Flex>
       </Flex>
     </Card>

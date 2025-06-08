@@ -3,15 +3,31 @@ import {
   Box,
   Flex,
   Text,
-  Button,
   Badge,
-  Card,
   Heading,
   Dialog,
   Grid,
   Separator,
-} from "@radix-ui/themes";
-import { CheckCircle, Users } from "phosphor-react";
+} from "@/shared/ui/design-system/components";
+import { Card } from "@/shared/ui/design-system/components/Card";
+import { useTheme } from "@/shared/ui/design-system";
+import {
+  CheckCircle,
+  Users,
+  X,
+  Tag,
+  Eye,
+  Hash,
+  Download,
+  WarningCircle,
+  CheckSquare,
+  Clock,
+  ArrowLeft,
+  ArrowRight,
+  Cursor,
+  Image as ImageIcon,
+  FileImage,
+} from "phosphor-react";
 import { ConfirmationStatus } from "../types";
 
 interface BoundingBox {
@@ -53,6 +69,7 @@ export function DatasetImageModal({
   onCloseModal,
   getConfirmedLabels,
 }: DatasetImageModalProps) {
+  const { theme } = useTheme();
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [selectedConfirmedAnnotation, setSelectedConfirmedAnnotation] = useState<string | null>(
     null
@@ -67,7 +84,6 @@ export function DatasetImageModal({
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // 확정된 annotation이 있는지 확인
   const hasConfirmedAnnotations = (item: any): boolean => {
     return item?.annotations && item.annotations.length > 0;
   };
@@ -88,10 +104,8 @@ export function DatasetImageModal({
     }
   }, [selectedAnnotations]);
 
-  // 드로잉 모드 토글
   const handleDrawingModeToggle = (enabled: boolean) => {
     if (!selectedImageData) return;
-
     const isConfirmed = hasConfirmedAnnotations(selectedImageData);
     if (!isConfirmed) return;
 
@@ -102,7 +116,6 @@ export function DatasetImageModal({
     }
   };
 
-  // 마우스 이벤트 핸들러들
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !selectedConfirmedAnnotation) return;
 
@@ -141,7 +154,6 @@ export function DatasetImageModal({
     setCurrentBoundingBox(box);
     redrawCanvas(canvas, ctx);
 
-    // Draw current box
     const color = annotationColors[selectedConfirmedAnnotation];
     if (color) {
       ctx.strokeStyle = color.stroke;
@@ -167,7 +179,6 @@ export function DatasetImageModal({
     redrawCanvas(canvas, ctx);
   };
 
-  // 캔버스 다시 그리기
   const redrawCanvas = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -176,7 +187,6 @@ export function DatasetImageModal({
     img.onload = () => {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // Draw all boxes
       boundingBoxes.forEach(box => {
         const color = annotationColors[box.annotation];
         if (color) {
@@ -188,7 +198,6 @@ export function DatasetImageModal({
     };
   };
 
-  // 캔버스 초기화
   useEffect(() => {
     if (selectedImage && canvasRef.current && isDrawingMode) {
       const canvas = canvasRef.current;
@@ -197,48 +206,14 @@ export function DatasetImageModal({
 
       const img = new Image();
       img.src = selectedImage;
-
       img.onload = () => {
         canvas.width = img.width;
         canvas.height = img.height;
-        redrawCanvas(canvas, ctx);
+        ctx.drawImage(img, 0, 0);
       };
     }
-  }, [selectedImage, isDrawingMode, boundingBoxes, annotationColors]);
+  }, [selectedImage, isDrawingMode]);
 
-  // 바운딩박스 클리어
-  const clearBoundingBoxes = () => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    setBoundingBoxes([]);
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const img = new Image();
-    img.src = selectedImage || "";
-    img.onload = () => ctx.drawImage(img, 0, 0);
-  };
-
-  // 실행 취소
-  const handleUndo = () => {
-    if (boundingBoxes.length > 0) {
-      const newBoxes = boundingBoxes.slice(0, -1);
-      setBoundingBoxes(newBoxes);
-
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          redrawCanvas(canvas, ctx);
-        }
-      }
-    }
-  };
-
-  // 확인 상태 표시 컴포넌트
   const ConfirmationStatusDisplay = () => {
     if (confirmationStatus.status === "idle") return null;
 
@@ -246,35 +221,35 @@ export function DatasetImageModal({
       switch (confirmationStatus.status) {
         case "pending":
           return {
-            bg: "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
-            border: "var(--blue-6)",
-            text: "var(--blue-11)",
-            icon: "⏳",
-            title: "Confirming Annotations",
+            icon: <Clock size={20} />,
+            title: "Processing",
+            bg: theme.colors.background.secondary,
+            border: theme.colors.border.primary,
+            text: theme.colors.text.primary,
           };
         case "success":
           return {
-            bg: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)",
-            border: "var(--green-6)",
-            text: "var(--green-11)",
-            icon: "✅",
-            title: "Confirmation Successful",
+            icon: <CheckCircle size={20} weight="fill" />,
+            title: "Success",
+            bg: theme.colors.status.success + "10",
+            border: theme.colors.status.success,
+            text: theme.colors.status.success,
           };
         case "failed":
           return {
-            bg: "linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%)",
-            border: "var(--red-6)",
-            text: "var(--red-11)",
-            icon: "❌",
-            title: "Confirmation Failed",
+            icon: <WarningCircle size={20} weight="fill" />,
+            title: "Error",
+            bg: theme.colors.status.error + "10",
+            border: theme.colors.status.error,
+            text: theme.colors.status.error,
           };
         default:
           return {
-            bg: "var(--gray-2)",
-            border: "var(--gray-6)",
-            text: "var(--gray-11)",
-            icon: "ℹ️",
-            title: "Status",
+            icon: <Clock size={20} />,
+            title: "Processing",
+            bg: theme.colors.background.secondary,
+            border: theme.colors.border.primary,
+            text: theme.colors.text.primary,
           };
       }
     };
@@ -286,22 +261,30 @@ export function DatasetImageModal({
         style={{
           background: config.bg,
           border: `2px solid ${config.border}`,
-          padding: "20px",
-          borderRadius: "16px",
-          marginBottom: "20px",
+          borderRadius: theme.borders.radius.md,
+          marginBottom: theme.spacing.semantic.component.lg,
+          overflow: "hidden",
         }}
       >
-        <Flex align="center" gap="4">
-          <Box style={{ fontSize: "24px" }}>{config.icon}</Box>
-          <Flex direction="column" gap="2">
-            <Heading size="4" style={{ color: config.text }}>
-              {config.title}
-            </Heading>
-            <Text size="3" style={{ color: config.text }}>
-              {confirmationStatus.message}
-            </Text>
+        <Box style={{ padding: theme.spacing.semantic.component.lg }}>
+          <Flex align="center" gap="3">
+            <Box style={{ color: config.text }}>{config.icon}</Box>
+            <Flex direction="column" gap="1">
+              <Text
+                size="3"
+                style={{
+                  color: config.text,
+                  fontWeight: 600,
+                }}
+              >
+                {config.title}
+              </Text>
+              <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                {confirmationStatus.message}
+              </Text>
+            </Flex>
           </Flex>
-        </Flex>
+        </Box>
       </Card>
     );
   };
@@ -312,24 +295,100 @@ export function DatasetImageModal({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Content
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1400px",
           maxHeight: "95vh",
-          padding: "0",
-          borderRadius: "16px",
+          padding: 0,
+          borderRadius: theme.borders.radius.lg,
           overflow: "hidden",
+          background: theme.colors.background.card,
+          border: `1px solid ${theme.colors.border.primary}`,
         }}
       >
-        <Dialog.Title className="visually-hidden">Image Analysis</Dialog.Title>
+        <Dialog.Title className="visually-hidden">Dataset Image Analysis</Dialog.Title>
 
-        <Grid columns="2" style={{ height: "90vh" }}>
+        {/* Header */}
+        <Box
+          style={{
+            padding: theme.spacing.semantic.component.lg,
+            background: theme.colors.background.secondary,
+            borderBottom: `1px solid ${theme.colors.border.primary}`,
+          }}
+        >
+          <Flex align="center" justify="between">
+            <Flex align="center" gap="3">
+              <ImageIcon size={20} style={{ color: theme.colors.text.primary }} />
+              <Box>
+                <Text
+                  size="4"
+                  style={{
+                    color: theme.colors.text.primary,
+                    fontWeight: 600,
+                  }}
+                >
+                  Image Analysis
+                </Text>
+                <Flex align="center" gap="2" style={{ marginTop: "2px" }}>
+                  <Hash size={12} style={{ color: theme.colors.text.tertiary }} />
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {selectedImageData.blobId?.slice(0, 12) || "loading..."}
+                  </Text>
+                </Flex>
+              </Box>
+            </Flex>
+
+            <Flex align="center" gap="2">
+              <Badge
+                style={{
+                  background: theme.colors.background.primary,
+                  color: theme.colors.text.secondary,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  padding: "4px 8px",
+                  borderRadius: theme.borders.radius.sm,
+                }}
+              >
+                Item {selectedImageIndex + 1}
+              </Badge>
+
+              <Box
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: theme.borders.radius.sm,
+                  background: theme.colors.background.primary,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onClick={onClose}
+                className="close-button"
+              >
+                <X size={16} style={{ color: theme.colors.text.secondary }} />
+              </Box>
+            </Flex>
+          </Flex>
+        </Box>
+
+        <Grid columns="2" style={{ height: "calc(95vh - 80px)" }}>
           {/* 왼쪽: 이미지 뷰 */}
           <Box
             style={{
-              background: "var(--gray-2)",
+              background: theme.colors.background.primary,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               position: "relative",
+              borderRight: `1px solid ${theme.colors.border.primary}`,
             }}
           >
             {!isDrawingMode ? (
@@ -350,278 +409,425 @@ export function DatasetImageModal({
                     maxWidth: "100%",
                     maxHeight: "100%",
                     objectFit: "contain",
+                    borderRadius: theme.borders.radius.sm,
                   }}
                 />
                 {hasConfirmedAnnotations(selectedImageData) && (
                   <Box
                     style={{
                       position: "absolute",
-                      bottom: "24px",
+                      bottom: theme.spacing.semantic.component.lg,
                       left: "50%",
                       transform: "translateX(-50%)",
-                      background: "rgba(0, 0, 0, 0.85)",
-                      color: "white",
-                      padding: "12px 20px",
-                      borderRadius: "12px",
+                      background: theme.colors.background.card,
+                      border: `1px solid ${theme.colors.border.primary}`,
+                      color: theme.colors.text.primary,
+                      padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                      borderRadius: theme.borders.radius.md,
                       cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      boxShadow: theme.shadows.semantic.card.medium,
                     }}
                     onClick={() => handleDrawingModeToggle(true)}
+                    className="annotation-trigger"
                   >
-                    Click to Draw Bounding Boxes
+                    <Flex align="center" gap="2">
+                      <Cursor size={14} />
+                      <Text size="2" style={{ fontWeight: 500 }}>
+                        Click to Draw Bounding Boxes
+                      </Text>
+                    </Flex>
                   </Box>
                 )}
               </Box>
             ) : (
               <canvas
                 ref={canvasRef}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
                 style={{
                   maxWidth: "100%",
                   maxHeight: "100%",
-                  cursor: "crosshair",
+                  objectFit: "contain",
+                  cursor: selectedConfirmedAnnotation ? "crosshair" : "default",
+                  borderRadius: theme.borders.radius.sm,
                 }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
               />
             )}
-
-            {/* 이미지 정보 오버레이 */}
-            <Box
-              style={{
-                position: "absolute",
-                top: "16px",
-                left: "16px",
-                background: "rgba(0, 0, 0, 0.8)",
-                backdropFilter: "blur(8px)",
-                color: "white",
-                padding: "8px 12px",
-                borderRadius: "8px",
-                fontSize: "12px",
-                fontWeight: "500",
-                zIndex: 3,
-              }}
-            >
-              {isDrawingMode
-                ? "Drawing Mode - Click and drag to draw boxes"
-                : `Image #${selectedImageIndex + 1}`}
-            </Box>
           </Box>
 
-          {/* 오른쪽: Annotation 패널 */}
+          {/* 오른쪽: 어노테이션 패널 */}
           <Box
             style={{
-              background: "white",
+              background: theme.colors.background.card,
+              overflow: "auto",
               display: "flex",
               flexDirection: "column",
-              height: "90vh",
             }}
           >
-            <Box style={{ flex: 1, padding: "24px", overflowY: "auto" }}>
-              <Flex direction="column" gap="6">
-                {/* 헤더 */}
-                <Flex align="center" justify="between">
-                  <Heading size="6">Image Analysis</Heading>
-                  <Button variant="ghost" onClick={onCloseModal}>
-                    ✕
-                  </Button>
-                </Flex>
-
-                <Separator size="4" />
-
-                {/* 확정된 Annotations */}
-                <Flex direction="column" gap="4">
-                  <Flex align="center" gap="2">
-                    <CheckCircle size={20} style={{ color: "var(--green-9)" }} weight="fill" />
-                    <Heading size="4">Confirmed Annotations</Heading>
-                    <Badge>{selectedAnnotations.length} confirmed</Badge>
-                  </Flex>
-
-                  {selectedAnnotations.length > 0 ? (
-                    <Grid columns="2" gap="2">
-                      {selectedAnnotations.map((annotation, index) => {
-                        const color = annotationColors[annotation.label] || {
-                          stroke: "var(--gray-8)",
-                          bg: "var(--gray-3)",
-                          text: "var(--gray-11)",
-                        };
-                        const isSelected = selectedConfirmedAnnotation === annotation.label;
-
-                        return (
-                          <Card
-                            key={index}
-                            style={{
-                              background: isSelected ? color.bg : "white",
-                              border: `2px solid ${isSelected ? color.stroke : "var(--gray-4)"}`,
-                              padding: "12px",
-                              cursor: isDrawingMode ? "pointer" : "default",
-                            }}
-                            onClick={() => {
-                              if (isDrawingMode) {
-                                setSelectedConfirmedAnnotation(
-                                  isSelected ? null : annotation.label
-                                );
-                              }
-                            }}
-                          >
-                            <Flex align="center" gap="2">
-                              <Box
-                                style={{
-                                  width: "12px",
-                                  height: "12px",
-                                  background: color.stroke,
-                                }}
-                              />
-                              <Text>{annotation.label}</Text>
-                            </Flex>
-                          </Card>
-                        );
-                      })}
-                    </Grid>
-                  ) : (
-                    <Text>No confirmed annotations yet</Text>
-                  )}
-                </Flex>
-
-                <Separator size="4" />
-
-                {/* Pending Annotations */}
-                <Flex direction="column" gap="4">
-                  <Flex align="center" gap="2">
-                    <Users size={20} style={{ color: "var(--blue-9)" }} weight="fill" />
-                    <Heading size="4">Pending Annotations</Heading>
-                  </Flex>
-
-                  {selectedImageData?.pendingAnnotationStats?.length > 0 ? (
-                    <Flex direction="column" gap="3">
-                      {selectedImageData.pendingAnnotationStats
-                        .sort((a: any, b: any) => b.count - a.count)
-                        .map((stat: any, _: number) => {
-                          const isSelected = selectedPendingLabels.has(stat.label);
-                          const confirmedLabels = getConfirmedLabels();
-                          const isAlreadyConfirmed = confirmedLabels.has(stat.label);
-
-                          return (
-                            <Card
-                              key={stat.label}
-                              style={{
-                                padding: "16px",
-                                border: isSelected
-                                  ? "2px solid var(--green-6)"
-                                  : "1px solid var(--gray-4)",
-                                background: isSelected ? "var(--green-3)" : "white",
-                                cursor: isAlreadyConfirmed ? "not-allowed" : "pointer",
-                                opacity: isAlreadyConfirmed ? 0.6 : 1,
-                              }}
-                              onClick={() =>
-                                !isAlreadyConfirmed && onTogglePendingAnnotation(stat.label)
-                              }
-                            >
-                              <Flex direction="column" gap="2">
-                                <Flex align="center" justify="between">
-                                  <Text weight="bold">{stat.label}</Text>
-                                  <Text size="2">{stat.count} votes</Text>
-                                </Flex>
-                                {isAlreadyConfirmed && <Badge>CONFIRMED</Badge>}
-                                {isSelected && !isAlreadyConfirmed && (
-                                  <Badge color="green">SELECTED</Badge>
-                                )}
-                              </Flex>
-                            </Card>
-                          );
-                        })}
-                    </Flex>
-                  ) : (
-                    <Text>No pending annotations</Text>
-                  )}
-                </Flex>
-              </Flex>
-            </Box>
-
-            {/* 하단 액션 버튼 */}
-            <Box style={{ borderTop: "1px solid var(--gray-6)", padding: "20px" }}>
+            <Box
+              style={{
+                padding: theme.spacing.semantic.component.lg,
+                flexGrow: 1,
+              }}
+            >
               <ConfirmationStatusDisplay />
 
-              {selectedPendingLabels.size > 0 && (
-                <Card
-                  style={{ padding: "12px", marginBottom: "16px", background: "var(--green-2)" }}
+              {/* Confirmed Annotations */}
+              <Box style={{ marginBottom: theme.spacing.semantic.component.xl }}>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.md }}
                 >
-                  <Text>{selectedPendingLabels.size} annotation(s) selected for confirmation</Text>
-                </Card>
-              )}
+                  <CheckCircle
+                    size={18}
+                    style={{ color: theme.colors.status.success }}
+                    weight="fill"
+                  />
+                  <Text
+                    size="4"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Verified Annotations
+                  </Text>
+                  <Badge
+                    style={{
+                      background: theme.colors.status.success + "20",
+                      color: theme.colors.status.success,
+                      border: `1px solid ${theme.colors.status.success}40`,
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      padding: "2px 6px",
+                      borderRadius: theme.borders.radius.sm,
+                    }}
+                  >
+                    {selectedAnnotations.length}
+                  </Badge>
+                </Flex>
 
-              <Flex gap="3">
-                <Button variant="soft" style={{ flex: 1 }} onClick={onCloseModal}>
-                  Close
-                </Button>
-                <Button
-                  disabled={selectedPendingLabels.size === 0}
-                  style={{ flex: 1 }}
-                  onClick={onConfirmSelectedAnnotations}
+                {selectedAnnotations.length > 0 ? (
+                  <Box>
+                    {selectedAnnotations.map((annotation, index) => {
+                      const color = annotationColors[annotation.label] || {
+                        stroke: theme.colors.text.secondary,
+                        bg: theme.colors.background.secondary,
+                        text: theme.colors.text.primary,
+                      };
+                      const isSelected = selectedConfirmedAnnotation === annotation.label;
+
+                      return (
+                        <Box
+                          key={index}
+                          style={{
+                            background: isSelected ? color.bg : theme.colors.background.primary,
+                            border: `2px solid ${isSelected ? color.stroke : theme.colors.border.primary}`,
+                            borderRadius: theme.borders.radius.sm,
+                            padding: theme.spacing.semantic.component.sm,
+                            cursor: isDrawingMode ? "pointer" : "default",
+                            transition: "all 0.2s ease",
+                            marginBottom: theme.spacing.semantic.component.sm,
+                          }}
+                          onClick={() => {
+                            if (isDrawingMode) {
+                              setSelectedConfirmedAnnotation(isSelected ? null : annotation.label);
+                            }
+                          }}
+                          className="annotation-item"
+                        >
+                          <Flex align="center" gap="2">
+                            <Box
+                              style={{
+                                width: "12px",
+                                height: "12px",
+                                background: color.stroke,
+                                borderRadius: theme.borders.radius.sm,
+                              }}
+                            />
+                            <Text
+                              size="2"
+                              style={{
+                                color: theme.colors.text.primary,
+                                fontWeight: 500,
+                              }}
+                            >
+                              {annotation.label}
+                            </Text>
+                            {isSelected && isDrawingMode && (
+                              <CheckSquare
+                                size={14}
+                                style={{ color: color.stroke }}
+                                weight="fill"
+                              />
+                            )}
+                          </Flex>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                ) : (
+                  <Box
+                    style={{
+                      padding: theme.spacing.semantic.component.lg,
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.md,
+                      border: `2px dashed ${theme.colors.border.secondary}`,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                      No verified annotations yet
+                    </Text>
+                  </Box>
+                )}
+              </Box>
+
+              <Separator
+                size="4"
+                style={{
+                  background: theme.colors.border.primary,
+                  margin: `${theme.spacing.semantic.component.lg} 0`,
+                }}
+              />
+
+              {/* Pending Annotations */}
+              <Box>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.md }}
                 >
-                  Confirm ({selectedPendingLabels.size})
-                </Button>
-              </Flex>
+                  <Users size={18} style={{ color: theme.colors.status.warning }} weight="fill" />
+                  <Text
+                    size="4"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Pending Annotations
+                  </Text>
+                  <Badge
+                    style={{
+                      background: theme.colors.status.warning + "20",
+                      color: theme.colors.status.warning,
+                      border: `1px solid ${theme.colors.status.warning}40`,
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      padding: "2px 6px",
+                      borderRadius: theme.borders.radius.sm,
+                    }}
+                  >
+                    {selectedImageData?.pendingAnnotationStats?.length || 0}
+                  </Badge>
+                </Flex>
+
+                {selectedImageData?.pendingAnnotationStats?.length > 0 ? (
+                  <Box>
+                    {selectedImageData.pendingAnnotationStats
+                      .sort((a: any, b: any) => b.count - a.count)
+                      .map((stat: any, index: number) => {
+                        const isSelected = selectedPendingLabels.has(stat.label);
+                        const confirmedLabels = getConfirmedLabels();
+                        const isAlreadyConfirmed = confirmedLabels.has(stat.label);
+
+                        return (
+                          <Box
+                            key={index}
+                            style={{
+                              background: isSelected
+                                ? theme.colors.status.warning + "10"
+                                : isAlreadyConfirmed
+                                  ? theme.colors.background.secondary
+                                  : theme.colors.background.primary,
+                              border: `2px solid ${
+                                isSelected
+                                  ? theme.colors.status.warning
+                                  : isAlreadyConfirmed
+                                    ? theme.colors.border.secondary
+                                    : theme.colors.border.primary
+                              }`,
+                              borderRadius: theme.borders.radius.sm,
+                              padding: theme.spacing.semantic.component.sm,
+                              cursor: isAlreadyConfirmed ? "not-allowed" : "pointer",
+                              transition: "all 0.2s ease",
+                              marginBottom: theme.spacing.semantic.component.sm,
+                              opacity: isAlreadyConfirmed ? 0.6 : 1,
+                            }}
+                            onClick={() =>
+                              !isAlreadyConfirmed && onTogglePendingAnnotation(stat.label)
+                            }
+                            className="pending-annotation-item"
+                          >
+                            <Flex align="center" justify="between">
+                              <Flex align="center" gap="2">
+                                <Tag
+                                  size={14}
+                                  style={{
+                                    color: isAlreadyConfirmed
+                                      ? theme.colors.text.tertiary
+                                      : theme.colors.text.secondary,
+                                  }}
+                                />
+                                <Text
+                                  size="2"
+                                  style={{
+                                    color: isAlreadyConfirmed
+                                      ? theme.colors.text.tertiary
+                                      : theme.colors.text.primary,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {stat.label}
+                                </Text>
+                                {isAlreadyConfirmed && (
+                                  <Badge
+                                    style={{
+                                      background: theme.colors.status.success + "20",
+                                      color: theme.colors.status.success,
+                                      fontSize: "9px",
+                                      fontWeight: 600,
+                                      padding: "2px 4px",
+                                      borderRadius: theme.borders.radius.sm,
+                                    }}
+                                  >
+                                    CONFIRMED
+                                  </Badge>
+                                )}
+                              </Flex>
+                              <Flex align="center" gap="2">
+                                <Badge
+                                  style={{
+                                    background: theme.colors.background.secondary,
+                                    color: theme.colors.text.secondary,
+                                    fontSize: "10px",
+                                    fontWeight: 600,
+                                    padding: "2px 6px",
+                                    borderRadius: theme.borders.radius.sm,
+                                    fontFeatureSettings: '"tnum"',
+                                  }}
+                                >
+                                  {stat.count}
+                                </Badge>
+                                {isSelected && !isAlreadyConfirmed && (
+                                  <CheckSquare
+                                    size={14}
+                                    style={{ color: theme.colors.status.warning }}
+                                    weight="fill"
+                                  />
+                                )}
+                              </Flex>
+                            </Flex>
+                          </Box>
+                        );
+                      })}
+                  </Box>
+                ) : (
+                  <Box
+                    style={{
+                      padding: theme.spacing.semantic.component.lg,
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.md,
+                      border: `2px dashed ${theme.colors.border.secondary}`,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                      No pending annotations
+                    </Text>
+                  </Box>
+                )}
+
+                {/* Action Button */}
+                {selectedPendingLabels.size > 0 && (
+                  <Box style={{ marginTop: theme.spacing.semantic.component.lg }}>
+                    <Box
+                      style={{
+                        background:
+                          confirmationStatus.status === "pending"
+                            ? theme.colors.background.secondary
+                            : theme.colors.status.warning,
+                        color:
+                          confirmationStatus.status === "pending"
+                            ? theme.colors.text.secondary
+                            : "white",
+                        border: `1px solid ${theme.colors.status.warning}`,
+                        borderRadius: theme.borders.radius.md,
+                        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                        cursor: confirmationStatus.status === "pending" ? "not-allowed" : "pointer",
+                        transition: "all 0.2s ease",
+                        textAlign: "center",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                      }}
+                      onClick={
+                        confirmationStatus.status === "pending"
+                          ? undefined
+                          : onConfirmSelectedAnnotations
+                      }
+                      className="confirm-button"
+                    >
+                      {confirmationStatus.status === "pending" ? (
+                        <Flex align="center" justify="center" gap="2">
+                          <Box
+                            style={{
+                              width: "12px",
+                              height: "12px",
+                              border: "2px solid transparent",
+                              borderTop: `2px solid ${theme.colors.text.secondary}`,
+                              borderRadius: "50%",
+                              animation: "spin 1s linear infinite",
+                            }}
+                          />
+                          Processing...
+                        </Flex>
+                      ) : (
+                        `Confirm ${selectedPendingLabels.size} annotation(s) on blockchain`
+                      )}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Box>
         </Grid>
 
-        {/* 드로잉 모드 컨트롤 */}
-        {isDrawingMode && (
-          <Box
-            style={{
-              position: "absolute",
-              bottom: "24px",
-              left: "24px",
-              right: "24px",
-              background: "rgba(255, 255, 255, 0.9)",
-              padding: "16px",
-              borderRadius: "12px",
-            }}
-          >
-            <Flex gap="3" align="center" justify="between">
-              <Flex align="center" gap="3">
-                {selectedConfirmedAnnotation ? (
-                  <Badge>
-                    Drawing: {selectedConfirmedAnnotation} ({boundingBoxes.length} boxes)
-                  </Badge>
-                ) : (
-                  <Badge color="orange">Please select an annotation first</Badge>
-                )}
-                {boundingBoxes.length > 0 && (
-                  <Flex gap="2">
-                    <Button size="2" variant="soft" color="red" onClick={clearBoundingBoxes}>
-                      Clear All
-                    </Button>
-                    <Button size="2" variant="soft" onClick={handleUndo}>
-                      Undo
-                    </Button>
-                  </Flex>
-                )}
-              </Flex>
-              <Flex gap="3">
-                <Button variant="soft" onClick={() => handleDrawingModeToggle(false)}>
-                  Cancel
-                </Button>
-                <Button disabled={!selectedConfirmedAnnotation || boundingBoxes.length === 0}>
-                  Save Boxes
-                </Button>
-              </Flex>
-            </Flex>
-          </Box>
-        )}
-
         <style>
           {`
-            .visually-hidden {
-              position: absolute;
-              width: 1px;
-              height: 1px;
-              padding: 0;
-              margin: -1px;
-              overflow: hidden;
-              clip: rect(0, 0, 0, 0);
-              white-space: nowrap;
-              border: 0;
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            
+            .close-button:hover {
+              background: ${theme.colors.background.secondary} !important;
+              transform: scale(1.05);
+            }
+            
+            .annotation-trigger:hover {
+              background: ${theme.colors.background.secondary} !important;
+              transform: translateX(-50%) translateY(-2px);
+              box-shadow: ${theme.shadows.semantic.card.high} !important;
+            }
+            
+            .annotation-item:hover {
+              transform: translateY(-1px);
+              box-shadow: ${theme.shadows.semantic.card.low} !important;
+            }
+            
+            .pending-annotation-item:hover:not([style*="cursor: not-allowed"]) {
+              transform: translateY(-1px);
+              box-shadow: ${theme.shadows.semantic.card.low} !important;
+            }
+            
+            .confirm-button:hover:not([style*="cursor: not-allowed"]) {
+              background: ${theme.colors.status.warning}dd !important;
+              transform: translateY(-1px);
+              box-shadow: ${theme.shadows.semantic.card.medium} !important;
             }
           `}
         </style>
