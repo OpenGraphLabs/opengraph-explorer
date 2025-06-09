@@ -23,9 +23,11 @@ export * from './components/InlineToolBar';
 export * from './components/AnnotationItem';
 export * from './components/AnnotationListPanel';
 export * from './components/PhaseConstraintsBanner';
+export * from './components/LabelSelector';
 
 // Utils
 export * from './utils/phaseConstraints';
+export * from './utils/labelColors';
 
 // Data
 export * from './data/mockImages';

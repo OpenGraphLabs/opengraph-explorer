@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { Tag, Target, Circle, Plus, CaretDown, Check, X, PaperPlaneRight } from "phosphor-react";
+import { Tag, Target, Circle, Plus, CaretDown, Check, X, PaperPlaneRight, Palette } from "phosphor-react";
 import { AnnotationType } from '@/features/annotation/types/workspace';
 import { ChallengePhase } from '@/features/challenge';
+import { LabelSelector } from './LabelSelector';
 
 interface InlineToolBarProps {
   currentTool: AnnotationType;
@@ -39,8 +40,6 @@ export function InlineToolBar({
 }: InlineToolBarProps) {
   const { theme } = useTheme();
   const [newLabelInput, setNewLabelInput] = useState('');
-  const [showLabelDropdown, setShowLabelDropdown] = useState(false);
-  const [showBBoxDropdown, setShowBBoxDropdown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const tools = [
@@ -188,21 +187,36 @@ export function InlineToolBar({
   const renderBBoxPhaseTools = () => {
     if (existingLabels.length === 0) {
       return (
-        <Flex align="center" gap="2">
-          <Text size="2" style={{ color: theme.colors.status.warning, fontWeight: 600 }}>
-            ⚠️ Create labels first
-          </Text>
+        <Flex align="center" gap="3">
+          <Box
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.semantic.component.sm,
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              background: `${theme.colors.status.warning}08`,
+              border: `1px solid ${theme.colors.status.warning}30`,
+              borderRadius: theme.borders.radius.md,
+            }}
+          >
+            <Palette size={16} style={{ color: theme.colors.status.warning }} />
+            <Text size="2" style={{ color: theme.colors.status.warning, fontWeight: 600 }}>
+              Create labels first to draw bounding boxes
+            </Text>
+          </Box>
           <Button
             onClick={() => onToolChange('label')}
             style={{
-              background: theme.colors.status.warning,
+              background: `linear-gradient(135deg, ${theme.colors.status.warning}, ${theme.colors.status.warning}90)`,
               color: theme.colors.text.inverse,
               border: "none",
               borderRadius: theme.borders.radius.md,
-              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
               fontWeight: 600,
               fontSize: "13px",
               cursor: "pointer",
+              boxShadow: theme.shadows.semantic.card.low,
+              transition: 'all 0.2s ease',
             }}
           >
             Go to Labels
@@ -212,111 +226,46 @@ export function InlineToolBar({
     }
 
     return (
-      <Flex align="center" gap="2">
-        <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
-          Select label, then draw box:
-        </Text>
-        
-        <Flex gap="1">
-          {existingLabels.slice(0, 5).map((label) => (
-            <Button
-              key={label}
-              onClick={() => onSelectLabel(label)}
-              style={{
-                background: selectedLabel === label 
-                  ? theme.colors.status.warning 
-                  : 'transparent',
-                color: selectedLabel === label 
-                  ? theme.colors.text.inverse 
-                  : theme.colors.status.warning,
-                border: `2px solid ${theme.colors.status.warning}`,
-                borderRadius: theme.borders.radius.md,
-                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                fontSize: "12px",
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {label}
-              {selectedLabel === label && <Check size={12} style={{ marginLeft: '4px' }} />}
-            </Button>
-          ))}
-          
-          {existingLabels.length > 5 && (
-            <Box style={{ position: 'relative' }}>
-              <Button
-                onClick={() => setShowLabelDropdown(!showLabelDropdown)}
-                style={{
-                  background: 'transparent',
-                  color: theme.colors.status.warning,
-                  border: `1px solid ${theme.colors.status.warning}`,
-                  borderRadius: theme.borders.radius.md,
-                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                }}
-              >
-                +{existingLabels.length - 5} <CaretDown size={10} />
-              </Button>
-
-              {showLabelDropdown && (
-                <Box
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    zIndex: 1000,
-                    background: theme.colors.background.card,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.md,
-                    boxShadow: theme.shadows.semantic.card.medium,
-                    padding: theme.spacing.semantic.component.sm,
-                    minWidth: '150px',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                  }}
-                >
-                  {existingLabels.slice(5).map((label) => (
-                    <Box
-                      key={label}
-                      onClick={() => {
-                        onSelectLabel(label);
-                        setShowLabelDropdown(false);
-                      }}
-                      style={{
-                        padding: theme.spacing.semantic.component.xs,
-                        borderRadius: theme.borders.radius.sm,
-                        cursor: 'pointer',
-                        background: selectedLabel === label ? `${theme.colors.status.warning}15` : 'transparent',
-                        transition: 'background 0.2s ease',
-                      }}
-                    >
-                      <Text size="2" style={{ color: theme.colors.text.primary }}>
-                        {label}
-                      </Text>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-        </Flex>
+      <Flex align="center" gap="3">
+        <LabelSelector
+          labels={existingLabels}
+          selectedLabel={selectedLabel}
+          onSelectLabel={onSelectLabel}
+          maxVisibleLabels={3}
+          compact={true}
+        />
 
         {selectedLabel && (
-          <Badge
-            style={{
-              background: `${theme.colors.status.success}15`,
-              color: theme.colors.status.success,
-              border: `1px solid ${theme.colors.status.success}30`,
-              padding: "2px 6px",
-              borderRadius: theme.borders.radius.full,
-              fontSize: "11px",
-              fontWeight: 600,
-            }}
-          >
-            ✓ Ready to draw
-          </Badge>
+          <Flex align="center" gap="2">
+            <Badge
+              style={{
+                background: `${theme.colors.status.success}15`,
+                color: theme.colors.status.success,
+                border: `1px solid ${theme.colors.status.success}30`,
+                padding: "4px 10px",
+                borderRadius: theme.borders.radius.full,
+                fontSize: "11px",
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: theme.spacing.semantic.component.xs,
+              }}
+            >
+              <Check size={12} />
+              Ready to draw
+            </Badge>
+            
+            <Text 
+              size="1" 
+              style={{ 
+                color: theme.colors.text.tertiary, 
+                fontStyle: 'italic',
+                fontWeight: 500 
+              }}
+            >
+              Click and drag on image
+            </Text>
+          </Flex>
         )}
       </Flex>
     );
@@ -325,21 +274,36 @@ export function InlineToolBar({
   const renderSegmentationPhaseTools = () => {
     if (boundingBoxes.length === 0) {
       return (
-        <Flex align="center" gap="2">
-          <Text size="2" style={{ color: theme.colors.status.warning, fontWeight: 600 }}>
-            ⚠️ Create bounding boxes first
-          </Text>
+        <Flex align="center" gap="3">
+          <Box
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.semantic.component.sm,
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              background: `${theme.colors.status.warning}08`,
+              border: `1px solid ${theme.colors.status.warning}30`,
+              borderRadius: theme.borders.radius.md,
+            }}
+          >
+            <Target size={16} style={{ color: theme.colors.status.warning }} />
+            <Text size="2" style={{ color: theme.colors.status.warning, fontWeight: 600 }}>
+              Create bounding boxes first to segment
+            </Text>
+          </Box>
           <Button
             onClick={() => onToolChange('bbox')}
             style={{
-              background: theme.colors.status.success,
+              background: `linear-gradient(135deg, ${theme.colors.status.success}, ${theme.colors.status.success}90)`,
               color: theme.colors.text.inverse,
               border: "none",
               borderRadius: theme.borders.radius.md,
-              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
               fontWeight: 600,
               fontSize: "13px",
               cursor: "pointer",
+              boxShadow: theme.shadows.semantic.card.low,
+              transition: 'all 0.2s ease',
             }}
           >
             Go to BBox
@@ -348,112 +312,50 @@ export function InlineToolBar({
       );
     }
 
-    return (
-      <Flex align="center" gap="2">
-        <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
-          Select box, then draw polygon:
-        </Text>
-        
-        <Flex gap="1">
-          {boundingBoxes.slice(0, 4).map((bbox) => (
-            <Button
-              key={bbox.id}
-              onClick={() => onSelectLabel(bbox.label)}
-              style={{
-                background: selectedLabel === bbox.label 
-                  ? theme.colors.status.success 
-                  : 'transparent',
-                color: selectedLabel === bbox.label 
-                  ? theme.colors.text.inverse 
-                  : theme.colors.status.success,
-                border: `2px solid ${theme.colors.status.success}`,
-                borderRadius: theme.borders.radius.md,
-                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                fontSize: "12px",
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {bbox.label}
-              {selectedLabel === bbox.label && <Check size={12} style={{ marginLeft: '4px' }} />}
-            </Button>
-          ))}
-          
-          {boundingBoxes.length > 4 && (
-            <Box style={{ position: 'relative' }}>
-              <Button
-                onClick={() => setShowBBoxDropdown(!showBBoxDropdown)}
-                style={{
-                  background: 'transparent',
-                  color: theme.colors.status.success,
-                  border: `1px solid ${theme.colors.status.success}`,
-                  borderRadius: theme.borders.radius.md,
-                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                }}
-              >
-                +{boundingBoxes.length - 4} <CaretDown size={10} />
-              </Button>
+    // Get unique labels from bounding boxes
+    const uniqueLabels = Array.from(new Set(boundingBoxes.map(bbox => bbox.label)));
 
-              {showBBoxDropdown && (
-                <Box
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    zIndex: 1000,
-                    background: theme.colors.background.card,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.md,
-                    boxShadow: theme.shadows.semantic.card.medium,
-                    padding: theme.spacing.semantic.component.sm,
-                    minWidth: '150px',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                  }}
-                >
-                  {boundingBoxes.slice(4).map((bbox) => (
-                    <Box
-                      key={bbox.id}
-                      onClick={() => {
-                        onSelectLabel(bbox.label);
-                        setShowBBoxDropdown(false);
-                      }}
-                      style={{
-                        padding: theme.spacing.semantic.component.xs,
-                        borderRadius: theme.borders.radius.sm,
-                        cursor: 'pointer',
-                        background: selectedLabel === bbox.label ? `${theme.colors.status.success}15` : 'transparent',
-                        transition: 'background 0.2s ease',
-                      }}
-                    >
-                      <Text size="2" style={{ color: theme.colors.text.primary }}>
-                        {bbox.label}
-                      </Text>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-        </Flex>
+    return (
+      <Flex align="center" gap="3">
+        <LabelSelector
+          labels={uniqueLabels}
+          selectedLabel={selectedLabel}
+          onSelectLabel={onSelectLabel}
+          maxVisibleLabels={3}
+          compact={true}
+        />
 
         {selectedLabel && (
-          <Badge
-            style={{
-              background: `${theme.colors.status.success}15`,
-              color: theme.colors.status.success,
-              border: `1px solid ${theme.colors.status.success}30`,
-              padding: "2px 6px",
-              borderRadius: theme.borders.radius.full,
-              fontSize: "11px",
-              fontWeight: 600,
-            }}
-          >
-            ✓ Ready to segment
-          </Badge>
+          <Flex align="center" gap="2">
+            <Badge
+              style={{
+                background: `${theme.colors.status.success}15`,
+                color: theme.colors.status.success,
+                border: `1px solid ${theme.colors.status.success}30`,
+                padding: "4px 10px",
+                borderRadius: theme.borders.radius.full,
+                fontSize: "11px",
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: theme.spacing.semantic.component.xs,
+              }}
+            >
+              <Circle size={12} />
+              Ready to segment
+            </Badge>
+            
+            <Text 
+              size="1" 
+              style={{ 
+                color: theme.colors.text.tertiary, 
+                fontStyle: 'italic',
+                fontWeight: 500 
+              }}
+            >
+              Click points to draw polygon
+            </Text>
+          </Flex>
         )}
       </Flex>
     );

@@ -3,6 +3,7 @@ import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
 import { useTheme } from '@/shared/ui/design-system';
 import { BoundingBox, Polygon, Point, AnnotationType } from '../types/workspace';
 import { Hand, PencilSimple } from 'phosphor-react';
+import { getLabelColor, getLabelColorWithOpacity } from '../utils/labelColors';
 
 interface ImageViewerProps {
   imageUrl: string;
@@ -56,35 +57,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   setDrawing
 }) => {
   const { theme } = useTheme();
-
-  // Generate consistent color for each label using HSL color space
-  const getLabelColor = useCallback((label: string): string => {
-    // Enhanced hash function for better distribution
-    let hash = 0;
-    for (let i = 0; i < label.length; i++) {
-      const char = label.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    
-    // Use absolute value and ensure positive
-    const positiveHash = Math.abs(hash);
-    
-    // Generate hue (0-360) for maximum color variety
-    const hue = positiveHash % 360;
-    
-    // Use multiple hash variations for saturation and lightness
-    const satHash = Math.abs(hash * 7919) % 100; // Prime number for better distribution
-    const lightHash = Math.abs(hash * 9973) % 100; // Another prime number
-    
-    // Ensure good saturation (60-90%) for vibrant colors
-    const saturation = 60 + (satHash % 31); // 60-90%
-    
-    // Ensure good lightness (40-65%) for good contrast and readability
-    const lightness = 40 + (lightHash % 26); // 40-65%
-    
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-  }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>();
