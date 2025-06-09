@@ -1,7 +1,6 @@
-import React from 'react';
 import { Box, Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { AnnotationType } from '../../annotation/types/workspace';
+import { AnnotationType } from '@/features/annotation';
 import { ChallengePhase } from '@/features/challenge';
 
 interface WorkspaceStatusBarProps {

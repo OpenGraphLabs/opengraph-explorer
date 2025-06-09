@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { CaretDown, Check, Palette } from "phosphor-react";
@@ -165,7 +165,7 @@ export function LabelSelector({
                     fontSize: '11px',
                     outline: 'none',
                   }}
-                  onChange={(e) => {
+                  onChange={(_) => {
                     // TODO: 나중에 검색 기능 구현할 수 있음
                   }}
                 />

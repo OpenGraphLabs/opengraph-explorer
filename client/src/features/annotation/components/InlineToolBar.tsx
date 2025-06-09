@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { Tag, Target, Circle, Plus, CaretDown, Check, X, PaperPlaneRight, Palette } from "phosphor-react";
+import { Tag, Target, Circle, Check, PaperPlaneRight } from "phosphor-react";
 import { AnnotationType } from '@/features/annotation/types/workspace';
 import { ChallengePhase } from '@/features/challenge';
 import { LabelSelector } from './LabelSelector';
@@ -31,7 +31,6 @@ export function InlineToolBar({
   selectedLabel,
   existingLabels,
   boundingBoxes,
-  currentPhase,
   onToolChange,
   onAddLabel,
   onSelectLabel,

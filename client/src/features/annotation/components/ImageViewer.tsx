@@ -3,7 +3,7 @@ import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
 import { useTheme } from '@/shared/ui/design-system';
 import { BoundingBox, Polygon, Point, AnnotationType } from '../types/workspace';
 import { Hand, PencilSimple } from 'phosphor-react';
-import { getLabelColor, getLabelColorWithOpacity } from '../utils/labelColors';
+import { getLabelColor } from '../utils/labelColors';
 
 interface ImageViewerProps {
   imageUrl: string;
@@ -51,7 +51,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   onPanChange,
   onAddBoundingBox,
   onAddPolygon,
-  onSelectAnnotation,
   onDeleteAnnotation,
   onUpdateBoundingBox,
   setDrawing
@@ -82,10 +81,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   const [activeHandle, setActiveHandle] = useState<ResizeHandle | null>(null);
   const [originalBbox, setOriginalBbox] = useState<BoundingBox | null>(null);
 
-  // Calculate display dimensions
-  const displayWidth = imageWidth * zoom;
-  const displayHeight = imageHeight * zoom;
-
   // Convert screen coordinates to image coordinates
   const screenToImage = useCallback((screenX: number, screenY: number): Point => {
     if (!canvasRef.current) return { x: 0, y: 0 };
@@ -96,14 +91,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     
     return { x: Math.max(0, Math.min(imageWidth, x)), y: Math.max(0, Math.min(imageHeight, y)) };
   }, [zoom, panOffset, imageWidth, imageHeight]);
-
-  // Convert image coordinates to screen coordinates
-  const imageToScreen = useCallback((imageX: number, imageY: number): Point => {
-    return {
-      x: imageX * zoom + panOffset.x,
-      y: imageY * zoom + panOffset.y
-    };
-  }, [zoom, panOffset]);
 
   // Get BBox handles for editing
   const getBBoxHandles = useCallback((bbox: BoundingBox): BBoxHandle[] => {
@@ -424,7 +411,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   }, [isDraggingBbox, isDrawingBbox, selectedLabel, screenToImage, drawingStart, onAddBoundingBox, setDrawing, isPanning]);
 
   // Handle double click to finish polygon
-  const handleDoubleClick = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
+  const handleDoubleClick = useCallback((_: MouseEvent<HTMLCanvasElement>) => {
     if (currentTool === 'segmentation' && isDrawing && currentDrawing.length >= 3 && selectedLabel) {
       onAddPolygon({
         points: currentDrawing,
