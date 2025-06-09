@@ -1,5 +1,5 @@
 import { Flex } from "@/shared/ui/design-system/components";
-import { AnnotationToolSelector, ToolConfigPanel } from '@/features/annotation';
+import { CompactToolConfigPanel } from '@/features/annotation';
 import { ViewControls } from '@/features/workspace-controls';
 import { AnnotationType } from '@/features/annotation/types/workspace';
 import { ChallengePhase } from '@/features/challenge';
@@ -18,9 +18,6 @@ interface AnnotationSidebarProps {
   }>;
   zoom: number;
   panOffset: { x: number; y: number };
-  onToolChange: (tool: AnnotationType) => void;
-  onAddLabel: (label: string) => void;
-  onSelectLabel: (label: string) => void;
   onZoomChange: (zoom: number) => void;
   onPanChange: (offset: { x: number; y: number }) => void;
   phaseConstraints?: {
@@ -37,9 +34,6 @@ export function AnnotationSidebar({
   boundingBoxes,
   zoom,
   panOffset,
-  onToolChange,
-  onAddLabel,
-  onSelectLabel,
   onZoomChange,
   onPanChange,
   phaseConstraints,
@@ -53,16 +47,8 @@ export function AnnotationSidebar({
 
   return (
     <Flex direction="column" gap="4">
-      <AnnotationToolSelector
+      <CompactToolConfigPanel
         config={toolConfig}
-        onToolChange={onToolChange}
-        phaseConstraints={phaseConstraints}
-      />
-
-      <ToolConfigPanel
-        config={toolConfig}
-        onAddLabel={onAddLabel}
-        onSelectLabel={onSelectLabel}
       />
 
       <ViewControls

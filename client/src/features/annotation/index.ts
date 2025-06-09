@@ -18,6 +18,8 @@ export * from './components/ImageNavigation';
 export * from './components/AnnotationList';
 export * from './components/AnnotationToolSelector';
 export * from './components/ToolConfigPanel';
+export * from './components/CompactToolConfigPanel';
+export * from './components/InlineToolBar';
 export * from './components/AnnotationItem';
 export * from './components/AnnotationListPanel';
 export * from './components/PhaseConstraintsBanner';

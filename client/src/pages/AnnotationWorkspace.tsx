@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -23,12 +23,12 @@ import { ImageViewer } from '@/features/annotation/components/ImageViewer';
 import { mockImages } from '@/features/annotation/data/mockImages';
 import { AnnotationType } from '@/features/annotation/types/workspace';
 import { useChallenge } from '@/features/challenge';
-import { usePhaseConstraints, PhaseConstraintsBanner } from '@/features/annotation';
+import { usePhaseConstraints } from '@/features/annotation';
 
 // Import new modular components
 import { AnnotationSidebar } from '@/widgets/annotation-sidebar';
 import { ImageNavigationPanel } from '@/features/image-navigation';
-import { AnnotationListPanel } from '@/features/annotation';
+import { AnnotationListPanel, InlineToolBar } from '@/features/annotation';
 import { WorkspaceStatusBar } from '@/features/workspace-controls';
 import { useAnnotationTools } from '@/features/annotation';
 import { useImageNavigation } from '@/features/image-navigation';
@@ -74,8 +74,6 @@ export function AnnotationWorkspace() {
   const {
     currentImageIndex,
     progress,
-    handleNext,
-    handlePrevious,
   } = useImageNavigation({
     images: mockImages,
     currentImage: state.currentImage,
@@ -245,9 +243,6 @@ export function AnnotationWorkspace() {
         boundingBoxes={state.annotations.boundingBoxes}
         zoom={state.zoom}
         panOffset={state.panOffset}
-        onToolChange={handleToolChange}
-        onAddLabel={actions.addLabel}
-        onSelectLabel={actions.setSelectedLabel}
         onZoomChange={actions.setZoom}
         onPanChange={actions.setPanOffset}
         phaseConstraints={{
@@ -423,8 +418,30 @@ export function AnnotationWorkspace() {
 
 
 
+        {/* Inline Tool Bar */}
+        <InlineToolBar
+          currentTool={state.currentTool}
+          selectedLabel={state.selectedLabel}
+          existingLabels={toolConfig.existingLabels}
+          boundingBoxes={state.annotations.boundingBoxes}
+          currentPhase={currentPhase}
+          onToolChange={handleToolChange}
+          onAddLabel={actions.addLabel}
+          onSelectLabel={actions.setSelectedLabel}
+          isToolAllowed={isToolAllowed}
+          getDisallowedMessage={getDisallowedMessage}
+        />
+
         {/* Main Content */}
-        <Flex style={{ flex: 1, overflow: "hidden" }}>
+        <Flex 
+          style={{ 
+            flex: 1, 
+            overflow: "hidden",
+            border: `1px solid ${theme.colors.border.primary}`,
+            borderTop: 'none',
+            borderRadius: `0 0 ${theme.borders.radius.md} ${theme.borders.radius.md}`,
+          }}
+        >
           {/* Navigation Panel */}
           <ImageNavigationPanel
             images={mockImages}
@@ -498,6 +515,8 @@ export function AnnotationWorkspace() {
           }
         />
       </Box>
+
+
     </SidebarLayout>
   );
 } 
