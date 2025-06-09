@@ -52,16 +52,16 @@ export function LabelSelector({
       <Box style={{ position: 'relative', minWidth: '200px' }}>
         <Button
           onClick={() => setShowDropdown(!showDropdown)}
-          style={{
-            background: selectedLabel 
-              ? `${getLabelColor(selectedLabel)}15` 
-              : theme.colors.background.card,
-            color: selectedLabel 
-              ? getLabelColor(selectedLabel)
-              : theme.colors.text.secondary,
-            border: `1px solid ${selectedLabel 
-              ? getLabelColor(selectedLabel) 
-              : theme.colors.border.secondary}`,
+                     style={{
+             background: selectedLabel 
+               ? `${getLabelColor(selectedLabel)}12` 
+               : theme.colors.background.card,
+             color: selectedLabel 
+               ? getLabelColor(selectedLabel)
+               : theme.colors.text.secondary,
+             border: `1px solid ${selectedLabel 
+               ? `${getLabelColor(selectedLabel)}80`
+               : theme.colors.border.secondary}`,
             borderRadius: theme.borders.radius.md,
             padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
             fontSize: "12px",
@@ -184,37 +184,38 @@ export function LabelSelector({
                       onSelectLabel(label);
                       setShowDropdown(false);
                     }}
-                    style={{
-                      padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                      cursor: 'pointer',
-                      background: isSelected ? `${labelColor}15` : 'transparent',
-                      borderLeft: isSelected ? `3px solid ${labelColor}` : '3px solid transparent',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: theme.spacing.semantic.component.sm,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = `${labelColor}08`;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = 'transparent';
-                      }
-                    }}
+                                         style={{
+                       padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                       cursor: 'pointer',
+                       background: isSelected ? `${labelColor}10` : 'transparent',
+                       borderLeft: isSelected ? `3px solid ${labelColor}` : '3px solid transparent',
+                       transition: 'all 0.2s ease',
+                       display: 'flex',
+                       alignItems: 'center',
+                       gap: theme.spacing.semantic.component.sm,
+                     }}
+                     onMouseEnter={(e) => {
+                       if (!isSelected) {
+                         e.currentTarget.style.background = `${labelColor}05`;
+                       }
+                     }}
+                     onMouseLeave={(e) => {
+                       if (!isSelected) {
+                         e.currentTarget.style.background = 'transparent';
+                       }
+                     }}
                   >
-                    <Box
-                      style={{
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        background: labelColor,
-                        flexShrink: 0,
-                        border: `2px solid ${labelColor}40`,
-                      }}
-                    />
+                                         <Box
+                       style={{
+                         width: '12px',
+                         height: '12px',
+                         borderRadius: '50%',
+                         background: labelColor,
+                         flexShrink: 0,
+                         border: `1px solid ${labelColor}30`,
+                         boxShadow: `0 0 0 1px ${theme.colors.background.card}`,
+                       }}
+                     />
                     
                     <Text 
                       size="2" 
@@ -292,7 +293,7 @@ export function LabelSelector({
               style={{
                 background: isSelected ? labelColor : 'transparent',
                 color: isSelected ? textColor : labelColor,
-                border: `2px solid ${labelColor}`,
+                border: `1px solid ${labelColor}`,
                 borderRadius: theme.borders.radius.md,
                 padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                 fontSize: "12px",
@@ -303,8 +304,8 @@ export function LabelSelector({
                 alignItems: 'center',
                 gap: theme.spacing.semantic.component.xs,
                 position: 'relative',
-                boxShadow: isSelected ? `0 0 0 2px ${labelColor}20` : 'none',
-                transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                boxShadow: isSelected ? `0 0 0 1px ${labelColor}40` : 'none',
+                transform: isSelected ? 'scale(1.01)' : 'scale(1)',
               }}
             >
               {/* Color indicator dot */}
@@ -411,8 +412,8 @@ export function LabelSelector({
                         padding: theme.spacing.semantic.component.sm,
                         borderRadius: theme.borders.radius.sm,
                         cursor: 'pointer',
-                        background: isSelected ? `${labelColor}15` : 'transparent',
-                        border: isSelected ? `1px solid ${labelColor}40` : '1px solid transparent',
+                        background: isSelected ? `${labelColor}10` : 'transparent',
+                        border: isSelected ? `1px solid ${labelColor}30` : '1px solid transparent',
                         transition: 'all 0.2s ease',
                         display: 'flex',
                         alignItems: 'center',

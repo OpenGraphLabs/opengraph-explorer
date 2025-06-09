@@ -194,33 +194,12 @@ export function InlineToolBar({
               alignItems: 'center',
               gap: theme.spacing.semantic.component.sm,
               padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-              background: `${theme.colors.status.warning}08`,
-              border: `1px solid ${theme.colors.status.warning}30`,
-              borderRadius: theme.borders.radius.md,
             }}
           >
-            <Palette size={16} style={{ color: theme.colors.status.warning }} />
             <Text size="2" style={{ color: theme.colors.status.warning, fontWeight: 600 }}>
-              Create labels first to draw bounding boxes
+              Create labels first to draw bboxes
             </Text>
           </Box>
-          <Button
-            onClick={() => onToolChange('label')}
-            style={{
-              background: `linear-gradient(135deg, ${theme.colors.status.warning}, ${theme.colors.status.warning}90)`,
-              color: theme.colors.text.inverse,
-              border: "none",
-              borderRadius: theme.borders.radius.md,
-              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-              fontWeight: 600,
-              fontSize: "13px",
-              cursor: "pointer",
-              boxShadow: theme.shadows.semantic.card.low,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Go to Labels
-          </Button>
         </Flex>
       );
     }

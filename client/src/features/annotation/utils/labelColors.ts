@@ -1,40 +1,40 @@
 // Label별 고유 색상 생성 및 관리 유틸리티
 
-// 미리 정의된 세련된 색상 팔레트 (다크/라이트 모드 호환)
+// 전문적이고 세련된 색상 팔레트 (AI/ML 도구에 적합한 차분한 톤)
 const COLOR_PALETTE = [
-  '#FF6B6B', // Coral Red
-  '#4ECDC4', // Turquoise
-  '#45B7D1', // Sky Blue  
-  '#96CEB4', // Mint Green
-  '#FFEAA7', // Light Yellow
-  '#DDA0DD', // Plum
-  '#98D8C8', // Mint
-  '#F7DC6F', // Banana Yellow
-  '#BB8FCE', // Light Purple
-  '#85C1E9', // Light Blue
-  '#F8C471', // Peach
-  '#82E0AA', // Light Green
-  '#F1948A', // Light Red
-  '#85C1E9', // Powder Blue
-  '#D2B4DE', // Lavender
-  '#AED6F1', // Baby Blue
-  '#A9DFBF', // Soft Green
-  '#F9E79F', // Cream Yellow
-  '#FADBD8', // Rose
-  '#D5DBDB', // Light Gray
+  '#2E86AB', // Professional Blue
+  '#A23B72', // Deep Rose
+  '#F18F01', // Amber Orange  
+  '#C73E1D', // Crimson Red
+  '#5D737E', // Steel Blue
+  '#7209B7', // Deep Purple
+  '#2F9B69', // Forest Green
+  '#E8571A', // Burnt Orange
+  '#264653', // Dark Teal
+  '#2A9D8F', // Teal Green
+  '#E76F51', // Terracotta
+  '#F4A261', // Sandy Gold
+  '#457B9D', // Ocean Blue
+  '#6C584C', // Coffee Brown
+  '#A8DADC', // Soft Cyan
+  '#1D3557', // Navy Blue
+  '#8D5524', // Bronze
+  '#6A994E', // Olive Green
+  '#BC6C25', // Warm Brown
+  '#606C38', // Sage Green
 ];
 
-// HSL 기반 동적 색상 생성
+// 전문적인 톤의 HSL 기반 동적 색상 생성
 function generateColorFromString(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
   
-  // 적절한 채도와 명도로 색상 생성
+  // 전문적이고 차분한 색상 범위로 제한
   const hue = Math.abs(hash) % 360;
-  const saturation = 65 + (Math.abs(hash) % 25); // 65-90%
-  const lightness = 55 + (Math.abs(hash) % 15); // 55-70%
+  const saturation = 45 + (Math.abs(hash) % 20); // 45-65% (덜 선명함)
+  const lightness = 35 + (Math.abs(hash) % 20); // 35-55% (더 어두움)
   
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
@@ -89,7 +89,7 @@ export function getLabelColorWithOpacity(label: string, opacity: number = 0.3): 
 }
 
 /**
- * 색상이 밝은지 어두운지 판단합니다.
+ * 색상이 밝은지 어두운지 판단합니다. (전문적인 색상 팔레트에 최적화)
  */
 export function isLightColor(color: string): boolean {
   // HEX 색상 처리
@@ -98,15 +98,17 @@ export function isLightColor(color: string): boolean {
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    return brightness > 155;
+    // 더 어두운 색상 팔레트에 맞게 기준점 하향 조정
+    return brightness > 120;
   }
   
-  // HSL 색상 처리 (간단한 명도 기반 판단)
+  // HSL 색상 처리 (전문적인 색상에 맞게 조정)
   if (color.startsWith('hsl')) {
     const lightnessMatch = color.match(/(\d+)%\)$/);
     if (lightnessMatch) {
       const lightness = parseInt(lightnessMatch[1]);
-      return lightness > 60;
+      // 더 낮은 명도 기준점으로 조정
+      return lightness > 45;
     }
   }
   
