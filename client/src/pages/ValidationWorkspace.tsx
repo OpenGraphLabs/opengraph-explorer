@@ -215,6 +215,8 @@ export function ValidationWorkspace() {
     setSelectedAnnotationIds(new Set());
   }, []);
   
+
+
   // Bulk validation handler
   const handleBulkValidation = useCallback(async (action: 'approve' | 'reject' | 'flag', reason?: string) => {
     if (selectedAnnotationIds.size === 0 || isValidating) return;

@@ -11,6 +11,7 @@ export interface BoundingBox {
   height: number;
   label: string;
   confidence?: number;
+  selected?: boolean;
 }
 
 export interface Polygon {

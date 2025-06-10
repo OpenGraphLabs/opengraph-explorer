@@ -23,6 +23,7 @@ interface ImageViewerProps {
   onSelectAnnotation?: (type: AnnotationType, id: string) => void;
   onDeleteAnnotation?: (type: AnnotationType, id: string) => void;
   onUpdateBoundingBox?: (id: string, updates: Partial<BoundingBox>) => void;
+
   setDrawing: (drawing: boolean) => void;
   // Navigation props
   onPreviousImage?: () => void;
@@ -56,6 +57,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   onPanChange,
   onAddBoundingBox,
   onAddPolygon,
+  onSelectAnnotation,
   onDeleteAnnotation,
   onUpdateBoundingBox,
   setDrawing,
@@ -269,13 +271,31 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     }
 
     if (clickedBbox && clickedHandle) {
-      // Start BBox editing
-      setSelectedBboxId(clickedBbox.id);
-      setIsDraggingBbox(true);
-      setActiveHandle(clickedHandle);
-      setOriginalBbox(clickedBbox);
-      setDragStartPoint(imagePoint);
-      return;
+      // If clicking on handle, start BBox editing
+      if (clickedHandle !== 'move') {
+        setSelectedBboxId(clickedBbox.id);
+        setIsDraggingBbox(true);
+        setActiveHandle(clickedHandle);
+        setOriginalBbox(clickedBbox);
+        setDragStartPoint(imagePoint);
+        return;
+      } else {
+        // If clicking on bbox body (move handle), call selection callback
+        if (onSelectAnnotation) {
+          onSelectAnnotation('bbox', clickedBbox.id);
+        }
+        return;
+      }
+    }
+
+    // Check if clicking directly on bbox (not on handle)
+    for (const bbox of boundingBoxes) {
+      if (isPointInBBox(imagePoint, bbox)) {
+        if (onSelectAnnotation) {
+          onSelectAnnotation('bbox', bbox.id);
+        }
+        return;
+      }
     }
 
     // Clear selection if clicking on empty area
@@ -301,7 +321,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       setIsPanning(true);
       setLastPanPoint({ x: e.clientX, y: e.clientY });
     }
-  }, [currentTool, selectedLabel, screenToImage, isDrawing, setDrawing, boundingBoxes, getHandleAtPoint, isPanMode]);
+  }, [currentTool, selectedLabel, screenToImage, isDrawing, setDrawing, boundingBoxes, getHandleAtPoint, isPanMode, onSelectAnnotation, isPointInBBox]);
 
   // Handle mouse move with RAF for performance and mode awareness
   const handleMouseMove = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
@@ -330,55 +350,55 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         });
         
         setLastPanPoint({ x: e.clientX, y: e.clientY });
+      }
+      
+      // Update cursor based on current mode and what's under mouse
+      if (!canvasRef.current) return;
+      
+      let cursor = 'default';
+      
+      if (isPanMode) {
+        cursor = 'grab';
+      } else if (currentTool === 'bbox') {
+        cursor = 'crosshair';
+      } else if (currentTool === 'segmentation') {
+        cursor = 'crosshair';
       } else {
-        // Update cursor based on current mode and what's under mouse
-        if (!canvasRef.current) return;
-        
-        let cursor = 'default';
-        
-        if (isPanMode) {
-          cursor = 'grab';
-        } else if (currentTool === 'bbox') {
-          cursor = 'crosshair';
-        } else if (currentTool === 'segmentation') {
-          cursor = 'crosshair';
-        } else {
-          // Check if hovering over BBox handle (only in annotation mode)
-          for (const bbox of boundingBoxes) {
-            const handle = getHandleAtPoint(imagePoint, bbox);
-            if (handle) {
-              switch (handle) {
-                case 'nw':
-                case 'se':
-                  cursor = 'nw-resize';
-                  break;
-                case 'ne':
-                case 'sw':
-                  cursor = 'ne-resize';
-                  break;
-                case 'n':
-                case 's':
-                  cursor = 'n-resize';
-                  break;
-                case 'e':
-                case 'w':
-                  cursor = 'e-resize';
-                  break;
-                case 'move':
-                  cursor = 'move';
-                  break;
-              }
-              break;
+        // Check if hovering over BBox handle (only in annotation mode)
+        for (const bbox of boundingBoxes) {
+          const handle = getHandleAtPoint(imagePoint, bbox);
+          if (handle) {
+            switch (handle) {
+              case 'nw':
+              case 'se':
+                cursor = 'nw-resize';
+                break;
+              case 'ne':
+              case 'sw':
+                cursor = 'ne-resize';
+                break;
+              case 'n':
+              case 's':
+                cursor = 'n-resize';
+                break;
+              case 'e':
+              case 'w':
+                cursor = 'e-resize';
+                break;
+              case 'move':
+                cursor = 'move';
+                break;
             }
-          }
-          
-          if (cursor === 'default') {
-            cursor = 'grab';
+            break;
           }
         }
         
-        canvasRef.current.style.cursor = cursor;
+        if (cursor === 'default') {
+          cursor = 'grab';
+        }
       }
+      
+      canvasRef.current.style.cursor = cursor;
     });
   }, [
     isDraggingBbox, activeHandle, originalBbox, dragStartPoint, updateBBoxFromHandle, onUpdateBoundingBox,
@@ -455,16 +475,27 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     
     // Draw bounding boxes
     boundingBoxes.forEach((bbox) => {
-      const isSelected = bbox.id === selectedBboxId;
+      const isSelected = bbox.selected || bbox.id === selectedBboxId;
       const labelColor = getLabelColor(bbox.label);
       
-      // Use label-specific color, but make selected ones brighter
-      ctx.strokeStyle = isSelected ? theme.colors.interactive.primary : labelColor;
-      ctx.lineWidth = (isSelected ? 3 : 2) / zoom;
-      ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+      // Use different visual styles for selected bbox
+      if (isSelected) {
+        // Selected bbox: thicker border with glow effect
+        ctx.strokeStyle = '#22C55E'; // Green for selected
+        ctx.lineWidth = 4 / zoom;
+        ctx.shadowColor = '#22C55E';
+        ctx.shadowBlur = 8 / zoom;
+        ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+        ctx.shadowBlur = 0; // Reset shadow
+      } else {
+        // Unselected bbox: normal style
+        ctx.strokeStyle = labelColor;
+        ctx.lineWidth = 2 / zoom;
+        ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+      }
       
       // Draw label background for better readability
-      ctx.fillStyle = isSelected ? theme.colors.interactive.primary : labelColor;
+      ctx.fillStyle = isSelected ? '#22C55E' : labelColor;
       ctx.font = `${14 / zoom}px sans-serif`;
       
       // Measure text for background
@@ -484,8 +515,8 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       ctx.fillStyle = '#FFFFFF';
       ctx.fillText(bbox.label, bbox.x, bbox.y - 5 / zoom);
       
-      // Draw handles for selected bbox
-      if (isSelected) {
+      // Draw handles for selected bbox (editing mode)
+      if (bbox.id === selectedBboxId) {
         const handles = getBBoxHandles(bbox);
         handles.forEach((handle) => {
           ctx.fillStyle = theme.colors.interactive.primary;
