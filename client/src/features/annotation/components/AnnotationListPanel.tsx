@@ -13,7 +13,7 @@ interface AnnotationListPanelProps {
 export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAll }: AnnotationListPanelProps) {
   const { theme } = useTheme();
 
-  const totalAnnotations = annotations.labels.length + annotations.boundingBoxes.length + annotations.polygons.length;
+  const totalAnnotations = (annotations.labels?.length || 0) + (annotations.boundingBoxes?.length || 0) + (annotations.polygons?.length || 0);
 
   return (
     <Box
@@ -100,7 +100,7 @@ export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAl
         ) : (
           <Flex direction="column" gap="1">
             {/* Labels */}
-            {annotations.labels.map((label) => (
+            {annotations.labels?.map((label) => (
               <AnnotationItem
                 key={label.id}
                 type="label"
@@ -110,7 +110,7 @@ export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAl
             ))}
 
             {/* Bounding Boxes */}
-            {annotations.boundingBoxes.map((bbox) => (
+            {annotations.boundingBoxes?.map((bbox) => (
               <AnnotationItem
                 key={bbox.id}
                 type="bbox"
@@ -120,7 +120,7 @@ export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAl
             ))}
 
             {/* Polygons */}
-            {annotations.polygons.map((polygon) => (
+            {annotations.polygons?.map((polygon) => (
               <AnnotationItem
                 key={polygon.id}
                 type="segmentation"

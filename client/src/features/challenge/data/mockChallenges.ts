@@ -63,6 +63,12 @@ export const mockChallenges: Challenge[] = [
       averageQualityScore: 0.87
     },
     
+    validators: {
+      allowedValidators: ['user-2', 'user-3'], // Different validators for challenge-1
+      requireValidatorApproval: true,
+      validationRewards: 10
+    },
+    
     tags: ['computer-vision', 'autonomous-driving', 'object-detection', 'urban'],
     difficulty: 'intermediate',
     
@@ -131,6 +137,12 @@ export const mockChallenges: Challenge[] = [
       averageQualityScore: 0.92
     },
     
+    validators: {
+      allowedValidators: ['user-1', 'user-4'], // user-1 is validator for challenge-2
+      requireValidatorApproval: true,
+      validationRewards: 15
+    },
+    
     tags: ['medical', 'segmentation', 'mri', 'anatomy'],
     difficulty: 'advanced',
     
@@ -196,6 +208,12 @@ export const mockChallenges: Challenge[] = [
       completedAnnotations: 1203,
       pendingValidations: 0,
       averageQualityScore: 0.81
+    },
+    
+    validators: {
+      allowedValidators: ['user-3', 'user-5'],
+      requireValidatorApproval: false,
+      validationRewards: 8
     },
     
     tags: ['wildlife', 'classification', 'conservation', 'camera-trap'],
@@ -266,6 +284,12 @@ export const mockChallenges: Challenge[] = [
       averageQualityScore: 0.89
     },
     
+    validators: {
+      allowedValidators: ['user-2', 'user-6'],
+      requireValidatorApproval: true,
+      validationRewards: 12
+    },
+    
     tags: ['industrial', 'defect-detection', 'quality-control', 'manufacturing'],
     difficulty: 'intermediate',
     
@@ -332,6 +356,12 @@ export const mockChallenges: Challenge[] = [
       completedAnnotations: 0,
       pendingValidations: 0,
       averageQualityScore: 0
+    },
+    
+    validators: {
+      allowedValidators: ['user-1', 'user-7'],
+      requireValidatorApproval: true,
+      validationRewards: 18
     },
     
     tags: ['satellite', 'land-cover', 'environmental', 'remote-sensing'],

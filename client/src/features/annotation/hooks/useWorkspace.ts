@@ -46,7 +46,7 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
         ...state,
         annotations: {
           ...state.annotations,
-          labels: [...state.annotations.labels, action.payload]
+          labels: [...(state.annotations.labels || []), action.payload]
         },
         unsavedChanges: true
       };
@@ -56,7 +56,7 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
         ...state,
         annotations: {
           ...state.annotations,
-          boundingBoxes: [...state.annotations.boundingBoxes, action.payload]
+          boundingBoxes: [...(state.annotations.boundingBoxes || []), action.payload]
         },
         unsavedChanges: true
       };
@@ -66,7 +66,7 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
         ...state,
         annotations: {
           ...state.annotations,
-          polygons: [...state.annotations.polygons, action.payload]
+          polygons: [...(state.annotations.polygons || []), action.payload]
         },
         unsavedChanges: true
       };
@@ -76,7 +76,7 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
         ...state,
         annotations: {
           ...state.annotations,
-          boundingBoxes: state.annotations.boundingBoxes.map(bbox =>
+          boundingBoxes: (state.annotations.boundingBoxes || []).map(bbox =>
             bbox.id === action.payload.id ? { ...bbox, ...action.payload.bbox } : bbox
           )
         },

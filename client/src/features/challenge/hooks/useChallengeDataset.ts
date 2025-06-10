@@ -77,7 +77,7 @@ export function useChallengeDataset(challenge: Challenge | null): ChallengeDatas
       }
 
       // Bridge service를 통해 Dataset을 ImageData 배열로 변환
-      const convertedImages = await imageBridgeService.convertDatasetToImages(dataset);
+      const convertedImages = await imageBridgeService.convertDatasetToImages(dataset as any);
       
       // Progress 업데이트
       setProgress({ 

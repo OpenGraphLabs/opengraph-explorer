@@ -66,8 +66,8 @@ export function AnnotationWorkspace() {
   const toolConfig = {
     currentTool: state.currentTool,
     selectedLabel: state.selectedLabel,
-    existingLabels: Array.from(new Set(state.annotations.labels.map(label => label.label))),
-    boundingBoxes: state.annotations.boundingBoxes,
+    existingLabels: Array.from(new Set(state.annotations.labels?.map(label => label.label) || [])),
+    boundingBoxes: state.annotations.boundingBoxes || [],
   };
 
   const { getToolConstraintMessage } = useAnnotationTools(toolConfig);
@@ -110,12 +110,12 @@ export function AnnotationWorkspace() {
   }, [actions, selectedAnnotation]);
 
   const handleClearAll = useCallback(() => {
-    state.annotations.labels.forEach(label => handleDeleteAnnotation('label', label.id));
-    state.annotations.boundingBoxes.forEach(bbox => handleDeleteAnnotation('bbox', bbox.id));
-    state.annotations.polygons.forEach(polygon => handleDeleteAnnotation('segmentation', polygon.id));
+    state.annotations.labels?.forEach(label => handleDeleteAnnotation('label', label.id));
+    state.annotations.boundingBoxes?.forEach(bbox => handleDeleteAnnotation('bbox', bbox.id));
+    state.annotations.polygons?.forEach(polygon => handleDeleteAnnotation('segmentation', polygon.id));
   }, [state.annotations, handleDeleteAnnotation]);
 
-  const totalAnnotations = state.annotations.labels.length + state.annotations.boundingBoxes.length + state.annotations.polygons.length;
+  const totalAnnotations = (state.annotations.labels?.length || 0) + (state.annotations.boundingBoxes?.length || 0) + (state.annotations.polygons?.length || 0);
 
   // Loading state - Dataset 로딩 포함
   if (challengeLoading || datasetLoading) {
@@ -392,7 +392,7 @@ export function AnnotationWorkspace() {
         currentTool={state.currentTool}
         selectedLabel={state.selectedLabel}
         existingLabels={toolConfig.existingLabels}
-        boundingBoxes={state.annotations.boundingBoxes}
+        boundingBoxes={state.annotations.boundingBoxes || []}
         zoom={state.zoom}
         panOffset={state.panOffset}
         onZoomChange={actions.setZoom}
@@ -576,7 +576,7 @@ export function AnnotationWorkspace() {
           currentTool={state.currentTool}
           selectedLabel={state.selectedLabel}
           existingLabels={toolConfig.existingLabels}
-          boundingBoxes={state.annotations.boundingBoxes}
+          boundingBoxes={state.annotations.boundingBoxes || []}
           currentPhase={currentPhase}
           onToolChange={handleToolChange}
           onAddLabel={actions.addLabel}
@@ -612,8 +612,8 @@ export function AnnotationWorkspace() {
                 imageHeight={state.currentImage.height}
                 zoom={state.zoom}
                 panOffset={state.panOffset}
-                boundingBoxes={state.annotations.boundingBoxes}
-                polygons={state.annotations.polygons}
+                boundingBoxes={state.annotations.boundingBoxes || []}
+                polygons={state.annotations.polygons || []}
                 currentTool={state.currentTool}
                 selectedLabel={state.selectedLabel}
                 isDrawing={state.isDrawing}
@@ -654,9 +654,9 @@ export function AnnotationWorkspace() {
           currentTool={state.currentTool}
           selectedLabel={state.selectedLabel}
           annotationCounts={{
-            labels: state.annotations.labels.length,
-            boundingBoxes: state.annotations.boundingBoxes.length,
-            polygons: state.annotations.polygons.length,
+            labels: state.annotations.labels?.length || 0,
+            boundingBoxes: state.annotations.boundingBoxes?.length || 0,
+            polygons: state.annotations.polygons?.length || 0,
           }}
           zoom={state.zoom}
           unsavedChanges={state.unsavedChanges}

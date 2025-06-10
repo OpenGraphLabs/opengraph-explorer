@@ -58,6 +58,13 @@ export interface Challenge {
   
   stats: ParticipationStats;
   
+  // Validator configuration
+  validators: {
+    allowedValidators: string[]; // List of user IDs who can validate
+    requireValidatorApproval: boolean;
+    validationRewards: number; // Percentage of bounty for validators
+  };
+  
   tags: string[];
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   

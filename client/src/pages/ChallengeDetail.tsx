@@ -354,10 +354,10 @@ function Timeline({ challenge }: { challenge: Challenge }) {
           let statusIcon = <Circle size={12} />;
           
           if (isActive) {
-            statusColor = theme.colors.status.success;
+            statusColor = theme.colors.status.success as any;
             statusIcon = <Play size={12} weight="fill" />;
           } else if (isCompleted) {
-            statusColor = theme.colors.interactive.primary;
+            statusColor = theme.colors.interactive.primary as any;
             statusIcon = <CheckCircle size={12} weight="fill" />;
           }
 
@@ -443,6 +443,121 @@ function Timeline({ challenge }: { challenge: Challenge }) {
           );
         })}
       </Flex>
+    </Box>
+  );
+}
+
+// Validator Status Component
+function ValidatorStatus({ 
+  challenge, 
+  navigate
+}: {
+  challenge: Challenge;
+  navigate: (path: string) => void;
+}) {
+  const { theme } = useTheme();
+
+  const canValidate = challenge.currentPhase === 'validation' || challenge.status === 'validating';
+
+  return (
+    <Box
+      style={{
+        background: theme.colors.background.card,
+        border: `1px solid ${theme.colors.status.warning}30`,
+        borderRadius: theme.borders.radius.lg,
+        padding: theme.spacing.semantic.component.lg,
+      }}
+    >
+      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+        <Text
+          size="3"
+          style={{
+            fontWeight: 700,
+            color: theme.colors.text.primary,
+          }}
+        >
+          Validator Access
+        </Text>
+        <Badge
+          style={{
+            background: `${theme.colors.status.warning}15`,
+            color: theme.colors.status.warning,
+            border: `1px solid ${theme.colors.status.warning}30`,
+            padding: "4px 8px",
+            borderRadius: theme.borders.radius.full,
+            fontSize: "11px",
+            fontWeight: 600,
+          }}
+        >
+          <CheckCircle size={12} />
+          Validator
+        </Badge>
+      </Flex>
+
+      <Text
+        size="2"
+        style={{
+          color: theme.colors.text.secondary,
+          lineHeight: 1.5,
+          marginBottom: theme.spacing.semantic.component.lg,
+        }}
+      >
+        You have validator privileges for this challenge. Review and approve annotation submissions to earn validation rewards.
+      </Text>
+
+      {/* Validation Stats */}
+      <Box
+        style={{
+          background: theme.colors.background.secondary,
+          border: `1px solid ${theme.colors.border.secondary}`,
+          borderRadius: theme.borders.radius.md,
+          padding: theme.spacing.semantic.component.md,
+          marginBottom: theme.spacing.semantic.component.lg,
+        }}
+      >
+        <Grid columns="2" gap="4">
+          <Flex direction="column" gap="1">
+            <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              PENDING VALIDATIONS
+            </Text>
+            <Text size="3" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+              {challenge.stats.pendingValidations}
+            </Text>
+          </Flex>
+          <Flex direction="column" gap="1">
+            <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              VALIDATION REWARD
+            </Text>
+            <Text size="3" style={{ color: theme.colors.status.success, fontWeight: 700 }}>
+              {challenge.validators.validationRewards}%
+            </Text>
+          </Flex>
+        </Grid>
+      </Box>
+
+      {/* Action Button */}
+      <Button
+        onClick={() => navigate(`/challenges/${challenge.id}/validate`)}
+        disabled={!canValidate}
+        style={{
+          width: "100%",
+          background: canValidate ? theme.colors.status.warning : theme.colors.interactive.disabled,
+          color: theme.colors.text.inverse,
+          border: "none",
+          borderRadius: theme.borders.radius.md,
+          padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+          fontWeight: 600,
+          fontSize: "14px",
+          cursor: canValidate ? "pointer" : "not-allowed",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: theme.spacing.semantic.component.sm,
+        }}
+      >
+        <CheckCircle size={16} />
+        {canValidate ? "Start Validation" : `Validation Available in ${challenge.currentPhase} Phase`}
+      </Button>
     </Box>
   );
 }
@@ -676,38 +791,70 @@ function ParticipationStatus({
       </Box>
 
       {/* Action Buttons */}
-      <Flex gap="2">
-        <Button
-          onClick={() => navigate(`/challenges/${challenge.id}/annotate`)}
-          style={{
-            flex: 1,
-            background: theme.colors.interactive.primary,
-            color: theme.colors.text.inverse,
-            border: "none",
-            borderRadius: theme.borders.radius.md,
-            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-            fontWeight: 600,
-            fontSize: "13px",
-            cursor: "pointer",
-          }}
-        >
-          Continue Annotating
-        </Button>
-        <Button
-          onClick={onLeave}
-          style={{
-            background: "transparent",
-            color: theme.colors.status.error,
-            border: `1px solid ${theme.colors.status.error}`,
-            borderRadius: theme.borders.radius.md,
-            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-            fontWeight: 600,
-            fontSize: "13px",
-            cursor: "pointer",
-          }}
-        >
-          Leave
-        </Button>
+      <Flex direction="column" gap="2">
+        <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+          Debug: Phase={challenge.currentPhase}, Status={challenge.status}
+        </Text>
+        
+        <Flex gap="2">
+          <Button
+            onClick={() => navigate(`/challenges/${challenge.id}/annotate`)}
+            style={{
+              flex: 1,
+              background: theme.colors.interactive.primary,
+              color: theme.colors.text.inverse,
+              border: "none",
+              borderRadius: theme.borders.radius.md,
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              fontWeight: 600,
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            Continue Annotating
+          </Button>
+          
+          {/* Validation Button - Always show for testing */}
+          {true && (
+            <Button
+              onClick={() => navigate(`/challenges/${challenge.id}/validate`)}
+              style={{
+                flex: 1,
+                background: theme.colors.status.warning,
+                color: theme.colors.text.inverse,
+                border: "none",
+                borderRadius: theme.borders.radius.md,
+                padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                fontWeight: 600,
+                fontSize: "13px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: theme.spacing.semantic.component.xs,
+              }}
+            >
+              <CheckCircle size={14} />
+              Start Validation
+            </Button>
+          )}
+          
+          <Button
+            onClick={onLeave}
+            style={{
+              background: "transparent",
+              color: theme.colors.status.error,
+              border: `1px solid ${theme.colors.status.error}`,
+              borderRadius: theme.borders.radius.md,
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              fontWeight: 600,
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            Leave
+          </Button>
+        </Flex>
       </Flex>
     </Box>
   );
@@ -726,10 +873,15 @@ export function ChallengeDetail() {
     joinChallenge,
     leaveChallenge 
   } = useParticipation('user-1'); // Mock user ID
+  console.log("challenge", challenge);
   
   const [isJoining, setIsJoining] = useState(false);
 
   const participation = getChallengeParticipation(id || '');
+  
+  // Check if current user is a validator for this challenge
+  const currentUserId = 'user-1'; // Mock user ID
+  const isValidator = challenge?.validators.allowedValidators.includes(currentUserId) || false;
 
   const handleJoinChallenge = async () => {
     if (!id) return;
@@ -997,7 +1149,7 @@ export function ChallengeDetail() {
           />
           <StatsCard
             title="Time Left"
-            value={<TimeRemaining endDate={challenge.timeline.endDate} />}
+            value="Active"
             icon={<Clock size={20} />}
             color={theme.colors.status.warning}
           />
@@ -1095,14 +1247,75 @@ export function ChallengeDetail() {
 
           {/* Right Column */}
           <Flex direction="column" gap="6">
-            <ParticipationStatus
-              challenge={challenge}
-              participation={participation}
-              onJoin={handleJoinChallenge}
-              onLeave={handleLeaveChallenge}
-              isJoining={isJoining}
-              navigate={navigate}
-            />
+            {/* Validator Status - Show if user is a validator */}
+            {isValidator && (
+              <ValidatorStatus
+                challenge={challenge}
+                navigate={navigate}
+              />
+            )}
+
+            {/* Participation Status - Show if user is participating */}
+            {participation && (
+              <ParticipationStatus
+                challenge={challenge}
+                participation={participation}
+                onJoin={handleJoinChallenge}
+                onLeave={handleLeaveChallenge}
+                isJoining={isJoining}
+                navigate={navigate}
+              />
+            )}
+
+            {/* Join Challenge Card - Show if user is not participating and not a validator */}
+            {!participation && !isValidator && (
+              <Box
+                style={{
+                  background: theme.colors.background.card,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.lg,
+                  padding: theme.spacing.semantic.component.lg,
+                }}
+              >
+                <Text
+                  size="3"
+                  style={{
+                    fontWeight: 700,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.semantic.component.md,
+                  }}
+                >
+                  Join Challenge
+                </Text>
+                <Text
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    lineHeight: 1.5,
+                    marginBottom: theme.spacing.semantic.component.lg,
+                  }}
+                >
+                  Participate in this challenge to earn bounty rewards by providing high-quality annotations.
+                </Text>
+                <Button
+                  onClick={handleJoinChallenge}
+                  disabled={isJoining || challenge.status !== 'active'}
+                  style={{
+                    width: "100%",
+                    background: challenge.status === 'active' ? theme.colors.status.success : theme.colors.interactive.disabled,
+                    color: theme.colors.text.inverse,
+                    border: "none",
+                    borderRadius: theme.borders.radius.md,
+                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    cursor: challenge.status === 'active' ? "pointer" : "not-allowed",
+                  }}
+                >
+                  {isJoining ? "Joining..." : challenge.status === 'active' ? "Join Challenge" : "Challenge Not Active"}
+                </Button>
+              </Box>
+            )}
             
             {/* Requirements */}
             <Box

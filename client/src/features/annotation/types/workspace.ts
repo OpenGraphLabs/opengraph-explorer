@@ -29,9 +29,9 @@ export interface LabelAnnotation {
 export type AnnotationType = 'label' | 'bbox' | 'segmentation';
 
 export interface AnnotationData {
-  labels: LabelAnnotation[];
-  boundingBoxes: BoundingBox[];
-  polygons: Polygon[];
+  labels?: LabelAnnotation[];
+  boundingBoxes?: BoundingBox[];
+  polygons?: Polygon[];
 }
 
 export interface ImageData {
