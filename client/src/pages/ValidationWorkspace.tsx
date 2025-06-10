@@ -92,44 +92,89 @@ export function ValidationWorkspace() {
     }
   ) || [];
 
-  // Group annotations by label for current phase
+  // Group individual bbox/label/polygon items by their label
   const annotationGroups = useMemo(() => {
-    const groups: Record<string, typeof currentPhaseAnnotations> = {};
+    const groups: Record<string, {
+      label: string;
+      items: Array<{
+        annotationId: string;
+        annotation: typeof currentPhaseAnnotations[0];
+        itemId: string;
+        itemData: any;
+      }>;
+      imageId: string;
+    }> = {};
     
     currentPhaseAnnotations.forEach(annotation => {
-      let groupKey = '';
-      
       if (annotation.type === 'label') {
-        // For label annotations, group by first label value
-        const firstLabel = annotation.data.labels?.[0]?.label || 'unlabeled';
-        groupKey = firstLabel;
+        // For label annotations, create group for each individual label
+        annotation.data.labels?.forEach((labelItem) => {
+          const groupKey = labelItem.label || 'unlabeled';
+          
+          if (!groups[groupKey]) {
+            groups[groupKey] = {
+              label: groupKey,
+              items: [],
+              imageId: annotation.dataId
+            };
+          }
+          
+          groups[groupKey].items.push({
+            annotationId: annotation.id,
+            annotation,
+            itemId: labelItem.id,
+            itemData: labelItem
+          });
+        });
       } else if (annotation.type === 'bbox') {
-        // For bbox annotations, group by bbox label
-        const firstBbox = annotation.data.boundingBoxes?.[0];
-        groupKey = firstBbox?.label || 'unlabeled';
+        // For bbox annotations, create group for each individual bbox
+        annotation.data.boundingBoxes?.forEach((bboxItem) => {
+          const groupKey = bboxItem.label || 'unlabeled';
+          
+          if (!groups[groupKey]) {
+            groups[groupKey] = {
+              label: groupKey,
+              items: [],
+              imageId: annotation.dataId
+            };
+          }
+          
+          groups[groupKey].items.push({
+            annotationId: annotation.id,
+            annotation,
+            itemId: bboxItem.id,
+            itemData: bboxItem
+          });
+        });
       } else if (annotation.type === 'segmentation') {
-        // For segmentation annotations, group by polygon label
-        const firstPolygon = annotation.data.polygons?.[0];
-        groupKey = firstPolygon?.label || 'unlabeled';
+        // For segmentation annotations, create group for each individual polygon
+        annotation.data.polygons?.forEach((polygonItem) => {
+          const groupKey = polygonItem.label || 'unlabeled';
+          
+          if (!groups[groupKey]) {
+            groups[groupKey] = {
+              label: groupKey,
+              items: [],
+              imageId: annotation.dataId
+            };
+          }
+          
+          groups[groupKey].items.push({
+            annotationId: annotation.id,
+            annotation,
+            itemId: polygonItem.id,
+            itemData: polygonItem
+          });
+        });
       }
-      
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
-      }
-      groups[groupKey].push(annotation);
     });
     
-    return Object.entries(groups).map(([label, annotations]) => ({
-      label,
-      annotations,
-      // Use the first annotation's image for the group
-      imageId: annotations[0]?.dataId
-    }));
+    return Object.values(groups);
   }, [currentPhaseAnnotations]);
 
-  // Current label group and annotations
+  // Current label group and items
   const currentLabelGroup = annotationGroups[currentLabelGroupIndex];
-  const currentGroupAnnotations = currentLabelGroup?.annotations || [];
+  const currentGroupItems = currentLabelGroup?.items || [];
   const currentImage = currentLabelGroup ? 
     effectiveImages.find(img => img.id === currentLabelGroup.imageId) : 
     effectiveImages[0];
@@ -150,21 +195,21 @@ export function ValidationWorkspace() {
   }, [currentLabelGroupIndex]);
 
   // Selection handlers
-  const toggleAnnotationSelection = useCallback((annotationId: string) => {
+  const toggleItemSelection = useCallback((itemId: string) => {
     setSelectedAnnotationIds(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(annotationId)) {
-        newSet.delete(annotationId);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
       } else {
-        newSet.add(annotationId);
+        newSet.add(itemId);
       }
       return newSet;
     });
   }, []);
 
-  const selectAllAnnotations = useCallback(() => {
-    setSelectedAnnotationIds(new Set(currentGroupAnnotations.map(a => a.id)));
-  }, [currentGroupAnnotations]);
+  const selectAllItems = useCallback(() => {
+    setSelectedAnnotationIds(new Set(currentGroupItems.map(item => item.itemId)));
+  }, [currentGroupItems]);
 
   const clearAllSelections = useCallback(() => {
     setSelectedAnnotationIds(new Set());
@@ -266,7 +311,7 @@ export function ValidationWorkspace() {
           break;
         case 's':
           event.preventDefault();
-          selectAllAnnotations();
+          selectAllItems();
           break;
         case 'c':
           event.preventDefault();
@@ -285,7 +330,7 @@ export function ValidationWorkspace() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isValidating, handleBulkValidation, handleNextLabelGroup, handlePreviousLabelGroup, autoAdvance, showKeyboardShortcuts, showAnnotationDetails, selectAllAnnotations, clearAllSelections]);
+  }, [isValidating, handleBulkValidation, handleNextLabelGroup, handlePreviousLabelGroup, autoAdvance, showKeyboardShortcuts, showAnnotationDetails, selectAllItems, clearAllSelections]);
 
   // Loading state
   if (challengeLoading || datasetLoading) {
@@ -666,7 +711,7 @@ export function ValidationWorkspace() {
                       fontFeatureSettings: '"tnum"',
                     }}
                   >
-                    {currentGroupAnnotations.length} annotations
+                    {currentGroupItems.length} items
                   </Text>
                 </Flex>
                 
@@ -720,7 +765,7 @@ export function ValidationWorkspace() {
              <div>URL: {currentImage?.url?.substring(0, 40)}...</div>
              <div>Dimensions: {currentImage?.width}x{currentImage?.height}</div>
              <div>Label Group: {currentLabelGroup?.label || 'none'}</div>
-             <div>Annotations: {currentGroupAnnotations.length}</div>
+             <div>Items: {currentGroupItems.length}</div>
              <div>Selected: {selectedAnnotationIds.size}</div>
              <div>Zoom: {state.zoom.toFixed(2)}</div>
              <div>Pan: ({state.panOffset.x.toFixed(0)}, {state.panOffset.y.toFixed(0)})</div>
@@ -758,12 +803,14 @@ export function ValidationWorkspace() {
                 imageHeight={currentImage.height}
                 zoom={state.zoom}
                 panOffset={state.panOffset}
-                boundingBoxes={currentGroupAnnotations.flatMap(annotation => 
-                  annotation.type === 'bbox' ? (annotation.data.boundingBoxes || []) : []
-                )}
-                polygons={currentGroupAnnotations.flatMap(annotation =>
-                  annotation.type === 'segmentation' ? (annotation.data.polygons || []) : []
-                )}
+                boundingBoxes={currentGroupItems
+                  .filter(item => item.annotation.type === 'bbox')
+                  .map(item => item.itemData)
+                }
+                polygons={currentGroupItems
+                  .filter(item => item.annotation.type === 'segmentation')
+                  .map(item => item.itemData)
+                }
                 currentTool={state.currentPhase === 'bbox' ? 'bbox' : state.currentPhase === 'segmentation' ? 'segmentation' : 'label'}
                 selectedLabel={currentLabelGroup?.label || ""}
                 isDrawing={false}
@@ -809,7 +856,7 @@ export function ValidationWorkspace() {
                 }}
               >
                 {annotationGroups.length === 0 
-                  ? 'No annotation groups pending validation in this phase'
+                  ? 'No label groups pending validation in this phase'
                   : 'Current label group has no associated image data'
                 }
               </Text>
@@ -827,7 +874,7 @@ export function ValidationWorkspace() {
           )}
           
           {/* Annotation Selection Controls */}
-          {currentGroupAnnotations.length > 0 && (
+          {currentGroupItems.length > 0 && (
             <Box
               style={{
                 position: "absolute",
@@ -851,7 +898,7 @@ export function ValidationWorkspace() {
                 </Text>
                 
                 <Button
-                  onClick={selectAllAnnotations}
+                  onClick={selectAllItems}
                   style={{
                     background: "transparent",
                     color: theme.colors.interactive.primary,
@@ -880,25 +927,25 @@ export function ValidationWorkspace() {
                   Clear
                 </Button>
                 
-                {currentGroupAnnotations.map((annotation, index) => (
+                {currentGroupItems.map((item, index) => (
                   <Button
-                    key={annotation.id}
-                    onClick={() => toggleAnnotationSelection(annotation.id)}
+                    key={item.itemId}
+                    onClick={() => toggleItemSelection(item.itemId)}
                     style={{
-                      background: selectedAnnotationIds.has(annotation.id)
+                      background: selectedAnnotationIds.has(item.itemId)
                         ? theme.colors.status.success
                         : theme.colors.background.secondary,
-                      color: selectedAnnotationIds.has(annotation.id)
+                      color: selectedAnnotationIds.has(item.itemId)
                         ? theme.colors.text.inverse
                         : theme.colors.text.primary,
-                      border: `1px solid ${selectedAnnotationIds.has(annotation.id)
+                      border: `1px solid ${selectedAnnotationIds.has(item.itemId)
                         ? theme.colors.status.success
                         : theme.colors.border.primary}`,
                       borderRadius: theme.borders.radius.xs,
                       padding: "4px 8px",
                       fontSize: "11px",
                       cursor: "pointer",
-                      fontWeight: selectedAnnotationIds.has(annotation.id) ? 600 : 400,
+                      fontWeight: selectedAnnotationIds.has(item.itemId) ? 600 : 400,
                     }}
                   >
                     #{index + 1}
