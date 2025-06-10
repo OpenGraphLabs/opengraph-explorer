@@ -744,32 +744,7 @@ export function ValidationWorkspace() {
             overflow: "hidden",
           }}
         >
-          {/* Debug overlay */}
-          <Box
-            style={{
-              position: "absolute",
-              top: theme.spacing.semantic.component.sm,
-              right: theme.spacing.semantic.component.sm,
-              background: `${theme.colors.background.card}F0`,
-              color: theme.colors.text.primary,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.md,
-              padding: theme.spacing.semantic.component.xs,
-              fontSize: "10px",
-              fontFamily: "monospace",
-              zIndex: 5,
-              backdropFilter: "blur(4px)",
-            }}
-          >
-                         <div>Image URL: {currentImage?.url ? '✓' : '✗'}</div>
-             <div>URL: {currentImage?.url?.substring(0, 40)}...</div>
-             <div>Dimensions: {currentImage?.width}x{currentImage?.height}</div>
-             <div>Label Group: {currentLabelGroup?.label || 'none'}</div>
-             <div>Items: {currentGroupItems.length}</div>
-             <div>Selected: {selectedAnnotationIds.size}</div>
-             <div>Zoom: {state.zoom.toFixed(2)}</div>
-             <div>Pan: ({state.panOffset.x.toFixed(0)}, {state.panOffset.y.toFixed(0)})</div>
-          </Box>
+          
           
           {currentImage ? (
             <Suspense fallback={
@@ -805,11 +780,19 @@ export function ValidationWorkspace() {
                 panOffset={state.panOffset}
                 boundingBoxes={currentGroupItems
                   .filter(item => item.annotation.type === 'bbox')
-                  .map(item => item.itemData)
+                  .map(item => ({
+                    ...item.itemData,
+                    id: item.itemId,
+                    selected: selectedAnnotationIds.has(item.itemId)
+                  }))
                 }
                 polygons={currentGroupItems
                   .filter(item => item.annotation.type === 'segmentation')
-                  .map(item => item.itemData)
+                  .map(item => ({
+                    ...item.itemData,
+                    id: item.itemId,
+                    selected: selectedAnnotationIds.has(item.itemId)
+                  }))
                 }
                 currentTool={state.currentPhase === 'bbox' ? 'bbox' : state.currentPhase === 'segmentation' ? 'segmentation' : 'label'}
                 selectedLabel={currentLabelGroup?.label || ""}
@@ -818,6 +801,11 @@ export function ValidationWorkspace() {
                 onPanChange={actions.setPanOffset}
                 onAddBoundingBox={() => {}}
                 onAddPolygon={() => {}}
+                onSelectAnnotation={(type, id) => {
+                  if (type === 'bbox' || type === 'segmentation') {
+                    toggleItemSelection(id);
+                  }
+                }}
                 setDrawing={() => {}}
                 onPreviousImage={handlePreviousLabelGroup}
                 onNextImage={handleNextLabelGroup}
@@ -894,7 +882,7 @@ export function ValidationWorkspace() {
             >
               <Flex align="center" gap="2" wrap="wrap">
                 <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
-                  {currentLabelGroup.label} annotations:
+                  {currentLabelGroup.label}:
                 </Text>
                 
                 <Button
@@ -909,7 +897,7 @@ export function ValidationWorkspace() {
                     cursor: "pointer",
                   }}
                 >
-                  Select All
+                  All
                 </Button>
                 
                 <Button
@@ -924,33 +912,40 @@ export function ValidationWorkspace() {
                     cursor: "pointer",
                   }}
                 >
-                  Clear
+                  None
                 </Button>
                 
-                {currentGroupItems.map((item, index) => (
-                  <Button
-                    key={item.itemId}
-                    onClick={() => toggleItemSelection(item.itemId)}
-                    style={{
-                      background: selectedAnnotationIds.has(item.itemId)
-                        ? theme.colors.status.success
-                        : theme.colors.background.secondary,
-                      color: selectedAnnotationIds.has(item.itemId)
-                        ? theme.colors.text.inverse
-                        : theme.colors.text.primary,
-                      border: `1px solid ${selectedAnnotationIds.has(item.itemId)
-                        ? theme.colors.status.success
-                        : theme.colors.border.primary}`,
-                      borderRadius: theme.borders.radius.xs,
-                      padding: "4px 8px",
-                      fontSize: "11px",
-                      cursor: "pointer",
-                      fontWeight: selectedAnnotationIds.has(item.itemId) ? 600 : 400,
-                    }}
-                  >
-                    #{index + 1}
-                  </Button>
-                ))}
+                {currentGroupItems.map((item, index) => {
+                  const isSelected = selectedAnnotationIds.has(item.itemId);
+                  const itemLabel = item.itemData.label || `Item ${index + 1}`;
+                  
+                  return (
+                    <Button
+                      key={item.itemId}
+                      onClick={() => toggleItemSelection(item.itemId)}
+                      style={{
+                        background: isSelected
+                          ? theme.colors.status.success
+                          : theme.colors.background.secondary,
+                        color: isSelected
+                          ? theme.colors.text.inverse
+                          : theme.colors.text.primary,
+                        border: `2px solid ${isSelected
+                          ? theme.colors.status.success
+                          : theme.colors.border.primary}`,
+                        borderRadius: theme.borders.radius.sm,
+                        padding: "4px 8px",
+                        fontSize: "11px",
+                        cursor: "pointer",
+                        fontWeight: isSelected ? 700 : 500,
+                        transition: "all 0.2s ease",
+                        boxShadow: isSelected ? `0 0 8px ${theme.colors.status.success}40` : "none",
+                      }}
+                    >
+                      {itemLabel}
+                    </Button>
+                  );
+                })}
               </Flex>
             </Box>
           )}
@@ -971,78 +966,96 @@ export function ValidationWorkspace() {
               zIndex: 10,
             }}
           >
-            <Flex align="center" gap="3">
-              <Button
-                onClick={() => handleBulkValidation('approve')}
-                disabled={selectedAnnotationIds.size === 0 || isValidating}
-                style={{
-                  background: selectedAnnotationIds.size > 0 ? theme.colors.status.success : theme.colors.interactive.disabled,
-                  color: theme.colors.text.inverse,
-                  border: "none",
-                  borderRadius: theme.borders.radius.md,
-                  padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: theme.spacing.semantic.component.sm,
-                  minWidth: "120px",
-                  justifyContent: "center",
-                  opacity: isValidating ? 0.6 : 1,
-                }}
-              >
-                <CheckCircle size={16} weight="fill" />
-                Approve ({selectedAnnotationIds.size})
-              </Button>
+            <Flex direction="column" align="center" gap="2">
+              {selectedAnnotationIds.size === 0 && (
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.tertiary,
+                    textAlign: "center",
+                    fontSize: "11px",
+                  }}
+                >
+                  Select items above or click on image to validate
+                </Text>
+              )}
               
-              <Button
-                onClick={() => handleBulkValidation('reject')}
-                disabled={selectedAnnotationIds.size === 0 || isValidating}
-                style={{
-                  background: selectedAnnotationIds.size > 0 ? theme.colors.status.error : theme.colors.interactive.disabled,
-                  color: theme.colors.text.inverse,
-                  border: "none",
-                  borderRadius: theme.borders.radius.md,
-                  padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: theme.spacing.semantic.component.sm,
-                  minWidth: "120px",
-                  justifyContent: "center",
-                  opacity: isValidating ? 0.6 : 1,
-                }}
-              >
-                <XCircle size={16} weight="fill" />
-                Reject ({selectedAnnotationIds.size})
-              </Button>
+              <Flex align="center" gap="3">
+                <Button
+                  onClick={() => handleBulkValidation('approve')}
+                  disabled={selectedAnnotationIds.size === 0 || isValidating}
+                  style={{
+                    background: selectedAnnotationIds.size > 0 ? theme.colors.status.success : theme.colors.interactive.disabled,
+                    color: theme.colors.text.inverse,
+                    border: "none",
+                    borderRadius: theme.borders.radius.md,
+                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.sm,
+                    minWidth: "120px",
+                    justifyContent: "center",
+                    opacity: isValidating ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <CheckCircle size={16} weight="fill" />
+                  {selectedAnnotationIds.size > 0 ? `Approve (${selectedAnnotationIds.size})` : 'Approve'}
+                </Button>
               
-              <Button
-                onClick={() => handleBulkValidation('flag')}
-                disabled={selectedAnnotationIds.size === 0 || isValidating}
-                style={{
-                  background: selectedAnnotationIds.size > 0 ? theme.colors.status.warning : theme.colors.interactive.disabled,
-                  color: theme.colors.text.inverse,
-                  border: "none",
-                  borderRadius: theme.borders.radius.md,
-                  padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: theme.spacing.semantic.component.sm,
-                  minWidth: "120px",
-                  justifyContent: "center",
-                  opacity: isValidating ? 0.6 : 1,
-                }}
-              >
-                <Flag size={16} weight="fill" />
-                Flag ({selectedAnnotationIds.size})
-              </Button>
+                <Button
+                  onClick={() => handleBulkValidation('reject')}
+                  disabled={selectedAnnotationIds.size === 0 || isValidating}
+                  style={{
+                    background: selectedAnnotationIds.size > 0 ? theme.colors.status.error : theme.colors.interactive.disabled,
+                    color: theme.colors.text.inverse,
+                    border: "none",
+                    borderRadius: theme.borders.radius.md,
+                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.sm,
+                    minWidth: "120px",
+                    justifyContent: "center",
+                    opacity: isValidating ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <XCircle size={16} weight="fill" />
+                  {selectedAnnotationIds.size > 0 ? `Reject (${selectedAnnotationIds.size})` : 'Reject'}
+                </Button>
+                
+                <Button
+                  onClick={() => handleBulkValidation('flag')}
+                  disabled={selectedAnnotationIds.size === 0 || isValidating}
+                  style={{
+                    background: selectedAnnotationIds.size > 0 ? theme.colors.status.warning : theme.colors.interactive.disabled,
+                    color: theme.colors.text.inverse,
+                    border: "none",
+                    borderRadius: theme.borders.radius.md,
+                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.sm,
+                    minWidth: "120px",
+                    justifyContent: "center",
+                    opacity: isValidating ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Flag size={16} weight="fill" />
+                  {selectedAnnotationIds.size > 0 ? `Flag (${selectedAnnotationIds.size})` : 'Flag'}
+                </Button>
+              </Flex>
             </Flex>
             
                         {/* Navigation Controls */}
@@ -1213,11 +1226,11 @@ export function ValidationWorkspace() {
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>←</Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Select All Annotations</Text>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Select All Items</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>S</Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Clear All Selections</Text>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Clear Selections</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>C</Badge>
             </Flex>
             <Flex justify="between" align="center">
