@@ -43,6 +43,11 @@ export interface ImageData {
   annotations?: AnnotationData;
   completed: boolean;
   skipped: boolean;
+  // Optional fields for dataset integration
+  datasetId?: string;
+  blobId?: string;
+  range?: { start: string | number; end: string | number };
+  originalPath?: string;
 }
 
 export interface AnnotationTool {

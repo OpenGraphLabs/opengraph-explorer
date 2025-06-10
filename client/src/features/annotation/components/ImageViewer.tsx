@@ -70,6 +70,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isReady, setIsReady] = useState(false); // 이미지 로딩 + 자동 피팅 완료 상태
   
   // Mode system states
   const [isPanMode, setIsPanMode] = useState(true); // Default to pan mode
@@ -605,30 +606,89 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     };
   }, [handleWheel, draw]);
 
+  // Calculate optimal zoom to fit image in canvas
+  const calculateFitToCanvasZoom = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !imageWidth || !imageHeight) return 1;
+
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    // Calculate zoom to fit image while maintaining aspect ratio
+    const scaleX = canvasWidth / imageWidth;
+    const scaleY = canvasHeight / imageHeight;
+    const fitZoom = Math.min(scaleX, scaleY) * 0.9; // 90% to leave some padding
+    
+    return Math.max(0.1, Math.min(5, fitZoom)); // Clamp between 0.1 and 5
+  }, [imageWidth, imageHeight]);
+
+  // Calculate center offset for fitted image
+  const calculateCenterOffset = useCallback((fitZoom: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !imageWidth || !imageHeight) return { x: 0, y: 0 };
+
+    const scaledImageWidth = imageWidth * fitZoom;
+    const scaledImageHeight = imageHeight * fitZoom;
+    
+    const centerX = (canvas.width - scaledImageWidth) / 2;
+    const centerY = (canvas.height - scaledImageHeight) / 2;
+    
+    return { x: centerX, y: centerY };
+  }, [imageWidth, imageHeight]);
+
   // Load image when imageUrl changes
   useEffect(() => {
     if (!imageUrl) {
       setLoadedImage(null);
       setImageLoaded(false);
+      setIsReady(false);
       return;
     }
+
+    // 새 이미지 로딩 시작 시 이전 상태 리셋
+    setIsReady(false);
+    setImageLoaded(false);
 
     const img = new Image();
     img.onload = () => {
       setLoadedImage(img);
       setImageLoaded(true);
+      
+      // Auto-fit image to canvas when loaded
+      // requestAnimationFrame을 사용해서 더 안정적으로 처리
+      requestAnimationFrame(() => {
+        const fitZoom = calculateFitToCanvasZoom();
+        const centerOffset = calculateCenterOffset(fitZoom);
+        
+        onZoomChange(fitZoom);
+        onPanChange(centerOffset);
+        
+        // 다음 프레임에서 준비 완료 표시
+        requestAnimationFrame(() => {
+          setIsReady(true);
+        });
+      });
     };
     img.onerror = () => {
       setLoadedImage(null);
       setImageLoaded(false);
+      setIsReady(false);
     };
     img.src = imageUrl;
-  }, [imageUrl]);
+  }, [imageUrl, calculateFitToCanvasZoom, calculateCenterOffset, onZoomChange, onPanChange]);
 
   // Redraw when dependencies change
   useEffect(() => {
     draw();
   }, [draw]);
+
+  // URL 변경 시 selection 상태 클리어
+  useEffect(() => {
+    setSelectedBboxId(null);
+    setIsDraggingBbox(false);
+    setIsDrawingBbox(false);
+    setCurrentDrawing([]);
+  }, [imageUrl]);
 
   // Handle keyboard shortcuts (Delete key only)
   useEffect(() => {
@@ -677,11 +737,18 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         }}
       >
         <Flex direction="column" align="center" gap="3">
-          <Text size="3" style={{ color: theme.colors.interactive.primary }}>
-            ⟲
-          </Text>
+          <Box
+            style={{
+              width: '24px',
+              height: '24px',
+              border: `2px solid ${theme.colors.interactive.primary}30`,
+              borderTop: `2px solid ${theme.colors.interactive.primary}`,
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
           <Text size="2" style={{ color: theme.colors.text.secondary }}>
-            Loading image...
+            {!imageLoaded ? 'Loading image...' : 'Preparing...'}
           </Text>
         </Flex>
       </Box>
@@ -832,6 +899,15 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
           {Math.round(zoom * 100)}%
         </Text>
       </Box>
+
+      <style>
+        {`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        `}
+      </style>
     </Box>
   );
 };

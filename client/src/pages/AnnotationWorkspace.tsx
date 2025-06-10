@@ -17,12 +17,15 @@ import {
   Image,
   Target,
   Warning,
+  Database,
+  CheckCircle,
+  Clock,
 } from "phosphor-react";
 import { useWorkspace } from '@/features/annotation/hooks/useWorkspace';
 import { ImageViewer } from '@/features/annotation/components/ImageViewer';
-import { mockImages } from '@/features/annotation/data/mockImages';
 import { AnnotationType } from '@/features/annotation/types/workspace';
 import { useChallenge } from '@/features/challenge';
+import { useChallengeDataset } from '@/features/challenge/hooks/useChallengeDataset';
 import { usePhaseConstraints } from '@/features/annotation';
 
 // Import new modular components
@@ -42,6 +45,15 @@ export function AnnotationWorkspace() {
   // Challenge data
   const { challenge, loading: challengeLoading, error: challengeError } = useChallenge(challengeId || '');
   
+  // Dataset integration - 실제 Dataset 이미지 사용
+  const { 
+    images: datasetImages, 
+    loading: datasetLoading, 
+    error: datasetError,
+    progress: datasetProgress,
+    isDatasetValidForChallenge 
+  } = useChallengeDataset(challenge);
+  
   // Phase constraints
   const currentPhase = challenge?.currentPhase || 'label';
   const { 
@@ -50,7 +62,8 @@ export function AnnotationWorkspace() {
     canAnnotate 
   } = usePhaseConstraints(currentPhase);
   
-  const { state, actions } = useWorkspace(challengeId || '', mockImages);
+  // Workspace state - Dataset 이미지 사용
+  const { state, actions } = useWorkspace(challengeId || '', datasetImages);
 
   // Enhanced tool configuration with phase constraints
   const toolConfig = {
@@ -75,9 +88,12 @@ export function AnnotationWorkspace() {
     currentImageIndex,
     progress,
   } = useImageNavigation({
-    images: mockImages,
+    images: datasetImages,
     currentImage: state.currentImage,
-    onImageChange: actions.setCurrentImage,
+    onImageChange: (image) => {
+      // 이미지 변경 시 즉시 설정 (ImageViewer에서 자동 피팅 처리됨)
+      actions.setCurrentImage(image);
+    },
   });
 
   // Handle annotation selection
@@ -100,8 +116,8 @@ export function AnnotationWorkspace() {
 
   const totalAnnotations = state.annotations.labels.length + state.annotations.boundingBoxes.length + state.annotations.polygons.length;
 
-  // Loading state
-  if (challengeLoading || !state.currentImage) {
+  // Loading state - Dataset 로딩 포함
+  if (challengeLoading || datasetLoading) {
     return (
       <Box
         style={{
@@ -126,23 +142,84 @@ export function AnnotationWorkspace() {
             maxWidth: "400px",
           }}
         >
-          <Spinner />
-          <Text
-            size="3"
+          <Box
             style={{
-              fontWeight: 600,
-              color: theme.colors.text.primary,
+              position: "relative",
+              width: "48px",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {challengeLoading ? 'Loading Challenge...' : 'Loading Annotation Workspace...'}
-          </Text>
+            {datasetLoading ? (
+              <Database size={24} style={{ color: theme.colors.interactive.primary }} />
+            ) : (
+              <Palette size={24} style={{ color: theme.colors.interactive.primary }} />
+            )}
+            <Box
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                background: `linear-gradient(135deg, ${theme.colors.interactive.primary}20, ${theme.colors.interactive.accent}20)`,
+                animation: "pulse 2s infinite",
+              }}
+            />
+          </Box>
+          
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
+            >
+              {challengeLoading ? 'Loading Challenge...' : 'Loading Dataset Images...'}
+            </Text>
+            
+            {datasetLoading && datasetProgress.total > 0 && (
+              <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
+                <Text
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    marginBottom: theme.spacing.semantic.component.xs,
+                  }}
+                >
+                  {datasetProgress.loaded} / {datasetProgress.total} images loaded
+                </Text>
+                <Box
+                  style={{
+                    width: "200px",
+                    height: "4px",
+                    background: theme.colors.background.secondary,
+                    borderRadius: "2px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    style={{
+                      height: "100%",
+                      width: `${datasetProgress.percentage}%`,
+                      background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.status.success})`,
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
+          </Box>
         </Flex>
       </Box>
     );
   }
 
-  // Error state
-  if (challengeError) {
+  // Error state - Dataset 오류 포함
+  if (challengeError || datasetError || !isDatasetValidForChallenge) {
     return (
       <Box
         style={{
@@ -177,7 +254,7 @@ export function AnnotationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.xs,
               }}
             >
-              Challenge Not Found
+              {challengeError ? 'Challenge Not Found' : 'Dataset Loading Error'}
             </Text>
             <Text
               size="2"
@@ -187,7 +264,7 @@ export function AnnotationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.md,
               }}
             >
-              {challengeError}
+              {challengeError || datasetError || 'Dataset is not compatible with annotation challenges'}
             </Text>
             <Button
               onClick={() => navigate('/challenges')}
@@ -210,6 +287,80 @@ export function AnnotationWorkspace() {
     );
   }
 
+  // No images state
+  if (!state.currentImage && datasetImages.length === 0) {
+    return (
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
+          style={{
+            background: theme.colors.background.card,
+            padding: theme.spacing.semantic.layout.lg,
+            borderRadius: theme.borders.radius.lg,
+            border: `1px solid ${theme.colors.border.primary}`,
+            boxShadow: theme.shadows.semantic.card.low,
+            maxWidth: "400px",
+          }}
+        >
+          <Database size={48} style={{ color: theme.colors.text.tertiary }} />
+          <Box style={{ textAlign: "center" }}>
+            <Text
+              size="4"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.xs,
+              }}
+            >
+              No Images Available
+            </Text>
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                lineHeight: 1.5,
+              }}
+            >
+              This dataset doesn't contain any images for annotation
+            </Text>
+          </Box>
+        </Flex>
+      </Box>
+    );
+  }
+
+  // Dataset 연동 상태 표시
+  const datasetStatusIndicator = (
+    <Flex align="center" gap="2">
+      {isDatasetValidForChallenge ? (
+        <>
+          <CheckCircle size={12} style={{ color: theme.colors.status.success }} />
+          <Text size="1" style={{ color: theme.colors.status.success }}>
+            Dataset Connected
+          </Text>
+        </>
+      ) : (
+        <>
+          <Clock size={12} style={{ color: theme.colors.status.warning }} />
+          <Text size="1" style={{ color: theme.colors.status.warning }}>
+            Syncing Dataset
+          </Text>
+        </>
+      )}
+    </Flex>
+  );
+
   // Sidebar configuration
   const sidebarConfig = {
     section: {
@@ -224,7 +375,7 @@ export function AnnotationWorkspace() {
     stats: [
       {
         icon: <Image size={10} style={{ color: theme.colors.status.info }} />,
-        text: `${currentImageIndex + 1}/${mockImages.length} Images`,
+        text: `${currentImageIndex + 1}/${datasetImages.length} Images`,
       },
       {
         icon: <Target size={10} style={{ color: theme.colors.interactive.accent }} />,
@@ -306,6 +457,9 @@ export function AnnotationWorkspace() {
                     Challenge: {challenge?.title || 'Loading...'}
                   </Text>
                   
+                  {/* Dataset 연동 상태 표시 */}
+                  {datasetStatusIndicator}
+                  
                   {/* Compact Phase Indicator */}
                   {challenge && (
                     <Box
@@ -350,7 +504,7 @@ export function AnnotationWorkspace() {
 
             <Flex align="center" gap="2">
               <Text size="1" style={{ color: theme.colors.text.secondary, marginRight: theme.spacing.semantic.component.xs }}>
-                {currentImageIndex + 1} / {mockImages.length}
+                {currentImageIndex + 1} / {datasetImages.length}
               </Text>
               
               <Button
@@ -416,8 +570,6 @@ export function AnnotationWorkspace() {
           </Box>
         </Box>
 
-
-
         {/* Inline Tool Bar */}
         <InlineToolBar
           currentTool={state.currentTool}
@@ -444,9 +596,12 @@ export function AnnotationWorkspace() {
         >
           {/* Navigation Panel */}
           <ImageNavigationPanel
-            images={mockImages}
+            images={datasetImages}
             currentImage={state.currentImage}
-            onImageChange={actions.setCurrentImage}
+            onImageChange={(image) => {
+              // 이미지 변경 시 즉시 설정 (ImageViewer에서 자동 피팅 처리됨)
+              actions.setCurrentImage(image);
+            }}
           />
 
           {/* Center - Image Viewer */}
@@ -458,34 +613,36 @@ export function AnnotationWorkspace() {
               minHeight: "600px",
             }}
           >
-          <ImageViewer
-            imageUrl={state.currentImage.url}
-            imageWidth={state.currentImage.width}
-            imageHeight={state.currentImage.height}
-            zoom={state.zoom}
-            panOffset={state.panOffset}
-            boundingBoxes={state.annotations.boundingBoxes}
-            polygons={state.annotations.polygons}
-            currentTool={state.currentTool}
-            selectedLabel={state.selectedLabel}
-            isDrawing={state.isDrawing}
-            onZoomChange={actions.setZoom}
-            onPanChange={actions.setPanOffset}
-            onAddBoundingBox={(bbox) => {
-              if (isToolAllowed('bbox')) {
-                actions.addBoundingBox(bbox);
-              }
-            }}
-            onAddPolygon={(polygon) => {
-              if (isToolAllowed('segmentation')) {
-                actions.addPolygon(polygon);
-              }
-            }}
-            onSelectAnnotation={handleSelectAnnotation}
-            onDeleteAnnotation={handleDeleteAnnotation}
-            onUpdateBoundingBox={actions.updateBoundingBox}
-            setDrawing={actions.setDrawing}
-          />
+            {state.currentImage && (
+              <ImageViewer
+                imageUrl={state.currentImage.url}
+                imageWidth={state.currentImage.width}
+                imageHeight={state.currentImage.height}
+                zoom={state.zoom}
+                panOffset={state.panOffset}
+                boundingBoxes={state.annotations.boundingBoxes}
+                polygons={state.annotations.polygons}
+                currentTool={state.currentTool}
+                selectedLabel={state.selectedLabel}
+                isDrawing={state.isDrawing}
+                onZoomChange={actions.setZoom}
+                onPanChange={actions.setPanOffset}
+                onAddBoundingBox={(bbox) => {
+                  if (isToolAllowed('bbox')) {
+                    actions.addBoundingBox(bbox);
+                  }
+                }}
+                onAddPolygon={(polygon) => {
+                  if (isToolAllowed('segmentation')) {
+                    actions.addPolygon(polygon);
+                  }
+                }}
+                onSelectAnnotation={handleSelectAnnotation}
+                onDeleteAnnotation={handleDeleteAnnotation}
+                onUpdateBoundingBox={actions.updateBoundingBox}
+                setDrawing={actions.setDrawing}
+              />
+            )}
           </Box>
 
           {/* Right Panel - Annotations List */}
@@ -516,7 +673,14 @@ export function AnnotationWorkspace() {
         />
       </Box>
 
-
+      <style>
+        {`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        `}
+      </style>
     </SidebarLayout>
   );
 } 

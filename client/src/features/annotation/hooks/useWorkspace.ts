@@ -140,6 +140,13 @@ export function useWorkspace(challengeId: string, images: ImageData[] = []) {
     availableLabels: [] // User can input custom labels
   });
 
+  // 이미지가 로딩되면 자동으로 첫 번째 이미지 설정
+  useEffect(() => {
+    if (images.length > 0 && !state.currentImage) {
+      dispatch({ type: 'SET_CURRENT_IMAGE', payload: images[0] });
+    }
+  }, [images, state.currentImage]);
+
   // Auto-save functionality moved after saveAnnotations definition
 
   const setCurrentImage = useCallback((image: ImageData) => {
