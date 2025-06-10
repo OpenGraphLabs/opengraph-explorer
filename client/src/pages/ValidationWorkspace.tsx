@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, Suspense } from 'react';
+import { useState, useCallback, useEffect, Suspense, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -33,7 +33,8 @@ export function ValidationWorkspace() {
   const { theme } = useTheme();
   
   // UI State
-  const [currentAnnotationIndex, setCurrentAnnotationIndex] = useState(0);
+  const [currentLabelGroupIndex, setCurrentLabelGroupIndex] = useState(0);
+  const [selectedAnnotationIds, setSelectedAnnotationIds] = useState<Set<string>>(new Set());
   const [isValidating, setIsValidating] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
@@ -90,48 +91,113 @@ export function ValidationWorkspace() {
       }
     }
   ) || [];
-  
-  // Current annotation and image
-  const currentAnnotation = currentPhaseAnnotations[currentAnnotationIndex];
-  const currentImage = currentAnnotation ? 
-    effectiveImages.find(img => img.id === currentAnnotation.dataId) : 
+
+  // Group annotations by label for current phase
+  const annotationGroups = useMemo(() => {
+    const groups: Record<string, typeof currentPhaseAnnotations> = {};
+    
+    currentPhaseAnnotations.forEach(annotation => {
+      let groupKey = '';
+      
+      if (annotation.type === 'label') {
+        // For label annotations, group by first label value
+        const firstLabel = annotation.data.labels?.[0]?.label || 'unlabeled';
+        groupKey = firstLabel;
+      } else if (annotation.type === 'bbox') {
+        // For bbox annotations, group by bbox label
+        const firstBbox = annotation.data.boundingBoxes?.[0];
+        groupKey = firstBbox?.label || 'unlabeled';
+      } else if (annotation.type === 'segmentation') {
+        // For segmentation annotations, group by polygon label
+        const firstPolygon = annotation.data.polygons?.[0];
+        groupKey = firstPolygon?.label || 'unlabeled';
+      }
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(annotation);
+    });
+    
+    return Object.entries(groups).map(([label, annotations]) => ({
+      label,
+      annotations,
+      // Use the first annotation's image for the group
+      imageId: annotations[0]?.dataId
+    }));
+  }, [currentPhaseAnnotations]);
+
+  // Current label group and annotations
+  const currentLabelGroup = annotationGroups[currentLabelGroupIndex];
+  const currentGroupAnnotations = currentLabelGroup?.annotations || [];
+  const currentImage = currentLabelGroup ? 
+    effectiveImages.find(img => img.id === currentLabelGroup.imageId) : 
     effectiveImages[0];
   
   // Navigation handlers
-  const handleNextAnnotation = useCallback(() => {
-    if (currentAnnotationIndex < currentPhaseAnnotations.length - 1) {
-      setCurrentAnnotationIndex(prev => prev + 1);
+  const handleNextLabelGroup = useCallback(() => {
+    if (currentLabelGroupIndex < annotationGroups.length - 1) {
+      setCurrentLabelGroupIndex(prev => prev + 1);
+      setSelectedAnnotationIds(new Set()); // Clear selections when moving to next group
     }
-  }, [currentAnnotationIndex, currentPhaseAnnotations.length]);
+  }, [currentLabelGroupIndex, annotationGroups.length]);
   
-  const handlePreviousAnnotation = useCallback(() => {
-    if (currentAnnotationIndex > 0) {
-      setCurrentAnnotationIndex(prev => prev - 1);
+  const handlePreviousLabelGroup = useCallback(() => {
+    if (currentLabelGroupIndex > 0) {
+      setCurrentLabelGroupIndex(prev => prev - 1);
+      setSelectedAnnotationIds(new Set()); // Clear selections when moving to previous group
     }
-  }, [currentAnnotationIndex]);
+  }, [currentLabelGroupIndex]);
+
+  // Selection handlers
+  const toggleAnnotationSelection = useCallback((annotationId: string) => {
+    setSelectedAnnotationIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(annotationId)) {
+        newSet.delete(annotationId);
+      } else {
+        newSet.add(annotationId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const selectAllAnnotations = useCallback(() => {
+    setSelectedAnnotationIds(new Set(currentGroupAnnotations.map(a => a.id)));
+  }, [currentGroupAnnotations]);
+
+  const clearAllSelections = useCallback(() => {
+    setSelectedAnnotationIds(new Set());
+  }, []);
   
-  // Quick validation handler
-  const handleQuickValidation = useCallback(async (action: 'approve' | 'reject' | 'flag', reason?: string) => {
-    if (!currentAnnotation || isValidating) return;
+  // Bulk validation handler
+  const handleBulkValidation = useCallback(async (action: 'approve' | 'reject' | 'flag', reason?: string) => {
+    if (selectedAnnotationIds.size === 0 || isValidating) return;
     
     setIsValidating(true);
     try {
-      await actions.validateAnnotation(currentAnnotation.id, action, reason);
+      const promises = Array.from(selectedAnnotationIds).map(id =>
+        actions.validateAnnotation(id, action, reason)
+      );
+      await Promise.all(promises);
       
-      // Auto advance if enabled and not the last annotation
-      if (autoAdvance && currentAnnotationIndex < currentPhaseAnnotations.length - 1) {
+      // Clear selections after validation
+      setSelectedAnnotationIds(new Set());
+      
+      // Auto advance if enabled and not the last group
+      if (autoAdvance && currentLabelGroupIndex < annotationGroups.length - 1) {
         setTimeout(() => {
-          handleNextAnnotation();
+          handleNextLabelGroup();
           setIsValidating(false);
         }, 500);
       } else {
         setIsValidating(false);
       }
     } catch (error) {
-      console.error('Validation failed:', error);
+      console.error('Bulk validation failed:', error);
       setIsValidating(false);
     }
-  }, [currentAnnotation, isValidating, actions, autoAdvance, currentAnnotationIndex, currentPhaseAnnotations.length, handleNextAnnotation]);
+  }, [selectedAnnotationIds, isValidating, actions, autoAdvance, currentLabelGroupIndex, annotationGroups.length, handleNextLabelGroup]);
 
   // Initialize validation session
   useEffect(() => {
@@ -154,13 +220,14 @@ export function ValidationWorkspace() {
       challengeId,
       currentPhase: state.currentPhase,
       totalPhaseAnnotations: currentPhaseAnnotations.length,
-      currentAnnotationIndex,
-      currentAnnotation,
+      currentLabelGroupIndex,
+      currentLabelGroup,
+      selectedAnnotationIds: Array.from(selectedAnnotationIds),
       currentImage,
       effectiveImages: effectiveImages.length,
       validationSession: state.validationSession,
     });
-  }, [challengeId, state.currentPhase, currentPhaseAnnotations.length, currentAnnotationIndex, currentAnnotation, currentImage, effectiveImages.length, state.validationSession]);
+  }, [challengeId, state.currentPhase, currentPhaseAnnotations.length, currentLabelGroupIndex, currentLabelGroup, selectedAnnotationIds, currentImage, effectiveImages.length, state.validationSession]);
 
   // Keyboard shortcuts for validation
   useEffect(() => {
@@ -175,27 +242,35 @@ export function ValidationWorkspace() {
       switch (event.key.toLowerCase()) {
         case 'a':
           event.preventDefault();
-          handleQuickValidation('approve');
+          handleBulkValidation('approve');
           break;
         case 'r':
           event.preventDefault();
-          handleQuickValidation('reject');
+          handleBulkValidation('reject');
           break;
         case 'f':
           event.preventDefault();
-          handleQuickValidation('flag');
+          handleBulkValidation('flag');
           break;
         case 'arrowright':
           event.preventDefault();
-          handleNextAnnotation();
+          handleNextLabelGroup();
           break;
         case 'arrowleft':
           event.preventDefault();
-          handlePreviousAnnotation();
+          handlePreviousLabelGroup();
           break;
         case ' ':
           event.preventDefault();
           setAutoAdvance(!autoAdvance);
+          break;
+        case 's':
+          event.preventDefault();
+          selectAllAnnotations();
+          break;
+        case 'c':
+          event.preventDefault();
+          clearAllSelections();
           break;
         case 'h':
           event.preventDefault();
@@ -210,7 +285,7 @@ export function ValidationWorkspace() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isValidating, handleQuickValidation, handleNextAnnotation, handlePreviousAnnotation, autoAdvance, showKeyboardShortcuts, showAnnotationDetails]);
+  }, [isValidating, handleBulkValidation, handleNextLabelGroup, handlePreviousLabelGroup, autoAdvance, showKeyboardShortcuts, showAnnotationDetails, selectAllAnnotations, clearAllSelections]);
 
   // Loading state
   if (challengeLoading || datasetLoading) {
@@ -405,7 +480,7 @@ export function ValidationWorkspace() {
           </Flex>
 
           <Flex align="center" gap="2">
-            {/* Annotation Progress */}
+            {/* Label Group Progress */}
             <Text
               size="1"
               style={{
@@ -413,8 +488,22 @@ export function ValidationWorkspace() {
                 fontFeatureSettings: '"tnum"',
               }}
             >
-              {currentAnnotationIndex + 1} / {currentPhaseAnnotations.length}
+              Group {currentLabelGroupIndex + 1} / {annotationGroups.length}
             </Text>
+            
+            {/* Selected Count */}
+            {selectedAnnotationIds.size > 0 && (
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.status.success,
+                  fontFeatureSettings: '"tnum"',
+                  fontWeight: 600,
+                }}
+              >
+                {selectedAnnotationIds.size} selected
+              </Text>
+            )}
             
             {/* Auto Advance Toggle */}
             <Button
@@ -507,8 +596,8 @@ export function ValidationWorkspace() {
 
       {/* Main Content Area */}
       <Flex style={{ flex: 1, overflow: "hidden" }}>
-        {/* Left Side - Annotation Details (Optional) */}
-        {showAnnotationDetails && currentAnnotation && (
+        {/* Left Side - Label Group Details (Optional) */}
+        {showAnnotationDetails && currentLabelGroup && (
           <Box
             style={{
               width: "300px",
@@ -535,7 +624,7 @@ export function ValidationWorkspace() {
                     color: theme.colors.text.primary,
                   }}
                 >
-                  Current Annotation
+                  Label Group: {currentLabelGroup.label}
                 </Text>
                 <Button
                   onClick={() => setShowAnnotationDetails(false)}
@@ -563,39 +652,37 @@ export function ValidationWorkspace() {
                       textTransform: "capitalize",
                     }}
                   >
-                    {currentAnnotation.type}
+                    {state.currentPhase}
                   </Badge>
                 </Flex>
                 
                 <Flex align="center" gap="2">
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>Quality:</Text>
+                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>Total:</Text>
                   <Text
                     size="1"
                     style={{
-                      color: currentAnnotation.qualityScore > 0.8 
-                        ? theme.colors.status.success 
-                        : currentAnnotation.qualityScore > 0.6 
-                          ? theme.colors.status.warning 
-                          : theme.colors.status.error,
+                      color: theme.colors.text.primary,
                       fontWeight: 600,
                       fontFeatureSettings: '"tnum"',
                     }}
                   >
-                    {(currentAnnotation.qualityScore * 100).toFixed(0)}%
+                    {currentGroupAnnotations.length} annotations
                   </Text>
                 </Flex>
                 
                 <Flex align="center" gap="2">
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>Participant:</Text>
+                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>Selected:</Text>
                   <Text
                     size="1"
                     style={{
-                      color: theme.colors.text.secondary,
-                      fontFamily: 'monospace',
-                      fontSize: "10px",
+                      color: selectedAnnotationIds.size > 0 
+                        ? theme.colors.status.success 
+                        : theme.colors.text.secondary,
+                      fontWeight: 600,
+                      fontFeatureSettings: '"tnum"',
                     }}
                   >
-                    {currentAnnotation.participantAddress.slice(0, 8)}...
+                    {selectedAnnotationIds.size}
                   </Text>
                 </Flex>
               </Flex>
@@ -632,8 +719,9 @@ export function ValidationWorkspace() {
                          <div>Image URL: {currentImage?.url ? '✓' : '✗'}</div>
              <div>URL: {currentImage?.url?.substring(0, 40)}...</div>
              <div>Dimensions: {currentImage?.width}x{currentImage?.height}</div>
-             <div>Annotation Type: {currentAnnotation?.type || 'none'}</div>
-             <div>BBoxes: {currentAnnotation?.type === 'bbox' ? currentAnnotation.data.boundingBoxes?.length || 0 : 0}</div>
+             <div>Label Group: {currentLabelGroup?.label || 'none'}</div>
+             <div>Annotations: {currentGroupAnnotations.length}</div>
+             <div>Selected: {selectedAnnotationIds.size}</div>
              <div>Zoom: {state.zoom.toFixed(2)}</div>
              <div>Pan: ({state.panOffset.x.toFixed(0)}, {state.panOffset.y.toFixed(0)})</div>
           </Box>
@@ -670,20 +758,24 @@ export function ValidationWorkspace() {
                 imageHeight={currentImage.height}
                 zoom={state.zoom}
                 panOffset={state.panOffset}
-                boundingBoxes={currentAnnotation?.type === 'bbox' ? (currentAnnotation.data.boundingBoxes || []) : []}
-                polygons={currentAnnotation?.type === 'segmentation' ? (currentAnnotation.data.polygons || []) : []}
-                currentTool={currentAnnotation?.type || "label"}
-                selectedLabel=""
+                boundingBoxes={currentGroupAnnotations.flatMap(annotation => 
+                  annotation.type === 'bbox' ? (annotation.data.boundingBoxes || []) : []
+                )}
+                polygons={currentGroupAnnotations.flatMap(annotation =>
+                  annotation.type === 'segmentation' ? (annotation.data.polygons || []) : []
+                )}
+                currentTool={state.currentPhase === 'bbox' ? 'bbox' : state.currentPhase === 'segmentation' ? 'segmentation' : 'label'}
+                selectedLabel={currentLabelGroup?.label || ""}
                 isDrawing={false}
                 onZoomChange={actions.setZoom}
                 onPanChange={actions.setPanOffset}
                 onAddBoundingBox={() => {}}
                 onAddPolygon={() => {}}
                 setDrawing={() => {}}
-                onPreviousImage={handlePreviousAnnotation}
-                onNextImage={handleNextAnnotation}
-                canGoPrevious={currentAnnotationIndex > 0}
-                canGoNext={currentAnnotationIndex < currentPhaseAnnotations.length - 1}
+                onPreviousImage={handlePreviousLabelGroup}
+                onNextImage={handleNextLabelGroup}
+                canGoPrevious={currentLabelGroupIndex > 0}
+                canGoNext={currentLabelGroupIndex < annotationGroups.length - 1}
               />
             </Suspense>
           ) : (
@@ -716,9 +808,9 @@ export function ValidationWorkspace() {
                   lineHeight: 1.5,
                 }}
               >
-                {currentPhaseAnnotations.length === 0 
-                  ? 'No annotations pending validation in this phase'
-                  : 'Current annotation has no associated image data'
+                {annotationGroups.length === 0 
+                  ? 'No annotation groups pending validation in this phase'
+                  : 'Current label group has no associated image data'
                 }
               </Text>
               <Text
@@ -729,11 +821,93 @@ export function ValidationWorkspace() {
                   fontFamily: 'monospace',
                 }}
               >
-                Debug: Current annotation index {currentAnnotationIndex}, Total annotations {currentPhaseAnnotations.length}
+                Debug: Current group index {currentLabelGroupIndex}, Total groups {annotationGroups.length}
               </Text>
             </Flex>
           )}
           
+          {/* Annotation Selection Controls */}
+          {currentGroupAnnotations.length > 0 && (
+            <Box
+              style={{
+                position: "absolute",
+                top: theme.spacing.semantic.component.lg,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: `${theme.colors.background.card}F0`,
+                backdropFilter: "blur(8px)",
+                border: `1px solid ${theme.colors.border.primary}`,
+                borderRadius: theme.borders.radius.lg,
+                padding: theme.spacing.semantic.component.sm,
+                boxShadow: theme.shadows.semantic.card.medium,
+                zIndex: 10,
+                maxWidth: "90%",
+                overflow: "auto",
+              }}
+            >
+              <Flex align="center" gap="2" wrap="wrap">
+                <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
+                  {currentLabelGroup.label} annotations:
+                </Text>
+                
+                <Button
+                  onClick={selectAllAnnotations}
+                  style={{
+                    background: "transparent",
+                    color: theme.colors.interactive.primary,
+                    border: `1px solid ${theme.colors.interactive.primary}`,
+                    borderRadius: theme.borders.radius.xs,
+                    padding: "2px 6px",
+                    fontSize: "10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Select All
+                </Button>
+                
+                <Button
+                  onClick={clearAllSelections}
+                  style={{
+                    background: "transparent",
+                    color: theme.colors.text.secondary,
+                    border: `1px solid ${theme.colors.border.primary}`,
+                    borderRadius: theme.borders.radius.xs,
+                    padding: "2px 6px",
+                    fontSize: "10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Clear
+                </Button>
+                
+                {currentGroupAnnotations.map((annotation, index) => (
+                  <Button
+                    key={annotation.id}
+                    onClick={() => toggleAnnotationSelection(annotation.id)}
+                    style={{
+                      background: selectedAnnotationIds.has(annotation.id)
+                        ? theme.colors.status.success
+                        : theme.colors.background.secondary,
+                      color: selectedAnnotationIds.has(annotation.id)
+                        ? theme.colors.text.inverse
+                        : theme.colors.text.primary,
+                      border: `1px solid ${selectedAnnotationIds.has(annotation.id)
+                        ? theme.colors.status.success
+                        : theme.colors.border.primary}`,
+                      borderRadius: theme.borders.radius.xs,
+                      padding: "4px 8px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontWeight: selectedAnnotationIds.has(annotation.id) ? 600 : 400,
+                    }}
+                  >
+                    #{index + 1}
+                  </Button>
+                ))}
+              </Flex>
+            </Box>
+          )}
+
           {/* Validation Action Overlay */}
           <Box
             style={{
@@ -752,90 +926,90 @@ export function ValidationWorkspace() {
           >
             <Flex align="center" gap="3">
               <Button
-                onClick={() => handleQuickValidation('approve')}
-                disabled={!currentAnnotation || isValidating}
+                onClick={() => handleBulkValidation('approve')}
+                disabled={selectedAnnotationIds.size === 0 || isValidating}
                 style={{
-                  background: theme.colors.status.success,
+                  background: selectedAnnotationIds.size > 0 ? theme.colors.status.success : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                   fontWeight: 600,
                   fontSize: "14px",
-                  cursor: currentAnnotation && !isValidating ? "pointer" : "not-allowed",
+                  cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.sm,
-                  minWidth: "100px",
+                  minWidth: "120px",
                   justifyContent: "center",
                   opacity: isValidating ? 0.6 : 1,
                 }}
               >
                 <CheckCircle size={16} weight="fill" />
-                Approve (A)
+                Approve ({selectedAnnotationIds.size})
               </Button>
               
               <Button
-                onClick={() => handleQuickValidation('reject')}
-                disabled={!currentAnnotation || isValidating}
+                onClick={() => handleBulkValidation('reject')}
+                disabled={selectedAnnotationIds.size === 0 || isValidating}
                 style={{
-                  background: theme.colors.status.error,
+                  background: selectedAnnotationIds.size > 0 ? theme.colors.status.error : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                   fontWeight: 600,
                   fontSize: "14px",
-                  cursor: currentAnnotation && !isValidating ? "pointer" : "not-allowed",
+                  cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.sm,
-                  minWidth: "100px",
+                  minWidth: "120px",
                   justifyContent: "center",
                   opacity: isValidating ? 0.6 : 1,
                 }}
               >
                 <XCircle size={16} weight="fill" />
-                Reject (R)
+                Reject ({selectedAnnotationIds.size})
               </Button>
               
               <Button
-                onClick={() => handleQuickValidation('flag')}
-                disabled={!currentAnnotation || isValidating}
+                onClick={() => handleBulkValidation('flag')}
+                disabled={selectedAnnotationIds.size === 0 || isValidating}
                 style={{
-                  background: theme.colors.status.warning,
+                  background: selectedAnnotationIds.size > 0 ? theme.colors.status.warning : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                   fontWeight: 600,
                   fontSize: "14px",
-                  cursor: currentAnnotation && !isValidating ? "pointer" : "not-allowed",
+                  cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.sm,
-                  minWidth: "100px",
+                  minWidth: "120px",
                   justifyContent: "center",
                   opacity: isValidating ? 0.6 : 1,
                 }}
               >
                 <Flag size={16} weight="fill" />
-                Flag (F)
+                Flag ({selectedAnnotationIds.size})
               </Button>
             </Flex>
             
-            {/* Navigation Controls */}
+                        {/* Navigation Controls */}
             <Flex justify="center" align="center" gap="2" style={{ marginTop: theme.spacing.semantic.component.sm }}>
               <Button
-                onClick={handlePreviousAnnotation}
-                disabled={currentAnnotationIndex === 0}
+                onClick={handlePreviousLabelGroup}
+                disabled={currentLabelGroupIndex === 0}
                 style={{
                   background: "transparent",
-                  color: currentAnnotationIndex === 0 ? theme.colors.text.tertiary : theme.colors.text.primary,
-                  border: `1px solid ${currentAnnotationIndex === 0 ? theme.colors.border.secondary : theme.colors.border.primary}`,
+                  color: currentLabelGroupIndex === 0 ? theme.colors.text.tertiary : theme.colors.text.primary,
+                  border: `1px solid ${currentLabelGroupIndex === 0 ? theme.colors.border.secondary : theme.colors.border.primary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: theme.spacing.semantic.component.xs,
-                  cursor: currentAnnotationIndex === 0 ? "not-allowed" : "pointer",
+                  cursor: currentLabelGroupIndex === 0 ? "not-allowed" : "pointer",
                 }}
               >
                 <ArrowLeft size={14} />
@@ -846,28 +1020,28 @@ export function ValidationWorkspace() {
                 style={{
                   color: theme.colors.text.secondary,
                   fontFeatureSettings: '"tnum"',
-                  minWidth: "60px",
+                  minWidth: "80px",
                   textAlign: "center",
                 }}
               >
-                {currentAnnotationIndex + 1} / {currentPhaseAnnotations.length}
+                Group {currentLabelGroupIndex + 1} / {annotationGroups.length}
               </Text>
               
               <Button
-                onClick={handleNextAnnotation}
-                disabled={currentAnnotationIndex === currentPhaseAnnotations.length - 1}
+                onClick={handleNextLabelGroup}
+                disabled={currentLabelGroupIndex === annotationGroups.length - 1}
                 style={{
                   background: "transparent",
-                  color: currentAnnotationIndex === currentPhaseAnnotations.length - 1 ? theme.colors.text.tertiary : theme.colors.text.primary,
-                  border: `1px solid ${currentAnnotationIndex === currentPhaseAnnotations.length - 1 ? theme.colors.border.secondary : theme.colors.border.primary}`,
+                  color: currentLabelGroupIndex === annotationGroups.length - 1 ? theme.colors.text.tertiary : theme.colors.text.primary,
+                  border: `1px solid ${currentLabelGroupIndex === annotationGroups.length - 1 ? theme.colors.border.secondary : theme.colors.border.primary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: theme.spacing.semantic.component.xs,
-                  cursor: currentAnnotationIndex === currentPhaseAnnotations.length - 1 ? "not-allowed" : "pointer",
+                  cursor: currentLabelGroupIndex === annotationGroups.length - 1 ? "not-allowed" : "pointer",
                 }}
               >
                 <ArrowRight size={14} />
               </Button>
-            </Flex>
+          </Flex>
           </Box>
           
           {/* Show/Hide Details Button */}
@@ -970,26 +1144,34 @@ export function ValidationWorkspace() {
             </Button>
           </Flex>
           
-          <Flex direction="column" gap="3">
+                    <Flex direction="column" gap="3">
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Approve Annotation</Text>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Approve Selected</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>A</Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Reject Annotation</Text>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Reject Selected</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>R</Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Flag for Review</Text>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Flag Selected</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>F</Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Next Annotation</Text>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Next Label Group</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>→</Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Previous Annotation</Text>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Previous Label Group</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>←</Badge>
+            </Flex>
+            <Flex justify="between" align="center">
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Select All Annotations</Text>
+              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>S</Badge>
+            </Flex>
+            <Flex justify="between" align="center">
+              <Text size="2" style={{ color: theme.colors.text.primary }}>Clear All Selections</Text>
+              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>C</Badge>
             </Flex>
             <Flex justify="between" align="center">
               <Text size="2" style={{ color: theme.colors.text.primary }}>Toggle Auto Advance</Text>
@@ -1003,7 +1185,7 @@ export function ValidationWorkspace() {
               <Text size="2" style={{ color: theme.colors.text.primary }}>Show/Hide This Help</Text>
               <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>H</Badge>
             </Flex>
-          </Flex>
+        </Flex>
         </Box>
       )}
 
