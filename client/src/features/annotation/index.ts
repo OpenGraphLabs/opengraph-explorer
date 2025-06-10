@@ -10,6 +10,7 @@ export * from './types/annotation';
 export * from './hooks/useWorkspace';
 export * from './hooks/useAnnotationTools';
 export * from './hooks/usePhaseConstraints';
+export * from './hooks/useImageNavigation';
 
 // Components
 export * from './components/ImageViewer';

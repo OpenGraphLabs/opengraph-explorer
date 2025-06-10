@@ -132,7 +132,7 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
   }
 }
 
-export function useWorkspace(challengeId: string, images: ImageData[] = []) {
+export function useWorkspace(_: string, images: ImageData[] = []) {
   const [state, dispatch] = useReducer(workspaceReducer, {
     ...initialState,
     totalImages: images.length,

@@ -5,7 +5,6 @@ import {
   Flex,
   Text,
   Button,
-  Spinner,
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/widgets/layout/AppLayout";
@@ -30,11 +29,9 @@ import { usePhaseConstraints } from '@/features/annotation';
 
 // Import new modular components
 import { AnnotationSidebar } from '@/widgets/annotation-sidebar';
-import { ImageNavigationPanel } from '@/features/image-navigation';
 import { AnnotationListPanel, InlineToolBar } from '@/features/annotation';
 import { WorkspaceStatusBar } from '@/features/workspace-controls';
-import { useAnnotationTools } from '@/features/annotation';
-import { useImageNavigation } from '@/features/image-navigation';
+import { useAnnotationTools, useImageNavigation } from '@/features/annotation';
 
 export function AnnotationWorkspace() {
   const { challengeId } = useParams<{ challengeId: string }>();
@@ -87,6 +84,10 @@ export function AnnotationWorkspace() {
   const {
     currentImageIndex,
     progress,
+    canGoNext,
+    canGoPrevious,
+    handleNext,
+    handlePrevious,
   } = useImageNavigation({
     images: datasetImages,
     currentImage: state.currentImage,
@@ -594,15 +595,6 @@ export function AnnotationWorkspace() {
             borderRadius: `0 0 ${theme.borders.radius.md} ${theme.borders.radius.md}`,
           }}
         >
-          {/* Navigation Panel */}
-          <ImageNavigationPanel
-            images={datasetImages}
-            currentImage={state.currentImage}
-            onImageChange={(image) => {
-              // 이미지 변경 시 즉시 설정 (ImageViewer에서 자동 피팅 처리됨)
-              actions.setCurrentImage(image);
-            }}
-          />
 
           {/* Center - Image Viewer */}
           <Box
@@ -641,6 +633,10 @@ export function AnnotationWorkspace() {
                 onDeleteAnnotation={handleDeleteAnnotation}
                 onUpdateBoundingBox={actions.updateBoundingBox}
                 setDrawing={actions.setDrawing}
+                onPreviousImage={handlePrevious}
+                onNextImage={handleNext}
+                canGoPrevious={canGoPrevious}
+                canGoNext={canGoNext}
               />
             )}
           </Box>

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { ImageData } from '../../annotation/types/workspace';
+import { ImageData } from '../types/workspace.ts';
 
 interface ImageNavigationProps {
   images: ImageData[];

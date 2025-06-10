@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Tag, Target, Circle } from "phosphor-react";
 import { AnnotationToolConfig, ToolConfig } from '../types/annotation';
 import { AnnotationType } from '../types/workspace';

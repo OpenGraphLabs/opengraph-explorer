@@ -2,7 +2,7 @@ import React, { useRef, useCallback, useEffect, useState, MouseEvent } from 'rea
 import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
 import { useTheme } from '@/shared/ui/design-system';
 import { BoundingBox, Polygon, Point, AnnotationType } from '../types/workspace';
-import { Hand, PencilSimple } from 'phosphor-react';
+import { Hand, PencilSimple, CaretLeft, CaretRight } from 'phosphor-react';
 import { getLabelColor } from '../utils/labelColors';
 
 interface ImageViewerProps {
@@ -24,6 +24,11 @@ interface ImageViewerProps {
   onDeleteAnnotation?: (type: AnnotationType, id: string) => void;
   onUpdateBoundingBox?: (id: string, updates: Partial<BoundingBox>) => void;
   setDrawing: (drawing: boolean) => void;
+  // Navigation props
+  onPreviousImage?: () => void;
+  onNextImage?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
 }
 
 // BBox handle types for resizing
@@ -53,7 +58,11 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   onAddPolygon,
   onDeleteAnnotation,
   onUpdateBoundingBox,
-  setDrawing
+  setDrawing,
+  onPreviousImage,
+  onNextImage,
+  canGoPrevious = false,
+  canGoNext = false
 }) => {
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -70,7 +79,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [isReady, setIsReady] = useState(false); // 이미지 로딩 + 자동 피팅 완료 상태
   
   // Mode system states
   const [isPanMode, setIsPanMode] = useState(true); // Default to pan mode
@@ -641,12 +649,10 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     if (!imageUrl) {
       setLoadedImage(null);
       setImageLoaded(false);
-      setIsReady(false);
       return;
     }
 
     // 새 이미지 로딩 시작 시 이전 상태 리셋
-    setIsReady(false);
     setImageLoaded(false);
 
     const img = new Image();
@@ -662,17 +668,11 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         
         onZoomChange(fitZoom);
         onPanChange(centerOffset);
-        
-        // 다음 프레임에서 준비 완료 표시
-        requestAnimationFrame(() => {
-          setIsReady(true);
-        });
       });
     };
     img.onerror = () => {
       setLoadedImage(null);
       setImageLoaded(false);
-      setIsReady(false);
     };
     img.src = imageUrl;
   }, [imageUrl, calculateFitToCanvasZoom, calculateCenterOffset, onZoomChange, onPanChange]);
@@ -876,6 +876,79 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
           </Box>
         )}
       </Box>
+
+      {/* Floating Navigation Buttons */}
+      {onPreviousImage && onNextImage && (
+        <>
+          {/* Previous Button */}
+          <Button
+            onClick={onPreviousImage}
+            disabled={!canGoPrevious}
+            style={{
+              position: 'absolute',
+              left: theme.spacing.semantic.component.xs,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              padding: `${theme.spacing.semantic.component.sm}`,
+              background: canGoPrevious 
+                ? `${theme.colors.background.card}95`
+                : `${theme.colors.background.secondary}80`,
+              color: !canGoPrevious ? theme.colors.text.tertiary : theme.colors.text.primary,
+              border: `1px solid ${canGoPrevious ? theme.colors.border.primary : theme.colors.border.secondary}40`,
+              borderRadius: theme.borders.radius.md,
+              cursor: !canGoPrevious ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '33px',
+              height: '33px',
+              backdropFilter: 'blur(8px)',
+              boxShadow: canGoPrevious 
+                ? `0 4px 12px ${theme.colors.background.primary}30`
+                : 'none',
+              opacity: !canGoPrevious ? 0.5 : 1,
+              transition: 'all 0.2s ease',
+              zIndex: 10,
+            }}
+          >
+            <CaretLeft size={20} weight="bold" />
+          </Button>
+
+          {/* Next Button */}
+          <Button
+            onClick={onNextImage}
+            disabled={!canGoNext}
+            style={{
+              position: 'absolute',
+              right: theme.spacing.semantic.component.xs,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              padding: `${theme.spacing.semantic.component.sm}`,
+              background: canGoNext 
+                ? `${theme.colors.background.card}95`
+                : `${theme.colors.background.secondary}80`,
+              color: !canGoNext ? theme.colors.text.tertiary : theme.colors.text.primary,
+              border: `1px solid ${canGoNext ? theme.colors.border.primary : theme.colors.border.secondary}40`,
+              borderRadius: theme.borders.radius.md,
+              cursor: !canGoNext ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '33px',
+              height: '33px',
+              backdropFilter: 'blur(8px)',
+              boxShadow: canGoNext 
+                ? `0 4px 12px ${theme.colors.background.primary}30`
+                : 'none',
+              opacity: !canGoNext ? 0.5 : 1,
+              transition: 'all 0.2s ease',
+              zIndex: 10,
+            }}
+          >
+            <CaretRight size={20} weight="bold" />
+          </Button>
+        </>
+      )}
 
       {/* Minimal Zoom Indicator */}
       <Box
