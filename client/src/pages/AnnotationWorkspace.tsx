@@ -29,7 +29,7 @@ import { usePhaseConstraints } from '@/features/annotation';
 
 // Import new modular components
 import { AnnotationSidebar } from '@/widgets/annotation-sidebar';
-import { AnnotationListPanel, InlineToolBar } from '@/features/annotation';
+import { AnnotationListPanel, InlineToolBar, AnnotationStackViewer } from '@/features/annotation';
 import { WorkspaceStatusBar } from '@/features/workspace-controls';
 import { useAnnotationTools, useImageNavigation } from '@/features/annotation';
 
@@ -59,8 +59,8 @@ export function AnnotationWorkspace() {
     canAnnotate 
   } = usePhaseConstraints(currentPhase);
   
-  // Workspace state - Dataset 이미지 사용
-  const { state, actions } = useWorkspace(challengeId || '', datasetImages);
+  // Workspace state - Dataset 이미지 사용 (annotation stack 포함)
+  const { state, actions, annotationStack, saveStatus } = useWorkspace(challengeId || '', datasetImages);
 
   // Enhanced tool configuration with phase constraints
   const toolConfig = {
@@ -116,6 +116,7 @@ export function AnnotationWorkspace() {
   }, [state.annotations, handleDeleteAnnotation]);
 
   const totalAnnotations = (state.annotations.labels?.length || 0) + (state.annotations.boundingBoxes?.length || 0) + (state.annotations.polygons?.length || 0);
+  const stackStats = annotationStack.stats;
 
   // Loading state - Dataset 로딩 포함
   if (challengeLoading || datasetLoading) {
@@ -380,7 +381,7 @@ export function AnnotationWorkspace() {
       },
       {
         icon: <Target size={10} style={{ color: theme.colors.interactive.accent }} />,
-        text: `${totalAnnotations} Annotations`,
+        text: `${totalAnnotations} Local • ${stackStats.total}/${annotationStack.maxSize} Stack`,
       },
       {
         icon: <FloppyDisk size={10} style={{ color: state.unsavedChanges ? theme.colors.status.warning : theme.colors.status.success }} />,
@@ -388,21 +389,31 @@ export function AnnotationWorkspace() {
       },
     ],
     filters: (
-      <AnnotationSidebar
-        currentTool={state.currentTool}
-        selectedLabel={state.selectedLabel}
-        existingLabels={toolConfig.existingLabels}
-        boundingBoxes={state.annotations.boundingBoxes || []}
-        zoom={state.zoom}
-        panOffset={state.panOffset}
-        onZoomChange={actions.setZoom}
-        onPanChange={actions.setPanOffset}
-        phaseConstraints={{
-          currentPhase,
-          isToolAllowed,
-          getDisallowedMessage
-        }}
-      />
+      <Flex direction="column" gap="4">
+        <AnnotationSidebar
+          currentTool={state.currentTool}
+          selectedLabel={state.selectedLabel}
+          existingLabels={toolConfig.existingLabels}
+          boundingBoxes={state.annotations.boundingBoxes || []}
+          zoom={state.zoom}
+          panOffset={state.panOffset}
+          onZoomChange={actions.setZoom}
+          onPanChange={actions.setPanOffset}
+          phaseConstraints={{
+            currentPhase,
+            isToolAllowed,
+            getDisallowedMessage
+          }}
+        />
+        
+        {/* Annotation Stack Viewer */}
+        <AnnotationStackViewer
+          stackState={annotationStack.state}
+          maxSize={annotationStack.maxSize}
+          onClearStack={annotationStack.actions.clearStack}
+          isSaving={saveStatus.state.isSaving}
+        />
+      </Flex>
     ),
   };
 
@@ -509,26 +520,37 @@ export function AnnotationWorkspace() {
               </Text>
               
               <Button
-                onClick={actions.saveAnnotations}
-                disabled={!state.unsavedChanges}
+                onClick={actions.saveToBlockchain}
+                disabled={!state.unsavedChanges && !annotationStack.state.hasItems}
                 style={{
-                  background: state.unsavedChanges 
-                    ? theme.colors.status.success 
-                    : theme.colors.interactive.disabled,
+                  background: saveStatus.state.isSaving
+                    ? theme.colors.status.warning
+                    : (state.unsavedChanges || annotationStack.state.hasItems) 
+                      ? annotationStack.state.isFull
+                        ? theme.colors.status.error
+                        : theme.colors.status.success 
+                      : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                   fontWeight: 600,
                   fontSize: "12px",
-                  cursor: state.unsavedChanges ? "pointer" : "not-allowed",
+                  cursor: (state.unsavedChanges || annotationStack.state.hasItems) && !saveStatus.state.isSaving ? "pointer" : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.xs,
                 }}
               >
                 <FloppyDisk size={14} />
-                Save
+                {saveStatus.state.isSaving 
+                  ? 'Saving...' 
+                  : annotationStack.state.isFull 
+                    ? `Save ${stackStats.total} (Full!)` 
+                    : annotationStack.state.hasItems 
+                      ? `Save ${stackStats.total}`
+                      : 'Save'
+                }
               </Button>
               
               <Button
@@ -664,7 +686,11 @@ export function AnnotationWorkspace() {
           currentPhase={currentPhase}
           phaseConstraintMessage={!isToolAllowed(state.currentTool) 
             ? getDisallowedMessage(state.currentTool)
-            : undefined
+            : annotationStack.state.isFull
+              ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Save annotations to continue.`
+              : saveStatus.state.error
+                ? `Save error: ${saveStatus.state.error}`
+                : undefined
           }
         />
       </Box>

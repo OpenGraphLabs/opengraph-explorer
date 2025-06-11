@@ -1,5 +1,7 @@
 import { useReducer, useCallback, useEffect } from 'react';
 import { WorkspaceState, WorkspaceAction, ImageData, AnnotationType, BoundingBox, Polygon, LabelAnnotation, Point } from '../types/workspace';
+import { useAnnotationStack } from './useAnnotationStack';
+import { useAnnotationSave } from './useAnnotationSave';
 
 const initialState: WorkspaceState = {
   currentImage: null,
@@ -140,6 +142,27 @@ export function useWorkspace(_: string, images: ImageData[] = []) {
     availableLabels: [] // User can input custom labels
   });
 
+  // Annotation stack 관리
+  const {
+    stackState,
+    maxSize,
+    addToStack,
+    removeFromStack,
+    clearStack,
+    prepareForSuiSave,
+    getStackStats,
+  } = useAnnotationStack();
+
+  // Annotation 저장 관리
+  const {
+    saveState,
+    saveAnnotations: saveBatchAnnotations,
+    resetSaveState,
+    clearError,
+    canSave,
+    getSaveStats,
+  } = useAnnotationSave();
+
   // 이미지가 로딩되면 자동으로 첫 번째 이미지 설정
   useEffect(() => {
     if (images.length > 0 && !state.currentImage) {
@@ -170,21 +193,59 @@ export function useWorkspace(_: string, images: ImageData[] = []) {
   }, []);
 
   const addLabel = useCallback((label: string) => {
+    // 스택이 가득 찬 경우 경고
+    if (stackState.isFull) {
+      console.warn(`Annotation stack is full (${maxSize}/${maxSize}). Please save annotations before adding more.`);
+      return false;
+    }
+
     const newLabel: LabelAnnotation = {
       id: `label_${Date.now()}`,
       label,
       confidence: 1.0
     };
+    
+    // 로컬 상태에 추가
     dispatch({ type: 'ADD_LABEL', payload: newLabel });
-  }, []);
+    
+    // 스택에 추가 (현재 이미지가 있는 경우에만)
+    if (state.currentImage) {
+      const success = addToStack(state.currentImage, 'label', newLabel);
+      if (!success) {
+        console.error('Failed to add label to annotation stack');
+        return false;
+      }
+    }
+    
+    return true;
+  }, [stackState.isFull, maxSize, state.currentImage, addToStack]);
 
   const addBoundingBox = useCallback((bbox: Omit<BoundingBox, 'id'>) => {
+    // 스택이 가득 찬 경우 경고
+    if (stackState.isFull) {
+      console.warn(`Annotation stack is full (${maxSize}/${maxSize}). Please save annotations before adding more.`);
+      return false;
+    }
+
     const newBBox: BoundingBox = {
       ...bbox,
       id: `bbox_${Date.now()}`
     };
+    
+    // 로컬 상태에 추가
     dispatch({ type: 'ADD_BBOX', payload: newBBox });
-  }, []);
+    
+    // 스택에 추가 (현재 이미지가 있는 경우에만)
+    if (state.currentImage) {
+      const success = addToStack(state.currentImage, 'bbox', newBBox);
+      if (!success) {
+        console.error('Failed to add bounding box to annotation stack');
+        return false;
+      }
+    }
+    
+    return true;
+  }, [stackState.isFull, maxSize, state.currentImage, addToStack]);
 
   const addPolygon = useCallback((polygon: Omit<Polygon, 'id'>) => {
     const newPolygon: Polygon = {
@@ -210,26 +271,63 @@ export function useWorkspace(_: string, images: ImageData[] = []) {
     dispatch({ type: 'SET_DRAWING', payload: drawing });
   }, []);
 
-  const saveAnnotations = useCallback(async () => {
+  const saveToBlockchain = useCallback(async () => {
     try {
-      // Here you would make an API call to save annotations
-      console.log('Saving annotations:', state.annotations);
-      dispatch({ type: 'SAVE_ANNOTATIONS' });
-    } catch (error) {
-      console.error('Failed to save annotations:', error);
-    }
-  }, [state.annotations]);
+      // 스택에 저장할 annotation이 없으면 로컬만 저장
+      if (!stackState.hasItems) {
+        console.log('No annotations in stack to save to blockchain, saving locally only');
+        dispatch({ type: 'SAVE_ANNOTATIONS' });
+        return { success: true, message: 'Local annotations saved' };
+      }
 
-  // Auto-save functionality
+      // 스택 내용을 Sui 저장용 데이터로 변환
+      const suiSaveData = prepareForSuiSave();
+      
+      // 저장 가능 여부 확인
+      const saveCheck = canSave(suiSaveData);
+      if (!saveCheck.canSave) {
+        console.error('Cannot save annotations:', saveCheck.reason);
+        return { success: false, error: saveCheck.reason };
+      }
+
+      // Sui 블록체인에 저장
+      console.log(`Saving ${stackState.count} annotations from stack to Sui blockchain...`);
+      const result = await saveBatchAnnotations(suiSaveData);
+      
+      if (result.success) {
+        // 저장 성공 시 스택 비우기 및 로컬 상태 업데이트
+        clearStack();
+        dispatch({ type: 'SAVE_ANNOTATIONS' });
+        
+        console.log(`Successfully saved ${result.savedCount} annotations to blockchain`);
+        return { success: true, savedCount: result.savedCount };
+      } else {
+        console.error('Failed to save annotations to blockchain:', result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Failed to save annotations:', errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }, [stackState, prepareForSuiSave, canSave, saveBatchAnnotations, clearStack]);
+
+  // Auto-save functionality (로컬만 저장, Sui 블록체인 저장은 제외)
+  const saveLocalAnnotations = useCallback(() => {
+    // 로컬 상태만 저장 (Sui 블록체인 저장 없이)
+    console.log('Auto-saving local annotations');
+    dispatch({ type: 'SAVE_ANNOTATIONS' });
+  }, []);
+
   useEffect(() => {
     if (state.unsavedChanges && state.currentImage) {
       const autoSaveTimer = setTimeout(() => {
-        saveAnnotations();
+        saveLocalAnnotations(); // 로컬만 자동 저장
       }, 2000); // Auto-save after 2 seconds of inactivity
 
       return () => clearTimeout(autoSaveTimer);
     }
-  }, [state.unsavedChanges, state.annotations, saveAnnotations]);
+  }, [state.unsavedChanges, state.annotations, saveLocalAnnotations]);
 
   const resetAnnotations = useCallback(() => {
     dispatch({ type: 'RESET_ANNOTATIONS' });
@@ -253,7 +351,11 @@ export function useWorkspace(_: string, images: ImageData[] = []) {
   }, [state.currentImageIndex, goToImage]);
 
   return {
-    state,
+    state: {
+      ...state,
+      // 로컬 unsavedChanges는 그대로 유지 (스택과는 별개)
+      // 스택은 별도 상태로 관리
+    },
     actions: {
       setCurrentImage,
       setCurrentTool,
@@ -267,11 +369,30 @@ export function useWorkspace(_: string, images: ImageData[] = []) {
       updatePolygon,
       deleteAnnotation,
       setDrawing,
-      saveAnnotations,
+      saveToBlockchain, // 사용자가 명시적으로 저장 버튼을 눌렀을 때만 실행
+      saveLocalAnnotations, // 로컬만 저장 (auto-save용)
       resetAnnotations,
       goToImage,
       goToNextImage,
       goToPreviousImage
+    },
+    // 스택 관련 상태 및 기능 노출
+    annotationStack: {
+      state: stackState,
+      maxSize,
+      stats: getStackStats(),
+      actions: {
+        removeFromStack,
+        clearStack,
+      }
+    },
+    // 저장 관련 상태 및 기능 노출
+    saveStatus: {
+      state: saveState,
+      actions: {
+        resetSaveState,
+        clearError,
+      }
     }
   };
 } 
