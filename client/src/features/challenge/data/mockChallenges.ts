@@ -4,10 +4,10 @@ import { Challenge, Participation, AnnotationSubmission } from '../types/challen
 export const mockChallenges: Challenge[] = [
   {
     id: 'challenge-1',
-    title: 'Urban Traffic Object Detection',
-    description: 'Annotate vehicles, pedestrians, traffic signs, and traffic lights in urban street scenes for autonomous driving research.',
-    datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
-    datasetName: 'Urban Street Scenes',
+    title: 'Sea Animal Classification',
+    description: 'Classify various sea animals in underwater images to support marine research and conservation efforts.',
+    datasetId: '0x1bf48f3e34bfc998b18f9eb551b88525717680bde4a79eac457d08a751e167b2',
+    datasetName: 'Sea Animal Dataset',
     ownerId: 'owner-1',
     ownerAddress: '0x1234...abcd',
     
@@ -76,79 +76,79 @@ export const mockChallenges: Challenge[] = [
     updatedAt: new Date('2024-01-20')
   },
   
-  {
-    id: 'challenge-2',
-    title: 'Medical Image Segmentation',
-    description: 'Precise segmentation of anatomical structures in MRI scans for medical AI development.',
-    datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
-    datasetName: 'Brain MRI Scan Collection',
-    ownerId: 'owner-2',
-    ownerAddress: '0x5678...efgh',
-    
-    status: 'validating',
-    currentPhase: 'validation',
-    
-    bounty: {
-      totalAmount: 8000,
-      currency: 'USDC',
-      distribution: {
-        label: 20,
-        bbox: 30,
-        segmentation: 50
-      },
-      qualityBonus: 20
-    },
-    
-    timeline: {
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-01-31'),
-      phases: {
-        label: { 
-          start: new Date('2024-01-01'), 
-          end: new Date('2024-01-10') 
-        },
-        bbox: { 
-          start: new Date('2024-01-05'), 
-          end: new Date('2024-01-20') 
-        },
-        segmentation: { 
-          start: new Date('2024-01-15'), 
-          end: new Date('2024-01-28') 
-        },
-        validation: { 
-          start: new Date('2024-01-28'), 
-          end: new Date('2024-01-31') 
-        }
-      }
-    },
-    
-    requirements: {
-      minQualityScore: 0.9,
-      maxParticipants: 15,
-      requiredAnnotationsPerImage: 2,
-      validationThreshold: 3
-    },
-    
-    stats: {
-      totalParticipants: 12,
-      activeParticipants: 5,
-      completedAnnotations: 456,
-      pendingValidations: 89,
-      averageQualityScore: 0.92
-    },
-    
-    validators: {
-      allowedValidators: ['user-1', 'user-4'], // user-1 is validator for challenge-2
-      requireValidatorApproval: true,
-      validationRewards: 15
-    },
-    
-    tags: ['medical', 'segmentation', 'mri', 'anatomy'],
-    difficulty: 'advanced',
-    
-    createdAt: new Date('2023-12-20'),
-    updatedAt: new Date('2024-01-28')
-  },
+  // {
+  //   id: 'challenge-2',
+  //   title: 'Medical Image Segmentation',
+  //   description: 'Precise segmentation of anatomical structures in MRI scans for medical AI development.',
+  //   datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
+  //   datasetName: 'Brain MRI Scan Collection',
+  //   ownerId: 'owner-2',
+  //   ownerAddress: '0x5678...efgh',
+  //
+  //   status: 'validating',
+  //   currentPhase: 'validation',
+  //
+  //   bounty: {
+  //     totalAmount: 8000,
+  //     currency: 'USDC',
+  //     distribution: {
+  //       label: 20,
+  //       bbox: 30,
+  //       segmentation: 50
+  //     },
+  //     qualityBonus: 20
+  //   },
+  //
+  //   timeline: {
+  //     startDate: new Date('2024-01-01'),
+  //     endDate: new Date('2024-01-31'),
+  //     phases: {
+  //       label: {
+  //         start: new Date('2024-01-01'),
+  //         end: new Date('2024-01-10')
+  //       },
+  //       bbox: {
+  //         start: new Date('2024-01-05'),
+  //         end: new Date('2024-01-20')
+  //       },
+  //       segmentation: {
+  //         start: new Date('2024-01-15'),
+  //         end: new Date('2024-01-28')
+  //       },
+  //       validation: {
+  //         start: new Date('2024-01-28'),
+  //         end: new Date('2024-01-31')
+  //       }
+  //     }
+  //   },
+  //
+  //   requirements: {
+  //     minQualityScore: 0.9,
+  //     maxParticipants: 15,
+  //     requiredAnnotationsPerImage: 2,
+  //     validationThreshold: 3
+  //   },
+  //
+  //   stats: {
+  //     totalParticipants: 12,
+  //     activeParticipants: 5,
+  //     completedAnnotations: 456,
+  //     pendingValidations: 89,
+  //     averageQualityScore: 0.92
+  //   },
+  //
+  //   validators: {
+  //     allowedValidators: ['user-1', 'user-4'], // user-1 is validator for challenge-2
+  //     requireValidatorApproval: true,
+  //     validationRewards: 15
+  //   },
+  //
+  //   tags: ['medical', 'segmentation', 'mri', 'anatomy'],
+  //   difficulty: 'advanced',
+  //
+  //   createdAt: new Date('2023-12-20'),
+  //   updatedAt: new Date('2024-01-28')
+  // },
   
   {
     id: 'challenge-3',
@@ -223,153 +223,153 @@ export const mockChallenges: Challenge[] = [
     updatedAt: new Date('2024-01-25')
   },
   
-  {
-    id: 'challenge-4',
-    title: 'Industrial Defect Detection',
-    description: 'Detect and classify manufacturing defects in industrial parts for quality control automation.',
-    datasetId: '0x857a14ce08cc70ab60246af66b643fe1386ab3258339d7dc28fb54661e5c76f9',
-    datasetName: 'Manufacturing Quality Control Images',
-    ownerId: 'owner-1',
-    ownerAddress: '0x1234...abcd',
-    
-    status: 'completed',
-    currentPhase: 'completed',
-    
-    bounty: {
-      totalAmount: 3500,
-      currency: 'SUI',
-      distribution: {
-        label: 25,
-        bbox: 45,
-        segmentation: 30
-      },
-      qualityBonus: 12
-    },
-    
-    timeline: {
-      startDate: new Date('2023-12-01'),
-      endDate: new Date('2023-12-31'),
-      phases: {
-        label: { 
-          start: new Date('2023-12-01'), 
-          end: new Date('2023-12-10') 
-        },
-        bbox: { 
-          start: new Date('2023-12-05'), 
-          end: new Date('2023-12-20') 
-        },
-        segmentation: { 
-          start: new Date('2023-12-15'), 
-          end: new Date('2023-12-28') 
-        },
-        validation: { 
-          start: new Date('2023-12-28'), 
-          end: new Date('2023-12-31') 
-        }
-      }
-    },
-    
-    requirements: {
-      minQualityScore: 0.85,
-      maxParticipants: 25,
-      requiredAnnotationsPerImage: 3,
-      validationThreshold: 2
-    },
-    
-    stats: {
-      totalParticipants: 19,
-      activeParticipants: 0,
-      completedAnnotations: 892,
-      pendingValidations: 0,
-      averageQualityScore: 0.89
-    },
-    
-    validators: {
-      allowedValidators: ['user-2', 'user-6'],
-      requireValidatorApproval: true,
-      validationRewards: 12
-    },
-    
-    tags: ['industrial', 'defect-detection', 'quality-control', 'manufacturing'],
-    difficulty: 'intermediate',
-    
-    createdAt: new Date('2023-11-25'),
-    updatedAt: new Date('2023-12-31')
-  },
-  
-  {
-    id: 'challenge-5',
-    title: 'Satellite Image Land Cover Classification',
-    description: 'Classify different land cover types in satellite imagery for environmental monitoring.',
-    datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
-    datasetName: 'Satellite Land Cover Dataset',
-    ownerId: 'owner-4',
-    ownerAddress: '0xdef0...mnop',
-    
-    status: 'draft',
-    currentPhase: 'label',
-    
-    bounty: {
-      totalAmount: 6000,
-      currency: 'USDC',
-      distribution: {
-        label: 40,
-        bbox: 35,
-        segmentation: 25
-      },
-      qualityBonus: 18
-    },
-    
-    timeline: {
-      startDate: new Date('2024-02-01'),
-      endDate: new Date('2024-03-15'),
-      phases: {
-        label: { 
-          start: new Date('2024-02-01'), 
-          end: new Date('2024-02-15') 
-        },
-        bbox: { 
-          start: new Date('2024-02-10'), 
-          end: new Date('2024-02-28') 
-        },
-        segmentation: { 
-          start: new Date('2024-02-20'), 
-          end: new Date('2024-03-10') 
-        },
-        validation: { 
-          start: new Date('2024-03-10'), 
-          end: new Date('2024-03-15') 
-        }
-      }
-    },
-    
-    requirements: {
-      minQualityScore: 0.82,
-      maxParticipants: 40,
-      requiredAnnotationsPerImage: 2,
-      validationThreshold: 3
-    },
-    
-    stats: {
-      totalParticipants: 0,
-      activeParticipants: 0,
-      completedAnnotations: 0,
-      pendingValidations: 0,
-      averageQualityScore: 0
-    },
-    
-    validators: {
-      allowedValidators: ['user-1', 'user-7'],
-      requireValidatorApproval: true,
-      validationRewards: 18
-    },
-    
-    tags: ['satellite', 'land-cover', 'environmental', 'remote-sensing'],
-    difficulty: 'intermediate',
-    
-    createdAt: new Date('2024-01-28'),
-    updatedAt: new Date('2024-01-28')
-  }
+  // {
+  //   id: 'challenge-4',
+  //   title: 'Industrial Defect Detection',
+  //   description: 'Detect and classify manufacturing defects in industrial parts for quality control automation.',
+  //   datasetId: '0x857a14ce08cc70ab60246af66b643fe1386ab3258339d7dc28fb54661e5c76f9',
+  //   datasetName: 'Manufacturing Quality Control Images',
+  //   ownerId: 'owner-1',
+  //   ownerAddress: '0x1234...abcd',
+  //
+  //   status: 'completed',
+  //   currentPhase: 'completed',
+  //
+  //   bounty: {
+  //     totalAmount: 3500,
+  //     currency: 'SUI',
+  //     distribution: {
+  //       label: 25,
+  //       bbox: 45,
+  //       segmentation: 30
+  //     },
+  //     qualityBonus: 12
+  //   },
+  //
+  //   timeline: {
+  //     startDate: new Date('2023-12-01'),
+  //     endDate: new Date('2023-12-31'),
+  //     phases: {
+  //       label: {
+  //         start: new Date('2023-12-01'),
+  //         end: new Date('2023-12-10')
+  //       },
+  //       bbox: {
+  //         start: new Date('2023-12-05'),
+  //         end: new Date('2023-12-20')
+  //       },
+  //       segmentation: {
+  //         start: new Date('2023-12-15'),
+  //         end: new Date('2023-12-28')
+  //       },
+  //       validation: {
+  //         start: new Date('2023-12-28'),
+  //         end: new Date('2023-12-31')
+  //       }
+  //     }
+  //   },
+  //
+  //   requirements: {
+  //     minQualityScore: 0.85,
+  //     maxParticipants: 25,
+  //     requiredAnnotationsPerImage: 3,
+  //     validationThreshold: 2
+  //   },
+  //
+  //   stats: {
+  //     totalParticipants: 19,
+  //     activeParticipants: 0,
+  //     completedAnnotations: 892,
+  //     pendingValidations: 0,
+  //     averageQualityScore: 0.89
+  //   },
+  //
+  //   validators: {
+  //     allowedValidators: ['user-2', 'user-6'],
+  //     requireValidatorApproval: true,
+  //     validationRewards: 12
+  //   },
+  //
+  //   tags: ['industrial', 'defect-detection', 'quality-control', 'manufacturing'],
+  //   difficulty: 'intermediate',
+  //
+  //   createdAt: new Date('2023-11-25'),
+  //   updatedAt: new Date('2023-12-31')
+  // },
+  //
+  // {
+  //   id: 'challenge-5',
+  //   title: 'Satellite Image Land Cover Classification',
+  //   description: 'Classify different land cover types in satellite imagery for environmental monitoring.',
+  //   datasetId: '0xeaa7f5b2cebde5e6a6742589d5232d7adb3d394bb29b0c3deb021aaa2ec4aa25',
+  //   datasetName: 'Satellite Land Cover Dataset',
+  //   ownerId: 'owner-4',
+  //   ownerAddress: '0xdef0...mnop',
+  //
+  //   status: 'draft',
+  //   currentPhase: 'label',
+  //
+  //   bounty: {
+  //     totalAmount: 6000,
+  //     currency: 'USDC',
+  //     distribution: {
+  //       label: 40,
+  //       bbox: 35,
+  //       segmentation: 25
+  //     },
+  //     qualityBonus: 18
+  //   },
+  //
+  //   timeline: {
+  //     startDate: new Date('2024-02-01'),
+  //     endDate: new Date('2024-03-15'),
+  //     phases: {
+  //       label: {
+  //         start: new Date('2024-02-01'),
+  //         end: new Date('2024-02-15')
+  //       },
+  //       bbox: {
+  //         start: new Date('2024-02-10'),
+  //         end: new Date('2024-02-28')
+  //       },
+  //       segmentation: {
+  //         start: new Date('2024-02-20'),
+  //         end: new Date('2024-03-10')
+  //       },
+  //       validation: {
+  //         start: new Date('2024-03-10'),
+  //         end: new Date('2024-03-15')
+  //       }
+  //     }
+  //   },
+  //
+  //   requirements: {
+  //     minQualityScore: 0.82,
+  //     maxParticipants: 40,
+  //     requiredAnnotationsPerImage: 2,
+  //     validationThreshold: 3
+  //   },
+  //
+  //   stats: {
+  //     totalParticipants: 0,
+  //     activeParticipants: 0,
+  //     completedAnnotations: 0,
+  //     pendingValidations: 0,
+  //     averageQualityScore: 0
+  //   },
+  //
+  //   validators: {
+  //     allowedValidators: ['user-1', 'user-7'],
+  //     requireValidatorApproval: true,
+  //     validationRewards: 18
+  //   },
+  //
+  //   tags: ['satellite', 'land-cover', 'environmental', 'remote-sensing'],
+  //   difficulty: 'intermediate',
+  //
+  //   createdAt: new Date('2024-01-28'),
+  //   updatedAt: new Date('2024-01-28')
+  // }
 ];
 
 // Mock Participation Data
