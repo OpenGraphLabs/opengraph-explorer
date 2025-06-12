@@ -6,7 +6,7 @@ export const mockChallenges: Challenge[] = [
     id: 'challenge-1',
     title: 'Sea Animal Classification',
     description: 'Classify various sea animals in underwater images to support marine research and conservation efforts.',
-    datasetId: '0xbb4cf373d19a7e64ee646c87bce31d19e0791a81b416e300384faf695c248483',
+    datasetId: '0xaf6a667fc2617d97a6b6e3387809db6173dc37dbe678024c80f7284864873f1b',
     datasetName: 'Sea Animal Dataset',
     ownerId: 'owner-1',
     ownerAddress: '0x1234...abcd',

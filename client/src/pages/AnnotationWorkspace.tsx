@@ -29,7 +29,7 @@ import { usePhaseConstraints } from '@/features/annotation';
 
 // Import new modular components
 import { AnnotationSidebar } from '@/widgets/annotation-sidebar';
-import { AnnotationListPanel, InlineToolBar, AnnotationStackViewer } from '@/features/annotation';
+import { AnnotationListPanel, InlineToolBar, AnnotationStackViewer, SaveNotification } from '@/features/annotation';
 import { WorkspaceStatusBar } from '@/features/workspace-controls';
 import { useAnnotationTools, useImageNavigation } from '@/features/annotation';
 
@@ -696,11 +696,34 @@ export function AnnotationWorkspace() {
         />
       </Box>
 
+      {/* Save Notification */}
+      <SaveNotification
+        saveState={saveStatus.state}
+        stackTotal={stackStats.total}
+        onDismissSuccess={saveStatus.actions.resetSaveState}
+        onDismissError={saveStatus.actions.clearError}
+        onRetry={actions.saveToBlockchain}
+      />
+
       <style>
         {`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes slideInFromRight {
+          from { 
+            transform: translateX(100%); 
+            opacity: 0; 
+          }
+          to { 
+            transform: translateX(0); 
+            opacity: 1; 
+          }
         }
         `}
       </style>

@@ -62,7 +62,7 @@ export function useAnnotationSuiService() {
 
       // 각 Data별로 annotation 처리
       for (const dataAnnotation of batchInput.dataAnnotations) {
-        const { dataPath, labelAnnotations, bboxAnnotations } = dataAnnotation;
+        const { dataId, dataPath, labelAnnotations, bboxAnnotations } = dataAnnotation;
 
         // Label과 BBox annotation 모두 없으면 스킵
         const hasLabelAnnotations = labelAnnotations && labelAnnotations.length > 0;

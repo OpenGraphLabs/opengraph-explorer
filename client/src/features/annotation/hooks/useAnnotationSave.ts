@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAnnotationSuiService, type BatchAnnotationInput } from '@/shared/api/sui/annotationSuiService';
 import { type DataAnnotationInput } from '@/shared/api/sui/annotationSuiService';
 
@@ -86,6 +86,14 @@ export function useAnnotationSave() {
             lastSaveTime: Date.now(),
             savedCount: totalAnnotations,
           }));
+
+          // Auto-dismiss success notification after 3 seconds
+          setTimeout(() => {
+            setSaveState(prev => ({
+              ...prev,
+              isSuccess: false,
+            }));
+          }, 3000);
         },
         (error) => {
           console.error('Failed to save annotations:', error);
