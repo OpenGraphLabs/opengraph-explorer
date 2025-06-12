@@ -79,7 +79,6 @@ export function useAnnotationSuiService() {
             return tx.moveCall({
               target: `${SUI_CONTRACT.PACKAGE_ID}::annotation::new_label_annotation`,
               arguments: [
-                tx.pure.string(dataPath), // path
                 tx.pure.string(labelAnnotation.label), // label
                 tx.pure.address(account.address), // annotated_by
               ],
@@ -97,7 +96,6 @@ export function useAnnotationSuiService() {
             return tx.moveCall({
               target: `${SUI_CONTRACT.PACKAGE_ID}::annotation::new_bbox_annotation`,
               arguments: [
-                tx.pure.string(dataPath), // path
                 tx.pure.u64(BigInt(Math.round(bboxAnnotation.x))), // x
                 tx.pure.u64(BigInt(Math.round(bboxAnnotation.y))), // y
                 tx.pure.u64(BigInt(Math.round(bboxAnnotation.width))), // w
@@ -126,6 +124,23 @@ export function useAnnotationSuiService() {
           const totalAnnotations = (labelAnnotations?.length || 0) + (bboxAnnotations?.length || 0);
           console.log(`Added ${totalAnnotations} annotations (${labelAnnotations?.length || 0} labels, ${bboxAnnotations?.length || 0} bboxes) to data ${dataPath}`);
         }
+
+        // // 3. 생성된 모든 annotation들에 대해 한 건씩 add_annotation 호출
+        // if (allAnnotationCalls.length > 0) {
+        //   for (const annotationCall of allAnnotationCalls) {
+        //     tx.moveCall({
+        //       target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation`,
+        //       arguments: [
+        //         tx.object(dataId), // data object
+        //         annotationCall, // annotation
+        //       ],
+        //     });
+        //   }
+        //
+        //   const totalAnnotations = (labelAnnotations?.length || 0) + (bboxAnnotations?.length || 0);
+        //   console.log(`Added ${totalAnnotations} annotations (${labelAnnotations?.length || 0} labels, ${bboxAnnotations?.length || 0} bboxes) to data ${dataPath}`);
+        // }
+
       }
 
       // 4. 트랜잭션 실행
