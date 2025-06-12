@@ -18,6 +18,7 @@ export interface DataAnnotationInput {
 
 // 배치 어노테이션 등록 인터페이스
 export interface BatchAnnotationInput {
+  datasetId: string; // Dataset 객체 ID
   dataAnnotations: DataAnnotationInput[]; // Data별로 그룹화된 annotation 배열
 }
 
@@ -56,9 +57,12 @@ export function useAnnotationSuiService() {
       const tx = new Transaction();
       tx.setGasBudget(GAS_BUDGET);
 
+      // TODO: datasetId를 활용하여 Dataset 객체 유효성 검사 또는 로깅 추가 가능
+      console.log(`!!!! Adding annotations to dataset: ${batchInput.datasetId}`);
+
       // 각 Data별로 annotation 처리
       for (const dataAnnotation of batchInput.dataAnnotations) {
-        const { dataId, dataPath, labelAnnotations, bboxAnnotations } = dataAnnotation;
+        const { dataPath, labelAnnotations, bboxAnnotations } = dataAnnotation;
 
         // Label과 BBox annotation 모두 없으면 스킵
         const hasLabelAnnotations = labelAnnotations && labelAnnotations.length > 0;
@@ -113,7 +117,8 @@ export function useAnnotationSuiService() {
           tx.moveCall({
             target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotations`,
             arguments: [
-              tx.object(dataId), // data object
+              tx.object(batchInput.datasetId), // dataset object
+              tx.pure.string(dataPath), // data path
               tx.makeMoveVec({
                 type: `${SUI_CONTRACT.PACKAGE_ID}::annotation::Annotation`,
                 elements: allAnnotationCalls,
@@ -124,23 +129,6 @@ export function useAnnotationSuiService() {
           const totalAnnotations = (labelAnnotations?.length || 0) + (bboxAnnotations?.length || 0);
           console.log(`Added ${totalAnnotations} annotations (${labelAnnotations?.length || 0} labels, ${bboxAnnotations?.length || 0} bboxes) to data ${dataPath}`);
         }
-
-        // // 3. 생성된 모든 annotation들에 대해 한 건씩 add_annotation 호출
-        // if (allAnnotationCalls.length > 0) {
-        //   for (const annotationCall of allAnnotationCalls) {
-        //     tx.moveCall({
-        //       target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation`,
-        //       arguments: [
-        //         tx.object(dataId), // data object
-        //         annotationCall, // annotation
-        //       ],
-        //     });
-        //   }
-        //
-        //   const totalAnnotations = (labelAnnotations?.length || 0) + (bboxAnnotations?.length || 0);
-        //   console.log(`Added ${totalAnnotations} annotations (${labelAnnotations?.length || 0} labels, ${bboxAnnotations?.length || 0} bboxes) to data ${dataPath}`);
-        // }
-
       }
 
       // 4. 트랜잭션 실행
@@ -181,6 +169,7 @@ export function useAnnotationSuiService() {
 
   /**
    * 단일 Data에 Annotation들을 등록하는 함수 (Label과 BBox 모두 지원)
+   * @param datasetId Dataset 객체 ID
    * @param dataId Data 객체 ID
    * @param dataPath Data의 path
    * @param labelAnnotations 추가할 label annotation 배열 (선택)
@@ -190,6 +179,7 @@ export function useAnnotationSuiService() {
    * @returns 트랜잭션 결과
    */
   const addAnnotationsToData = async (
+    datasetId: string,
     dataId: string,
     dataPath: string,
     labelAnnotations?: LabelAnnotation[],
@@ -198,6 +188,7 @@ export function useAnnotationSuiService() {
     onError?: (error: Error) => void
   ) => {
     const batchInput: BatchAnnotationInput = {
+      datasetId,
       dataAnnotations: [
         {
           dataId,
@@ -213,6 +204,7 @@ export function useAnnotationSuiService() {
 
   /**
    * 단일 Data에 Label Annotation들만 등록하는 편의 함수
+   * @param datasetId Dataset 객체 ID
    * @param dataId Data 객체 ID
    * @param dataPath Data의 path
    * @param labelAnnotations 추가할 label annotation 배열
@@ -221,17 +213,19 @@ export function useAnnotationSuiService() {
    * @returns 트랜잭션 결과
    */
   const addLabelAnnotationsToData = async (
+    datasetId: string,
     dataId: string,
     dataPath: string,
     labelAnnotations: LabelAnnotation[],
     onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
   ) => {
-    return addAnnotationsToData(dataId, dataPath, labelAnnotations, undefined, onSuccess, onError);
+    return addAnnotationsToData(datasetId, dataId, dataPath, labelAnnotations, undefined, onSuccess, onError);
   };
 
   /**
    * 단일 Data에 BBox Annotation들만 등록하는 편의 함수
+   * @param datasetId Dataset 객체 ID
    * @param dataId Data 객체 ID
    * @param dataPath Data의 path
    * @param bboxAnnotations 추가할 bbox annotation 배열
@@ -240,13 +234,14 @@ export function useAnnotationSuiService() {
    * @returns 트랜잭션 결과
    */
   const addBboxAnnotationsToData = async (
+    datasetId: string,
     dataId: string,
     dataPath: string,
     bboxAnnotations: BoundingBox[],
     onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
   ) => {
-    return addAnnotationsToData(dataId, dataPath, undefined, bboxAnnotations, onSuccess, onError);
+    return addAnnotationsToData(datasetId, dataId, dataPath, undefined, bboxAnnotations, onSuccess, onError);
   };
 
   /**
@@ -300,6 +295,10 @@ export function useAnnotationSuiService() {
    */
   const validateBatchInput = (batchInput: BatchAnnotationInput): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
+
+    if (!batchInput.datasetId || batchInput.datasetId.trim() === "") {
+      errors.push("Dataset ID is required");
+    }
 
     if (!batchInput.dataAnnotations || batchInput.dataAnnotations.length === 0) {
       errors.push("No data annotations provided");

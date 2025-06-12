@@ -25,7 +25,15 @@ export function useAnnotationSave() {
   /**
    * annotation들을 Sui 블록체인에 저장
    */
-  const saveAnnotations = useCallback(async (dataAnnotations: DataAnnotationInput[]) => {
+  const saveAnnotations = useCallback(async (datasetId: string, dataAnnotations: DataAnnotationInput[]) => {
+    if (!datasetId || datasetId.trim() === '') {
+      setSaveState(prev => ({
+        ...prev,
+        error: 'Dataset ID is required',
+      }));
+      return { success: false, error: 'Dataset ID is required' };
+    }
+
     if (dataAnnotations.length === 0) {
       setSaveState(prev => ({
         ...prev,
@@ -44,6 +52,7 @@ export function useAnnotationSave() {
     try {
       // 입력 데이터 검증
       const batchInput: BatchAnnotationInput = {
+        datasetId,
         dataAnnotations,
       };
 

@@ -134,7 +134,7 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
   }
 }
 
-export function useWorkspace(_: string, images: ImageData[] = []) {
+export function useWorkspace(datasetId: string, images: ImageData[] = []) {
   const [state, dispatch] = useReducer(workspaceReducer, {
     ...initialState,
     totalImages: images.length,
@@ -292,7 +292,7 @@ export function useWorkspace(_: string, images: ImageData[] = []) {
 
       // Sui 블록체인에 저장
       console.log(`Saving ${stackState.count} annotations from stack to Sui blockchain...`);
-      const result = await saveBatchAnnotations(suiSaveData);
+      const result = await saveBatchAnnotations(datasetId, suiSaveData);
       
       if (result.success) {
         // 저장 성공 시 스택 비우기 및 로컬 상태 업데이트

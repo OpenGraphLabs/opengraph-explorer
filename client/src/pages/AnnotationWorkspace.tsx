@@ -48,7 +48,8 @@ export function AnnotationWorkspace() {
     loading: datasetLoading, 
     error: datasetError,
     progress: datasetProgress,
-    isDatasetValidForChallenge 
+    isDatasetValidForChallenge,
+    datasetId
   } = useChallengeDataset(challenge);
   
   // Phase constraints
@@ -60,7 +61,7 @@ export function AnnotationWorkspace() {
   } = usePhaseConstraints(currentPhase);
   
   // Workspace state - Dataset 이미지 사용 (annotation stack 포함)
-  const { state, actions, annotationStack, saveStatus } = useWorkspace(challengeId || '', datasetImages);
+  const { state, actions, annotationStack, saveStatus } = useWorkspace(datasetId || '', datasetImages);
 
   // Enhanced tool configuration with phase constraints
   const toolConfig = {

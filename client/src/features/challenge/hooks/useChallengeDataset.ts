@@ -14,6 +14,7 @@ export interface ChallengeDatasetState {
     percentage: number;
   };
   isDatasetValidForChallenge: boolean;
+  datasetId: string | null;
 }
 
 export interface ChallengeDatasetActions {
@@ -153,6 +154,7 @@ export function useChallengeDataset(challenge: Challenge | null): ChallengeDatas
     error,
     progress,
     isDatasetValidForChallenge: isDatasetValidForChallenge(),
+    datasetId: challenge?.datasetId || null,
     
     // Actions
     refetchImages,
