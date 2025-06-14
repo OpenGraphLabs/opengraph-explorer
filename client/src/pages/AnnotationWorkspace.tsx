@@ -143,6 +143,25 @@ export function AnnotationWorkspace() {
     [isToolAllowed, actions]
   );
 
+  // Optimized function to clear all annotations
+  const clearAllAnnotations = useCallback(() => {
+    const batch = [];
+    
+    // Collect all deletion operations
+    state.annotations.labels?.forEach(existingLabel => 
+      batch.push(() => actions.deleteAnnotation("label", existingLabel.id))
+    );
+    state.annotations.boundingBoxes?.forEach(bbox => 
+      batch.push(() => actions.deleteAnnotation("bbox", bbox.id))
+    );
+    state.annotations.polygons?.forEach(polygon => 
+      batch.push(() => actions.deleteAnnotation("segmentation", polygon.id))
+    );
+    
+    // Execute all deletions in batch for better performance
+    batch.forEach(deleteOp => deleteOp());
+  }, [actions, state.annotations]);
+
   // Custom label add handler with phase constraints
   const handleAddLabel = useCallback(
     (label: string) => {
@@ -150,20 +169,59 @@ export function AnnotationWorkspace() {
         // Don't add label if not allowed in current phase
         return;
       }
+      
+      // Clear existing annotations before adding new one (1 annotation per image)
+      clearAllAnnotations();
+      
       actions.addLabel(label);
     },
-    [isToolAllowed, actions]
+    [isToolAllowed, actions, clearAllAnnotations]
   );
+
+  // Image change handler moved to top level
+  const handleImageChange = useCallback((image) => {
+    // 이미지 변경 시 즉시 설정하고 zoom/pan 상태 초기화
+    actions.setCurrentImage(image);
+    
+    // 선택된 annotation 초기화
+    setSelectedAnnotation(null);
+    
+    // 이미지 변경 시 zoom과 pan을 초기화하여 올바른 중앙 정렬 보장
+    // 두 번의 requestAnimationFrame으로 더 안정적인 렌더링 보장
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        actions.setZoom(1);
+        actions.setPanOffset({ x: 0, y: 0 });
+      });
+    });
+  }, [actions]);
 
   const { currentImageIndex, progress, canGoNext, canGoPrevious, handleNext, handlePrevious } =
     useImageNavigation({
       images: datasetImages,
       currentImage: state.currentImage,
-      onImageChange: image => {
-        // 이미지 변경 시 즉시 설정 (ImageViewer에서 자동 피팅 처리됨)
-        actions.setCurrentImage(image);
-      },
+      onImageChange: handleImageChange,
     });
+
+  // Auto-advance to next image when annotation is added (1 annotation per image)
+  const [previousAnnotationCount, setPreviousAnnotationCount] = useState(0);
+  
+  useEffect(() => {
+    const totalCurrentAnnotations = 
+      (state.annotations.labels?.length || 0) +
+      (state.annotations.boundingBoxes?.length || 0) +
+      (state.annotations.polygons?.length || 0);
+
+    // If we just added an annotation (went from 0 to 1) and can go to next image, auto-advance immediately
+    if (totalCurrentAnnotations === 1 && previousAnnotationCount === 0 && canGoNext) {
+      // Use requestAnimationFrame for immediate but smooth transition
+      requestAnimationFrame(() => {
+        handleNext();
+      });
+    }
+    
+    setPreviousAnnotationCount(totalCurrentAnnotations);
+  }, [state.annotations, canGoNext, handleNext, previousAnnotationCount]);
 
   // Handle annotation selection
   const handleSelectAnnotation = useCallback((type: AnnotationType, id: string) => {
@@ -181,12 +239,28 @@ export function AnnotationWorkspace() {
   );
 
   const handleClearAll = useCallback(() => {
-    state.annotations.labels?.forEach(label => handleDeleteAnnotation("label", label.id));
-    state.annotations.boundingBoxes?.forEach(bbox => handleDeleteAnnotation("bbox", bbox.id));
-    state.annotations.polygons?.forEach(polygon =>
-      handleDeleteAnnotation("segmentation", polygon.id)
-    );
-  }, [state.annotations, handleDeleteAnnotation]);
+    clearAllAnnotations();
+    if (selectedAnnotation) {
+      setSelectedAnnotation(null);
+    }
+  }, [clearAllAnnotations, selectedAnnotation]);
+
+  // BBox and polygon handlers moved to top level
+  const handleAddBoundingBox = useCallback((bbox) => {
+    if (isToolAllowed("bbox")) {
+      // Clear existing annotations before adding new one (1 annotation per image)
+      clearAllAnnotations();
+      actions.addBoundingBox(bbox);
+    }
+  }, [isToolAllowed, clearAllAnnotations, actions]);
+
+  const handleAddPolygon = useCallback((polygon) => {
+    if (isToolAllowed("segmentation")) {
+      // Clear existing annotations before adding new one (1 annotation per image)
+      clearAllAnnotations();
+      actions.addPolygon(polygon);
+    }
+  }, [isToolAllowed, clearAllAnnotations, actions]);
 
   const totalAnnotations =
     (state.annotations.labels?.length || 0) +
@@ -449,7 +523,7 @@ export function AnnotationWorkspace() {
       actionButton: {
         text: "Back to Challenge",
         icon: <ArrowLeft size={14} weight="bold" />,
-        href: `/challenges/${challengeId}`,
+        href: `/challenges`,
       },
     },
     stats: [
@@ -557,7 +631,7 @@ export function AnnotationWorkspace() {
                       color: theme.colors.text.secondary,
                     }}
                   >
-                    Challenge: {challenge?.title || "Loading..."}
+                    {challenge?.description || "Loading..."}
                   </Text>
 
                   {/* Dataset 연동 상태 표시 */}
@@ -773,16 +847,8 @@ export function AnnotationWorkspace() {
                 isDrawing={state.isDrawing}
                 onZoomChange={actions.setZoom}
                 onPanChange={actions.setPanOffset}
-                onAddBoundingBox={bbox => {
-                  if (isToolAllowed("bbox")) {
-                    actions.addBoundingBox(bbox);
-                  }
-                }}
-                onAddPolygon={polygon => {
-                  if (isToolAllowed("segmentation")) {
-                    actions.addPolygon(polygon);
-                  }
-                }}
+                onAddBoundingBox={handleAddBoundingBox}
+                onAddPolygon={handleAddPolygon}
                 onSelectAnnotation={handleSelectAnnotation}
                 onDeleteAnnotation={handleDeleteAnnotation}
                 onUpdateBoundingBox={actions.updateBoundingBox}

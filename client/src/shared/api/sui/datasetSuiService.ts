@@ -266,8 +266,11 @@ export function useDatasetSuiService() {
         }
       }
 
-      // 6. 데이터셋 소유권 이전
-      tx.transferObjects([dataset], account.address);
+      // 6. dataset share
+      tx.moveCall({
+        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::share_dataset`,
+        arguments: [dataset],
+      });
 
       // 7. 트랜잭션 실행
       return await signAndExecuteTransaction(

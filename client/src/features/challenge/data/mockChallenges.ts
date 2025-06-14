@@ -6,8 +6,8 @@ export const mockChallenges: Challenge[] = [
     id: "challenge-1",
     title: "Sea Animal Classification",
     description:
-      "Classify various sea animals in underwater images to support marine research and conservation efforts.",
-    datasetId: "0xaf6a667fc2617d97a6b6e3387809db6173dc37dbe678024c80f7284864873f1b",
+      "Guess the sea animal in the image! sea otter, sea lion, seal, dugong",
+    datasetId: "0x9c934c125d6f2174dba54d04231a4f4049b350aabbb657a36a278b826c20f0a9",
     datasetName: "Sea Animal Dataset",
     ownerId: "owner-1",
     ownerAddress: "0x1234...abcd",
@@ -81,7 +81,7 @@ export const mockChallenges: Challenge[] = [
     title: "Urban Traffic Image Annotation",
     description:
       "Annotate urban traffic images to improve autonomous driving systems and enhance road safety.",
-    datasetId: "0xb1a537f4fa4cc97a542d0837ea63b63684512ef55874dd5c6ad6ac203a1feaab",
+    datasetId: "0x8974c0fbb3b2c91baa9bc9bd47791542ebe5706d5005e4f99939d127545b8e80",
     datasetName: "Urban Traffic Dataset",
     ownerId: "owner-3",
     ownerAddress: "0x9abc...ijkl",
