@@ -23,9 +23,21 @@ import {
   Star,
   Lightning as Bolt,
   Fire,
+  Target,
+  CheckCircle,
+  PlayCircle,
+  Lock,
 } from "phosphor-react";
 import { useChallenges, Challenge, ChallengeStatus } from "@/features/challenge";
+import { 
+  useMissions, 
+  CompactMissionStatus, 
+  CertificateModal,
+  VideoGuide,
+  MissionCard
+} from "@/features/challenge";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 // Challenge Status Badge Component
 function ChallengeStatusBadge({ status }: { status: ChallengeStatus }) {
@@ -537,6 +549,7 @@ function ChallengeFilters({
 
 export function Challenges() {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const {
     filteredChallenges,
     loading,
@@ -550,7 +563,59 @@ export function Challenges() {
     refetch,
   } = useChallenges();
 
-  if (loading) {
+  const {
+    userProgress,
+    loading: missionLoading,
+    error: missionError,
+    updateMission,
+    getCurrentMission,
+    getNextMission,
+    canAccessMission,
+    getMissionStatus,
+    generateCertificate,
+    isAllCompleted,
+  } = useMissions();
+
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showVideoGuide, setShowVideoGuide] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<string | null>(null);
+
+  // Auto-generate certificate when all missions are completed
+  useEffect(() => {
+    if (isAllCompleted && !userProgress.certificate) {
+      generateCertificate();
+      setShowCertificateModal(true);
+    }
+  }, [isAllCompleted, userProgress.certificate, generateCertificate]);
+
+  // Get mission-related challenges
+  const missionChallenges = filteredChallenges.filter(challenge => 
+    userProgress.missions.some(mission => mission.challengeId === challenge.id)
+  );
+
+  // Get current mission and its challenge
+  const currentMission = getCurrentMission();
+  const currentChallenge = currentMission 
+    ? filteredChallenges.find(c => c.id === currentMission.challengeId)
+    : null;
+
+  const handleMissionClick = (missionId: string) => {
+    const mission = userProgress.missions.find(m => m.id === missionId);
+    if (!mission) return;
+
+    if (getMissionStatus(missionId) === "locked") {
+      // Show locked message
+      alert("Complete the previous step first!");
+      return;
+    }
+
+    if (getMissionStatus(missionId) === "available") {
+      setSelectedMission(missionId);
+      setShowVideoGuide(true);
+    }
+  };
+
+  if (loading || missionLoading) {
     return (
       <Box
         style={{
@@ -614,7 +679,7 @@ export function Challenges() {
     );
   }
 
-  if (error) {
+  if (error || missionError) {
     return (
       <Box
         style={{
@@ -671,7 +736,7 @@ export function Challenges() {
                 marginBottom: theme.spacing.semantic.component.md,
               }}
             >
-              {error}
+              {error || missionError}
             </Text>
             <Button
               onClick={refetch}
@@ -836,77 +901,164 @@ export function Challenges() {
 
   return (
     <SidebarLayout sidebar={sidebarConfig} topBar={topBar}>
-      {filteredChallenges.length === 0 ? (
-        <Flex
-          direction="column"
-          align="center"
-          justify="center"
-          gap="4"
-          style={{
-            height: "60vh",
-            background: theme.colors.background.card,
-            borderRadius: theme.borders.radius.lg,
-            border: `1px solid ${theme.colors.border.primary}`,
-            padding: theme.spacing.semantic.layout.lg,
-          }}
-        >
-          <Box
-            style={{
-              width: "64px",
-              height: "64px",
-              borderRadius: "50%",
-              background: `${theme.colors.text.tertiary}10`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Trophy size={28} style={{ color: theme.colors.text.tertiary }} />
-          </Box>
-          <Box style={{ textAlign: "center", maxWidth: "320px" }}>
+      {/* Mission Cards Section - Show during mission period */}
+      {userProgress.overallStatus !== "completed" && (
+        <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
+          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+            <Trophy size={20} style={{ color: theme.colors.interactive.accent }} />
             <Text
-              size="4"
+              size="3"
               style={{
-                fontWeight: 600,
+                fontWeight: 700,
                 color: theme.colors.text.primary,
-                marginBottom: theme.spacing.semantic.component.xs,
               }}
             >
-              No Challenges Found
+              Annotation Challenges
             </Text>
-            <br />
-            <Text
-              size="2"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: 1.5,
-              }}
-            >
-              Try adjusting your filters or search terms
-            </Text>
-          </Box>
-        </Flex>
-      ) : (
-        <Grid
-          columns={{ initial: "1", sm: "1", md: "2" }}
-          gap="4"
-          style={{
-            gridTemplateColumns: "repeat(auto-fill, minmax(480px, 1fr))",
+          </Flex>
+          
+          <Grid columns="2" gap="4">
+            {userProgress.missions.map((mission, index) => {
+              const challenge = filteredChallenges.find(c => c.id === mission.challengeId);
+              if (!challenge) return null;
+              
+              const missionStatus = getMissionStatus(mission.id);
+              const isLocked = missionStatus === "locked";
+              
+              return (
+                <Box key={mission.id}>
+                  <MissionCard
+                    mission={mission}
+                    challenge={challenge}
+                    isActive={currentMission?.id === mission.id}
+                    onClick={() => {
+                      if (isLocked) {
+                        alert("Complete the previous step first!");
+                        return;
+                      }
+                      setSelectedMission(mission.id);
+                      setShowVideoGuide(true);
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Grid>
+        </Box>
+      )}
+
+      {/* All Challenges Section - Commented out during mission period */}
+      {/*<Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>*/}
+      {/*  <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.lg }}>*/}
+      {/*    <Trophy size={20} style={{ color: theme.colors.interactive.accent }} />*/}
+      {/*    <Text*/}
+      {/*      size="3"*/}
+      {/*      style={{*/}
+      {/*        fontWeight: 700,*/}
+      {/*        color: theme.colors.text.primary,*/}
+      {/*      }}*/}
+      {/*    >*/}
+      {/*      All Available Challenges*/}
+      {/*    </Text>*/}
+      {/*  </Flex>*/}
+
+      {/*  {filteredChallenges.length === 0 ? (*/}
+      {/*    <Flex*/}
+      {/*      direction="column"*/}
+      {/*      align="center"*/}
+      {/*      justify="center"*/}
+      {/*      gap="4"*/}
+      {/*      style={{*/}
+      {/*        height: "60vh",*/}
+      {/*        background: theme.colors.background.card,*/}
+      {/*        borderRadius: theme.borders.radius.lg,*/}
+      {/*        border: `1px solid ${theme.colors.border.primary}`,*/}
+      {/*        padding: theme.spacing.semantic.layout.lg,*/}
+      {/*      }}*/}
+      {/*    >*/}
+      {/*      <Box*/}
+      {/*        style={{*/}
+      {/*          width: "64px",*/}
+      {/*          height: "64px",*/}
+      {/*          borderRadius: "50%",*/}
+      {/*          background: `${theme.colors.text.tertiary}10`,*/}
+      {/*          display: "flex",*/}
+      {/*          alignItems: "center",*/}
+      {/*          justifyContent: "center",*/}
+      {/*        }}*/}
+      {/*      >*/}
+      {/*        <Trophy size={28} style={{ color: theme.colors.text.tertiary }} />*/}
+      {/*      </Box>*/}
+      {/*      <Box style={{ textAlign: "center", maxWidth: "320px" }}>*/}
+      {/*        <Text*/}
+      {/*          size="4"*/}
+      {/*          style={{*/}
+      {/*            fontWeight: 600,*/}
+      {/*            color: theme.colors.text.primary,*/}
+      {/*            marginBottom: theme.spacing.semantic.component.xs,*/}
+      {/*          }}*/}
+      {/*        >*/}
+      {/*          No Challenges Found*/}
+      {/*        </Text>*/}
+      {/*        <br />*/}
+      {/*        <Text*/}
+      {/*          size="2"*/}
+      {/*          style={{*/}
+      {/*            color: theme.colors.text.secondary,*/}
+      {/*            lineHeight: 1.5,*/}
+      {/*          }}*/}
+      {/*        >*/}
+      {/*          Try adjusting your filters or search terms*/}
+      {/*        </Text>*/}
+      {/*      </Box>*/}
+      {/*    </Flex>*/}
+      {/*  ) : (*/}
+      {/*    <Grid*/}
+      {/*      columns={{ initial: "1", sm: "1", md: "2" }}*/}
+      {/*      gap="4"*/}
+      {/*      style={{*/}
+      {/*        gridTemplateColumns: "repeat(auto-fill, minmax(480px, 1fr))",*/}
+      {/*      }}*/}
+      {/*      className={isLoaded ? "pageLoaded" : ""}*/}
+      {/*    >*/}
+      {/*      {filteredChallenges.map((challenge, index) => (*/}
+      {/*        <Box*/}
+      {/*          key={challenge.id}*/}
+      {/*          className={isLoaded ? "visible" : ""}*/}
+      {/*          style={{*/}
+      {/*            animationDelay: `${index * 0.1}s`,*/}
+      {/*          }}*/}
+      {/*        >*/}
+      {/*          <ChallengeCard challenge={challenge} index={index} />*/}
+      {/*        </Box>*/}
+      {/*      ))}*/}
+      {/*    </Grid>*/}
+      {/*  )}*/}
+      {/*</Box>*/}
+
+      {/* Compact Mission Status - Fixed at bottom right */}
+      <CompactMissionStatus
+        userProgress={userProgress}
+        onMissionClick={handleMissionClick}
+      />
+
+      {/* Certificate Modal */}
+      <CertificateModal
+        userProgress={userProgress}
+        isOpen={showCertificateModal}
+        onClose={() => setShowCertificateModal(false)}
+      />
+
+      {/* Video Guide Modal */}
+      {selectedMission && (
+        <VideoGuide
+          mission={userProgress.missions.find(m => m.id === selectedMission)!}
+          isOpen={showVideoGuide}
+          onClose={() => {
+            setShowVideoGuide(false);
+            setSelectedMission(null);
           }}
-          className={isLoaded ? "pageLoaded" : ""}
-        >
-          {filteredChallenges.map((challenge, index) => (
-            <Box
-              key={challenge.id}
-              className={isLoaded ? "visible" : ""}
-              style={{
-                animationDelay: `${index * 0.1}s`,
-              }}
-            >
-              <ChallengeCard challenge={challenge} index={index} />
-            </Box>
-          ))}
-        </Grid>
+        />
       )}
 
       <style>

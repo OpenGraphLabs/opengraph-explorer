@@ -1,0 +1,259 @@
+import React, { useState } from "react";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { UserMissionProgress } from "../types/mission";
+import { 
+  Trophy, 
+  Target, 
+  CheckCircle, 
+  PlayCircle,
+  Star,
+  X,
+  Minus
+} from "phosphor-react";
+
+interface CompactMissionStatusProps {
+  userProgress: UserMissionProgress;
+  onMissionClick: (missionId: string) => void;
+}
+
+export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
+  userProgress,
+  onMissionClick
+}) => {
+  const { theme } = useTheme();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
+  const totalMissions = userProgress.missions.length;
+  const progressPercentage = (completedMissions / totalMissions) * 100;
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle size={12} weight="fill" style={{ color: theme.colors.status.success }} />;
+      case "in_progress":
+        return <PlayCircle size={12} weight="fill" style={{ color: theme.colors.interactive.primary }} />;
+      default:
+        return <Target size={12} style={{ color: theme.colors.text.tertiary }} />;
+    }
+  };
+
+  if (isMinimized) {
+    return (
+      <Box
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          width: "48px",
+          height: "48px",
+          borderRadius: "50%",
+          background: theme.colors.background.card,
+          border: `1px solid ${theme.colors.border.primary}`,
+          boxShadow: theme.shadows.semantic.card.high,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          zIndex: 1000,
+        }}
+        onClick={() => setIsMinimized(false)}
+      >
+        <Trophy size={20} style={{ color: theme.colors.interactive.primary }} />
+        {userProgress.overallStatus === "completed" && (
+          <Box
+            style={{
+              position: "absolute",
+              top: "-2px",
+              right: "-2px",
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              background: theme.colors.status.success,
+              border: `2px solid ${theme.colors.background.card}`,
+            }}
+          />
+        )}
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        right: "20px",
+        width: isExpanded ? "320px" : "280px",
+        background: theme.colors.background.card,
+        border: `1px solid ${theme.colors.border.primary}`,
+        borderRadius: theme.borders.radius.lg,
+        boxShadow: theme.shadows.semantic.card.high,
+        zIndex: 1000,
+        transition: "all 0.3s ease",
+      }}
+    >
+      {/* Header */}
+      <Flex
+        justify="between"
+        align="center"
+        style={{
+          padding: theme.spacing.semantic.component.md,
+          borderBottom: `1px solid ${theme.colors.border.primary}`,
+        }}
+      >
+        <Flex align="center" gap="2">
+          <Trophy size={16} style={{ color: theme.colors.interactive.primary }} />
+          <Text
+            size="2"
+            style={{
+              fontWeight: 600,
+              color: theme.colors.text.primary,
+            }}
+          >
+            Training Progress
+          </Text>
+        </Flex>
+        
+        <Flex gap="1">
+          <Button
+            onClick={() => setIsMinimized(true)}
+            style={{
+              background: "transparent",
+              border: "none",
+              padding: "4px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Minus size={12} style={{ color: theme.colors.text.secondary }} />
+          </Button>
+          <Button
+            onClick={() => setIsExpanded(!isExpanded)}
+            style={{
+              background: "transparent",
+              border: "none",
+              padding: "4px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <X size={12} style={{ color: theme.colors.text.secondary }} />
+          </Button>
+        </Flex>
+      </Flex>
+
+      {/* Progress Bar */}
+      <Box style={{ padding: theme.spacing.semantic.component.md }}>
+        <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+          <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
+            {completedMissions} / {totalMissions} completed
+          </Text>
+          <Text size="1" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+            {Math.round(progressPercentage)}%
+          </Text>
+        </Flex>
+        
+        <Box
+          style={{
+            width: "100%",
+            height: "4px",
+            background: theme.colors.background.secondary,
+            borderRadius: "2px",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            style={{
+              height: "100%",
+              width: `${progressPercentage}%`,
+              background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.status.success})`,
+              transition: "width 0.3s ease",
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* Mission Steps */}
+      <Box style={{ padding: `0 ${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.md}` }}>
+        {userProgress.missions.map((mission, index) => (
+          <Flex
+            key={mission.id}
+            align="center"
+            gap="2"
+            style={{
+              padding: theme.spacing.semantic.component.sm,
+              background: mission.status === "completed" 
+                ? `${theme.colors.status.success}10` 
+                : mission.status === "in_progress"
+                ? `${theme.colors.interactive.primary}10`
+                : theme.colors.background.secondary,
+              borderRadius: theme.borders.radius.sm,
+              marginBottom: theme.spacing.semantic.component.xs,
+              cursor: mission.status !== "completed" ? "pointer" : "default",
+              border: `1px solid ${
+                mission.status === "completed" 
+                  ? `${theme.colors.status.success}30` 
+                  : mission.status === "in_progress"
+                  ? `${theme.colors.interactive.primary}30`
+                  : theme.colors.border.primary
+              }`,
+            }}
+            onClick={() => {
+              if (mission.status !== "completed") {
+                onMissionClick(mission.id);
+              }
+            }}
+          >
+            {getStatusIcon(mission.status)}
+            <Text
+              size="1"
+              style={{
+                fontWeight: 600,
+                color: mission.status === "completed" 
+                  ? theme.colors.status.success 
+                  : mission.status === "in_progress"
+                  ? theme.colors.interactive.primary
+                  : theme.colors.text.secondary,
+                flex: 1,
+              }}
+            >
+              Step {mission.order}: {mission.completedCount}/{mission.requiredCount}
+            </Text>
+          </Flex>
+        ))}
+      </Box>
+
+      {/* Completion Status */}
+      {userProgress.overallStatus === "completed" && (
+        <Box
+          style={{
+            padding: theme.spacing.semantic.component.md,
+            background: `${theme.colors.status.success}10`,
+            borderTop: `1px solid ${theme.colors.border.primary}`,
+            textAlign: "center",
+          }}
+        >
+          <Flex align="center" justify="center" gap="2">
+            <Star size={14} style={{ color: theme.colors.status.success }} />
+            <Text
+              size="1"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.status.success,
+              }}
+            >
+              All missions completed!
+            </Text>
+          </Flex>
+        </Box>
+      )}
+    </Box>
+  );
+}; 
