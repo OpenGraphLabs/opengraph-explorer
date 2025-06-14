@@ -7,8 +7,8 @@
 
 ## SUI Overflow !!
 
-Our Overflow Deck : 
-https://www.figma.com/deck/jz6NCLwVX3RazYHqBvoOnE/OpenGraph--Overflow2025--AI-?node-id=2011-1313&t=ZetcuAb0izQp9lVz-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1
+Our Overflow Deck [Overflow, Decentralized Data Annotation Platform]: 
+https://www.figma.com/deck/jz6NCLwVX3RazYHqBvoOnE/OpenGraph--Overflow2025--AI-?node-id=6-1055&t=ZetcuAb0izQp9lVz-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1
 
 Vote! [AI Track - OpenGraph]
 https://vote.sui.io/
