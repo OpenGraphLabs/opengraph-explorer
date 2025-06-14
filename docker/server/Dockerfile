@@ -35,10 +35,6 @@ WORKDIR /app
 COPY --from=builder /app/target/release/opengraph-server /app/opengraph-server
 COPY --from=builder /app/migrations /app/migrations
 
-# Copy entrypoint script
-COPY docker/server/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-
 # Create a non-root user
 RUN useradd -r -s /bin/false opengraph
 RUN chown -R opengraph:opengraph /app

@@ -46,7 +46,6 @@ services:
     environment:
       PORT: 8080
       RUST_LOG: info
-    entrypoint: ["/app/entrypoint.sh"]
     depends_on:
       postgres:
         condition: service_healthy
