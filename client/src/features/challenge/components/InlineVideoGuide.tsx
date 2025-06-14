@@ -71,7 +71,7 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
         }}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
-        title={`${mission.title} Guide Video`}
+        title={`${mission.name} Guide Video`}
       />
 
       {/* Locked Overlay - Only show when locked */}
@@ -99,7 +99,7 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
                 fontWeight: 600,
               }}
             >
-              Complete Step {mission.order - 1} First
+              Complete Previous Step First
             </Text>
           </Flex>
         </Box>

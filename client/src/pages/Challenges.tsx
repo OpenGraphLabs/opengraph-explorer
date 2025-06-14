@@ -40,6 +40,7 @@ import {
 } from "@/features/challenge";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useCurrentWallet } from "@mysten/dapp-kit";
 
 // Challenge Status Badge Component
 function ChallengeStatusBadge({ status }: { status: ChallengeStatus }) {
@@ -552,6 +553,8 @@ function ChallengeFilters({
 export function Challenges() {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { isConnected, currentWallet } = useCurrentWallet();
+
   const {
     filteredChallenges,
     loading,
@@ -569,12 +572,14 @@ export function Challenges() {
     userProgress,
     loading: missionLoading,
     error: missionError,
+    currentAnnotator,
     updateMission,
     getCurrentMission,
     getNextMission,
     canAccessMission,
     getMissionStatus,
     generateCertificate,
+    syncProgressWithWallet,
     isAllCompleted,
   } = useMissions();
 
@@ -585,25 +590,29 @@ export function Challenges() {
     completedCount: number;
     requiredCount: number;
   } | null>(null);
+  const [walletSyncStatus, setWalletSyncStatus] = useState<"idle" | "syncing" | "synced" | "error">("idle");
 
   // Show success animation when a mission is completed
   useEffect(() => {
     // This would be triggered by mission completion events
     // For now, we'll hook it to certificate completion
-    if (isAllCompleted && !userProgress.certificate) {
-      const lastMission = userProgress.missions[userProgress.missions.length - 1];
-      setSuccessMissionData({
-        title: lastMission.title,
-        completedCount: lastMission.completedCount,
-        requiredCount: lastMission.requiredCount,
-      });
-      setShowSuccessAnimation(true);
+    if (isAllCompleted && userProgress && !userProgress.certificate) {
+      const completedMissions = userProgress.missions.filter(m => m.status === "completed");
+      const lastCompletedMission = completedMissions[completedMissions.length - 1];
+      if (lastCompletedMission) {
+        setSuccessMissionData({
+          title: lastCompletedMission.name,
+          completedCount: lastCompletedMission.total_items,
+          requiredCount: lastCompletedMission.total_items,
+        });
+        setShowSuccessAnimation(true);
+      }
     }
   }, [isAllCompleted, userProgress]);
 
   // Auto-generate certificate when all missions are completed
   useEffect(() => {
-    if (isAllCompleted && !userProgress.certificate) {
+    if (isAllCompleted && userProgress && !userProgress.certificate) {
       // Delay certificate modal until after success animation
       const timer = setTimeout(() => {
         generateCertificate();
@@ -612,11 +621,41 @@ export function Challenges() {
 
       return () => clearTimeout(timer);
     }
-  }, [isAllCompleted, userProgress.certificate, generateCertificate]);
+  }, [isAllCompleted, userProgress?.certificate, generateCertificate]);
+
+  // Sync progress with wallet when connected
+  useEffect(() => {
+    const syncWalletProgress = async () => {
+      if (!isConnected || !currentWallet?.accounts[0]?.address || !userProgress) {
+        setWalletSyncStatus("idle");
+        return;
+      }
+
+      const walletAddress = currentWallet.accounts[0].address;
+      
+      // Check if we already synced this wallet
+      if (walletSyncStatus === "synced" && userProgress.userId === walletAddress) {
+        return;
+      }
+
+      setWalletSyncStatus("syncing");
+      console.log(`🔗 Wallet connected: ${walletAddress}`);
+
+      try {
+        await syncProgressWithWallet(walletAddress);
+        setWalletSyncStatus("synced");
+      } catch (err) {
+        console.error("Failed to sync wallet progress:", err);
+        setWalletSyncStatus("error");
+      }
+    };
+
+    syncWalletProgress();
+  }, [isConnected, currentWallet?.accounts[0]?.address, userProgress, syncProgressWithWallet, walletSyncStatus]);
 
   // Get mission-related challenges
   const missionChallenges = filteredChallenges.filter(challenge =>
-    userProgress.missions.some(mission => mission.challengeId === challenge.id)
+    userProgress?.missions.some(mission => mission.challengeId === challenge.id)
   );
 
   // Get current mission and its challenge
@@ -626,6 +665,8 @@ export function Challenges() {
     : null;
 
   const handleMissionClick = (missionId: string) => {
+    if (!userProgress) return;
+    
     const mission = userProgress.missions.find(m => m.id === missionId);
     if (!mission) return;
 
@@ -1072,7 +1113,7 @@ export function Challenges() {
       )}
 
       {/* Mission Cards Section - Show during mission period */}
-      {userProgress.overallStatus !== "completed" && (
+      {userProgress && userProgress.overallStatus !== "completed" && (
         <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
           <Flex
             align="center"
@@ -1089,11 +1130,27 @@ export function Challenges() {
             >
               Annotation Challenges
             </Text>
+            {isConnected && (
+              <Badge
+                style={{
+                  background: `${theme.colors.status.success}15`,
+                  color: theme.colors.status.success,
+                  border: `1px solid ${theme.colors.status.success}30`,
+                  padding: "2px 8px",
+                  borderRadius: theme.borders.radius.full,
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  marginLeft: theme.spacing.semantic.component.sm,
+                }}
+              >
+                🔗 Wallet Connected
+              </Badge>
+            )}
           </Flex>
 
           {/* Mission Cards with Inline Videos */}
           <Flex direction="column" gap="6">
-            {userProgress.missions.map((mission, index) => {
+            {userProgress?.missions.map((mission, index) => {
               const challenge = filteredChallenges.find(c => c.id === mission.challengeId);
               if (!challenge) return null;
 
@@ -1262,11 +1319,13 @@ export function Challenges() {
       {/*</Box>*/}
 
       {/* Compact Mission Status - Fixed at bottom right */}
-      <CompactMissionStatus
-        userProgress={userProgress}
-        onMissionClick={handleMissionClick}
-        onViewCertificate={() => setShowCertificateModal(true)}
-      />
+      {userProgress && (
+        <CompactMissionStatus
+          userProgress={userProgress}
+          onMissionClick={handleMissionClick}
+          onViewCertificate={() => setShowCertificateModal(true)}
+        />
+      )}
 
       {/* Mission Success Animation */}
       {successMissionData && (
