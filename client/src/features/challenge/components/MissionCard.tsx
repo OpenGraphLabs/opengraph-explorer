@@ -55,30 +55,58 @@ export const MissionCard: React.FC<MissionCardProps> = ({
     <Box
       onClick={onClick}
       style={{
-        background: isActive ? `${theme.colors.interactive.primary}08` : theme.colors.background.card,
-        border: `2px solid ${isActive ? theme.colors.interactive.primary : theme.colors.border.primary}`,
+        background: mission.status === "completed" 
+          ? `linear-gradient(135deg, ${theme.colors.status.success}08, ${theme.colors.status.success}15)` 
+          : isActive 
+          ? `${theme.colors.interactive.primary}08` 
+          : theme.colors.background.card,
+        border: `2px solid ${
+          mission.status === "completed" 
+            ? theme.colors.status.success 
+            : isActive 
+            ? theme.colors.interactive.primary 
+            : theme.colors.border.primary
+        }`,
         borderRadius: theme.borders.radius.lg,
         padding: theme.spacing.semantic.component.lg,
         cursor: "pointer",
-        transition: "all 0.2s ease",
+        transition: "all 0.3s ease",
         position: "relative",
         overflow: "hidden",
+        ...(mission.status === "completed" && {
+          boxShadow: `0 8px 32px ${theme.colors.status.success}20`,
+        }),
       }}
       onMouseEnter={e => {
-        if (!isActive) {
+        if (mission.status !== "completed") {
           e.currentTarget.style.transform = "translateY(-2px)";
           e.currentTarget.style.boxShadow = theme.shadows.semantic.card.high;
         }
       }}
       onMouseLeave={e => {
-        if (!isActive) {
+        if (mission.status !== "completed") {
           e.currentTarget.style.transform = "translateY(0)";
           e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
         }
       }}
     >
+      {/* Success Overlay for Completed Missions */}
+      {mission.status === "completed" && (
+        <Box
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(135deg, transparent 0%, ${theme.colors.status.success}05 50%, ${theme.colors.status.success}10 100%)`,
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
       {/* Step Badge */}
-      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md, position: "relative", zIndex: 1 }}>
         <Badge
           style={{
             background: `${getStatusColor()}15`,
@@ -98,7 +126,23 @@ export const MissionCard: React.FC<MissionCardProps> = ({
         </Badge>
         
         {mission.status === "completed" && (
-          <Trophy size={16} style={{ color: theme.colors.status.warning }} />
+          <Flex align="center" gap="1">
+            <Box
+              style={{
+                background: `linear-gradient(135deg, ${theme.colors.status.success}, #1de9b6)`,
+                borderRadius: "50%",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: `0 4px 12px ${theme.colors.status.success}40`,
+                animation: "completedGlow 2s infinite alternate",
+              }}
+            >
+              <CheckCircle size={14} weight="fill" style={{ color: "#ffffff" }} />
+            </Box>
+            <Trophy size={16} style={{ color: theme.colors.status.warning }} />
+          </Flex>
         )}
       </Flex>
 
@@ -224,6 +268,20 @@ export const MissionCard: React.FC<MissionCardProps> = ({
           </>
         )}
       </Flex>
+
+      {/* Completion Animation Styles */}
+      <style>
+        {`
+          @keyframes completedGlow {
+            0% {
+              box-shadow: 0 4px 12px ${theme.colors.status.success}40;
+            }
+            100% {
+              box-shadow: 0 6px 20px ${theme.colors.status.success}60;
+            }
+          }
+        `}
+      </style>
     </Box>
   );
 }; 

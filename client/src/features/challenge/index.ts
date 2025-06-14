@@ -15,6 +15,7 @@ export * from "./components/MissionDemo";
 export * from "./components/CompactMissionStatus";
 export * from "./components/VideoGuide";
 export * from "./components/InlineVideoGuide";
+export * from "./components/MissionSuccessAnimation";
 
 // Data
 export * from "./data/mockChallenges";

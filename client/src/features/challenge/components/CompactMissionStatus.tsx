@@ -15,11 +15,13 @@ import {
 interface CompactMissionStatusProps {
   userProgress: UserMissionProgress;
   onMissionClick: (missionId: string) => void;
+  onViewCertificate?: () => void;
 }
 
 export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
   userProgress,
-  onMissionClick
+  onMissionClick,
+  onViewCertificate
 }) => {
   const { theme } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -235,25 +237,107 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
         <Box
           style={{
             padding: theme.spacing.semantic.component.md,
-            background: `${theme.colors.status.success}10`,
-            borderTop: `1px solid ${theme.colors.border.primary}`,
+            background: `linear-gradient(135deg, ${theme.colors.status.success}15, #64ffda10)`,
+            borderTop: `1px solid ${theme.colors.status.success}30`,
             textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          <Flex align="center" justify="center" gap="2">
-            <Star size={14} style={{ color: theme.colors.status.success }} />
-            <Text
-              size="1"
-              style={{
-                fontWeight: 600,
-                color: theme.colors.status.success,
-              }}
-            >
-              All missions completed!
-            </Text>
+          {/* Animated background */}
+          <Box
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `linear-gradient(90deg, transparent, ${theme.colors.status.success}10, transparent)`,
+              animation: "shimmer 3s infinite",
+            }}
+          />
+          
+          <Flex direction="column" gap="2" style={{ position: "relative", zIndex: 1 }}>
+            <Flex align="center" justify="center" gap="2">
+              <Box
+                style={{
+                  background: `linear-gradient(135deg, ${theme.colors.status.success}, #1de9b6)`,
+                  borderRadius: "50%",
+                  padding: "3px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: `0 2px 8px ${theme.colors.status.success}40`,
+                  animation: "celebrationPulse 2s infinite",
+                }}
+              >
+                <Star size={12} weight="fill" style={{ color: "#ffffff" }} />
+              </Box>
+              <Text
+                size="1"
+                style={{
+                  fontWeight: 700,
+                  color: theme.colors.status.success,
+                  textShadow: `0 1px 2px ${theme.colors.status.success}20`,
+                }}
+              >
+                🎉 Physical AI Training Complete!
+              </Text>
+            </Flex>
+            
+            {/* Certificate Button */}
+            {userProgress.certificate && onViewCertificate && (
+              <Button
+                onClick={onViewCertificate}
+                style={{
+                  background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+                  color: "#0f0f23",
+                  border: "none",
+                  borderRadius: theme.borders.radius.md,
+                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                  fontWeight: 700,
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "4px",
+                  boxShadow: "0 2px 8px rgba(100, 255, 218, 0.3)",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <Trophy size={10} weight="fill" />
+                View Certificate
+              </Button>
+            )}
           </Flex>
         </Box>
       )}
+
+      {/* Animation Styles */}
+      <style>
+        {`
+          @keyframes shimmer {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
+          }
+
+          @keyframes celebrationPulse {
+            0%, 100% {
+              transform: scale(1);
+              box-shadow: 0 2px 8px ${theme.colors.status.success}40;
+            }
+            50% {
+              transform: scale(1.1);
+              box-shadow: 0 4px 16px ${theme.colors.status.success}60;
+            }
+          }
+        `}
+      </style>
     </Box>
   );
 }; 

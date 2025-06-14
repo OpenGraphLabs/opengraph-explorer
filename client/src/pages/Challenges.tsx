@@ -27,6 +27,7 @@ import {
   CheckCircle,
   PlayCircle,
   Lock,
+  TwitterLogo,
 } from "phosphor-react";
 import { useChallenges, Challenge, ChallengeStatus } from "@/features/challenge";
 import { 
@@ -34,7 +35,8 @@ import {
   CompactMissionStatus, 
   CertificateModal,
   MissionCard,
-  InlineVideoGuide
+  InlineVideoGuide,
+  MissionSuccessAnimation
 } from "@/features/challenge";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -577,12 +579,38 @@ export function Challenges() {
   } = useMissions();
 
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successMissionData, setSuccessMissionData] = useState<{
+    title: string;
+    completedCount: number;
+    requiredCount: number;
+  } | null>(null);
+
+  // Show success animation when a mission is completed
+  useEffect(() => {
+    // This would be triggered by mission completion events
+    // For now, we'll hook it to certificate completion
+    if (isAllCompleted && !userProgress.certificate) {
+      const lastMission = userProgress.missions[userProgress.missions.length - 1];
+      setSuccessMissionData({
+        title: lastMission.title,
+        completedCount: lastMission.completedCount,
+        requiredCount: lastMission.requiredCount,
+      });
+      setShowSuccessAnimation(true);
+    }
+  }, [isAllCompleted, userProgress]);
 
   // Auto-generate certificate when all missions are completed
   useEffect(() => {
     if (isAllCompleted && !userProgress.certificate) {
-      generateCertificate();
-      setShowCertificateModal(true);
+      // Delay certificate modal until after success animation
+      const timer = setTimeout(() => {
+        generateCertificate();
+        setShowCertificateModal(true);
+      }, 4500); // Show after success animation completes
+      
+      return () => clearTimeout(timer);
     }
   }, [isAllCompleted, userProgress.certificate, generateCertificate]);
 
@@ -904,6 +932,130 @@ export function Challenges() {
 
   return (
     <SidebarLayout sidebar={sidebarConfig} topBar={topBar}>
+      {/* Certificate Achievement Banner - Show when completed */}
+      {userProgress.overallStatus === "completed" && userProgress.certificate && (
+        <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
+          <Box
+            style={{
+              background: `linear-gradient(135deg, ${theme.colors.status.success}10, #64ffda05)`,
+              border: `2px solid ${theme.colors.status.success}30`,
+              borderRadius: theme.borders.radius.lg,
+              padding: theme.spacing.semantic.layout.lg,
+              textAlign: "center",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {/* Animated background */}
+            <Box
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: `linear-gradient(90deg, transparent, ${theme.colors.status.success}05, transparent)`,
+                animation: "certificateShimmer 4s infinite",
+              }}
+            />
+            
+            <Box style={{ position: "relative", zIndex: 1 }}>
+              <Flex align="center" justify="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                <Box
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.colors.status.success}, #1de9b6)`,
+                    borderRadius: "50%",
+                    padding: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: `0 8px 24px ${theme.colors.status.success}40`,
+                  }}
+                >
+                  <Trophy size={32} weight="fill" style={{ color: "#ffffff" }} />
+                </Box>
+                <Box>
+                  <Text
+                    size="4"
+                    style={{
+                      fontWeight: 800,
+                      color: theme.colors.text.primary,
+                      marginBottom: theme.spacing.semantic.component.xs,
+                    }}
+                  >
+                    🎉 Congratulations!
+                  </Text>
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.text.secondary,
+                      fontWeight: 600,
+                    }}
+                  >
+                    You've earned your OpenGraph Data Annotation Specialist Certificate
+                  </Text>
+                </Box>
+              </Flex>
+              
+              <Flex gap="3" justify="center">
+                <Button
+                  onClick={() => setShowCertificateModal(true)}
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+                    color: "#0f0f23",
+                    border: "none",
+                    borderRadius: theme.borders.radius.md,
+                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                    fontWeight: 700,
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
+                  }}
+                >
+                  <Trophy size={16} weight="fill" />
+                  View & Download Certificate
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    const text = encodeURIComponent(
+                      `🎯 Just earned my OpenGraph Data Annotation Specialist Certificate! 🏆\n\n` +
+                      `🤖 Mastered AI dataset preparation for Physical AI systems\n` +
+                      `🔗 Powered by Sui blockchain & Walrus decentralized storage\n` +
+                      `🌐 Contributing to the future of real-world AI applications\n\n` +
+                      `Ready to shape the next generation of Physical AI! 🚀\n\n` +
+                      `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
+                    );
+                    const url = encodeURIComponent(userProgress.certificate?.shareableUrl || 'https://opengraph.io/certificate');
+                    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+                  }}
+                  style={{
+                    background: "#1DA1F2",
+                    color: "#ffffff",
+                    border: "none",
+                    borderRadius: theme.borders.radius.md,
+                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 12px rgba(29, 161, 242, 0.3)",
+                  }}
+                >
+                  <TwitterLogo size={16} />
+                  Share Achievement
+                </Button>
+              </Flex>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
       {/* Mission Cards Section - Show during mission period */}
       {userProgress.overallStatus !== "completed" && (
         <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
@@ -1094,7 +1246,22 @@ export function Challenges() {
       <CompactMissionStatus
         userProgress={userProgress}
         onMissionClick={handleMissionClick}
+        onViewCertificate={() => setShowCertificateModal(true)}
       />
+
+      {/* Mission Success Animation */}
+      {successMissionData && (
+        <MissionSuccessAnimation
+          isVisible={showSuccessAnimation}
+          missionTitle={successMissionData.title}
+          completedCount={successMissionData.completedCount}
+          requiredCount={successMissionData.requiredCount}
+          onAnimationComplete={() => {
+            setShowSuccessAnimation(false);
+            setSuccessMissionData(null);
+          }}
+        />
+      )}
 
       {/* Certificate Modal */}
       <CertificateModal
@@ -1158,6 +1325,16 @@ export function Challenges() {
           
           .mobile-mission-layout {
             display: none;
+          }
+        }
+
+        /* Certificate Banner Animation */
+        @keyframes certificateShimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
           }
         }
         `}
