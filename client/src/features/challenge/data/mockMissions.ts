@@ -5,8 +5,8 @@ export const mockMissions: Mission[] = [
   {
     id: "mission-1",
     type: "label",
-    title: "Step 1: Learn Label Annotation",
-    description: "Complete 10 label annotations to learn the basics of data annotation",
+    title: "Step 1: Sea Animal Classification",
+    description: "Complete 10 sea animal classification annotations",
     challengeId: "challenge-1", // Sea Animal Classification
     requiredCount: 10,
     completedCount: 0,
@@ -21,8 +21,8 @@ export const mockMissions: Mission[] = [
   {
     id: "mission-2", 
     type: "bbox",
-    title: "Step 2: Master Bounding Box",
-    description: "Complete 3 bounding box annotations to advance your skills",
+    title: "Step 2: Urban Traffic Image Bounding Box",
+    description: "Complete 3 bounding box annotations",
     challengeId: "challenge-2", // Urban Traffic Image Annotation
     requiredCount: 3,
     completedCount: 0,

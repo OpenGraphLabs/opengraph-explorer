@@ -105,7 +105,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
         }}
       >
         <Flex align="center" gap="2">
-          <Trophy size={16} style={{ color: theme.colors.interactive.primary }} />
+          <Target size={16} style={{ color: theme.colors.interactive.primary }} />
           <Text
             size="2"
             style={{
@@ -113,7 +113,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
               color: theme.colors.text.primary,
             }}
           >
-            Training Progress
+            Mission Progress
           </Text>
         </Flex>
         

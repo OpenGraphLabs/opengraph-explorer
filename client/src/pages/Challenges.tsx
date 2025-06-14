@@ -955,8 +955,8 @@ export function Challenges() {
                       <Box style={{ flex: "0 0 auto" }}>
                         <InlineVideoGuide
                           mission={mission}
-                          width={380}
-                          height={214}
+                          width={450}
+                          height={320}
                           autoplay={!isLocked}
                           isLocked={isLocked}
                         />
@@ -971,8 +971,8 @@ export function Challenges() {
                       <Box style={{ alignSelf: "center" }}>
                         <InlineVideoGuide
                           mission={mission}
-                          width={320}
-                          height={180}
+                          width={380}
+                          height={214}
                           autoplay={!isLocked}
                           isLocked={isLocked}
                         />
