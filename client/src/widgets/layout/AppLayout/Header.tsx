@@ -65,6 +65,9 @@ export function Header() {
             <NavLink to="/datasets" current={location.pathname === "/datasets"}>
               Datasets
             </NavLink>
+            <NavLink to="/challenges" current={location.pathname.startsWith("/challenges")}>
+              Challenges
+            </NavLink>
             <NavLink to="/annotator" current={location.pathname === "/annotator"}>
               Annotator
             </NavLink>
@@ -207,6 +210,13 @@ export function Header() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Datasets
+            </MobileNavLink>
+            <MobileNavLink
+              to="/challenges"
+              current={location.pathname.startsWith("/challenges")}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Challenges
             </MobileNavLink>
             <MobileNavLink
               to="/upload"

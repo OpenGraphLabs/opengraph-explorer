@@ -10,6 +10,10 @@ import { Profile } from "@/pages/Profile";
 import { Datasets } from "@/pages/Datasets";
 import { DatasetDetail } from "@/pages/DatasetDetail";
 import { Annotator } from "@/pages/Annotator";
+import { Challenges } from "@/pages/Challenges";
+import { ChallengeDetail } from "@/pages/ChallengeDetail";
+import { AnnotationWorkspace } from "@/pages/AnnotationWorkspace";
+import { ValidationWorkspace } from "@/pages/ValidationWorkspace";
 
 export default function App() {
   return (
@@ -23,6 +27,10 @@ export default function App() {
         <Route path="/datasets" element={<Datasets />} />
         <Route path="/datasets/upload" element={<UploadDataset />} />
         <Route path="/datasets/:id" element={<DatasetDetail />} />
+        <Route path="/challenges" element={<Challenges />} />
+        <Route path="/challenges/:id" element={<ChallengeDetail />} />
+        <Route path="/challenges/:challengeId/annotate" element={<AnnotationWorkspace />} />
+        <Route path="/challenges/:challengeId/validate" element={<ValidationWorkspace />} />
         <Route path="/annotator" element={<Annotator />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>

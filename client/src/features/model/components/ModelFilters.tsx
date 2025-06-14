@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  Box,
-  Text,
-  Dropdown,
-} from "@/shared/ui/design-system/components";
+import { Box, Text, Dropdown } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import {
   MagnifyingGlass,

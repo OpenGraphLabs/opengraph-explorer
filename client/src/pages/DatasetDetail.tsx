@@ -2,12 +2,7 @@ import { useParams } from "react-router-dom";
 import { Box, Flex, Text, Tabs, Badge, Heading, Grid } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import {
-  CheckCircle,
-  Users,
-  Database,
-  Hash,
-} from "phosphor-react";
+import { CheckCircle, Users, Database, Hash } from "phosphor-react";
 import {
   useDatasetDetail,
   useBlobData,

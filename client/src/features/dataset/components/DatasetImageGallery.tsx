@@ -1,14 +1,6 @@
 import { Box, Flex, Text, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import {
-  Tag,
-  FileImage,
-  Clock,
-  CheckCircle,
-  Hash,
-  Database,
-  ArrowRight,
-} from "phosphor-react";
+import { Tag, FileImage, Clock, CheckCircle, Hash, Database, ArrowRight } from "phosphor-react";
 import { isImageType } from "../utils";
 import { ActiveTab } from "../types";
 
