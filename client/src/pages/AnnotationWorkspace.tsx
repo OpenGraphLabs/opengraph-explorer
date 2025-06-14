@@ -194,6 +194,9 @@ export function AnnotationWorkspace() {
     // 선택된 annotation 초기화
     setSelectedAnnotation(null);
     
+    // 선택된 label 초기화 (이전 이미지의 라벨이 남아있는 문제 해결)
+    actions.setSelectedLabel("");
+    
     // 이미지 변경 시 zoom과 pan을 초기화하여 올바른 중앙 정렬 보장
     // 두 번의 requestAnimationFrame으로 더 안정적인 렌더링 보장
     requestAnimationFrame(() => {
@@ -212,6 +215,7 @@ export function AnnotationWorkspace() {
     });
 
   // Auto-advance to next image when annotation is added (1 annotation per image)
+  // Only auto-advance for label phase, not for bbox or segmentation phases
   const [previousAnnotationCount, setPreviousAnnotationCount] = useState(0);
   
   useEffect(() => {
@@ -220,8 +224,11 @@ export function AnnotationWorkspace() {
       (state.annotations.boundingBoxes?.length || 0) +
       (state.annotations.polygons?.length || 0);
 
+    // Only auto-advance for label phase - bbox and segmentation phases require manual navigation
+    const shouldAutoAdvance = currentPhase === "label";
+
     // If we just added an annotation (went from 0 to 1) and can go to next image, auto-advance immediately
-    if (totalCurrentAnnotations === 1 && previousAnnotationCount === 0 && canGoNext) {
+    if (totalCurrentAnnotations === 1 && previousAnnotationCount === 0 && canGoNext && shouldAutoAdvance) {
       // Use requestAnimationFrame for immediate but smooth transition
       requestAnimationFrame(() => {
         handleNext();
@@ -229,7 +236,7 @@ export function AnnotationWorkspace() {
     }
     
     setPreviousAnnotationCount(totalCurrentAnnotations);
-  }, [state.annotations, canGoNext, handleNext, previousAnnotationCount]);
+  }, [state.annotations, canGoNext, handleNext, previousAnnotationCount, currentPhase]);
 
   // Handle annotation selection
   const handleSelectAnnotation = useCallback((type: AnnotationType, id: string) => {
