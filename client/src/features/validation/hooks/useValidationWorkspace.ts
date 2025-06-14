@@ -140,7 +140,7 @@ export function useValidationWorkspace(challengeId: string, images: ImageData[] 
         {
           id: 'pending-1',
           type: 'label',
-          dataId: images[0]?.id || 'mock-image-1',
+          dataId: images[0]?.id || '1',
           imageUrl: images[0]?.url || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop',
           participantId: 'user-2',
           participantAddress: '0xparticipant1...abc',
@@ -167,7 +167,7 @@ export function useValidationWorkspace(challengeId: string, images: ImageData[] 
         {
           id: 'pending-2',
           type: 'bbox',
-          dataId: images[1]?.id || 'mock-image-2',
+          dataId: images[1]?.id || '2',
           imageUrl: images[1]?.url || 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
           participantId: 'user-3',
           participantAddress: '0xparticipant2...def',
@@ -201,8 +201,8 @@ export function useValidationWorkspace(challengeId: string, images: ImageData[] 
         {
           id: 'pending-3',
           type: 'segmentation',
-          dataId: images[2]?.id || 'mock-image-3',
-          imageUrl: images[2]?.url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
+          dataId: images[0]?.id || '1',
+          imageUrl: images[0]?.url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
           participantId: 'user-4',
           participantAddress: '0xparticipant3...ghi',
           submittedAt: new Date('2024-01-25T14:20:00'),
@@ -228,7 +228,7 @@ export function useValidationWorkspace(challengeId: string, images: ImageData[] 
         {
           id: 'pending-4',
           type: 'label',
-          dataId: images[0]?.id || 'mock-image-1',
+          dataId: images[0]?.id || '1',
           imageUrl: images[0]?.url || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop',
           participantId: 'user-5',
           participantAddress: '0xparticipant4...jkl',
@@ -247,7 +247,7 @@ export function useValidationWorkspace(challengeId: string, images: ImageData[] 
         {
           id: 'pending-5',
           type: 'bbox',
-          dataId: images[1]?.id || 'mock-image-2',
+          dataId: images[1]?.id || '2',
           imageUrl: images[1]?.url || 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
           participantId: 'user-6',
           participantAddress: '0xparticipant5...mno',
@@ -380,17 +380,6 @@ export function useValidationWorkspace(challengeId: string, images: ImageData[] 
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.validationSession]);
-
-  // Auto-save functionality
-  useEffect(() => {
-    if (state.unsavedChanges) {
-      const autoSaveTimer = setTimeout(() => {
-        saveValidations();
-      }, 5000); // Auto-save after 5 seconds
-
-      return () => clearTimeout(autoSaveTimer);
-    }
-  }, [state.unsavedChanges, saveValidations]);
 
   return {
     state,

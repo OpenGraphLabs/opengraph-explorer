@@ -50,31 +50,42 @@ export function ValidationWorkspace() {
   } = useChallengeDataset(challenge);
 
   // Fallback to mock images
-  const effectiveImages = datasetImages.length > 0 ? datasetImages : [
-    {
-      id: '1',
-      url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop',
-      filename: 'street_scene_01.jpg',
-      width: 800,
-      height: 600,
-      completed: false,
-      skipped: false,
-      annotations: { labels: [], boundingBoxes: [], polygons: [] }
-    },
-    {
-      id: '2',
-      url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-      filename: 'city_traffic_02.jpg',
-      width: 800,
-      height: 600,
-      completed: false,
-      skipped: false,
-      annotations: { labels: [], boundingBoxes: [], polygons: [] }
-    }
+  const mockImages = [
+      {
+          id: '1',
+          url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop',
+          filename: 'street_scene_01.jpg',
+          width: 800,
+          height: 600,
+          completed: false,
+          skipped: false,
+          annotations: { labels: [], boundingBoxes: [], polygons: [] }
+      },
+      {
+          id: '2',
+          url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
+          filename: 'city_traffic_02.jpg',
+          width: 800,
+          height: 600,
+          completed: false,
+          skipped: false,
+          annotations: { labels: [], boundingBoxes: [], polygons: [] }
+      }
   ];
+  // const effectiveImages = datasetImages.length > 0 ? datasetImages : mockImages;
+    const effectiveImages = mockImages;
   
   // Validation workspace state
   const { state, actions } = useValidationWorkspace(challengeId || '', effectiveImages);
+  
+  // Memoize action functions to prevent infinite loops
+  const initializeSession = useCallback((phase: string) => {
+    actions.initializeSession(phase as any);
+  }, []);
+
+  const setCurrentImage = useCallback((image: any) => {
+    actions.setCurrentImage(image);
+  }, []);
   
   // Get current phase annotations for validation
   const currentPhaseAnnotations = state.validationSession?.pendingAnnotations.filter(
@@ -175,9 +186,42 @@ export function ValidationWorkspace() {
   // Current label group and items
   const currentLabelGroup = annotationGroups[currentLabelGroupIndex];
   const currentGroupItems = currentLabelGroup?.items || [];
-  const currentImage = currentLabelGroup ? 
-    effectiveImages.find(img => img.id === currentLabelGroup.imageId) : 
-    effectiveImages[0];
+  
+  // Find current image - try multiple strategies
+  const currentImage = useMemo(() => {
+    if (!currentLabelGroup) {
+      console.log('No current label group, using first image:', effectiveImages[0]);
+      return effectiveImages[0];
+    }
+    
+    console.log('Finding image for label group:', {
+      groupLabel: currentLabelGroup.label,
+      groupImageId: currentLabelGroup.imageId,
+      availableImageIds: effectiveImages.map(img => img.id),
+      availableImageUrls: effectiveImages.map(img => img.url)
+    });
+    
+    // First, try to find by exact ID match
+    let image = effectiveImages.find(img => img.id === currentLabelGroup.imageId);
+    
+    // If not found, try to find by annotation's imageUrl
+    if (!image && currentGroupItems.length > 0) {
+      const firstAnnotation = currentGroupItems[0].annotation;
+      console.log('Trying to find by annotation imageUrl:', firstAnnotation.imageUrl);
+      if (firstAnnotation.imageUrl) {
+        image = effectiveImages.find(img => img.url === firstAnnotation.imageUrl);
+      }
+    }
+    
+    // If still not found, use the first image
+    if (!image) {
+      console.log('No matching image found, using first image');
+      image = effectiveImages[0];
+    }
+    
+    console.log('Selected image:', image);
+    return image;
+  }, [currentLabelGroup, currentGroupItems, effectiveImages]);
   
   // Navigation handlers
   const handleNextLabelGroup = useCallback(() => {
@@ -250,31 +294,16 @@ export function ValidationWorkspace() {
   useEffect(() => {
     if (challenge && effectiveImages.length > 0 && !state.validationSession) {
       console.log('Initializing validation session with phase:', challenge.currentPhase || 'bbox');
-      actions.initializeSession(challenge.currentPhase || 'bbox');
+      initializeSession(challenge.currentPhase || 'bbox');
     }
-  }, [challenge, effectiveImages.length, state.validationSession, actions]);
+  }, [challenge, effectiveImages.length, state.validationSession]);
 
   // Set current image when annotation changes
   useEffect(() => {
-    if (currentImage && currentImage !== state.currentImage) {
-      actions.setCurrentImage(currentImage);
+    if (currentImage && currentImage.id !== state.currentImage?.id) {
+      setCurrentImage(currentImage);
     }
-  }, [currentImage, state.currentImage, actions]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('ValidationWorkspace Debug:', {
-      challengeId,
-      currentPhase: state.currentPhase,
-      totalPhaseAnnotations: currentPhaseAnnotations.length,
-      currentLabelGroupIndex,
-      currentLabelGroup,
-      selectedAnnotationIds: Array.from(selectedAnnotationIds),
-      currentImage,
-      effectiveImages: effectiveImages.length,
-      validationSession: state.validationSession,
-    });
-  }, [challengeId, state.currentPhase, currentPhaseAnnotations.length, currentLabelGroupIndex, currentLabelGroup, selectedAnnotationIds, currentImage, effectiveImages.length, state.validationSession]);
+  }, [currentImage?.id, state.currentImage?.id]);
 
   // Keyboard shortcuts for validation
   useEffect(() => {
@@ -363,6 +392,7 @@ export function ValidationWorkspace() {
           <Shield size={48} style={{ color: theme.colors.interactive.primary }} />
           <Box style={{ textAlign: "center" }}>
             <Text
+              as="p"
               size="4"
               style={{
                 fontWeight: 600,
@@ -373,6 +403,7 @@ export function ValidationWorkspace() {
               Loading Validation Environment
             </Text>
             <Text
+              as="p"
               size="2"
               style={{
                 color: theme.colors.text.secondary,

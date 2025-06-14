@@ -2,7 +2,7 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../../constants/suiConfig";
-import { type LabelAnnotation, type BoundingBox } from "../../../features/annotation/types/workspace";
+import { type LabelAnnotation, type BoundingBox } from "@/features/annotation/types/workspace";
 
 const suiClient = new SuiClient({
   url: SUI_NETWORK.URL,
