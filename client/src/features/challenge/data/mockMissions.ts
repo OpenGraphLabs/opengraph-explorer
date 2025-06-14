@@ -49,9 +49,24 @@ export const calculateUserMissionProgress = (
       ? "in_progress"
       : "not_started";
 
+  // Calculate mission scores (100 points per mission)
+  const missionScores = missions.map(mission => ({
+    missionId: parseInt(mission.id),
+    missionName: mission.name,
+    score: mission.status === "completed" ? 100 : 0,
+    maxScore: 100,
+    completedAt: mission.status === "completed" ? new Date().toISOString() : undefined,
+  }));
+
+  const totalScore = completedMissions.length * 100;
+  const maxPossibleScore = missions.length * 100;
+
   return {
     userId,
     missions,
+    missionScores,
+    totalScore,
+    maxPossibleScore,
     overallStatus,
     completedAt: isAllCompleted ? new Date() : undefined,
     certificate: isAllCompleted
