@@ -20,7 +20,7 @@ services:
     networks:
       - opengraph-backend-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/db_user) -d $(cat /run/secrets/db_name)"]
+      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/db_user) -d $$(cat /run/secrets/db_name)"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -43,7 +43,7 @@ services:
       - db_user
       - db_name
     environment:
-      DATABASE_URL: postgresql://$(cat /run/secrets/db_user):$(cat /run/secrets/db_password)@postgres:5432/$(cat /run/secrets/db_name)
+      DATABASE_URL: postgresql://$$(cat /run/secrets/db_user):$$(cat /run/secrets/db_password)@postgres:5432/$$(cat /run/secrets/db_name)
       PORT: 8080
       RUST_LOG: info
     depends_on:
