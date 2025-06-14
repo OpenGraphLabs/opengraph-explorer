@@ -28,7 +28,7 @@ Dockerfile*
 **/*.ckpt*
 **/*.keras
 **/*.hdf5
-**/server/uploads/*
+docker/converter/uploads/*
 
 # Editor directories and files
 .idea

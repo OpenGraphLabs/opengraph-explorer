@@ -29,14 +29,14 @@ services:
   server:
     build:
       context: .
-      dockerfile: docker/server/Dockerfile
+      dockerfile: docker/converter/Dockerfile
     container_name: opengraph-server
     ports:
       - "3000:3000"
     volumes:
       - ./server/uploads:/app/uploads
     env_file:
-      - ./server/.env
+      - converter/.env
     networks:
       - opengraph-network
     deploy:
