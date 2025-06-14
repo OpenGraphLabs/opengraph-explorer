@@ -803,11 +803,11 @@ export function Challenges() {
     section: {
       icon: <Trophy size={16} style={{ color: theme.colors.text.inverse }} />,
       title: "Challenge Hub",
-      actionButton: {
-        text: "Create Challenge",
-        icon: <UploadSimple size={14} weight="bold" />,
-        href: "/challenges/create",
-      },
+      // actionButton: {
+      //   text: "Create Challenge",
+      //   icon: <UploadSimple size={14} weight="bold" />,
+      //   href: "/challenges/create",
+      // },
     },
     stats: [
       {
