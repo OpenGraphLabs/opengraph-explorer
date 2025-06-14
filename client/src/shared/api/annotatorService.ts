@@ -115,7 +115,7 @@ export const annotatorService = {
   } | null> {
     try {
       let annotator = await this.getAnnotatorBySuiAddress(suiAddress);
-      
+
       // If annotator doesn't exist, create one
       if (!annotator) {
         annotator = await this.createAnnotator({
@@ -136,4 +136,4 @@ export const annotatorService = {
       return null;
     }
   },
-}; 
+};

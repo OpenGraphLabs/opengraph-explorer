@@ -26,8 +26,8 @@ export interface Mission {
 }
 
 export const MISSION_CHALLENGE_MAPPING: Record<string, string> = {
-  "label_annotation": "challenge-1",
-  "bbox_annotation": "challenge-2",
+  label_annotation: "challenge-1",
+  bbox_annotation: "challenge-2",
 };
 
 export interface UserMissionProgress {

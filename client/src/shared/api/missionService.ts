@@ -1,10 +1,10 @@
-import { 
-  Mission, 
-  ServerMission, 
-  CreateMissionRequest, 
-  UpdateMissionStatusRequest, 
-  ListMissionsQuery, 
-  MISSION_CHALLENGE_MAPPING 
+import {
+  Mission,
+  ServerMission,
+  CreateMissionRequest,
+  UpdateMissionStatusRequest,
+  ListMissionsQuery,
+  MISSION_CHALLENGE_MAPPING,
 } from "../../features/challenge/types/mission";
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080";
@@ -27,7 +27,8 @@ const transformServerMission = (serverMission: ServerMission): Mission => {
     status: serverMission.status,
     created_at: serverMission.created_at,
     updated_at: serverMission.updated_at,
-    challengeId: MISSION_CHALLENGE_MAPPING[serverMission.mission_type] || `challenge-${serverMission.id}`,
+    challengeId:
+      MISSION_CHALLENGE_MAPPING[serverMission.mission_type] || `challenge-${serverMission.id}`,
   };
 };
 
@@ -141,4 +142,4 @@ export const missionService = {
       throw new MissionApiError("An error occurred while updating the mission status.");
     }
   },
-}; 
+};

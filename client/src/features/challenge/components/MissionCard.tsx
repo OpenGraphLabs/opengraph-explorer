@@ -256,10 +256,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
             {mission.mission_type === "label_annotation" ? "Label" : "Bounding Box"}
           </Text>
         </Flex>
-        <Flex
-          justify="between"
-          align="center"
-        >
+        <Flex justify="between" align="center">
           <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
             Status
           </Text>

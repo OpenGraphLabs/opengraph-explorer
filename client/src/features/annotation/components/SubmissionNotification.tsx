@@ -1,17 +1,17 @@
 /**
  * Submission Notification Component
- * 
+ *
  * Displays comprehensive notifications for the complete annotation submission process
  * including blockchain transaction status, scoring results, and error states
  */
 
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  CheckCircle, 
-  Warning, 
-  Clock, 
-  Trophy, 
+import {
+  CheckCircle,
+  Warning,
+  Clock,
+  Trophy,
   X,
   CurrencyCircleDollar,
   Link as LinkIcon,
@@ -125,9 +125,7 @@ export function SubmissionNotification({
       case "scoring":
         return status.message;
       case "blockchain":
-        return `${status.message}${
-          status.progress ? ` (${status.progress}%)` : ""
-        }`;
+        return `${status.message}${status.progress ? ` (${status.progress}%)` : ""}`;
       case "completed":
         return `Your annotations have been successfully submitted and scored!`;
       case "error":
@@ -365,4 +363,4 @@ export function SubmissionNotification({
       </style>
     </Box>
   );
-} 
+}

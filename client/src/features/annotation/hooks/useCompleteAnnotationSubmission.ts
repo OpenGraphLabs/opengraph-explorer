@@ -1,6 +1,6 @@
 /**
  * Complete Annotation Submission Hook
- * 
+ *
  * Integrates all submission services and manages the complete flow:
  * 1. Validates annotation data
  * 2. Gets mission and annotator information
@@ -10,8 +10,8 @@
  */
 
 import { useState, useCallback } from "react";
-import { 
-  useAnnotationSubmission, 
+import {
+  useAnnotationSubmission,
   type SubmissionStatus,
   type SubmissionResult,
   type AnnotationData,
@@ -19,7 +19,7 @@ import {
 import { useMissionMapping } from "../../../shared/api/missionMappingService";
 
 // Extended submission status with additional phases
-export type CompleteSubmissionStatus = 
+export type CompleteSubmissionStatus =
   | { phase: "idle"; message?: string }
   | { phase: "validating"; message: string }
   | { phase: "preparing"; message: string }
@@ -94,7 +94,7 @@ export function useCompleteAnnotationSubmission() {
     // Check each annotation has at least one annotation type
     annotationData.forEach((item, index) => {
       const { annotations } = item;
-      const hasAnnotations = 
+      const hasAnnotations =
         (annotations.labels && annotations.labels.length > 0) ||
         (annotations.boundingBoxes && annotations.boundingBoxes.length > 0) ||
         (annotations.polygons && annotations.polygons.length > 0);
@@ -110,106 +110,109 @@ export function useCompleteAnnotationSubmission() {
   /**
    * Submit complete annotation workspace
    */
-  const submitCompleteAnnotations = useCallback(async (
-    challengeId: string,
-    datasetId: string,
-    annotationData: AnnotationData[], // Already converted data from AnnotationWorkspace
-    totalImages: number // For validation
-  ): Promise<SubmissionResult> => {
-    if (isSubmitting) {
-      throw new Error("Submission already in progress");
-    }
-
-    try {
-      setIsSubmitting(true);
-      setStatus({ phase: "validating", message: "Validating annotation data..." });
-
-      // Step 1: Validate annotations
-      if (annotationData.length === 0) {
-        throw new Error("No annotations to submit");
+  const submitCompleteAnnotations = useCallback(
+    async (
+      challengeId: string,
+      datasetId: string,
+      annotationData: AnnotationData[], // Already converted data from AnnotationWorkspace
+      totalImages: number // For validation
+    ): Promise<SubmissionResult> => {
+      if (isSubmitting) {
+        throw new Error("Submission already in progress");
       }
 
-      if (annotationData.length !== totalImages) {
-        throw new Error(
-          `Annotation count (${annotationData.length}) doesn't match image count (${totalImages})`
-        );
-      }
+      try {
+        setIsSubmitting(true);
+        setStatus({ phase: "validating", message: "Validating annotation data..." });
 
-      // Check each annotation has at least one annotation type
-      annotationData.forEach((item, index) => {
-        const { annotations } = item;
-        const hasAnnotations = 
-          (annotations.labels && annotations.labels.length > 0) ||
-          (annotations.boundingBoxes && annotations.boundingBoxes.length > 0) ||
-          (annotations.polygons && annotations.polygons.length > 0);
-
-        if (!hasAnnotations) {
-          throw new Error(`Image ${index + 1} has no annotations`);
+        // Step 1: Validate annotations
+        if (annotationData.length === 0) {
+          throw new Error("No annotations to submit");
         }
-      });
 
-      setStatus({ phase: "preparing", message: "Preparing submission parameters..." });
+        if (annotationData.length !== totalImages) {
+          throw new Error(
+            `Annotation count (${annotationData.length}) doesn't match image count (${totalImages})`
+          );
+        }
 
-      // Step 2: Get mission and annotator information
-      const { missionId, annotatorId } = await getSubmissionParams(challengeId);
+        // Check each annotation has at least one annotation type
+        annotationData.forEach((item, index) => {
+          const { annotations } = item;
+          const hasAnnotations =
+            (annotations.labels && annotations.labels.length > 0) ||
+            (annotations.boundingBoxes && annotations.boundingBoxes.length > 0) ||
+            (annotations.polygons && annotations.polygons.length > 0);
 
-      // Step 3: Submit annotations through the complete flow (data already converted)
-      const result = await submitAnnotations(
-        datasetId,
-        annotationData,
-        missionId,
-        annotatorId,
-        (submissionStatus: SubmissionStatus) => {
-          // Map submission status to complete status
-          switch (submissionStatus.phase) {
-            case "preparing":
-              setStatus({ 
-                phase: "preparing", 
-                message: submissionStatus.message 
-              });
-              break;
-            case "blockchain":
-              setStatus({ 
-                phase: "blockchain", 
-                message: submissionStatus.message,
-                progress: submissionStatus.progress 
-              });
-              break;
-            case "scoring":
-              setStatus({ 
-                phase: "scoring", 
-                message: submissionStatus.message 
-              });
-              break;
-            case "completed":
-              setStatus({ 
-                phase: "completed", 
-                result: {
-                  ...submissionStatus.result,
-                  score: submissionStatus.result.missionScore.score
-                }
-              });
-              break;
-            case "error":
-              setStatus({ 
-                phase: "error", 
-                error: submissionStatus.error 
-              });
-              break;
+          if (!hasAnnotations) {
+            throw new Error(`Image ${index + 1} has no annotations`);
           }
-        }
-      );
+        });
 
-      return result;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      setStatus({ phase: "error", error: errorMessage });
-      
-      throw error;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [isSubmitting, submitAnnotations, getSubmissionParams]);
+        setStatus({ phase: "preparing", message: "Preparing submission parameters..." });
+
+        // Step 2: Get mission and annotator information
+        const { missionId, annotatorId } = await getSubmissionParams(challengeId);
+
+        // Step 3: Submit annotations through the complete flow (data already converted)
+        const result = await submitAnnotations(
+          datasetId,
+          annotationData,
+          missionId,
+          annotatorId,
+          (submissionStatus: SubmissionStatus) => {
+            // Map submission status to complete status
+            switch (submissionStatus.phase) {
+              case "preparing":
+                setStatus({
+                  phase: "preparing",
+                  message: submissionStatus.message,
+                });
+                break;
+              case "blockchain":
+                setStatus({
+                  phase: "blockchain",
+                  message: submissionStatus.message,
+                  progress: submissionStatus.progress,
+                });
+                break;
+              case "scoring":
+                setStatus({
+                  phase: "scoring",
+                  message: submissionStatus.message,
+                });
+                break;
+              case "completed":
+                setStatus({
+                  phase: "completed",
+                  result: {
+                    ...submissionStatus.result,
+                    score: submissionStatus.result.missionScore.score,
+                  },
+                });
+                break;
+              case "error":
+                setStatus({
+                  phase: "error",
+                  error: submissionStatus.error,
+                });
+                break;
+            }
+          }
+        );
+
+        return result;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+        setStatus({ phase: "error", error: errorMessage });
+
+        throw error;
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [isSubmitting, submitAnnotations, getSubmissionParams]
+  );
 
   /**
    * Reset submission status
@@ -222,31 +225,34 @@ export function useCompleteAnnotationSubmission() {
   /**
    * Check if submission is possible
    */
-  const canSubmit = useCallback((
-    annotationData: AnnotationData[],
-    totalImages: number
-  ): { canSubmit: boolean; reason?: string } => {
-    try {
-      validateAnnotationData(annotationData, totalImages);
-      return { canSubmit: !isSubmitting };
-    } catch (error) {
-      return { 
-        canSubmit: false, 
-        reason: error instanceof Error ? error.message : "Validation failed" 
-      };
-    }
-  }, [isSubmitting]);
+  const canSubmit = useCallback(
+    (
+      annotationData: AnnotationData[],
+      totalImages: number
+    ): { canSubmit: boolean; reason?: string } => {
+      try {
+        validateAnnotationData(annotationData, totalImages);
+        return { canSubmit: !isSubmitting };
+      } catch (error) {
+        return {
+          canSubmit: false,
+          reason: error instanceof Error ? error.message : "Validation failed",
+        };
+      }
+    },
+    [isSubmitting]
+  );
 
   return {
     // State
     status,
     isSubmitting,
-    
+
     // Actions
     submitCompleteAnnotations,
     resetStatus,
     canSubmit,
-    
+
     // Computed properties
     isIdle: status.phase === "idle",
     isValidating: status.phase === "validating",
@@ -255,10 +261,10 @@ export function useCompleteAnnotationSubmission() {
     isScoring: status.phase === "scoring",
     isCompleted: status.phase === "completed",
     hasError: status.phase === "error",
-    
+
     // Result data
     finalScore: status.phase === "completed" ? status.result.score : undefined,
     transactionHash: status.phase === "completed" ? status.result.suiTransactionDigest : undefined,
     errorMessage: status.phase === "error" ? status.error : undefined,
   };
-} 
+}

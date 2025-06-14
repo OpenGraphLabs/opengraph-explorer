@@ -107,9 +107,9 @@ export function useDatasetSuiService() {
       const dataset = tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_dataset`,
         arguments: [tx.pure.string(metadata.name), metadataObject],
-              });
+      });
 
-        // 5. dataset을 shared object로 만들기
+      // 5. dataset을 shared object로 만들기
       tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::share_dataset`,
         arguments: [dataset],
@@ -141,18 +141,18 @@ export function useDatasetSuiService() {
           },
         }
       );
-      
+
       // 7. 생성된 dataset object id 추출 - 파싱된 결과 활용
       let datasetId: string | undefined;
       if (txResult.objectChanges) {
         console.log("Object changes:", txResult.objectChanges);
-        
-        const createdDataset = txResult.objectChanges.find((change: any) => 
-          change.type === 'created' && 
-          change.objectType?.includes('dataset::Dataset')
+
+        const createdDataset = txResult.objectChanges.find(
+          (change: any) =>
+            change.type === "created" && change.objectType?.includes("dataset::Dataset")
         );
-        
-        if (createdDataset && createdDataset.type === 'created') {
+
+        if (createdDataset && createdDataset.type === "created") {
           datasetId = (createdDataset as any).objectId;
           console.log("Found dataset ID in objectChanges:", datasetId);
         }
@@ -160,7 +160,9 @@ export function useDatasetSuiService() {
 
       if (!datasetId) {
         console.error("Failed to extract dataset ID. Transaction result structure:", txResult);
-        throw new Error("Failed to get dataset object ID from transaction result. Check console for transaction details.");
+        throw new Error(
+          "Failed to get dataset object ID from transaction result. Check console for transaction details."
+        );
       }
 
       console.log("Extracted dataset ID:", datasetId);
@@ -306,7 +308,7 @@ export function useDatasetSuiService() {
     try {
       // 1. 데이터셋 생성 (첫 번째 트랜잭션)
       const createResult = await createDataset(metadata, files, epochs);
-      
+
       // 2. 데이터 추가 (두 번째 트랜잭션)
       const addDataResult = await addDataToDataset(
         createResult.datasetId,

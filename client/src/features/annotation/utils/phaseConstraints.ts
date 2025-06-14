@@ -74,7 +74,8 @@ export function getDisallowedToolMessage(phase: ChallengePhase, tool: Annotation
       break;
     case "segmentation":
       if (tool === "label") return "Label annotation is not allowed in the Segmentation phase";
-      if (tool === "bbox") return "Bounding box annotation is not allowed in the Segmentation phase";
+      if (tool === "bbox")
+        return "Bounding box annotation is not allowed in the Segmentation phase";
       break;
     case "validation":
       return "New annotations cannot be added during validation phase";

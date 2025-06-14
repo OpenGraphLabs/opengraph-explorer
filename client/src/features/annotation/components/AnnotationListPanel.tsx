@@ -38,13 +38,14 @@ export function AnnotationListPanel({
     (annotations.polygons?.length || 0);
 
   // Process stack items for display (1 annotation per image) - latest first
-  const stackItems = stackState?.items
-    .slice()
-    .reverse()
-    .map((item, index) => ({
-      ...item,
-      displayIndex: stackState.items.length - index, // Show original order in display
-    })) || [];
+  const stackItems =
+    stackState?.items
+      .slice()
+      .reverse()
+      .map((item, index) => ({
+        ...item,
+        displayIndex: stackState.items.length - index, // Show original order in display
+      })) || [];
 
   return (
     <Box
@@ -63,7 +64,11 @@ export function AnnotationListPanel({
           borderBottom: `1px solid ${theme.colors.border.primary}`,
         }}
       >
-        <Flex align="center" justify="between" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+        <Flex
+          align="center"
+          justify="between"
+          style={{ marginBottom: theme.spacing.semantic.component.xs }}
+        >
           <Text
             as="p"
             size="2"
@@ -96,7 +101,9 @@ export function AnnotationListPanel({
               <Stack
                 size={12}
                 style={{
-                  color: stackState.isFull ? theme.colors.status.error : theme.colors.text.secondary,
+                  color: stackState.isFull
+                    ? theme.colors.status.error
+                    : theme.colors.text.secondary,
                 }}
               />
               <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
@@ -236,7 +243,11 @@ export function AnnotationListPanel({
             {/* Current Image Section */}
             {totalAnnotations > 0 && (
               <Box>
-                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.xs }}
+                >
                   <Box
                     style={{
                       width: "6px",
@@ -257,7 +268,7 @@ export function AnnotationListPanel({
                     Current ({currentImageIndex + 1}/{totalImages})
                   </Text>
                 </Flex>
-                
+
                 <Box
                   style={{
                     padding: theme.spacing.semantic.component.xs,
@@ -279,7 +290,12 @@ export function AnnotationListPanel({
 
                     {/* Current Image Bounding Boxes */}
                     {annotations.boundingBoxes?.map(bbox => (
-                      <AnnotationItem key={bbox.id} type="bbox" data={bbox} onDelete={onDeleteAnnotation} />
+                      <AnnotationItem
+                        key={bbox.id}
+                        type="bbox"
+                        data={bbox}
+                        onDelete={onDeleteAnnotation}
+                      />
                     ))}
 
                     {/* Current Image Polygons */}
@@ -299,7 +315,11 @@ export function AnnotationListPanel({
             {/* Saved Annotations Stack */}
             {stackItems.length > 0 && (
               <Box>
-                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.xs }}
+                >
                   <Box
                     style={{
                       width: "6px",
@@ -329,13 +349,15 @@ export function AnnotationListPanel({
                   }}
                 >
                   <Flex direction="column" gap="2">
-                    {stackItems.map((item) => {
+                    {stackItems.map(item => {
                       const getAnnotationIcon = () => {
                         switch (item.type) {
                           case "label":
                             return <Tag size={14} style={{ color: theme.colors.status.info }} />;
                           case "bbox":
-                            return <Target size={14} style={{ color: theme.colors.status.warning }} />;
+                            return (
+                              <Target size={14} style={{ color: theme.colors.status.warning }} />
+                            );
                           default:
                             return <Tag size={14} style={{ color: theme.colors.text.secondary }} />;
                         }
@@ -419,7 +441,7 @@ export function AnnotationListPanel({
                                   {item.type === "bbox" ? "bbox" : item.type}
                                 </Text>
                               </Flex>
-                              
+
                               <Text
                                 size="2"
                                 style={{

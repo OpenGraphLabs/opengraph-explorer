@@ -1,13 +1,17 @@
 /**
  * Annotation Submission Service
- * 
+ *
  * Handles the complete annotation submission flow:
  * 1. Submit annotations to Sui blockchain
  * 2. Send mission submission to backend for scoring
  */
 
 import { useCurrentAccount } from "@mysten/dapp-kit";
-import { useAnnotationSuiService, type DataAnnotationInput, type BatchAnnotationInput } from "./sui/annotationSuiService";
+import {
+  useAnnotationSuiService,
+  type DataAnnotationInput,
+  type BatchAnnotationInput,
+} from "./sui/annotationSuiService";
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080";
 
@@ -81,7 +85,7 @@ export interface SubmissionResult {
 }
 
 // Submission status for tracking progress
-export type SubmissionStatus = 
+export type SubmissionStatus =
   | { phase: "preparing"; message: string }
   | { phase: "blockchain"; message: string; progress?: number }
   | { phase: "scoring"; message: string }
@@ -127,9 +131,9 @@ export function useAnnotationSubmission() {
       const dataAnnotations: DataAnnotationInput[] = annotations.map((annotationData, index) => {
         const { imageId, imagePath, annotations: annots } = annotationData;
         console.log("[xxxxxxx] imagePath", imagePath);
-        
+
         onProgress?.(
-          10 + (index / annotations.length) * 30, 
+          10 + (index / annotations.length) * 30,
           `Processing annotation ${index + 1}/${annotations.length}...`
         );
 
@@ -172,11 +176,11 @@ export function useAnnotationSubmission() {
       // Submit using the proper annotation service
       const result = await annotationSuiService.addAnnotationsBatch(
         batchInput,
-        (txResult) => {
+        txResult => {
           onProgress?.(90, "Transaction confirmed on blockchain");
           console.log("Sui annotation submission successful:", txResult);
         },
-        (error) => {
+        error => {
           console.error("Sui annotation submission failed:", error);
           throw error;
         }
@@ -245,33 +249,33 @@ export function useAnnotationSubmission() {
     onStatusChange?: (status: SubmissionStatus) => void
   ): Promise<SubmissionResult> => {
     try {
-      onStatusChange?.({ 
-        phase: "preparing", 
-        message: "Preparing annotation submission..." 
+      onStatusChange?.({
+        phase: "preparing",
+        message: "Preparing annotation submission...",
       });
 
       // Step 1: Submit to Sui blockchain
-      onStatusChange?.({ 
-        phase: "blockchain", 
-        message: "Submitting annotations to Sui blockchain..." 
+      onStatusChange?.({
+        phase: "blockchain",
+        message: "Submitting annotations to Sui blockchain...",
       });
 
       const suiTransactionDigest = await submitToSui(
         datasetId,
         annotations,
         (progress, message) => {
-          onStatusChange?.({ 
-            phase: "blockchain", 
+          onStatusChange?.({
+            phase: "blockchain",
             message,
-            progress 
+            progress,
           });
         }
       );
 
       // Step 2: Prepare mission submission data
-      onStatusChange?.({ 
-        phase: "scoring", 
-        message: "Preparing mission submission for scoring..." 
+      onStatusChange?.({
+        phase: "scoring",
+        message: "Preparing mission submission for scoring...",
       });
 
       const missionSubmissionRequest: MissionSubmissionRequest = {
@@ -280,22 +284,23 @@ export function useAnnotationSubmission() {
         submissions: annotations.map(annotationData => ({
           item_id: annotationData.imageId,
           labels: annotationData.annotations.labels || [],
-          bounding_boxes: annotationData.annotations.boundingBoxes?.map(bbox => ({
-            id: bbox.id,
-            x: bbox.x,
-            y: bbox.y,
-            width: bbox.width,
-            height: bbox.height,
-            label: bbox.label,
-            confidence: bbox.confidence,
-          })) || [],
+          bounding_boxes:
+            annotationData.annotations.boundingBoxes?.map(bbox => ({
+              id: bbox.id,
+              x: bbox.x,
+              y: bbox.y,
+              width: bbox.width,
+              height: bbox.height,
+              label: bbox.label,
+              confidence: bbox.confidence,
+            })) || [],
         })),
       };
 
       // Step 3: Submit to backend for scoring
-      onStatusChange?.({ 
-        phase: "scoring", 
-        message: "Submitting to backend for scoring..." 
+      onStatusChange?.({
+        phase: "scoring",
+        message: "Submitting to backend for scoring...",
       });
 
       const missionScore = await submitMissionForScoring(missionSubmissionRequest);
@@ -307,18 +312,18 @@ export function useAnnotationSubmission() {
         success: true,
       };
 
-      onStatusChange?.({ 
-        phase: "completed", 
-        result 
+      onStatusChange?.({
+        phase: "completed",
+        result,
       });
 
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      
-      onStatusChange?.({ 
-        phase: "error", 
-        error: errorMessage 
+
+      onStatusChange?.({
+        phase: "error",
+        error: errorMessage,
       });
 
       return {
@@ -344,41 +349,44 @@ export function convertWorkspaceAnnotationsToSubmissionFormat(
   annotationStack: any[], // Replace with proper type from workspace
   images: any[] // Replace with proper image type
 ): AnnotationData[] {
-  return annotationStack.map((stackItem) => {
+  return annotationStack.map(stackItem => {
     // Find the corresponding image for this annotation
     const correspondingImage = images.find(img => img.id === stackItem.imageData?.id);
-    
+
     if (!correspondingImage) {
       console.warn("Could not find corresponding image for annotation:", stackItem);
     }
 
     const imageData = correspondingImage || stackItem.imageData;
-    
+
     return {
       imageId: imageData.id,
       imagePath: imageData.path || imageData.url || imageData.filename || `image_${imageData.id}`,
       annotations: {
-        labels: stackItem.annotations.labels?.map((label: any) => ({
-          id: label.id,
-          label: label.label,
-          confidence: label.confidence || 0.95,
-        })) || [],
-        boundingBoxes: stackItem.annotations.boundingBoxes?.map((bbox: any) => ({
-          id: bbox.id,
-          x: bbox.x,
-          y: bbox.y,
-          width: bbox.width,
-          height: bbox.height,
-          label: bbox.label,
-          confidence: bbox.confidence || 0.95,
-        })) || [],
-        polygons: stackItem.annotations.polygons?.map((polygon: any) => ({
-          id: polygon.id,
-          points: polygon.points,
-          label: polygon.label,
-          confidence: polygon.confidence || 0.95,
-        })) || [],
+        labels:
+          stackItem.annotations.labels?.map((label: any) => ({
+            id: label.id,
+            label: label.label,
+            confidence: label.confidence || 0.95,
+          })) || [],
+        boundingBoxes:
+          stackItem.annotations.boundingBoxes?.map((bbox: any) => ({
+            id: bbox.id,
+            x: bbox.x,
+            y: bbox.y,
+            width: bbox.width,
+            height: bbox.height,
+            label: bbox.label,
+            confidence: bbox.confidence || 0.95,
+          })) || [],
+        polygons:
+          stackItem.annotations.polygons?.map((polygon: any) => ({
+            id: polygon.id,
+            points: polygon.points,
+            label: polygon.label,
+            confidence: polygon.confidence || 0.95,
+          })) || [],
       },
     };
   });
-} 
+}

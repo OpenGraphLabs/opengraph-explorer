@@ -21,11 +21,11 @@ export const useMissions = () => {
     const loadMissions = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const missions = await getMissions();
         const userId = "user-1"; // TODO: Get from auth context
-        
+
         // Try to load saved progress from localStorage
         const savedProgress = localStorage.getItem("opengraph-mission-progress");
         if (savedProgress) {
@@ -70,7 +70,7 @@ export const useMissions = () => {
 
   const updateMission = async (missionId: string, status: "active" | "completed" | "inactive") => {
     if (!userProgress) return;
-    
+
     setLoading(true);
     setError(null);
 
@@ -82,14 +82,14 @@ export const useMissions = () => {
 
       setUserProgress(prev => {
         if (!prev) return prev;
-        
+
         const updatedMissions = prev.missions.map(mission =>
           mission.id === missionId ? updatedMission : mission
         );
 
         const allCompleted = checkAllMissionsCompleted(updatedMissions);
         const completedMissions = updatedMissions.filter(m => m.status === "completed");
-        
+
         const overallStatus = allCompleted
           ? "completed"
           : completedMissions.length > 0
@@ -101,12 +101,15 @@ export const useMissions = () => {
           missions: updatedMissions,
           overallStatus,
           completedAt: allCompleted ? new Date() : prev.completedAt,
-          certificate: allCompleted && !prev.certificate ? {
-            id: `OG-CERT-${new Date().getFullYear()}-${prev.userId}`,
-            title: "OpenGraph Data Annotation Specialist",
-            issuedAt: new Date(),
-            shareableUrl: `https://opengraph.io/certificate/OG-CERT-${new Date().getFullYear()}-${prev.userId}`,
-          } : prev.certificate,
+          certificate:
+            allCompleted && !prev.certificate
+              ? {
+                  id: `OG-CERT-${new Date().getFullYear()}-${prev.userId}`,
+                  title: "OpenGraph Data Annotation Specialist",
+                  issuedAt: new Date(),
+                  shareableUrl: `https://opengraph.io/certificate/OG-CERT-${new Date().getFullYear()}-${prev.userId}`,
+                }
+              : prev.certificate,
         };
       });
     } catch (err) {
@@ -126,24 +129,24 @@ export const useMissions = () => {
 
   const getNextMission = (): Mission | undefined => {
     if (!userProgress) return undefined;
-    
+
     const completedMissions = userProgress.missions.filter(m => m.status === "completed");
     const allMissions = userProgress.missions.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-    
+
     // Return the first mission that's not completed
     return allMissions.find(m => m.status !== "completed");
   };
 
   const canAccessMission = (missionId: string): boolean => {
     if (!userProgress) return false;
-    
+
     const mission = getMissionById(missionId);
     if (!mission) return false;
 
     // 첫 번째 미션은 항상 접근 가능
     const allMissions = userProgress.missions.sort((a, b) => parseInt(a.id) - parseInt(b.id));
     const missionIndex = allMissions.findIndex(m => m.id === missionId);
-    
+
     if (missionIndex === 0) return true;
 
     // 이전 미션이 완료되어야 접근 가능
@@ -185,10 +188,10 @@ export const useMissions = () => {
 
     try {
       console.log(`🔗 Syncing progress for wallet: ${suiAddress}`);
-      
+
       // 1. Annotator 및 Score 정보 가져오기
       const result = await annotatorService.getAnnotatorWithScores(suiAddress);
-      
+
       if (!result) {
         throw new Error("Failed to get annotator information");
       }
@@ -203,16 +206,16 @@ export const useMissions = () => {
 
       // 3. UserProgress 업데이트
       const updatedProgress = calculateUserMissionProgress(userProgress.userId, syncedMissions);
-      
+
       setUserProgress({
         ...updatedProgress,
         userId: suiAddress, // 지갑 주소를 userId로 사용
       });
 
-      console.log(`✅ Mission progress synced. Completed missions:`, 
+      console.log(
+        `✅ Mission progress synced. Completed missions:`,
         syncedMissions.filter(m => m.status === "completed").map(m => `Step ${m.id}`)
       );
-
     } catch (err) {
       console.error("Failed to sync wallet progress:", err);
       setError(err instanceof Error ? err.message : "Failed to sync wallet progress");
@@ -231,10 +234,14 @@ export const useMissions = () => {
       shareableUrl: `https://opengraph.io/certificate/OG-CERT-${new Date().getFullYear()}-${userProgress.userId}`,
     };
 
-    setUserProgress(prev => prev ? {
-      ...prev,
-      certificate,
-    } : prev);
+    setUserProgress(prev =>
+      prev
+        ? {
+            ...prev,
+            certificate,
+          }
+        : prev
+    );
   };
 
   return {

@@ -21,7 +21,9 @@ export const getMissionById = async (id: string): Promise<Mission | undefined> =
   }
 };
 
-export const getMissionsByType = async (type: "label_annotation" | "bbox_annotation"): Promise<Mission[]> => {
+export const getMissionsByType = async (
+  type: "label_annotation" | "bbox_annotation"
+): Promise<Mission[]> => {
   try {
     const missions = await missionService.getMissions();
     return missions.filter(mission => mission.mission_type === type);
@@ -32,16 +34,19 @@ export const getMissionsByType = async (type: "label_annotation" | "bbox_annotat
 };
 
 // UserMissionProgress는 별도의 API가 없으므로 클라이언트에서 계산
-export const calculateUserMissionProgress = (userId: string, missions: Mission[]): UserMissionProgress => {
+export const calculateUserMissionProgress = (
+  userId: string,
+  missions: Mission[]
+): UserMissionProgress => {
   // 모든 미션이 완료되었는지 확인 (status가 "completed"인 미션들)
   const completedMissions = missions.filter(mission => mission.status === "completed");
   const activeMissions = missions.filter(mission => mission.status === "active");
   const isAllCompleted = completedMissions.length === missions.length && missions.length > 0;
-  
-  const overallStatus = isAllCompleted 
-    ? "completed" 
+
+  const overallStatus = isAllCompleted
+    ? "completed"
     : activeMissions.length > 0 || completedMissions.length > 0
-      ? "in_progress" 
+      ? "in_progress"
       : "not_started";
 
   return {
@@ -49,17 +54,22 @@ export const calculateUserMissionProgress = (userId: string, missions: Mission[]
     missions,
     overallStatus,
     completedAt: isAllCompleted ? new Date() : undefined,
-    certificate: isAllCompleted ? {
-      id: `OG-CERT-${new Date().getFullYear()}-${userId}`,
-      title: "OpenGraph Data Annotation Specialist",
-      issuedAt: new Date(),
-      shareableUrl: `https://opengraph.io/certificate/OG-CERT-${new Date().getFullYear()}-${userId}`,
-    } : undefined,
+    certificate: isAllCompleted
+      ? {
+          id: `OG-CERT-${new Date().getFullYear()}-${userId}`,
+          title: "OpenGraph Data Annotation Specialist",
+          issuedAt: new Date(),
+          shareableUrl: `https://opengraph.io/certificate/OG-CERT-${new Date().getFullYear()}-${userId}`,
+        }
+      : undefined,
   };
 };
 
 // Helper functions
-export const updateMissionStatus = async (missionId: string, status: "active" | "completed" | "inactive"): Promise<Mission | undefined> => {
+export const updateMissionStatus = async (
+  missionId: string,
+  status: "active" | "completed" | "inactive"
+): Promise<Mission | undefined> => {
   try {
     return await missionService.updateMissionStatus(missionId, { status });
   } catch (error) {

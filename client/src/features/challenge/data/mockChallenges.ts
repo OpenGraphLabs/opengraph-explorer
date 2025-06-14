@@ -5,8 +5,7 @@ export const mockChallenges: Challenge[] = [
   {
     id: "challenge-1",
     title: "Sea Animal Classification",
-    description:
-      "Guess the sea animal in the image! seaotter, sealion, seal, dugong, walrus",
+    description: "Guess the sea animal in the image! seaotter, sealion, seal, dugong, walrus",
     datasetId: "0x9c934c125d6f2174dba54d04231a4f4049b350aabbb657a36a278b826c20f0a9",
     datasetName: "Sea Animal Dataset",
     ownerId: "owner-1",

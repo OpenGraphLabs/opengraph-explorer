@@ -70,14 +70,19 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   });
 
   // Safety checks for required data
-  if (!isOpen || !userProgress.certificate || !userProgress.missionScores || !userProgress.missions) {
+  if (
+    !isOpen ||
+    !userProgress.certificate ||
+    !userProgress.missionScores ||
+    !userProgress.missions
+  ) {
     return null;
   }
 
   // Additional safety checks for arrays
   const missionScores = userProgress.missionScores || [];
   const missions = userProgress.missions || [];
-  
+
   if (missionScores.length === 0 || missions.length === 0) {
     return (
       <Box
@@ -248,9 +253,13 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       const completedMissions = missionScores.filter(ms => ms.score > 0).length;
       const totalMissions = missions.length;
       ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
-      
+
       // Total Score
-      ctx.fillText(`Total Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore}`, 325, 270);
+      ctx.fillText(
+        `Total Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore}`,
+        325,
+        270
+      );
 
       // Tech badges section (더 작게)
       ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
@@ -394,9 +403,13 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       const completedMissions = missionScores.filter(ms => ms.score > 0).length;
       const totalMissions = missions.length;
       ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
-      
+
       // Total Score
-      ctx.fillText(`Total Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore}`, 325, 270);
+      ctx.fillText(
+        `Total Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore}`,
+        325,
+        270
+      );
 
       // Tech badges section (더 작게)
       ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
@@ -430,7 +443,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 10px "Inter", sans-serif';
       ctx.fillText("OPENGRAPH", 325, 425);
-      
+
       // Copy to clipboard
       canvas.toBlob(
         async blob => {
@@ -747,12 +760,14 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                   </Text>
                   <Badge
                     style={{
-                      background: missionScore.score > 0 
-                        ? `${theme.colors.status.success}15`
-                        : `${theme.colors.status.warning}15`,
-                      color: missionScore.score > 0 
-                        ? theme.colors.status.success 
-                        : theme.colors.status.warning,
+                      background:
+                        missionScore.score > 0
+                          ? `${theme.colors.status.success}15`
+                          : `${theme.colors.status.warning}15`,
+                      color:
+                        missionScore.score > 0
+                          ? theme.colors.status.success
+                          : theme.colors.status.warning,
                       padding: "2px 8px",
                       borderRadius: theme.borders.radius.full,
                       fontSize: "11px",

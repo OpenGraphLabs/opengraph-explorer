@@ -23,13 +23,9 @@ import { useChallenge } from "@/features/challenge";
 import { useChallengeDataset } from "@/features/challenge/hooks/useChallengeDataset";
 import { usePhaseConstraints } from "@/features/annotation";
 
-// Import new modular components  
+// Import new modular components
 import { AnnotationSidebar } from "@/widgets/annotation-sidebar";
-import {
-  AnnotationListPanel,
-  InlineToolBar,
-  SaveNotification,
-} from "@/features/annotation";
+import { AnnotationListPanel, InlineToolBar, SaveNotification } from "@/features/annotation";
 import { WorkspaceStatusBar } from "@/features/workspace-controls";
 import { useAnnotationTools, useImageNavigation } from "@/features/annotation";
 
@@ -83,7 +79,7 @@ export function AnnotationWorkspace() {
 
   // Certificate data hook
   const certificateData = useCertificateData();
-  
+
   // Certificate modal state
   const [showCertificate, setShowCertificate] = useState(false);
 
@@ -103,7 +99,7 @@ export function AnnotationWorkspace() {
     };
 
     const defaultTool = getDefaultToolForPhase(currentPhase);
-    
+
     // Only change tool if current tool is not allowed in the new phase
     if (!isToolAllowed(state.currentTool)) {
       actions.setCurrentTool(defaultTool);
@@ -115,7 +111,7 @@ export function AnnotationWorkspace() {
     if (challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage) {
       const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
       const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
-      
+
       if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
         // Auto-select first predefined label if no label is currently selected
         if (!state.selectedLabel) {
@@ -136,7 +132,9 @@ export function AnnotationWorkspace() {
     return [];
   };
 
-  const existingLabels = Array.from(new Set(state.annotations.labels?.map(label => label.label) || []));
+  const existingLabels = Array.from(
+    new Set(state.annotations.labels?.map(label => label.label) || [])
+  );
   const predefinedLabels = getPredefinedLabels();
   const allAvailableLabels = Array.from(new Set([...existingLabels, ...predefinedLabels]));
 
@@ -164,18 +162,18 @@ export function AnnotationWorkspace() {
   // Optimized function to clear all annotations
   const clearAllAnnotations = useCallback(() => {
     const batch = [];
-    
+
     // Collect all deletion operations
-    state.annotations.labels?.forEach(existingLabel => 
+    state.annotations.labels?.forEach(existingLabel =>
       batch.push(() => actions.deleteAnnotation("label", existingLabel.id))
     );
-    state.annotations.boundingBoxes?.forEach(bbox => 
+    state.annotations.boundingBoxes?.forEach(bbox =>
       batch.push(() => actions.deleteAnnotation("bbox", bbox.id))
     );
-    state.annotations.polygons?.forEach(polygon => 
+    state.annotations.polygons?.forEach(polygon =>
       batch.push(() => actions.deleteAnnotation("segmentation", polygon.id))
     );
-    
+
     // Execute all deletions in batch for better performance
     batch.forEach(deleteOp => deleteOp());
   }, [actions, state.annotations]);
@@ -187,35 +185,38 @@ export function AnnotationWorkspace() {
         // Don't add label if not allowed in current phase
         return;
       }
-      
+
       // Clear existing annotations before adding new one (1 annotation per image)
       clearAllAnnotations();
-      
+
       actions.addLabel(label);
     },
     [isToolAllowed, actions, clearAllAnnotations]
   );
 
   // Image change handler moved to top level
-  const handleImageChange = useCallback((image) => {
-    // 이미지 변경 시 즉시 설정하고 zoom/pan 상태 초기화
-    actions.setCurrentImage(image);
-    
-    // 선택된 annotation 초기화
-    setSelectedAnnotation(null);
-    
-    // 선택된 label 초기화 (이전 이미지의 라벨이 남아있는 문제 해결)
-    actions.setSelectedLabel("");
-    
-    // 이미지 변경 시 zoom과 pan을 초기화하여 올바른 중앙 정렬 보장
-    // 두 번의 requestAnimationFrame으로 더 안정적인 렌더링 보장
-    requestAnimationFrame(() => {
+  const handleImageChange = useCallback(
+    image => {
+      // 이미지 변경 시 즉시 설정하고 zoom/pan 상태 초기화
+      actions.setCurrentImage(image);
+
+      // 선택된 annotation 초기화
+      setSelectedAnnotation(null);
+
+      // 선택된 label 초기화 (이전 이미지의 라벨이 남아있는 문제 해결)
+      actions.setSelectedLabel("");
+
+      // 이미지 변경 시 zoom과 pan을 초기화하여 올바른 중앙 정렬 보장
+      // 두 번의 requestAnimationFrame으로 더 안정적인 렌더링 보장
       requestAnimationFrame(() => {
-        actions.setZoom(1);
-        actions.setPanOffset({ x: 0, y: 0 });
+        requestAnimationFrame(() => {
+          actions.setZoom(1);
+          actions.setPanOffset({ x: 0, y: 0 });
+        });
       });
-    });
-  }, [actions]);
+    },
+    [actions]
+  );
 
   const { currentImageIndex, progress, canGoNext, canGoPrevious, handleNext, handlePrevious } =
     useImageNavigation({
@@ -227,9 +228,9 @@ export function AnnotationWorkspace() {
   // Auto-advance to next image when annotation is added (1 annotation per image)
   // Only auto-advance for label phase, not for bbox or segmentation phases
   const [previousAnnotationCount, setPreviousAnnotationCount] = useState(0);
-  
+
   useEffect(() => {
-    const totalCurrentAnnotations = 
+    const totalCurrentAnnotations =
       (state.annotations.labels?.length || 0) +
       (state.annotations.boundingBoxes?.length || 0) +
       (state.annotations.polygons?.length || 0);
@@ -238,13 +239,18 @@ export function AnnotationWorkspace() {
     const shouldAutoAdvance = currentPhase === "label";
 
     // If we just added an annotation (went from 0 to 1) and can go to next image, auto-advance immediately
-    if (totalCurrentAnnotations === 1 && previousAnnotationCount === 0 && canGoNext && shouldAutoAdvance) {
+    if (
+      totalCurrentAnnotations === 1 &&
+      previousAnnotationCount === 0 &&
+      canGoNext &&
+      shouldAutoAdvance
+    ) {
       // Use requestAnimationFrame for immediate but smooth transition
       requestAnimationFrame(() => {
         handleNext();
       });
     }
-    
+
     setPreviousAnnotationCount(totalCurrentAnnotations);
   }, [state.annotations, canGoNext, handleNext, previousAnnotationCount, currentPhase]);
 
@@ -271,21 +277,27 @@ export function AnnotationWorkspace() {
   }, [clearAllAnnotations, selectedAnnotation]);
 
   // BBox and polygon handlers moved to top level
-  const handleAddBoundingBox = useCallback((bbox) => {
-    if (isToolAllowed("bbox")) {
-      // Clear existing annotations before adding new one (1 annotation per image)
-      clearAllAnnotations();
-      actions.addBoundingBox(bbox);
-    }
-  }, [isToolAllowed, clearAllAnnotations, actions]);
+  const handleAddBoundingBox = useCallback(
+    bbox => {
+      if (isToolAllowed("bbox")) {
+        // Clear existing annotations before adding new one (1 annotation per image)
+        clearAllAnnotations();
+        actions.addBoundingBox(bbox);
+      }
+    },
+    [isToolAllowed, clearAllAnnotations, actions]
+  );
 
-  const handleAddPolygon = useCallback((polygon) => {
-    if (isToolAllowed("segmentation")) {
-      // Clear existing annotations before adding new one (1 annotation per image)
-      clearAllAnnotations();
-      actions.addPolygon(polygon);
-    }
-  }, [isToolAllowed, clearAllAnnotations, actions]);
+  const handleAddPolygon = useCallback(
+    polygon => {
+      if (isToolAllowed("segmentation")) {
+        // Clear existing annotations before adding new one (1 annotation per image)
+        clearAllAnnotations();
+        actions.addPolygon(polygon);
+      }
+    },
+    [isToolAllowed, clearAllAnnotations, actions]
+  );
 
   const totalAnnotations =
     (state.annotations.labels?.length || 0) +
@@ -312,7 +324,7 @@ export function AnnotationWorkspace() {
 
       // Convert annotation stack to submission format
       console.log("imageData: ", annotationStack.state.items);
-      const annotationData = annotationStack.state.items.map((item) => ({
+      const annotationData = annotationStack.state.items.map(item => ({
         imageId: item.imageData.originalPath,
         imagePath: item.imageData.originalPath,
         annotations: {
@@ -332,7 +344,7 @@ export function AnnotationWorkspace() {
 
       // Clear annotation stack after successful submission
       annotationStack.actions.clearStack();
-      
+
       // Refresh certificate data after successful submission
       certificateData.refetch();
     } catch (error) {
@@ -710,33 +722,38 @@ export function AnnotationWorkspace() {
                   {datasetStatusIndicator}
 
                   {/* Predefined Labels Indicator */}
-                  {challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage && (() => {
-                    const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
-                    const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
-                    
-                    if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
-                      return (
-                        <Box
-                          style={{
-                            padding: "2px 8px",
-                            background: `${theme.colors.interactive.primary}15`,
-                            color: theme.colors.interactive.primary,
-                            border: `1px solid ${theme.colors.interactive.primary}30`,
-                            borderRadius: theme.borders.radius.full,
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.5px",
-                            cursor: "help",
-                          }}
-                          title={`Predefined Labels Available (${predefinedLabelsForImage.length}):\n${predefinedLabelsForImage.join(", ")}`}
-                        >
-                          {predefinedLabelsForImage.length} Labels Ready
-                        </Box>
+                  {challenge?.id === "challenge-2" &&
+                    challenge.predefinedLabels &&
+                    state.currentImage &&
+                    (() => {
+                      const currentIndex = datasetImages.findIndex(
+                        img => img.id === state.currentImage?.id
                       );
-                    }
-                    return null;
-                  })()}
+                      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
+
+                      if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
+                        return (
+                          <Box
+                            style={{
+                              padding: "2px 8px",
+                              background: `${theme.colors.interactive.primary}15`,
+                              color: theme.colors.interactive.primary,
+                              border: `1px solid ${theme.colors.interactive.primary}30`,
+                              borderRadius: theme.borders.radius.full,
+                              fontSize: "10px",
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                              cursor: "help",
+                            }}
+                            title={`Predefined Labels Available (${predefinedLabelsForImage.length}):\n${predefinedLabelsForImage.join(", ")}`}
+                          >
+                            {predefinedLabelsForImage.length} Labels Ready
+                          </Box>
+                        );
+                      }
+                      return null;
+                    })()}
 
                   {/* Compact Phase Indicator */}
                   {challenge && (
@@ -809,7 +826,7 @@ export function AnnotationWorkspace() {
                           ? theme.colors.interactive.disabled
                           : canSave
                             ? annotationStack.state.isFull
-                              ? theme.colors.interactive.primary  // 빨간색 대신 primary 색상 사용
+                              ? theme.colors.interactive.primary // 빨간색 대신 primary 색상 사용
                               : theme.colors.status.success
                             : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
@@ -824,11 +841,7 @@ export function AnnotationWorkspace() {
                   gap: theme.spacing.semantic.component.xs,
                 }}
               >
-                {completeSubmission.isCompleted ? (
-                  <Trophy size={14} />
-                ) : (
-                  <FloppyDisk size={14} />
-                )}
+                {completeSubmission.isCompleted ? <Trophy size={14} /> : <FloppyDisk size={14} />}
                 {completeSubmission.isSubmitting
                   ? completeSubmission.status.phase === "blockchain"
                     ? "Submitting to Blockchain..."
@@ -849,33 +862,33 @@ export function AnnotationWorkspace() {
               </Button>
 
               {/* Show Certificate Button if eligible */}
-              {certificateData.userProgress && 
-               certificateData.userProgress.certificate &&
-               certificateData.userProgress.missionScores && 
-               certificateData.userProgress.missions &&
-               certificateData.userProgress.missionScores.length > 0 &&
-               certificateData.userProgress.missions.length > 0 && (
-                <Button
-                  onClick={() => setShowCertificate(true)}
-                  style={{
-                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
-                    color: "#0f0f23",
-                    border: "none",
-                    borderRadius: theme.borders.radius.md,
-                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                    fontWeight: 600,
-                    fontSize: "12px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.semantic.component.xs,
-                    boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
-                  }}
-                >
-                  <Trophy size={14} />
-                  View Certificate
-                </Button>
-              )}
+              {certificateData.userProgress &&
+                certificateData.userProgress.certificate &&
+                certificateData.userProgress.missionScores &&
+                certificateData.userProgress.missions &&
+                certificateData.userProgress.missionScores.length > 0 &&
+                certificateData.userProgress.missions.length > 0 && (
+                  <Button
+                    onClick={() => setShowCertificate(true)}
+                    style={{
+                      background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+                      color: "#0f0f23",
+                      border: "none",
+                      borderRadius: theme.borders.radius.md,
+                      padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                      fontWeight: 600,
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: theme.spacing.semantic.component.xs,
+                      boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
+                    }}
+                  >
+                    <Trophy size={14} />
+                    View Certificate
+                  </Button>
+                )}
 
               <Button
                 style={{
@@ -1006,8 +1019,8 @@ export function AnnotationWorkspace() {
           constraintMessage={getToolConstraintMessage}
           currentPhase={currentPhase}
           phaseConstraintMessage={
-            certificateData.userProgress?.certificate && 
-            certificateData.userProgress.missionScores && 
+            certificateData.userProgress?.certificate &&
+            certificateData.userProgress.missionScores &&
             certificateData.userProgress.missions &&
             certificateData.userProgress.overallStatus === "completed"
               ? `🏆 Certificate Available! Total Score: ${certificateData.userProgress.totalScore}/${certificateData.userProgress.maxPossibleScore} points (${Math.round((certificateData.userProgress.totalScore / certificateData.userProgress.maxPossibleScore) * 100)}%) - Click View Certificate button!`
@@ -1019,7 +1032,9 @@ export function AnnotationWorkspace() {
                         ? completeSubmission.status.message
                         : completeSubmission.status.phase === "blockchain"
                           ? `${completeSubmission.status.message}${
-                              completeSubmission.status.progress ? ` (${completeSubmission.status.progress}%)` : ""
+                              completeSubmission.status.progress
+                                ? ` (${completeSubmission.status.progress}%)`
+                                : ""
                             }`
                           : completeSubmission.status.phase === "scoring"
                             ? completeSubmission.status.message
@@ -1050,18 +1065,18 @@ export function AnnotationWorkspace() {
       />
 
       {/* Certificate Modal */}
-      {certificateData.userProgress && 
-       certificateData.userProgress.certificate &&
-       certificateData.userProgress.missionScores && 
-       certificateData.userProgress.missions &&
-       certificateData.userProgress.missionScores.length > 0 &&
-       certificateData.userProgress.missions.length > 0 && (
-        <CertificateModal
-          userProgress={certificateData.userProgress}
-          isOpen={showCertificate}
-          onClose={() => setShowCertificate(false)}
-        />
-      )}
+      {certificateData.userProgress &&
+        certificateData.userProgress.certificate &&
+        certificateData.userProgress.missionScores &&
+        certificateData.userProgress.missions &&
+        certificateData.userProgress.missionScores.length > 0 &&
+        certificateData.userProgress.missions.length > 0 && (
+          <CertificateModal
+            userProgress={certificateData.userProgress}
+            isOpen={showCertificate}
+            onClose={() => setShowCertificate(false)}
+          />
+        )}
 
       <style>
         {`

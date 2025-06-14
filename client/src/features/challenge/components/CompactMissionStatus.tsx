@@ -232,7 +232,8 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
                 flex: 1,
               }}
             >
-              Step {parseInt(mission.id)}: {mission.status === "completed" ? mission.total_items : 0}/{mission.total_items}
+              Step {parseInt(mission.id)}:{" "}
+              {mission.status === "completed" ? mission.total_items : 0}/{mission.total_items}
             </Text>
           </Flex>
         ))}

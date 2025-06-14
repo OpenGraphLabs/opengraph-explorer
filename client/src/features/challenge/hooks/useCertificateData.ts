@@ -1,12 +1,12 @@
 /**
  * Certificate Data Hook
- * 
+ *
  * Fetches mission and score data from the server to display in certificate
  */
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/shared/hooks/useAuth";
-import { annotatorService } from "@/shared/api/annotatorService";  
+import { annotatorService } from "@/shared/api/annotatorService";
 import { missionService } from "@/shared/api/missionService";
 import { UserMissionProgress, MissionScoreDetail } from "../types/mission";
 
@@ -39,7 +39,7 @@ export function useCertificateData() {
     try {
       // Get annotator and scores
       let annotatorData = await annotatorService.getAnnotatorWithScores(walletAddress);
-      
+
       if (!annotatorData) {
         // Try to create annotator if it doesn't exist
         console.log("Annotator not found, attempting to create...");
@@ -47,14 +47,14 @@ export function useCertificateData() {
           sui_address: walletAddress,
           nickname: `User_${walletAddress.slice(-8)}`,
         });
-        
+
         if (!newAnnotator) {
           throw new Error("Failed to create annotator");
         }
-        
+
         // Get scores for the new annotator (should be empty)
         const scores = await annotatorService.getAnnotatorScores(newAnnotator.id);
-        
+
         // Set annotatorData for processing
         annotatorData = {
           annotator: newAnnotator,
@@ -63,13 +63,13 @@ export function useCertificateData() {
       }
 
       const { annotator, scores } = annotatorData;
-      
+
       // Ensure scores is an array
       const safeScores = Array.isArray(scores) ? scores : [];
 
       // Get all missions
       const missions = await missionService.getMissions();
-      
+
       if (!missions || missions.length === 0) {
         throw new Error("No missions found");
       }
@@ -82,13 +82,14 @@ export function useCertificateData() {
       for (const mission of missions) {
         const missionScore = safeScores.find(s => s.mission_id === parseInt(mission.id));
         const score = missionScore ? parseFloat(missionScore.score.toString()) : 0;
-        
+
         missionScores.push({
           missionId: parseInt(mission.id),
           missionName: mission.name,
           score,
           maxScore: maxScorePerMission,
-          completedAt: missionScore?.scored_at || missionScore?.submitted_at || new Date().toISOString(),
+          completedAt:
+            missionScore?.scored_at || missionScore?.submitted_at || new Date().toISOString(),
         });
 
         totalScore += score;
@@ -104,14 +105,19 @@ export function useCertificateData() {
         missionScores,
         totalScore,
         maxPossibleScore,
-        overallStatus: allMissionsCompleted ? "completed" : 
-                      completedMissions.length > 0 ? "in_progress" : "not_started",
+        overallStatus: allMissionsCompleted
+          ? "completed"
+          : completedMissions.length > 0
+            ? "in_progress"
+            : "not_started",
         completedAt: allMissionsCompleted ? new Date() : undefined,
-        certificate: allMissionsCompleted ? {
-          id: `OG-${walletAddress.slice(-10).toUpperCase()}`,
-          title: "Physical AI Data Specialist",
-          issuedAt: new Date(),
-        } : undefined,
+        certificate: allMissionsCompleted
+          ? {
+              id: `OG-${walletAddress.slice(-10).toUpperCase()}`,
+              title: "Physical AI Data Specialist",
+              issuedAt: new Date(),
+            }
+          : undefined,
       };
 
       setState({
@@ -119,7 +125,6 @@ export function useCertificateData() {
         loading: false,
         error: null,
       });
-
     } catch (error) {
       console.error("Failed to fetch certificate data:", error);
       setState({
@@ -138,4 +143,4 @@ export function useCertificateData() {
     ...state,
     refetch: fetchCertificateData,
   };
-} 
+}

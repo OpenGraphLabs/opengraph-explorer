@@ -1,6 +1,6 @@
 /**
  * Mission Mapping Service
- * 
+ *
  * Handles mapping between challenges and missions, and manages annotator registration
  */
 
@@ -136,4 +136,4 @@ export function useMissionMapping() {
     getOrCreateAnnotator,
     getSubmissionParams,
   };
-} 
+}

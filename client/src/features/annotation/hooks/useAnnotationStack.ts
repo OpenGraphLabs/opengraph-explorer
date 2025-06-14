@@ -61,7 +61,7 @@ export function useAnnotationStack(maxSize: number = 30) {
         const filteredStack = prev.filter(item => item.imageData.id !== imageData.id);
         return [...filteredStack, stackItem];
       });
-      
+
       return true;
     },
     [stack, maxSize]
