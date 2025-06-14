@@ -59,11 +59,11 @@ __pycache__/
 .Python
 venv/
 ENV/
-server/uploads/
-server/__pycache__/
-server/**/__pycache__/
-server/.env
-server/.env.*
+converter/uploads/
+converter/__pycache__/
+converter/**/__pycache__/
+converter/.env
+converter/.env.*
 
 # General
 .DS_Store
