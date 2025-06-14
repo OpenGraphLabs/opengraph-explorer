@@ -121,7 +121,6 @@ secrets:
 networks:
   opengraph-backend-network:
     driver: bridge
-    internal: true  # Backend network is isolated from external access
   opengraph-frontend-network:
     driver: bridge
 
