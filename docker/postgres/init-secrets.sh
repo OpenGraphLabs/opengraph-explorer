@@ -29,4 +29,18 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     GRANT ALL PRIVILEGES ON DATABASE "$DB_NAME" TO "$DB_USER";
 EOSQL
 
-echo "Database initialization completed successfully!" 
+# Configure PostgreSQL for external connections
+echo "Configuring PostgreSQL for external connections..."
+
+# Update postgresql.conf to listen on all addresses
+echo "listen_addresses = '*'" >> /var/lib/postgresql/data/postgresql.conf
+
+# Update pg_hba.conf to allow external connections
+echo "host all all 0.0.0.0/0 scram-sha-256" >> /var/lib/postgresql/data/pg_hba.conf
+echo "host $DB_NAME $DB_USER 0.0.0.0/0 scram-sha-256" >> /var/lib/postgresql/data/pg_hba.conf
+
+echo "Database initialization completed successfully!"
+echo "External connections are now allowed for:"
+echo "- Database: $DB_NAME"
+echo "- User: $DB_USER"
+echo "- Host: localhost:5432" 
