@@ -35,6 +35,24 @@ WORKDIR /app
 COPY --from=builder /app/target/release/opengraph-server /app/opengraph-server
 COPY --from=builder /app/migrations /app/migrations
 
+# Create startup script to handle secrets
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Build DATABASE_URL from secrets\n\
+if [ -f /run/secrets/db_user ] && [ -f /run/secrets/db_password ] && [ -f /run/secrets/db_name ]; then\n\
+    DB_USER=$(cat /run/secrets/db_user)\n\
+    DB_PASSWORD=$(cat /run/secrets/db_password)\n\
+    DB_NAME=$(cat /run/secrets/db_name)\n\
+    export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}"\n\
+    echo "Using DATABASE_URL from secrets"\n\
+else\n\
+    echo "Using default DATABASE_URL"\n\
+    export DATABASE_URL="${DATABASE_URL:-postgresql://opengraph_user:password123@postgres:5432/opengraph}"\n\
+fi\n\
+\n\
+exec ./opengraph-server' > /app/start.sh && chmod +x /app/start.sh
+
 # Create a non-root user
 RUN useradd -r -s /bin/false opengraph
 RUN chown -R opengraph:opengraph /app
@@ -42,4 +60,4 @@ USER opengraph
 
 EXPOSE 8080
 
-CMD ["./opengraph-server"] 
+CMD ["./start.sh"] 

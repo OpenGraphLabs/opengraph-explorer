@@ -10,9 +10,9 @@ services:
       - db_user
       - db_name
     environment:
-      POSTGRES_DB: opengraph
-      POSTGRES_USER: opengraph
-      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -21,7 +21,7 @@ services:
     networks:
       - opengraph-backend-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opengraph -d opengraph"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
