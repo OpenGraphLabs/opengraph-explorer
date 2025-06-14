@@ -121,9 +121,12 @@ export function useAnnotationSubmission() {
     try {
       onProgress?.(10, "Preparing blockchain transaction...");
 
+      console.log("[xxxxxxx] annotations", annotations);
+
       // Convert AnnotationData to DataAnnotationInput format
       const dataAnnotations: DataAnnotationInput[] = annotations.map((annotationData, index) => {
         const { imageId, imagePath, annotations: annots } = annotationData;
+        console.log("[xxxxxxx] imagePath", imagePath);
         
         onProgress?.(
           10 + (index / annotations.length) * 30, 

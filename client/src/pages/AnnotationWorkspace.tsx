@@ -294,9 +294,10 @@ export function AnnotationWorkspace() {
       }
 
       // Convert annotation stack to submission format
+      console.log("imageData: ", annotationStack.state.items);
       const annotationData = annotationStack.state.items.map((item) => ({
-        imageId: item.imageData.id,
-        imagePath: item.imageData.url || `image_${item.imageData.id}`,
+        imageId: item.imageData.originalPath,
+        imagePath: item.imageData.originalPath,
         annotations: {
           labels: item.type === "label" ? [item.annotation as any] : [],
           boundingBoxes: item.type === "bbox" ? [item.annotation as any] : [],
