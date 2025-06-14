@@ -268,6 +268,13 @@ export function AnnotationWorkspace() {
     (state.annotations.polygons?.length || 0);
   const stackStats = annotationStack.stats;
 
+  // Calculate completed images for Save button logic
+  const totalImages = datasetImages.length;
+  const hasCurrentImageAnnotation = totalAnnotations > 0;
+  const completedImagesCount = stackStats.total + (hasCurrentImageAnnotation ? 1 : 0);
+  const allImagesCompleted = completedImagesCount >= totalImages;
+  const canSave = allImagesCompleted && (state.unsavedChanges || annotationStack.state.hasItems);
+
   // Loading state - Dataset 로딩 포함
   if (challengeLoading || datasetLoading) {
     return (
@@ -533,7 +540,7 @@ export function AnnotationWorkspace() {
       },
       {
         icon: <Target size={10} style={{ color: theme.colors.interactive.accent }} />,
-        text: `${totalAnnotations} Local • ${stackStats.total}/${annotationStack.maxSize} Stack`,
+        text: `${completedImagesCount}/${totalImages} Images • ${stackStats.total}/${annotationStack.maxSize} Stack`,
       },
       {
         icon: (
@@ -725,26 +732,24 @@ export function AnnotationWorkspace() {
 
               <Button
                 onClick={actions.saveToBlockchain}
-                disabled={!state.unsavedChanges && !annotationStack.state.hasItems}
+                disabled={!canSave || saveStatus.state.isSaving}
                 style={{
                   background: saveStatus.state.isSaving
                     ? theme.colors.status.warning
-                    : state.unsavedChanges || annotationStack.state.hasItems
-                      ? annotationStack.state.isFull
-                        ? theme.colors.status.error
-                        : theme.colors.status.success
-                      : theme.colors.interactive.disabled,
+                    : !allImagesCompleted
+                      ? theme.colors.interactive.disabled
+                      : canSave
+                        ? annotationStack.state.isFull
+                          ? theme.colors.status.error
+                          : theme.colors.status.success
+                        : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                   fontWeight: 600,
                   fontSize: "12px",
-                  cursor:
-                    (state.unsavedChanges || annotationStack.state.hasItems) &&
-                    !saveStatus.state.isSaving
-                      ? "pointer"
-                      : "not-allowed",
+                  cursor: canSave && !saveStatus.state.isSaving ? "pointer" : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.xs,
@@ -753,11 +758,13 @@ export function AnnotationWorkspace() {
                 <FloppyDisk size={14} />
                 {saveStatus.state.isSaving
                   ? "Saving..."
-                  : annotationStack.state.isFull
-                    ? `Save ${stackStats.total} (Full!)`
-                    : annotationStack.state.hasItems
-                      ? `Save ${stackStats.total}`
-                      : "Save"}
+                  : !allImagesCompleted
+                    ? `Complete ${totalImages - completedImagesCount} more`
+                    : annotationStack.state.isFull
+                      ? `Save ${stackStats.total} (Full!)`
+                      : annotationStack.state.hasItems
+                        ? `Save ${stackStats.total}`
+                        : "Save"}
               </Button>
 
               <Button
@@ -883,13 +890,15 @@ export function AnnotationWorkspace() {
           constraintMessage={getToolConstraintMessage}
           currentPhase={currentPhase}
           phaseConstraintMessage={
-            !isToolAllowed(state.currentTool)
-              ? getDisallowedMessage(state.currentTool)
-              : annotationStack.state.isFull
-                ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Save annotations to continue.`
-                : saveStatus.state.error
-                  ? `Save error: ${saveStatus.state.error}`
-                  : undefined
+            !allImagesCompleted
+              ? `Complete all images to enable save (${completedImagesCount}/${totalImages} completed)`
+              : !isToolAllowed(state.currentTool)
+                ? getDisallowedMessage(state.currentTool)
+                : annotationStack.state.isFull
+                  ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Save annotations to continue.`
+                  : saveStatus.state.error
+                    ? `Save error: ${saveStatus.state.error}`
+                    : undefined
           }
         />
       </Box>
