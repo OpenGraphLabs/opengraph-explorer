@@ -14,7 +14,9 @@ import {
   Database,
   Globe,
   Shield,
-  Confetti
+  Confetti,
+  Copy,
+  ClipboardText
 } from "phosphor-react";
 
 interface CertificateModalProps {
@@ -48,6 +50,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   const { walletAddress } = useAuth();
   const certificateRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const [certificateId, setCertificateId] = useState<string>("");
 
   // Certificate ID 생성
@@ -210,14 +214,168 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     }
   };
 
+  const copyCertificate = async () => {
+    if (!certificateRef.current) return;
+    setIsCopying(true);
+
+    try {
+      // Create certificate image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Set high-resolution canvas - 좌우 공백 줄이고 컴팩트한 크기
+      const scale = 2;
+      canvas.width = 650 * scale;
+      canvas.height = 500 * scale;
+      ctx.scale(scale, scale);
+
+      // Background - match modal design
+      const bgGradient = ctx.createLinearGradient(0, 0, 650, 500);
+      bgGradient.addColorStop(0, '#0f0f23');
+      bgGradient.addColorStop(0.3, '#1a1a2e');
+      bgGradient.addColorStop(0.7, '#16213e');
+      bgGradient.addColorStop(1, '#0f3460');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, 650, 500);
+
+      // Grid pattern overlay (더 섬세하게)
+      ctx.strokeStyle = 'rgba(100, 255, 218, 0.06)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 650; i += 25) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, 500);
+        ctx.stroke();
+      }
+      for (let i = 0; i < 500; i += 25) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(650, i);
+        ctx.stroke();
+      }
+
+      // 장식 요소들 (더 작고 효율적으로)
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.beginPath();
+      ctx.arc(550, 60, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(100, 255, 218, 0.25)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.04)';
+      ctx.beginPath();
+      ctx.arc(100, 420, 35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Trophy icon area (더 위쪽으로)
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.beginPath();
+      ctx.arc(325, 75, 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#64ffda';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Trophy symbol
+      ctx.fillStyle = '#64ffda';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🏆', 325, 83);
+
+      // Main title (트로피와 간격 늘리기)
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CERTIFICATE', 325, 140);
+
+      // Subtitle
+      ctx.font = '16px "Inter", sans-serif';
+      ctx.fillStyle = '#64ffda';
+      ctx.fillText('Data Annotation Specialist', 325, 165);
+
+      // Achievement text (더 컴팩트하게)
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '14px "Inter", sans-serif';
+      ctx.fillText('Successfully completed', 325, 200);
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.fillText('OpenGraph Physical AI Training', 325, 220);
+
+      // Completion stats
+      ctx.fillStyle = '#64ffda';
+      ctx.font = '13px "Inter", sans-serif';
+      const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
+      const totalMissions = userProgress.missions.length;
+      ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
+
+      // Tech badges section (더 작게)
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.fillRect(150, 270, 350, 45);
+      ctx.strokeStyle = '#64ffda';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(150, 270, 350, 45);
+
+      ctx.fillStyle = '#64ffda';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('POWERED BY SUI & WALRUS', 325, 290);
+      ctx.font = '10px "Inter", sans-serif';
+      ctx.fillText('Decentralized AI Infrastructure', 325, 305);
+
+      // Certificate ID and date (더 아래쪽으로)
+      ctx.fillStyle = '#888888';
+      ctx.font = '11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Certificate ID: ${certificateId}`, 325, 350);
+      ctx.fillText(`Issued: ${issuedDate}`, 325, 368);
+
+      // OpenGraph signature (더 아래쪽으로)
+      ctx.strokeStyle = '#64ffda';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(225, 400);
+      ctx.lineTo(425, 400);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#64ffda';
+      ctx.font = 'bold 10px "Inter", sans-serif';
+      ctx.fillText('OPENGRAPH', 325, 415);
+
+      // Copy to clipboard
+      canvas.toBlob(async (blob) => {
+        if (blob && navigator.clipboard) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                'image/png': blob
+              })
+            ]);
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 3000);
+          } catch (error) {
+            console.error('Failed to copy certificate:', error);
+          }
+        }
+      }, 'image/png', 1.0);
+
+    } catch (error) {
+      console.error('Failed to generate certificate for copying:', error);
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
   const shareOnTwitter = () => {
     const text = encodeURIComponent(
-      `🏆 Earned my OpenGraph AI Data Certification! \n\n` +
-      `Just completed Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
-      `Ready to shape the future of real-world AI! 🚀\n\n` +
-      `#OpenGraph #PhysicalAI #Web3AI`
+      `🏆 Earned OpenGraph AI Data Certification!\n\n` +
+      `Completed Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
+      `@OpenGraph_Labs #PhysicalAI #Web3AI`
     );
-    const url = encodeURIComponent(userProgress.certificate.shareableUrl || 'https://opengraph.io');
+    const url = encodeURIComponent('https://explorer.opengraphlabs.xyz/challenges');
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
   };
 
@@ -294,7 +452,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             background: `linear-gradient(135deg, #0f0f23 0%, #1a1a2e 30%, #16213e 70%, #0f3460 100%)`,
             borderRadius: theme.borders.radius.lg,
             padding: theme.spacing.semantic.layout.lg,
-            marginBottom: theme.spacing.semantic.layout.lg,
+            marginBottom: theme.spacing.semantic.layout.sm,
             position: "relative",
             overflow: "hidden",
             border: "2px solid #64ffda",
@@ -431,7 +589,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             style={{
               fontWeight: 800,
               color: theme.colors.text.primary,
-              marginBottom: theme.spacing.semantic.component.sm,
+              marginBottom: theme.spacing.semantic.component.md,
               background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
@@ -439,21 +597,6 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             }}
           >
             OpenGraph Certificate of Achievement
-          </Text>
-          
-          <Text
-            as="p"
-            size="2"
-            style={{
-              color: theme.colors.text.secondary,
-              lineHeight: 1.6,
-              marginBottom: theme.spacing.semantic.component.lg,
-              maxWidth: "450px",
-              margin: "0 auto",
-            }}
-          >
-            Successfully completed OpenGraph's Physical AI Data Annotation Program. 
-            Certified specialist in preparing high-quality training datasets for real-world AI systems.
           </Text>
 
           {/* Achievements */}
@@ -545,7 +688,31 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             }}
           >
             <Download size={16} />
-            {isDownloading ? "Generating..." : "Download Certificate"}
+            {isDownloading ? "Generating..." : "Download"}
+          </Button>
+
+          <Button
+            onClick={copyCertificate}
+            disabled={isCopying}
+            style={{
+              background: copySuccess ? "#22c55e" : `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+              color: "#0f0f23",
+              border: "none",
+              borderRadius: theme.borders.radius.md,
+              padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+              fontWeight: 700,
+              fontSize: "14px",
+              cursor: isCopying ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              opacity: isCopying ? 0.7 : 1,
+              boxShadow: copySuccess ? "0 4px 12px rgba(34, 197, 94, 0.3)" : "0 4px 12px rgba(100, 255, 218, 0.3)",
+              transition: "all 0.3s ease",
+            }}
+          >
+            {copySuccess ? <CheckCircle size={16} /> : <Copy size={16} />}
+            {isCopying ? "Copying..." : copySuccess ? "Copied!" : "Copy Image"}
           </Button>
           
           <Button
@@ -566,9 +733,34 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             }}
           >
             <TwitterLogo size={16} />
-            Share Achievement
+            Share on Twitter
           </Button>
         </Flex>
+
+        {/* User Nudge for Twitter */}
+        {copySuccess && (
+          <Box
+            style={{
+              background: `linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(100, 255, 218, 0.1))`,
+              borderRadius: theme.borders.radius.md,
+              padding: theme.spacing.semantic.component.md,
+              marginBottom: theme.spacing.semantic.component.lg,
+              border: "1px solid rgba(34, 197, 94, 0.3)",
+              textAlign: "center",
+              animation: "fadeIn 0.5s ease-in",
+            }}
+          >
+            <Flex align="center" justify="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+              <ClipboardText size={18} style={{ color: "#22c55e" }} />
+              <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
+                Certificate copied to clipboard!
+              </Text>
+            </Flex>
+            <Text as="p" size="1" style={{ color: theme.colors.text.secondary, lineHeight: 1.4 }}>
+              Now you can paste it directly into your Twitter post to show off your achievement! 🎉
+            </Text>
+          </Box>
+        )}
 
         {/* Close Button */}
         <Flex justify="center">
@@ -600,6 +792,16 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             50% {
               opacity: 1;
               transform: scale(1);
+            }
+          }
+          @keyframes fadeIn {
+            0% {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0);
             }
           }
         `}
