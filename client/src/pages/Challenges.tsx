@@ -33,8 +33,8 @@ import {
   useMissions, 
   CompactMissionStatus, 
   CertificateModal,
-  VideoGuide,
-  MissionCard
+  MissionCard,
+  InlineVideoGuide
 } from "@/features/challenge";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -145,7 +145,7 @@ function ChallengeCard({ challenge, index }: { challenge: Challenge; index: numb
   return (
     <Box
       className={`challenge-card challenge-card-${index}`}
-      onClick={() => navigate(`/challenges/${challenge.id}`)}
+      onClick={() => navigate(`/challenges/${challenge.id}/annotate`)}
       style={{
         background: theme.colors.background.card,
         border: `1px solid ${theme.colors.border.primary}`,
@@ -577,8 +577,6 @@ export function Challenges() {
   } = useMissions();
 
   const [showCertificateModal, setShowCertificateModal] = useState(false);
-  const [showVideoGuide, setShowVideoGuide] = useState(false);
-  const [selectedMission, setSelectedMission] = useState<string | null>(null);
 
   // Auto-generate certificate when all missions are completed
   useEffect(() => {
@@ -609,9 +607,14 @@ export function Challenges() {
       return;
     }
 
+    // Since we have inline videos, we can directly navigate to the challenge
+    // or perform the mission action without opening a modal
     if (getMissionStatus(missionId) === "available") {
-      setSelectedMission(missionId);
-      setShowVideoGuide(true);
+      // Navigate to the challenge page or start the mission directly
+      const challenge = filteredChallenges.find(c => c.id === mission.challengeId);
+      if (challenge) {
+        navigate(`/challenges/${challenge.id}/annotate`);
+      }
     }
   };
 
@@ -917,7 +920,8 @@ export function Challenges() {
             </Text>
           </Flex>
           
-          <Grid columns="2" gap="4">
+          {/* Mission Cards with Inline Videos */}
+          <Flex direction="column" gap="6">
             {userProgress.missions.map((mission, index) => {
               const challenge = filteredChallenges.find(c => c.id === mission.challengeId);
               if (!challenge) return null;
@@ -927,23 +931,73 @@ export function Challenges() {
               
               return (
                 <Box key={mission.id}>
-                  <MissionCard
-                    mission={mission}
-                    challenge={challenge}
-                    isActive={currentMission?.id === mission.id}
-                    onClick={() => {
-                      if (isLocked) {
-                        alert("Complete the previous step first!");
-                        return;
-                      }
-                      setSelectedMission(mission.id);
-                      setShowVideoGuide(true);
-                    }}
-                  />
+                  {/* Desktop Layout: Side by side */}
+                  <Box className="desktop-mission-layout">
+                    <Flex gap="6" align="start" style={{ width: "100%" }}>
+                      {/* Mission Card */}
+                      <Box style={{ flex: 1, maxWidth: "400px" }}>
+                        <MissionCard
+                          mission={mission}
+                          challenge={challenge}
+                          isActive={currentMission?.id === mission.id}
+                          onClick={() => {
+                            if (isLocked) {
+                              alert("Complete the previous step first!");
+                              return;
+                            }
+                            // Navigate directly to challenge page
+                            navigate(`/challenges/${challenge.id}/annotate`);
+                          }}
+                        />
+                      </Box>
+                      
+                      {/* Inline Video Guide */}
+                      <Box style={{ flex: "0 0 auto" }}>
+                        <InlineVideoGuide
+                          mission={mission}
+                          width={380}
+                          height={214}
+                          autoplay={!isLocked}
+                          isLocked={isLocked}
+                        />
+                      </Box>
+                    </Flex>
+                  </Box>
+
+                  {/* Mobile Layout: Stacked */}
+                  <Box className="mobile-mission-layout">
+                    <Flex direction="column" gap="4">
+                      {/* Inline Video Guide */}
+                      <Box style={{ alignSelf: "center" }}>
+                        <InlineVideoGuide
+                          mission={mission}
+                          width={320}
+                          height={180}
+                          autoplay={!isLocked}
+                          isLocked={isLocked}
+                        />
+                      </Box>
+                      
+                      {/* Mission Card */}
+                      <MissionCard
+                        mission={mission}
+                        challenge={challenge}
+                        isActive={currentMission?.id === mission.id}
+                        onClick={() => {
+                          if (isLocked) {
+                            alert("Complete the previous step first!");
+                            return;
+                          }
+                          // Navigate directly to challenge page
+                          navigate(`/challenges/${challenge.id}/annotate`);
+                        }}
+                      />
+                    </Flex>
+                  </Box>
                 </Box>
               );
             })}
-          </Grid>
+          </Flex>
         </Box>
       )}
 
@@ -1049,17 +1103,7 @@ export function Challenges() {
         onClose={() => setShowCertificateModal(false)}
       />
 
-      {/* Video Guide Modal */}
-      {selectedMission && (
-        <VideoGuide
-          mission={userProgress.missions.find(m => m.id === selectedMission)!}
-          isOpen={showVideoGuide}
-          onClose={() => {
-            setShowVideoGuide(false);
-            setSelectedMission(null);
-          }}
-        />
-      )}
+
 
       <style>
         {`
@@ -1095,6 +1139,25 @@ export function Challenges() {
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
+          }
+        }
+        
+        /* Mission Layout Responsive Styles */
+        .desktop-mission-layout {
+          display: none;
+        }
+        
+        .mobile-mission-layout {
+          display: block;
+        }
+        
+        @media (min-width: 768px) {
+          .desktop-mission-layout {
+            display: block;
+          }
+          
+          .mobile-mission-layout {
+            display: none;
           }
         }
         `}

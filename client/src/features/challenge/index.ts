@@ -14,6 +14,7 @@ export * from "./components/CertificateModal";
 export * from "./components/MissionDemo";
 export * from "./components/CompactMissionStatus";
 export * from "./components/VideoGuide";
+export * from "./components/InlineVideoGuide";
 
 // Data
 export * from "./data/mockChallenges";
