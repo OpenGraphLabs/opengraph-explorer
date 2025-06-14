@@ -24,10 +24,10 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
   // Get YouTube embed URL based on mission type
   const getYouTubeEmbedUrl = (missionId: string) => {
     const videoMap: Record<string, string> = {
-      "mission-1": "NWa_WwcIadw", // Label annotation guide
-      "mission-2": "NWa_WwcIadw", // Bounding box guide (same video for now)
+      "mission-1": "3T1xoSGOY2M", // Label annotation guide
+      "mission-2": "BI0LyOaxuKU", // Bounding box guide (same video for now)
     };
-    const videoId = videoMap[missionId] || "NWa_WwcIadw";
+    const videoId = videoMap[missionId] || "3T1xoSGOY2M";
 
     // YouTube embed URL with autoplay and other parameters
     const params = new URLSearchParams({
@@ -71,7 +71,7 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
         }}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
-        title={`${mission.title} Guide Video`}
+        title={`${mission.name} Guide Video`}
       />
 
       {/* Locked Overlay - Only show when locked */}
@@ -99,7 +99,7 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
                 fontWeight: 600,
               }}
             >
-              Complete Step {mission.order - 1} First
+              Complete Previous Step First
             </Text>
           </Flex>
         </Box>

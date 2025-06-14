@@ -15,16 +15,16 @@ export const PHASE_CONSTRAINTS: Record<ChallengePhase, PhaseConstraints> = {
       "In the label phase, you can only add text labels to identify entities in the image. Bounding box and segmentation tools will be available in later phases.",
   },
   bbox: {
-    allowedTools: ["label", "bbox"],
-    message: "BBox Phase: Label and bounding box annotations are allowed",
+    allowedTools: ["bbox"],
+    message: "BBox Phase: Only bounding box annotations are allowed",
     description:
-      "In the bounding box phase, you can add labels and draw bounding boxes around entities. Segmentation tools will be available in the next phase.",
+      "In the bounding box phase, you can only draw bounding boxes around entities. Label and segmentation tools are not available in this phase.",
   },
   segmentation: {
-    allowedTools: ["label", "bbox", "segmentation"],
-    message: "Segmentation Phase: All annotation tools are available",
+    allowedTools: ["segmentation"],
+    message: "Segmentation Phase: Only segmentation annotations are allowed",
     description:
-      "In the segmentation phase, you can use all annotation tools: labels, bounding boxes, and precise polygon segmentation.",
+      "In the segmentation phase, you can only create precise polygon segmentation. Label and bounding box tools are not available in this phase.",
   },
   validation: {
     allowedTools: [],
@@ -68,8 +68,14 @@ export function getDisallowedToolMessage(phase: ChallengePhase, tool: Annotation
         return "Segmentation annotation will be available in the Segmentation phase";
       break;
     case "bbox":
+      if (tool === "label") return "Label annotation is not allowed in the BBox phase";
       if (tool === "segmentation")
         return "Segmentation annotation will be available in the Segmentation phase";
+      break;
+    case "segmentation":
+      if (tool === "label") return "Label annotation is not allowed in the Segmentation phase";
+      if (tool === "bbox")
+        return "Bounding box annotation is not allowed in the Segmentation phase";
       break;
     case "validation":
       return "New annotations cannot be added during validation phase";

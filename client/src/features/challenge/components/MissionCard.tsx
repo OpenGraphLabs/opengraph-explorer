@@ -26,7 +26,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
         return (
           <CheckCircle size={20} weight="fill" style={{ color: theme.colors.status.success }} />
         );
-      case "in_progress":
+      case "active":
         return (
           <PlayCircle size={20} weight="fill" style={{ color: theme.colors.interactive.primary }} />
         );
@@ -39,14 +39,28 @@ export const MissionCard: React.FC<MissionCardProps> = ({
     switch (mission.status) {
       case "completed":
         return theme.colors.status.success;
-      case "in_progress":
+      case "active":
         return theme.colors.interactive.primary;
       default:
         return theme.colors.text.tertiary;
     }
   };
 
-  const progressPercentage = (mission.completedCount / mission.requiredCount) * 100;
+  const getStatusText = () => {
+    switch (mission.status) {
+      case "completed":
+        return "Completed";
+      case "active":
+        return "Active";
+      case "inactive":
+        return "Inactive";
+      default:
+        return "Unknown";
+    }
+  };
+
+  // Use mission ID as a simple order indicator
+  const stepNumber = parseInt(mission.id);
 
   return (
     <Box
@@ -128,7 +142,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
           }}
         >
           {getStatusIcon()}
-          Step {mission.order}
+          Step {stepNumber}
         </Badge>
 
         {mission.status === "completed" && (
@@ -154,6 +168,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
 
       {/* Mission Title */}
       <Text
+        as="p"
         size="3"
         style={{
           fontWeight: 700,
@@ -162,11 +177,12 @@ export const MissionCard: React.FC<MissionCardProps> = ({
           lineHeight: 1.3,
         }}
       >
-        {mission.title}
+        {mission.name}
       </Text>
 
       {/* Mission Description */}
       <Text
+        as="p"
         size="2"
         style={{
           color: theme.colors.text.secondary,
@@ -202,7 +218,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
             Progress
           </Text>
           <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
-            {mission.completedCount} / {mission.requiredCount}
+            {mission.status === "completed" ? mission.total_items : 0} / {mission.total_items}
           </Text>
         </Flex>
 
@@ -218,7 +234,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
           <Box
             style={{
               height: "100%",
-              width: `${Math.min(progressPercentage, 100)}%`,
+              width: mission.status === "completed" ? "100%" : "0%",
               background: `linear-gradient(90deg, ${getStatusColor()}, ${theme.colors.status.success})`,
               transition: "width 0.3s ease",
             }}
@@ -226,74 +242,49 @@ export const MissionCard: React.FC<MissionCardProps> = ({
         </Box>
       </Box>
 
-      {/* Reward */}
-      {mission.reward && (
+      {/* Mission Info */}
+      <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
         <Flex
+          justify="between"
           align="center"
-          gap="2"
-          style={{
-            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-            background: `${theme.colors.status.warning}10`,
-            border: `1px solid ${theme.colors.status.warning}30`,
-            borderRadius: theme.borders.radius.md,
-            marginBottom: theme.spacing.semantic.component.md,
-          }}
+          style={{ marginBottom: theme.spacing.semantic.component.xs }}
         >
-          <Star size={14} style={{ color: theme.colors.status.warning }} />
-          <Text size="2" style={{ color: theme.colors.status.warning, fontWeight: 600 }}>
-            Reward: {mission.reward.name}
+          <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
+            Mission Type
+          </Text>
+          <Text size="1" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
+            {mission.mission_type === "label_annotation" ? "Label" : "Bounding Box"}
           </Text>
         </Flex>
-      )}
+        <Flex justify="between" align="center">
+          <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
+            Status
+          </Text>
+          <Text size="1" style={{ color: getStatusColor(), fontWeight: 600 }}>
+            {getStatusText()}
+          </Text>
+        </Flex>
+      </Box>
 
-      {/* Action Button */}
+      {/* Action Arrow */}
       <Flex
+        justify="end"
         align="center"
-        justify="center"
-        gap="2"
         style={{
-          padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-          background: isActive
-            ? theme.colors.interactive.primary
-            : theme.colors.background.secondary,
-          color: isActive ? theme.colors.text.inverse : theme.colors.text.primary,
-          borderRadius: theme.borders.radius.md,
-          fontWeight: 600,
-          fontSize: "13px",
-          transition: "all 0.2s ease",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        {mission.status === "completed" ? (
-          <>
-            <CheckCircle size={14} weight="fill" />
-            Completed
-          </>
-        ) : mission.status === "in_progress" ? (
-          <>
-            <PlayCircle size={14} weight="fill" />
-            Continue
-          </>
-        ) : (
-          <>
-            <ArrowRight size={14} />
-            Start Mission
-          </>
-        )}
+        <ArrowRight
+          size={16}
+          style={{
+            color: theme.colors.text.tertiary,
+            transition: "transform 0.2s ease",
+          }}
+        />
       </Flex>
 
-      {/* Completion Animation Styles */}
-      <style>
-        {`
-          @keyframes completedGlow {
-            0% {
-              box-shadow: 0 4px 12px ${theme.colors.status.success}40;
-            }
-            100% {
-              box-shadow: 0 6px 20px ${theme.colors.status.success}60;
-            }
-          }
-        `}
-      </style>
+      {/* CSS Animations added via styled-components or CSS modules */}
     </Box>
   );
 };

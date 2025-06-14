@@ -69,7 +69,92 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     day: "numeric",
   });
 
-  if (!isOpen || !userProgress.certificate) return null;
+  // Safety checks for required data
+  if (
+    !isOpen ||
+    !userProgress.certificate ||
+    !userProgress.missionScores ||
+    !userProgress.missions
+  ) {
+    return null;
+  }
+
+  // Additional safety checks for arrays
+  const missionScores = userProgress.missionScores || [];
+  const missions = userProgress.missions || [];
+
+  if (missionScores.length === 0 || missions.length === 0) {
+    return (
+      <Box
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0, 0, 0, 0.9)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: theme.spacing.semantic.layout.lg,
+          backdropFilter: "blur(8px)",
+        }}
+        onClick={onClose}
+      >
+        <Box
+          onClick={e => e.stopPropagation()}
+          style={{
+            background: theme.colors.background.card,
+            borderRadius: theme.borders.radius.xl,
+            padding: theme.spacing.semantic.layout.lg,
+            maxWidth: "400px",
+            width: "100%",
+            border: `1px solid ${theme.colors.border.primary}`,
+            boxShadow: "0 24px 48px rgba(0, 0, 0, 0.3)",
+            textAlign: "center",
+          }}
+        >
+          <Text
+            as="p"
+            size="4"
+            style={{
+              fontWeight: 600,
+              color: theme.colors.text.primary,
+              marginBottom: theme.spacing.semantic.component.md,
+            }}
+          >
+            Loading Certificate Data...
+          </Text>
+          <Text
+            as="p"
+            size="2"
+            style={{
+              color: theme.colors.text.secondary,
+              marginBottom: theme.spacing.semantic.component.lg,
+            }}
+          >
+            Please wait while we load your mission scores and certificate information.
+          </Text>
+          <Button
+            onClick={onClose}
+            style={{
+              background: theme.colors.interactive.primary,
+              color: theme.colors.text.inverse,
+              border: "none",
+              borderRadius: theme.borders.radius.md,
+              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              fontWeight: 600,
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            Close
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
 
   const downloadCertificate = async () => {
     if (!certificateRef.current) return;
@@ -162,45 +247,52 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       ctx.font = 'bold 14px "Inter", sans-serif';
       ctx.fillText("OpenGraph Physical AI Training", 325, 220);
 
-      // Completion stats
+      // Completion stats - 실제 서버 데이터 사용
       ctx.fillStyle = "#64ffda";
       ctx.font = '13px "Inter", sans-serif';
-      const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
-      const totalMissions = userProgress.missions.length;
+      const completedMissions = missionScores.filter(ms => ms.score > 0).length;
+      const totalMissions = missions.length;
       ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
+
+      // Total Score
+      ctx.fillText(
+        `Total Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore}`,
+        325,
+        270
+      );
 
       // Tech badges section (더 작게)
       ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
-      ctx.fillRect(150, 270, 350, 45);
+      ctx.fillRect(150, 290, 350, 45);
       ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
-      ctx.strokeRect(150, 270, 350, 45);
+      ctx.strokeRect(150, 290, 350, 45);
 
       ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 11px "Inter", sans-serif';
       ctx.textAlign = "center";
-      ctx.fillText("POWERED BY SUI & WALRUS", 325, 290);
+      ctx.fillText("POWERED BY SUI & WALRUS", 325, 310);
       ctx.font = '10px "Inter", sans-serif';
-      ctx.fillText("Decentralized AI Infrastructure", 325, 305);
+      ctx.fillText("Decentralized AI Infrastructure", 325, 325);
 
       // Certificate ID and date (더 아래쪽으로)
       ctx.fillStyle = "#888888";
       ctx.font = '11px "Inter", sans-serif';
       ctx.textAlign = "center";
-      ctx.fillText(`Certificate ID: ${certificateId}`, 325, 350);
-      ctx.fillText(`Issued: ${issuedDate}`, 325, 368);
+      ctx.fillText(`Certificate ID: ${certificateId}`, 325, 360);
+      ctx.fillText(`Issued: ${issuedDate}`, 325, 378);
 
       // OpenGraph signature (더 아래쪽으로)
       ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(225, 400);
-      ctx.lineTo(425, 400);
+      ctx.moveTo(225, 410);
+      ctx.lineTo(425, 410);
       ctx.stroke();
 
       ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 10px "Inter", sans-serif';
-      ctx.fillText("OPENGRAPH", 325, 415);
+      ctx.fillText("OPENGRAPH", 325, 425);
 
       // Download the certificate
       const link = document.createElement("a");
@@ -219,7 +311,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     setIsCopying(true);
 
     try {
-      // Create certificate image
+      // Create certificate image (same logic as download)
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -305,45 +397,52 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       ctx.font = 'bold 14px "Inter", sans-serif';
       ctx.fillText("OpenGraph Physical AI Training", 325, 220);
 
-      // Completion stats
+      // Completion stats - 실제 서버 데이터 사용
       ctx.fillStyle = "#64ffda";
       ctx.font = '13px "Inter", sans-serif';
-      const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
-      const totalMissions = userProgress.missions.length;
+      const completedMissions = missionScores.filter(ms => ms.score > 0).length;
+      const totalMissions = missions.length;
       ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
+
+      // Total Score
+      ctx.fillText(
+        `Total Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore}`,
+        325,
+        270
+      );
 
       // Tech badges section (더 작게)
       ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
-      ctx.fillRect(150, 270, 350, 45);
+      ctx.fillRect(150, 290, 350, 45);
       ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
-      ctx.strokeRect(150, 270, 350, 45);
+      ctx.strokeRect(150, 290, 350, 45);
 
       ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 11px "Inter", sans-serif';
       ctx.textAlign = "center";
-      ctx.fillText("POWERED BY SUI & WALRUS", 325, 290);
+      ctx.fillText("POWERED BY SUI & WALRUS", 325, 310);
       ctx.font = '10px "Inter", sans-serif';
-      ctx.fillText("Decentralized AI Infrastructure", 325, 305);
+      ctx.fillText("Decentralized AI Infrastructure", 325, 325);
 
       // Certificate ID and date (더 아래쪽으로)
       ctx.fillStyle = "#888888";
       ctx.font = '11px "Inter", sans-serif';
       ctx.textAlign = "center";
-      ctx.fillText(`Certificate ID: ${certificateId}`, 325, 350);
-      ctx.fillText(`Issued: ${issuedDate}`, 325, 368);
+      ctx.fillText(`Certificate ID: ${certificateId}`, 325, 360);
+      ctx.fillText(`Issued: ${issuedDate}`, 325, 378);
 
       // OpenGraph signature (더 아래쪽으로)
       ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(225, 400);
-      ctx.lineTo(425, 400);
+      ctx.moveTo(225, 410);
+      ctx.lineTo(425, 410);
       ctx.stroke();
 
       ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 10px "Inter", sans-serif';
-      ctx.fillText("OPENGRAPH", 325, 415);
+      ctx.fillText("OPENGRAPH", 325, 425);
 
       // Copy to clipboard
       canvas.toBlob(
@@ -375,7 +474,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   const shareOnTwitter = () => {
     const text = encodeURIComponent(
       `🏆 Earned OpenGraph AI Data Certification!\n\n` +
-        `Completed Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
+        `Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore} • Completed ${missionScores.filter(ms => ms.score > 0).length}/${missions.length} missions\n\n` +
+        `Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
         `@OpenGraph_Labs #PhysicalAI #Web3AI`
     );
     const url = encodeURIComponent("https://explorer.opengraphlabs.xyz/challenges");
@@ -618,7 +718,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             OpenGraph Certificate of Achievement
           </Text>
 
-          {/* Achievements */}
+          {/* Achievements - 실제 서버 데이터 사용 */}
           <Box
             style={{
               background: `linear-gradient(135deg, ${theme.colors.background.secondary}, rgba(100, 255, 218, 0.05))`,
@@ -643,36 +743,67 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                   color: theme.colors.text.primary,
                 }}
               >
-                Achievements
+                Mission Achievements
               </Text>
             </Flex>
 
             <Flex direction="column" gap="3">
-              {userProgress.missions.map(mission => (
-                <Flex key={mission.id} align="center" gap="3" justify="center">
+              {missionScores.map(missionScore => (
+                <Flex key={missionScore.missionId} align="center" gap="3" justify="center">
                   <CheckCircle size={18} style={{ color: theme.colors.status.success }} />
                   <Text
                     as="p"
                     size="2"
                     style={{ color: theme.colors.text.primary, fontWeight: 600 }}
                   >
-                    {mission.title}
+                    {missionScore.missionName}
                   </Text>
                   <Badge
                     style={{
-                      background: `${theme.colors.status.success}15`,
-                      color: theme.colors.status.success,
+                      background:
+                        missionScore.score > 0
+                          ? `${theme.colors.status.success}15`
+                          : `${theme.colors.status.warning}15`,
+                      color:
+                        missionScore.score > 0
+                          ? theme.colors.status.success
+                          : theme.colors.status.warning,
                       padding: "2px 8px",
                       borderRadius: theme.borders.radius.full,
                       fontSize: "11px",
                       fontWeight: 600,
                     }}
                   >
-                    {mission.completedCount}/{mission.requiredCount}
+                    {missionScore.score}/{missionScore.maxScore} pts
                   </Badge>
                 </Flex>
               ))}
             </Flex>
+
+            {/* Total Score Display */}
+            <Box
+              style={{
+                marginTop: theme.spacing.semantic.component.md,
+                padding: theme.spacing.semantic.component.md,
+                background: `linear-gradient(135deg, rgba(100, 255, 218, 0.1), rgba(100, 255, 218, 0.05))`,
+                borderRadius: theme.borders.radius.md,
+                border: "1px solid rgba(100, 255, 218, 0.3)",
+              }}
+            >
+              <Flex align="center" justify="center" gap="2">
+                <Star size={18} style={{ color: "#64ffda" }} />
+                <Text
+                  as="p"
+                  size="2"
+                  style={{
+                    fontWeight: 700,
+                    color: theme.colors.text.primary,
+                  }}
+                >
+                  Total Score: {userProgress.totalScore}/{userProgress.maxPossibleScore} points
+                </Text>
+              </Flex>
+            </Box>
           </Box>
 
           {/* Certificate Details */}
@@ -703,6 +834,14 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 }}
               >
                 {certificateId}
+              </Text>
+            </Box>
+            <Box style={{ textAlign: "center" }}>
+              <Text as="p" size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+                COMPLETION RATE
+              </Text>
+              <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+                {Math.round((userProgress.totalScore / userProgress.maxPossibleScore) * 100)}%
               </Text>
             </Box>
           </Flex>

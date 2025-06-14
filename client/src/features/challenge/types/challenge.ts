@@ -65,6 +65,11 @@ export interface Challenge {
     validationRewards: number; // Percentage of bounty for validators
   };
 
+  // 미리 정의된 label 설정 (선택사항)
+  predefinedLabels?: {
+    [imageIndex: number]: string[]; // 이미지 인덱스별 label 목록
+  };
+
   tags: string[];
   difficulty: "beginner" | "intermediate" | "advanced";
 

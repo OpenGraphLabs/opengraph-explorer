@@ -29,7 +29,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
         return (
           <CheckCircle size={12} weight="fill" style={{ color: theme.colors.status.success }} />
         );
-      case "in_progress":
+      case "active":
         return (
           <PlayCircle size={12} weight="fill" style={{ color: theme.colors.interactive.primary }} />
         );
@@ -198,7 +198,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
               background:
                 mission.status === "completed"
                   ? `${theme.colors.status.success}10`
-                  : mission.status === "in_progress"
+                  : mission.status === "active"
                     ? `${theme.colors.interactive.primary}10`
                     : theme.colors.background.secondary,
               borderRadius: theme.borders.radius.sm,
@@ -207,7 +207,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
               border: `1px solid ${
                 mission.status === "completed"
                   ? `${theme.colors.status.success}30`
-                  : mission.status === "in_progress"
+                  : mission.status === "active"
                     ? `${theme.colors.interactive.primary}30`
                     : theme.colors.border.primary
               }`,
@@ -226,13 +226,14 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
                 color:
                   mission.status === "completed"
                     ? theme.colors.status.success
-                    : mission.status === "in_progress"
+                    : mission.status === "active"
                       ? theme.colors.interactive.primary
                       : theme.colors.text.secondary,
                 flex: 1,
               }}
             >
-              Step {mission.order}: {mission.completedCount}/{mission.requiredCount}
+              Step {parseInt(mission.id)}:{" "}
+              {mission.status === "completed" ? mission.total_items : 0}/{mission.total_items}
             </Text>
           </Flex>
         ))}

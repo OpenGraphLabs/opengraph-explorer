@@ -1,6 +1,89 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: opengraph-postgres
+    secrets:
+      - db_password
+      - db_user
+      - db_name
+    environment:
+      POSTGRES_DB_FILE: /run/secrets/db_name
+      POSTGRES_USER_FILE: /run/secrets/db_user  
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - opengraph-backend-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/db_user) -d $(cat /run/secrets/db_name)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+
+  # Rust Backend Server
+  server:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    container_name: opengraph-server
+    ports:
+      - "8080:8080"
+    secrets:
+      - db_password
+      - db_user
+      - db_name
+    environment:
+      DATABASE_URL: postgresql://$(cat /run/secrets/db_user):$(cat /run/secrets/db_password)@postgres:5432/$(cat /run/secrets/db_name)
+      PORT: 8080
+      RUST_LOG: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - opengraph-backend-network
+      - opengraph-frontend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+
+  # Python ML Converter Service
+  converter:
+    build:
+      context: .
+      dockerfile: docker/converter/Dockerfile
+    container_name: opengraph-converter
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./converter/uploads:/app/uploads
+    env_file:
+      - converter/.env
+    networks:
+      - opengraph-frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+
+  # React Frontend Client
   client:
     build:
       context: .
@@ -14,40 +97,35 @@ services:
       - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/letsencrypt/archive/explorer.opengraphlabs.xyz
     depends_on:
       - server
-    environment:
-      - NODE_ENV=production
+      - converter
     env_file:
       - ./client/.env
     networks:
-      - opengraph-network
+      - opengraph-frontend-network
     deploy:
       resources:
         limits:
           cpus: "0.5"
-          memory: 512M  
+          memory: 512M
 
-  server:
-    build:
-      context: .
-      dockerfile: docker/converter/Dockerfile
-    container_name: opengraph-server
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./server/uploads:/app/uploads
-    env_file:
-      - converter/.env
-    networks:
-      - opengraph-network
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 1.5G 
+# Docker Secrets for sensitive data
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  db_user:
+    file: ./secrets/db_user.txt
+  db_name:
+    file: ./secrets/db_name.txt
 
+# Network configuration for better security
 networks:
-  opengraph-network:
+  opengraph-backend-network:
+    driver: bridge
+    internal: true  # Backend network is isolated from external access
+  opengraph-frontend-network:
     driver: bridge
 
+# Persistent volumes
 volumes:
+  postgres_data:
   uploads: 

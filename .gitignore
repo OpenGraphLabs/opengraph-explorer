@@ -1,3 +1,26 @@
+# Secrets and sensitive data
+secrets/
+*.secret
+*.key
+.env.production
+.env.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
 # Logs
 logs
 *.log
@@ -71,3 +94,13 @@ converter/.env.*
 
 # Test Model Files
 # *.h5
+
+# Docker
+.docker/
+
+# Build outputs
+target/
+
+# Database
+*.sqlite
+*.db

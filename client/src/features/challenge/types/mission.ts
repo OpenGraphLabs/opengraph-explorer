@@ -1,27 +1,41 @@
-export type MissionStatus = "not_started" | "in_progress" | "completed";
+export type MissionStatus = "active" | "completed" | "inactive";
 
-export type MissionType = "label" | "bbox";
+export type MissionType = "label_annotation" | "bbox_annotation";
+
+export interface ServerMission {
+  id: number;
+  name: string;
+  description: string;
+  mission_type: MissionType;
+  total_items: number;
+  status: MissionStatus;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Mission {
   id: string;
-  type: MissionType;
-  title: string;
+  name: string;
   description: string;
-  challengeId: string;
-  requiredCount: number;
-  completedCount: number;
+  mission_type: MissionType;
+  total_items: number;
   status: MissionStatus;
-  order: number; // 1 for Step 1, 2 for Step 2
-  reward?: {
-    type: "certificate" | "badge" | "points";
-    name: string;
-    description: string;
-  };
+  created_at: string;
+  updated_at: string;
+  challengeId: string;
 }
+
+export const MISSION_CHALLENGE_MAPPING: Record<string, string> = {
+  label_annotation: "challenge-1",
+  bbox_annotation: "challenge-2",
+};
 
 export interface UserMissionProgress {
   userId: string;
   missions: Mission[];
+  missionScores: MissionScoreDetail[];
+  totalScore: number;
+  maxPossibleScore: number;
   overallStatus: "not_started" | "in_progress" | "completed";
   completedAt?: Date;
   certificate?: {
@@ -32,9 +46,34 @@ export interface UserMissionProgress {
   };
 }
 
+export interface MissionScoreDetail {
+  missionId: number;
+  missionName: string;
+  score: number;
+  maxScore: number;
+  completedAt: string;
+}
+
 export interface MissionCompletion {
   missionId: string;
   completedAt: Date;
-  annotations: string[]; // annotation IDs that contributed to completion
+  annotations: string[];
   qualityScore: number;
+}
+
+export interface CreateMissionRequest {
+  name: string;
+  description: string;
+  mission_type: MissionType;
+  total_items: number;
+}
+
+export interface UpdateMissionStatusRequest {
+  status: MissionStatus;
+}
+
+export interface ListMissionsQuery {
+  status?: MissionStatus;
+  limit?: number;
+  offset?: number;
 }

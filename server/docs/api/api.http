@@ -1,0 +1,517 @@
+### Health Check
+GET {{host}}/health
+
+### Create Annotator
+POST {{host}}/annotators
+Content-Type: application/json
+
+{
+  "sui_address": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6"
+}
+
+### List Annotators
+GET {{host}}/annotators?limit=10&offset=0
+
+### Get Annotator by ID
+GET {{host}}/annotators/1
+
+### Get Annotator by Sui Address
+GET {{host}}/annotators/sui/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
+
+### Create Mission - Animal Classification (Label Annotation)
+POST {{host}}/missions
+Content-Type: application/json
+
+{
+  "name": "Sea Animal Classification",
+  "description": "Label annotation for sea animals - classify 10 different marine species",
+  "mission_type": "label_annotation",
+  "total_items": 10
+}
+
+### Create Mission - Urban Traffic Dataset (BBox Annotation)
+POST {{host}}/missions
+Content-Type: application/json
+
+{
+  "name": "Urban Traffic Dataset",
+  "description": "Bounding box annotation for urban traffic objects",
+  "mission_type": "bbox_annotation",
+  "total_items": 3
+}
+
+### Create Mission (BBox Annotation)
+POST {{host}}/missions
+Content-Type: application/json
+
+{
+  "name": "Urban Traffic Dataset", 
+  "description": "Bounding box annotation for urban traffic objects",
+  "mission_type": "bbox_annotation",
+  "total_items": 3
+}
+
+### List All Missions
+GET {{host}}/missions
+
+### List Active Missions Only
+GET {{host}}/missions?status=active&limit=10
+
+### Get Mission by ID
+GET {{host}}/missions/1
+
+### Update Mission Status
+PUT {{host}}/missions/1/status
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+### Submit Mission Answers for Scoring (Label Annotation)
+POST {{host}}/scores/submit
+Content-Type: application/json
+
+{
+  "mission_id": 1,
+  "annotator_id": 1,
+  "submissions": [
+    {
+      "item_id": "sea_animal_1",
+      "labels": [
+        {
+          "id": "label_1",
+          "label": "dolphin",
+          "confidence": 0.95
+        }
+      ],
+      "bounding_boxes": []
+    },
+    {
+      "item_id": "sea_animal_2", 
+      "labels": [
+        {
+          "id": "label_2",
+          "label": "whale",
+          "confidence": 0.88
+        }
+      ],
+      "bounding_boxes": []
+    },
+    {
+      "item_id": "sea_animal_3",
+      "labels": [
+        {
+          "id": "label_3",
+          "label": "shark",
+          "confidence": 0.92
+        }
+      ],
+      "bounding_boxes": []
+    }
+  ]
+}
+
+### Submit Mission Answers for Scoring (BBox Annotation)
+POST {{host}}/scores/submit
+Content-Type: application/json
+
+{
+  "mission_id": 2,
+  "annotator_id": 1,
+  "submissions": [
+    {
+      "item_id": "traffic_1",
+      "labels": [],
+      "bounding_boxes": [
+        {
+          "id": "bbox_1",
+          "x": 100,
+          "y": 200,
+          "width": 150,
+          "height": 200,
+          "label": "car",
+          "confidence": 0.9
+        },
+        {
+          "id": "bbox_2", 
+          "x": 300,
+          "y": 150,
+          "width": 80,
+          "height": 120,
+          "label": "person",
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "item_id": "traffic_2",
+      "labels": [],
+      "bounding_boxes": [
+        {
+          "id": "bbox_3",
+          "x": 50,
+          "y": 100,
+          "width": 200,
+          "height": 100,
+          "label": "bus",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "item_id": "traffic_3",
+      "labels": [],
+      "bounding_boxes": [
+        {
+          "id": "bbox_4",
+          "x": 200,
+          "y": 250,
+          "width": 100,
+          "height": 150,
+          "label": "motorcycle",
+          "confidence": 0.88
+        }
+      ]
+    }
+  ]
+}
+
+### Submit Mixed Annotation (Labels + BBoxes)
+POST {{host}}/scores/submit
+Content-Type: application/json
+
+{
+  "mission_id": 3,
+  "annotator_id": 2,
+  "submissions": [
+    {
+      "item_id": "mixed_1",
+      "labels": [
+        {
+          "id": "label_1",
+          "label": "person",
+          "confidence": 0.9
+        }
+      ],
+      "bounding_boxes": [
+        {
+          "id": "bbox_1",
+          "x": 120,
+          "y": 180,
+          "width": 60,
+          "height": 180,
+          "label": "person",
+          "confidence": 0.9
+        }
+      ]
+    }
+  ]
+}
+
+### Get Score by ID
+GET {{host}}/scores/1
+
+### Get Top Scores (Leaderboard)
+GET {{host}}/scores/top?limit=10
+
+### Get Scores by Mission
+GET {{host}}/missions/1/scores?limit=50&offset=0
+
+### Get Scores by Annotator
+GET {{host}}/annotators/1/scores?limit=10&offset=0
+
+### Get Annotator Average Score
+GET {{host}}/annotators/1/average
+
+### Example: Complete Workflow
+# 1. Create annotator
+POST {{host}}/annotators
+Content-Type: application/json
+
+{
+  "sui_address": "0x1234567890abcdef1234567890abcdef12345678"
+}
+
+###  2. Create mission
+POST {{host}}/missions
+Content-Type: application/json
+
+{
+  "name": "Urban Traffic Bounding Box Annotation",
+  "description": "Annotate bounding boxes for urban traffic objects",
+  "mission_type": "bbox_annotation",
+  "total_items": 3
+}
+
+### 3. Submit answers and get automatically scored
+POST {{host}}/scores/submit
+Content-Type: application/json
+
+{
+  "mission_id": 5,
+  "annotator_id": 1,
+  "submissions": [
+    {
+      "item_id": "urban_1",
+      "labels": [],
+      "bounding_boxes": [
+        {
+          "id": "bbox_1",
+          "x": 150,
+          "y": 200,
+          "width": 100,
+          "height": 150,
+          "label": "car",
+          "confidence": 0.92
+        }
+      ]
+    },
+    {
+      "item_id": "urban_2", 
+      "labels": [],
+      "bounding_boxes": [
+        {
+          "id": "bbox_2",
+          "x": 80,
+          "y": 120,
+          "width": 60,
+          "height": 160,
+          "label": "person",
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "item_id": "urban_3",
+      "labels": [],
+      "bounding_boxes": [
+        {
+          "id": "bbox_3",
+          "x": 250,
+          "y": 180,
+          "width": 120,
+          "height": 80,
+          "label": "bicycle",
+          "confidence": 0.91
+        }
+      ]
+    }
+  ]
+}
+
+### Upload Sea Animal Data (Admin Only)
+POST {{host}}/ground-truth/bulk
+Content-Type: application/json
+
+{
+  "mission_id": 1,
+  "raw_data": [
+    {
+      "img_name": "dugong_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "dugong",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "dugong_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "dugong",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "dugong_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "dugong",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seal_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seal",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seal_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seal",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seal_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seal",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "sealion_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "sealion",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "sealion_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "sealion",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "sealion_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "sealion",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seaotter_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seaotter",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seaotter_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seaotter",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seaotter_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seaotter",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "walrus_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "walrus",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "walrus_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "walrus",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "walrus_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "walrus",
+          "confidence": 1.0
+        }
+      ]
+    }
+  ]
+}
+
+### Upload Ground Truth Data (Admin Only)
+POST {{host}}/ground-truth/bulk
+Content-Type: application/json
+
+{
+  "mission_id": 2,
+  "raw_data": [
+    {
+      "img_name": "street_1.jpg",
+      "annotation": {
+        "traffic light": [
+          [106.92, 19.65, 31.8, 62.24],
+          [150.22, 19.65, 29.77, 62.92],
+          [102.19, 203.67, 25.03, 25.71]
+        ],
+        "car": [
+          [349.14, 265.24, 89.3, 56.16],
+          [207.06, 262.53, 53.44, 16.92],
+          [540.6, 267.95, 74.4, 41.27]
+        ],
+        "people": [
+          [569.7, 253.06, 41.94, 68.34]
+        ]
+      }
+    },
+    {
+      "img_name": "street_2.jpg",
+      "annotation": {
+        "people": [
+          [113.06, 162.36, 220.32, 528.47]
+        ],
+        "car": [
+          [604.55, 260.97, 342.03, 171.02],
+          [6.75, 297.79, 55.47, 46.38]
+        ]
+      }
+    },
+    {
+      "img_name": "street_3.jpg",
+      "annotation": {
+        "car": [
+          [742.59, 470.4, 826.36, 571.64]
+        ],
+        "people": [
+          [597.46, 500.02, 343.58, 571.63]
+        ],
+        "bicycle": [
+          [576.73, 748.81, 379.12, 476.86]
+        ]
+      }
+    }
+  ]
+}
+
+

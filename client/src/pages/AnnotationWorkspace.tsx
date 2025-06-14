@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
@@ -14,6 +14,7 @@ import {
   Database,
   CheckCircle,
   Clock,
+  Trophy,
 } from "phosphor-react";
 import { useWorkspace } from "@/features/annotation/hooks/useWorkspace";
 import { ImageViewer } from "@/features/annotation/components/ImageViewer";
@@ -24,14 +25,17 @@ import { usePhaseConstraints } from "@/features/annotation";
 
 // Import new modular components
 import { AnnotationSidebar } from "@/widgets/annotation-sidebar";
-import {
-  AnnotationListPanel,
-  InlineToolBar,
-  AnnotationStackViewer,
-  SaveNotification,
-} from "@/features/annotation";
+import { AnnotationListPanel, InlineToolBar, SaveNotification } from "@/features/annotation";
 import { WorkspaceStatusBar } from "@/features/workspace-controls";
 import { useAnnotationTools, useImageNavigation } from "@/features/annotation";
+
+// Import new complete submission hook and notification
+import { useCompleteAnnotationSubmission } from "@/features/annotation/hooks/useCompleteAnnotationSubmission";
+import { SubmissionNotification } from "@/features/annotation/components/SubmissionNotification";
+
+// Import certificate components
+import { useCertificateData } from "@/features/challenge/hooks/useCertificateData";
+import { CertificateModal } from "@/features/challenge/components/CertificateModal";
 
 export function AnnotationWorkspace() {
   const { challengeId } = useParams<{ challengeId: string }>();
@@ -66,14 +70,78 @@ export function AnnotationWorkspace() {
   // Workspace state - Dataset 이미지 사용 (annotation stack 포함)
   const { state, actions, annotationStack, saveStatus } = useWorkspace(
     datasetId || "",
-    datasetImages
+    datasetImages,
+    datasetImages.length // Pass total images as maxStackSize
   );
 
+  // Complete annotation submission hook
+  const completeSubmission = useCompleteAnnotationSubmission();
+
+  // Certificate data hook
+  const certificateData = useCertificateData();
+
+  // Certificate modal state
+  const [showCertificate, setShowCertificate] = useState(false);
+
+  // Auto-set default tool based on current phase
+  useEffect(() => {
+    const getDefaultToolForPhase = (phase: string): AnnotationType => {
+      switch (phase) {
+        case "label":
+          return "label";
+        case "bbox":
+          return "bbox";
+        case "segmentation":
+          return "segmentation";
+        default:
+          return "label";
+      }
+    };
+
+    const defaultTool = getDefaultToolForPhase(currentPhase);
+
+    // Only change tool if current tool is not allowed in the new phase
+    if (!isToolAllowed(state.currentTool)) {
+      actions.setCurrentTool(defaultTool);
+    }
+  }, [currentPhase, isToolAllowed, state.currentTool, actions]);
+
+  // Auto-select first predefined label when switching to an image with predefined labels
+  useEffect(() => {
+    if (challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage) {
+      const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
+      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
+
+      if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
+        // Auto-select first predefined label if no label is currently selected
+        if (!state.selectedLabel) {
+          actions.setSelectedLabel(predefinedLabelsForImage[0]);
+        }
+      }
+    }
+  }, [challenge, state.currentImage, state.selectedLabel, datasetImages, actions]);
+
   // Enhanced tool configuration with phase constraints
+  // challenge-2의 각 이미지별 미리 정의된 label 가져오기
+  const getPredefinedLabels = (): string[] => {
+    if (challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage) {
+      const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
+      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
+      return predefinedLabelsForImage || [];
+    }
+    return [];
+  };
+
+  const existingLabels = Array.from(
+    new Set(state.annotations.labels?.map(label => label.label) || [])
+  );
+  const predefinedLabels = getPredefinedLabels();
+  const allAvailableLabels = Array.from(new Set([...existingLabels, ...predefinedLabels]));
+
   const toolConfig = {
     currentTool: state.currentTool,
     selectedLabel: state.selectedLabel,
-    existingLabels: Array.from(new Set(state.annotations.labels?.map(label => label.label) || [])),
+    existingLabels: allAvailableLabels,
     boundingBoxes: state.annotations.boundingBoxes || [],
   };
 
@@ -91,15 +159,100 @@ export function AnnotationWorkspace() {
     [isToolAllowed, actions]
   );
 
+  // Optimized function to clear all annotations
+  const clearAllAnnotations = useCallback(() => {
+    const batch = [];
+
+    // Collect all deletion operations
+    state.annotations.labels?.forEach(existingLabel =>
+      batch.push(() => actions.deleteAnnotation("label", existingLabel.id))
+    );
+    state.annotations.boundingBoxes?.forEach(bbox =>
+      batch.push(() => actions.deleteAnnotation("bbox", bbox.id))
+    );
+    state.annotations.polygons?.forEach(polygon =>
+      batch.push(() => actions.deleteAnnotation("segmentation", polygon.id))
+    );
+
+    // Execute all deletions in batch for better performance
+    batch.forEach(deleteOp => deleteOp());
+  }, [actions, state.annotations]);
+
+  // Custom label add handler with phase constraints
+  const handleAddLabel = useCallback(
+    (label: string) => {
+      if (!isToolAllowed("label")) {
+        // Don't add label if not allowed in current phase
+        return;
+      }
+
+      // Clear existing annotations before adding new one (1 annotation per image)
+      clearAllAnnotations();
+
+      actions.addLabel(label);
+    },
+    [isToolAllowed, actions, clearAllAnnotations]
+  );
+
+  // Image change handler moved to top level
+  const handleImageChange = useCallback(
+    image => {
+      // 이미지 변경 시 즉시 설정하고 zoom/pan 상태 초기화
+      actions.setCurrentImage(image);
+
+      // 선택된 annotation 초기화
+      setSelectedAnnotation(null);
+
+      // 선택된 label 초기화 (이전 이미지의 라벨이 남아있는 문제 해결)
+      actions.setSelectedLabel("");
+
+      // 이미지 변경 시 zoom과 pan을 초기화하여 올바른 중앙 정렬 보장
+      // 두 번의 requestAnimationFrame으로 더 안정적인 렌더링 보장
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          actions.setZoom(1);
+          actions.setPanOffset({ x: 0, y: 0 });
+        });
+      });
+    },
+    [actions]
+  );
+
   const { currentImageIndex, progress, canGoNext, canGoPrevious, handleNext, handlePrevious } =
     useImageNavigation({
       images: datasetImages,
       currentImage: state.currentImage,
-      onImageChange: image => {
-        // 이미지 변경 시 즉시 설정 (ImageViewer에서 자동 피팅 처리됨)
-        actions.setCurrentImage(image);
-      },
+      onImageChange: handleImageChange,
     });
+
+  // Auto-advance to next image when annotation is added (1 annotation per image)
+  // Only auto-advance for label phase, not for bbox or segmentation phases
+  const [previousAnnotationCount, setPreviousAnnotationCount] = useState(0);
+
+  useEffect(() => {
+    const totalCurrentAnnotations =
+      (state.annotations.labels?.length || 0) +
+      (state.annotations.boundingBoxes?.length || 0) +
+      (state.annotations.polygons?.length || 0);
+
+    // Only auto-advance for label phase - bbox and segmentation phases require manual navigation
+    const shouldAutoAdvance = currentPhase === "label";
+
+    // If we just added an annotation (went from 0 to 1) and can go to next image, auto-advance immediately
+    if (
+      totalCurrentAnnotations === 1 &&
+      previousAnnotationCount === 0 &&
+      canGoNext &&
+      shouldAutoAdvance
+    ) {
+      // Use requestAnimationFrame for immediate but smooth transition
+      requestAnimationFrame(() => {
+        handleNext();
+      });
+    }
+
+    setPreviousAnnotationCount(totalCurrentAnnotations);
+  }, [state.annotations, canGoNext, handleNext, previousAnnotationCount, currentPhase]);
 
   // Handle annotation selection
   const handleSelectAnnotation = useCallback((type: AnnotationType, id: string) => {
@@ -117,18 +270,97 @@ export function AnnotationWorkspace() {
   );
 
   const handleClearAll = useCallback(() => {
-    state.annotations.labels?.forEach(label => handleDeleteAnnotation("label", label.id));
-    state.annotations.boundingBoxes?.forEach(bbox => handleDeleteAnnotation("bbox", bbox.id));
-    state.annotations.polygons?.forEach(polygon =>
-      handleDeleteAnnotation("segmentation", polygon.id)
-    );
-  }, [state.annotations, handleDeleteAnnotation]);
+    clearAllAnnotations();
+    if (selectedAnnotation) {
+      setSelectedAnnotation(null);
+    }
+  }, [clearAllAnnotations, selectedAnnotation]);
+
+  // BBox and polygon handlers moved to top level
+  const handleAddBoundingBox = useCallback(
+    bbox => {
+      if (isToolAllowed("bbox")) {
+        // Clear existing annotations before adding new one (1 annotation per image)
+        clearAllAnnotations();
+        actions.addBoundingBox(bbox);
+      }
+    },
+    [isToolAllowed, clearAllAnnotations, actions]
+  );
+
+  const handleAddPolygon = useCallback(
+    polygon => {
+      if (isToolAllowed("segmentation")) {
+        // Clear existing annotations before adding new one (1 annotation per image)
+        clearAllAnnotations();
+        actions.addPolygon(polygon);
+      }
+    },
+    [isToolAllowed, clearAllAnnotations, actions]
+  );
 
   const totalAnnotations =
     (state.annotations.labels?.length || 0) +
     (state.annotations.boundingBoxes?.length || 0) +
     (state.annotations.polygons?.length || 0);
   const stackStats = annotationStack.stats;
+
+  // Calculate completed images for Save button logic
+  const totalImages = datasetImages.length;
+  const hasCurrentImageAnnotation = totalAnnotations > 0;
+  const completedImagesCount = stackStats.total + (hasCurrentImageAnnotation ? 1 : 0);
+  const allImagesCompleted = completedImagesCount >= totalImages;
+  const canSave = allImagesCompleted && (state.unsavedChanges || annotationStack.state.hasItems);
+
+  // Enhanced save handler with complete submission flow
+  const handleCompleteSubmission = useCallback(async () => {
+    if (!challengeId || !datasetId || !canSave) return;
+
+    try {
+      // Ensure current image annotation is added to stack if needed
+      if (hasCurrentImageAnnotation && !annotationStack.state.hasItems) {
+        await actions.saveToBlockchain();
+      }
+
+      // Convert annotation stack to submission format
+      console.log("imageData: ", annotationStack.state.items);
+      const annotationData = annotationStack.state.items.map(item => ({
+        imageId: item.imageData.originalPath,
+        imagePath: item.imageData.originalPath,
+        annotations: {
+          labels: item.type === "label" ? [item.annotation as any] : [],
+          boundingBoxes: item.type === "bbox" ? [item.annotation as any] : [],
+          polygons: [], // Add polygon support if needed
+        },
+      }));
+
+      // Submit complete annotations
+      await completeSubmission.submitCompleteAnnotations(
+        challengeId,
+        datasetId,
+        annotationData,
+        datasetImages.length
+      );
+
+      // Clear annotation stack after successful submission
+      annotationStack.actions.clearStack();
+
+      // Refresh certificate data after successful submission
+      certificateData.refetch();
+    } catch (error) {
+      console.error("Failed to submit complete annotations:", error);
+    }
+  }, [
+    challengeId,
+    datasetId,
+    canSave,
+    hasCurrentImageAnnotation,
+    annotationStack,
+    actions,
+    datasetImages,
+    completeSubmission,
+    certificateData,
+  ]);
 
   // Loading state - Dataset 로딩 포함
   if (challengeLoading || datasetLoading) {
@@ -385,7 +617,7 @@ export function AnnotationWorkspace() {
       actionButton: {
         text: "Back to Challenge",
         icon: <ArrowLeft size={14} weight="bold" />,
-        href: `/challenges/${challengeId}`,
+        href: `/challenges`,
       },
     },
     stats: [
@@ -395,7 +627,7 @@ export function AnnotationWorkspace() {
       },
       {
         icon: <Target size={10} style={{ color: theme.colors.interactive.accent }} />,
-        text: `${totalAnnotations} Local • ${stackStats.total}/${annotationStack.maxSize} Stack`,
+        text: `${completedImagesCount}/${totalImages} Images • ${stackStats.total}/${annotationStack.maxSize} Stack`,
       },
       {
         icon: (
@@ -412,31 +644,21 @@ export function AnnotationWorkspace() {
       },
     ],
     filters: (
-      <Flex direction="column" gap="4">
-        <AnnotationSidebar
-          currentTool={state.currentTool}
-          selectedLabel={state.selectedLabel}
-          existingLabels={toolConfig.existingLabels}
-          boundingBoxes={state.annotations.boundingBoxes || []}
-          zoom={state.zoom}
-          panOffset={state.panOffset}
-          onZoomChange={actions.setZoom}
-          onPanChange={actions.setPanOffset}
-          phaseConstraints={{
-            currentPhase,
-            isToolAllowed,
-            getDisallowedMessage,
-          }}
-        />
-
-        {/* Annotation Stack Viewer */}
-        <AnnotationStackViewer
-          stackState={annotationStack.state}
-          maxSize={annotationStack.maxSize}
-          onClearStack={annotationStack.actions.clearStack}
-          isSaving={saveStatus.state.isSaving}
-        />
-      </Flex>
+      <AnnotationSidebar
+        currentTool={state.currentTool}
+        selectedLabel={state.selectedLabel}
+        existingLabels={allAvailableLabels}
+        boundingBoxes={state.annotations.boundingBoxes || []}
+        zoom={state.zoom}
+        panOffset={state.panOffset}
+        onZoomChange={actions.setZoom}
+        onPanChange={actions.setPanOffset}
+        phaseConstraints={{
+          currentPhase,
+          isToolAllowed,
+          getDisallowedMessage,
+        }}
+      />
     ),
   };
 
@@ -493,11 +715,45 @@ export function AnnotationWorkspace() {
                       color: theme.colors.text.secondary,
                     }}
                   >
-                    Challenge: {challenge?.title || "Loading..."}
+                    {challenge?.description || "Loading..."}
                   </Text>
 
                   {/* Dataset 연동 상태 표시 */}
                   {datasetStatusIndicator}
+
+                  {/* Predefined Labels Indicator */}
+                  {challenge?.id === "challenge-2" &&
+                    challenge.predefinedLabels &&
+                    state.currentImage &&
+                    (() => {
+                      const currentIndex = datasetImages.findIndex(
+                        img => img.id === state.currentImage?.id
+                      );
+                      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
+
+                      if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
+                        return (
+                          <Box
+                            style={{
+                              padding: "2px 8px",
+                              background: `${theme.colors.interactive.primary}15`,
+                              color: theme.colors.interactive.primary,
+                              border: `1px solid ${theme.colors.interactive.primary}30`,
+                              borderRadius: theme.borders.radius.full,
+                              fontSize: "10px",
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                              cursor: "help",
+                            }}
+                            title={`Predefined Labels Available (${predefinedLabelsForImage.length}):\n${predefinedLabelsForImage.join(", ")}`}
+                          >
+                            {predefinedLabelsForImage.length} Labels Ready
+                          </Box>
+                        );
+                      }
+                      return null;
+                    })()}
 
                   {/* Compact Phase Indicator */}
                   {challenge && (
@@ -557,41 +813,82 @@ export function AnnotationWorkspace() {
               </Text>
 
               <Button
-                onClick={actions.saveToBlockchain}
-                disabled={!state.unsavedChanges && !annotationStack.state.hasItems}
+                onClick={handleCompleteSubmission}
+                disabled={!canSave || completeSubmission.isSubmitting}
                 style={{
-                  background: saveStatus.state.isSaving
-                    ? theme.colors.status.warning
-                    : state.unsavedChanges || annotationStack.state.hasItems
-                      ? annotationStack.state.isFull
-                        ? theme.colors.status.error
-                        : theme.colors.status.success
-                      : theme.colors.interactive.disabled,
+                  background: completeSubmission.isSubmitting
+                    ? theme.colors.status.info
+                    : completeSubmission.hasError
+                      ? theme.colors.status.error
+                      : completeSubmission.isCompleted
+                        ? theme.colors.status.success
+                        : !allImagesCompleted
+                          ? theme.colors.interactive.disabled
+                          : canSave
+                            ? annotationStack.state.isFull
+                              ? theme.colors.interactive.primary // 빨간색 대신 primary 색상 사용
+                              : theme.colors.status.success
+                            : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                   fontWeight: 600,
                   fontSize: "12px",
-                  cursor:
-                    (state.unsavedChanges || annotationStack.state.hasItems) &&
-                    !saveStatus.state.isSaving
-                      ? "pointer"
-                      : "not-allowed",
+                  cursor: canSave && !completeSubmission.isSubmitting ? "pointer" : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.xs,
                 }}
               >
-                <FloppyDisk size={14} />
-                {saveStatus.state.isSaving
-                  ? "Saving..."
-                  : annotationStack.state.isFull
-                    ? `Save ${stackStats.total} (Full!)`
-                    : annotationStack.state.hasItems
-                      ? `Save ${stackStats.total}`
-                      : "Save"}
+                {completeSubmission.isCompleted ? <Trophy size={14} /> : <FloppyDisk size={14} />}
+                {completeSubmission.isSubmitting
+                  ? completeSubmission.status.phase === "blockchain"
+                    ? "Submitting to Blockchain..."
+                    : completeSubmission.status.phase === "scoring"
+                      ? "Calculating Score..."
+                      : "Processing..."
+                  : completeSubmission.isCompleted
+                    ? `Score: ${completeSubmission.finalScore || 0}`
+                    : completeSubmission.hasError
+                      ? "Submission Failed"
+                      : !allImagesCompleted
+                        ? `Complete ${totalImages - completedImagesCount} more`
+                        : annotationStack.state.isFull
+                          ? `Submit ${stackStats.total} (Full!)`
+                          : annotationStack.state.hasItems
+                            ? `Submit ${stackStats.total}`
+                            : "Submit Annotations"}
               </Button>
+
+              {/* Show Certificate Button if eligible */}
+              {certificateData.userProgress &&
+                certificateData.userProgress.certificate &&
+                certificateData.userProgress.missionScores &&
+                certificateData.userProgress.missions &&
+                certificateData.userProgress.missionScores.length > 0 &&
+                certificateData.userProgress.missions.length > 0 && (
+                  <Button
+                    onClick={() => setShowCertificate(true)}
+                    style={{
+                      background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+                      color: "#0f0f23",
+                      border: "none",
+                      borderRadius: theme.borders.radius.md,
+                      padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                      fontWeight: 600,
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: theme.spacing.semantic.component.xs,
+                      boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
+                    }}
+                  >
+                    <Trophy size={14} />
+                    View Certificate
+                  </Button>
+                )}
 
               <Button
                 style={{
@@ -637,11 +934,11 @@ export function AnnotationWorkspace() {
         <InlineToolBar
           currentTool={state.currentTool}
           selectedLabel={state.selectedLabel}
-          existingLabels={toolConfig.existingLabels}
+          existingLabels={allAvailableLabels}
           boundingBoxes={state.annotations.boundingBoxes || []}
           currentPhase={currentPhase}
           onToolChange={handleToolChange}
-          onAddLabel={actions.addLabel}
+          onAddLabel={handleAddLabel}
           onSelectLabel={actions.setSelectedLabel}
           isToolAllowed={isToolAllowed}
           getDisallowedMessage={getDisallowedMessage}
@@ -680,16 +977,8 @@ export function AnnotationWorkspace() {
                 isDrawing={state.isDrawing}
                 onZoomChange={actions.setZoom}
                 onPanChange={actions.setPanOffset}
-                onAddBoundingBox={bbox => {
-                  if (isToolAllowed("bbox")) {
-                    actions.addBoundingBox(bbox);
-                  }
-                }}
-                onAddPolygon={polygon => {
-                  if (isToolAllowed("segmentation")) {
-                    actions.addPolygon(polygon);
-                  }
-                }}
+                onAddBoundingBox={handleAddBoundingBox}
+                onAddPolygon={handleAddPolygon}
                 onSelectAnnotation={handleSelectAnnotation}
                 onDeleteAnnotation={handleDeleteAnnotation}
                 onUpdateBoundingBox={actions.updateBoundingBox}
@@ -702,11 +991,17 @@ export function AnnotationWorkspace() {
             )}
           </Box>
 
-          {/* Right Panel - Annotations List */}
+          {/* Right Panel - Annotations List with Stack */}
           <AnnotationListPanel
             annotations={state.annotations}
             onDeleteAnnotation={handleDeleteAnnotation}
             onClearAll={handleClearAll}
+            stackState={annotationStack.state}
+            maxStackSize={datasetImages.length} // Set max to total images
+            onClearStack={annotationStack.actions.clearStack}
+            isSaving={saveStatus.state.isSaving}
+            currentImageIndex={currentImageIndex}
+            totalImages={datasetImages.length}
           />
         </Flex>
 
@@ -724,25 +1019,64 @@ export function AnnotationWorkspace() {
           constraintMessage={getToolConstraintMessage}
           currentPhase={currentPhase}
           phaseConstraintMessage={
-            !isToolAllowed(state.currentTool)
-              ? getDisallowedMessage(state.currentTool)
-              : annotationStack.state.isFull
-                ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Save annotations to continue.`
-                : saveStatus.state.error
-                  ? `Save error: ${saveStatus.state.error}`
-                  : undefined
+            certificateData.userProgress?.certificate &&
+            certificateData.userProgress.missionScores &&
+            certificateData.userProgress.missions &&
+            certificateData.userProgress.overallStatus === "completed"
+              ? `🏆 Certificate Available! Total Score: ${certificateData.userProgress.totalScore}/${certificateData.userProgress.maxPossibleScore} points (${Math.round((certificateData.userProgress.totalScore / certificateData.userProgress.maxPossibleScore) * 100)}%) - Click View Certificate button!`
+              : completeSubmission.isSubmitting
+                ? `${
+                    completeSubmission.status.phase === "validating"
+                      ? completeSubmission.status.message
+                      : completeSubmission.status.phase === "preparing"
+                        ? completeSubmission.status.message
+                        : completeSubmission.status.phase === "blockchain"
+                          ? `${completeSubmission.status.message}${
+                              completeSubmission.status.progress
+                                ? ` (${completeSubmission.status.progress}%)`
+                                : ""
+                            }`
+                          : completeSubmission.status.phase === "scoring"
+                            ? completeSubmission.status.message
+                            : "Processing submission..."
+                  }`
+                : completeSubmission.hasError
+                  ? `Submission error: ${completeSubmission.errorMessage}`
+                  : completeSubmission.isCompleted
+                    ? `Submission completed! Score: ${completeSubmission.finalScore || 0} | Transaction: ${completeSubmission.transactionHash?.slice(0, 8)}...`
+                    : !allImagesCompleted
+                      ? `Complete all images to enable submission (${completedImagesCount}/${totalImages} completed)`
+                      : !isToolAllowed(state.currentTool)
+                        ? getDisallowedMessage(state.currentTool)
+                        : annotationStack.state.isFull
+                          ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Submit annotations to continue.`
+                          : saveStatus.state.error
+                            ? `Save error: ${saveStatus.state.error}`
+                            : undefined
           }
         />
       </Box>
 
-      {/* Save Notification */}
-      <SaveNotification
-        saveState={saveStatus.state}
-        stackTotal={stackStats.total}
-        onDismissSuccess={saveStatus.actions.resetSaveState}
-        onDismissError={saveStatus.actions.clearError}
-        onRetry={actions.saveToBlockchain}
+      {/* Enhanced Submission Notification */}
+      <SubmissionNotification
+        status={completeSubmission.status}
+        onDismiss={completeSubmission.resetStatus}
+        onRetry={handleCompleteSubmission}
       />
+
+      {/* Certificate Modal */}
+      {certificateData.userProgress &&
+        certificateData.userProgress.certificate &&
+        certificateData.userProgress.missionScores &&
+        certificateData.userProgress.missions &&
+        certificateData.userProgress.missionScores.length > 0 &&
+        certificateData.userProgress.missions.length > 0 && (
+          <CertificateModal
+            userProgress={certificateData.userProgress}
+            isOpen={showCertificate}
+            onClose={() => setShowCertificate(false)}
+          />
+        )}
 
       <style>
         {`

@@ -40,6 +40,10 @@ import {
 } from "@/features/challenge";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useCurrentWallet } from "@mysten/dapp-kit";
+
+// Import certificate hook
+import { useCertificateData } from "@/features/challenge/hooks/useCertificateData";
 
 // Challenge Status Badge Component
 function ChallengeStatusBadge({ status }: { status: ChallengeStatus }) {
@@ -552,6 +556,8 @@ function ChallengeFilters({
 export function Challenges() {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { isConnected, currentWallet } = useCurrentWallet();
+
   const {
     filteredChallenges,
     loading,
@@ -569,14 +575,19 @@ export function Challenges() {
     userProgress,
     loading: missionLoading,
     error: missionError,
+    currentAnnotator,
     updateMission,
     getCurrentMission,
     getNextMission,
     canAccessMission,
     getMissionStatus,
     generateCertificate,
+    syncProgressWithWallet,
     isAllCompleted,
   } = useMissions();
+
+  // Certificate data hook for server-based certificate system
+  const certificateData = useCertificateData();
 
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
@@ -585,25 +596,31 @@ export function Challenges() {
     completedCount: number;
     requiredCount: number;
   } | null>(null);
+  const [walletSyncStatus, setWalletSyncStatus] = useState<"idle" | "syncing" | "synced" | "error">(
+    "idle"
+  );
 
   // Show success animation when a mission is completed
   useEffect(() => {
     // This would be triggered by mission completion events
     // For now, we'll hook it to certificate completion
-    if (isAllCompleted && !userProgress.certificate) {
-      const lastMission = userProgress.missions[userProgress.missions.length - 1];
-      setSuccessMissionData({
-        title: lastMission.title,
-        completedCount: lastMission.completedCount,
-        requiredCount: lastMission.requiredCount,
-      });
-      setShowSuccessAnimation(true);
+    if (isAllCompleted && userProgress && !userProgress.certificate) {
+      const completedMissions = userProgress.missions.filter(m => m.status === "completed");
+      const lastCompletedMission = completedMissions[completedMissions.length - 1];
+      if (lastCompletedMission) {
+        setSuccessMissionData({
+          title: lastCompletedMission.name,
+          completedCount: lastCompletedMission.total_items,
+          requiredCount: lastCompletedMission.total_items,
+        });
+        setShowSuccessAnimation(true);
+      }
     }
   }, [isAllCompleted, userProgress]);
 
   // Auto-generate certificate when all missions are completed
   useEffect(() => {
-    if (isAllCompleted && !userProgress.certificate) {
+    if (isAllCompleted && userProgress && !userProgress.certificate) {
       // Delay certificate modal until after success animation
       const timer = setTimeout(() => {
         generateCertificate();
@@ -612,11 +629,47 @@ export function Challenges() {
 
       return () => clearTimeout(timer);
     }
-  }, [isAllCompleted, userProgress.certificate, generateCertificate]);
+  }, [isAllCompleted, userProgress?.certificate, generateCertificate]);
+
+  // Sync progress with wallet when connected
+  useEffect(() => {
+    const syncWalletProgress = async () => {
+      if (!isConnected || !currentWallet?.accounts[0]?.address || !userProgress) {
+        setWalletSyncStatus("idle");
+        return;
+      }
+
+      const walletAddress = currentWallet.accounts[0].address;
+
+      // Check if we already synced this wallet
+      if (walletSyncStatus === "synced" && userProgress.userId === walletAddress) {
+        return;
+      }
+
+      setWalletSyncStatus("syncing");
+      console.log(`🔗 Wallet connected: ${walletAddress}`);
+
+      try {
+        await syncProgressWithWallet(walletAddress);
+        setWalletSyncStatus("synced");
+      } catch (err) {
+        console.error("Failed to sync wallet progress:", err);
+        setWalletSyncStatus("error");
+      }
+    };
+
+    syncWalletProgress();
+  }, [
+    isConnected,
+    currentWallet?.accounts[0]?.address,
+    userProgress,
+    syncProgressWithWallet,
+    walletSyncStatus,
+  ]);
 
   // Get mission-related challenges
   const missionChallenges = filteredChallenges.filter(challenge =>
-    userProgress.missions.some(mission => mission.challengeId === challenge.id)
+    userProgress?.missions.some(mission => mission.challengeId === challenge.id)
   );
 
   // Get current mission and its challenge
@@ -626,6 +679,8 @@ export function Challenges() {
     : null;
 
   const handleMissionClick = (missionId: string) => {
+    if (!userProgress) return;
+
     const mission = userProgress.missions.find(m => m.id === missionId);
     if (!mission) return;
 
@@ -936,143 +991,149 @@ export function Challenges() {
   return (
     <SidebarLayout sidebar={sidebarConfig} topBar={topBar}>
       {/* Certificate Achievement Banner - Show when completed */}
-      {userProgress.overallStatus === "completed" && userProgress.certificate && (
-        <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
-          <Box
-            style={{
-              background: `linear-gradient(135deg, ${theme.colors.status.success}10, #64ffda05)`,
-              border: `2px solid ${theme.colors.status.success}30`,
-              borderRadius: theme.borders.radius.lg,
-              padding: theme.spacing.semantic.layout.lg,
-              textAlign: "center",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Animated background */}
+      {certificateData.userProgress?.certificate &&
+        certificateData.userProgress.missionScores &&
+        certificateData.userProgress.missions &&
+        certificateData.userProgress.missionScores.length > 0 &&
+        certificateData.userProgress.missions.length > 0 &&
+        certificateData.userProgress.overallStatus === "completed" && (
+          <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
             <Box
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: `linear-gradient(90deg, transparent, ${theme.colors.status.success}05, transparent)`,
-                animation: "certificateShimmer 4s infinite",
+                background: `linear-gradient(135deg, ${theme.colors.status.success}10, #64ffda05)`,
+                border: `2px solid ${theme.colors.status.success}30`,
+                borderRadius: theme.borders.radius.lg,
+                padding: theme.spacing.semantic.layout.lg,
+                textAlign: "center",
+                position: "relative",
+                overflow: "hidden",
               }}
-            />
+            >
+              {/* Animated background */}
+              <Box
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: `linear-gradient(90deg, transparent, ${theme.colors.status.success}05, transparent)`,
+                  animation: "certificateShimmer 4s infinite",
+                }}
+              />
 
-            <Box style={{ position: "relative", zIndex: 1 }}>
-              <Flex
-                align="center"
-                justify="center"
-                gap="3"
-                style={{ marginBottom: theme.spacing.semantic.component.md }}
-              >
-                <Box
-                  style={{
-                    background: `linear-gradient(135deg, ${theme.colors.status.success}, #1de9b6)`,
-                    borderRadius: "50%",
-                    padding: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: `0 8px 24px ${theme.colors.status.success}40`,
-                  }}
+              <Box style={{ position: "relative", zIndex: 1 }}>
+                <Flex
+                  align="center"
+                  justify="center"
+                  gap="3"
+                  style={{ marginBottom: theme.spacing.semantic.component.md }}
                 >
-                  <Trophy size={32} weight="fill" style={{ color: "#ffffff" }} />
-                </Box>
-                <Box>
-                  <Text
-                    as="p"
-                    size="4"
+                  <Box
                     style={{
-                      fontWeight: 800,
-                      color: theme.colors.text.primary,
-                      marginBottom: theme.spacing.semantic.component.xs,
+                      background: `linear-gradient(135deg, ${theme.colors.status.success}, #1de9b6)`,
+                      borderRadius: "50%",
+                      padding: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: `0 8px 24px ${theme.colors.status.success}40`,
                     }}
                   >
-                    🎉 Congratulations!
-                  </Text>
-                  <Text
-                    as="p"
-                    size="2"
+                    <Trophy size={32} weight="fill" style={{ color: "#ffffff" }} />
+                  </Box>
+                  <Box>
+                    <Text
+                      as="p"
+                      size="4"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.text.primary,
+                        marginBottom: theme.spacing.semantic.component.xs,
+                      }}
+                    >
+                      🎉 Congratulations!
+                    </Text>
+                    <Text
+                      as="p"
+                      size="2"
+                      style={{
+                        color: theme.colors.text.secondary,
+                        fontWeight: 600,
+                      }}
+                    >
+                      You've earned your OpenGraph Data Annotation Specialist Certificate
+                    </Text>
+                  </Box>
+                </Flex>
+
+                <Flex gap="3" justify="center">
+                  <Button
+                    onClick={() => setShowCertificateModal(true)}
                     style={{
-                      color: theme.colors.text.secondary,
+                      background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+                      color: "#0f0f23",
+                      border: "none",
+                      borderRadius: theme.borders.radius.md,
+                      padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                      fontWeight: 700,
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
+                    }}
+                  >
+                    <Trophy size={16} weight="fill" />
+                    View & Download Certificate
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      const text = encodeURIComponent(
+                        `🎯 Just earned my OpenGraph Data Annotation Specialist Certificate! 🏆\n\n` +
+                          `🤖 Mastered AI dataset preparation for Physical AI systems\n` +
+                          `🔗 Powered by Sui blockchain & Walrus decentralized storage\n` +
+                          `🌐 Contributing to the future of real-world AI applications\n\n` +
+                          `Ready to shape the next generation of Physical AI! 🚀\n\n` +
+                          `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
+                      );
+                      const url = encodeURIComponent(
+                        certificateData.userProgress?.certificate?.shareableUrl ||
+                          "https://opengraph.io/certificate"
+                      );
+                      window.open(
+                        `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+                        "_blank"
+                      );
+                    }}
+                    style={{
+                      background: "#1DA1F2",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: theme.borders.radius.md,
+                      padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
                       fontWeight: 600,
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      boxShadow: "0 4px 12px rgba(29, 161, 242, 0.3)",
                     }}
                   >
-                    You've earned your OpenGraph Data Annotation Specialist Certificate
-                  </Text>
-                </Box>
-              </Flex>
-
-              <Flex gap="3" justify="center">
-                <Button
-                  onClick={() => setShowCertificateModal(true)}
-                  style={{
-                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
-                    color: "#0f0f23",
-                    border: "none",
-                    borderRadius: theme.borders.radius.md,
-                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-                    fontWeight: 700,
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
-                  }}
-                >
-                  <Trophy size={16} weight="fill" />
-                  View & Download Certificate
-                </Button>
-
-                <Button
-                  onClick={() => {
-                    const text = encodeURIComponent(
-                      `🎯 Just earned my OpenGraph Data Annotation Specialist Certificate! 🏆\n\n` +
-                        `🤖 Mastered AI dataset preparation for Physical AI systems\n` +
-                        `🔗 Powered by Sui blockchain & Walrus decentralized storage\n` +
-                        `🌐 Contributing to the future of real-world AI applications\n\n` +
-                        `Ready to shape the next generation of Physical AI! 🚀\n\n` +
-                        `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
-                    );
-                    const url = encodeURIComponent(
-                      userProgress.certificate?.shareableUrl || "https://opengraph.io/certificate"
-                    );
-                    window.open(
-                      `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
-                      "_blank"
-                    );
-                  }}
-                  style={{
-                    background: "#1DA1F2",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: theme.borders.radius.md,
-                    padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    boxShadow: "0 4px 12px rgba(29, 161, 242, 0.3)",
-                  }}
-                >
-                  <TwitterLogo size={16} />
-                  Share Achievement
-                </Button>
-              </Flex>
+                    <TwitterLogo size={16} />
+                    Share Achievement
+                  </Button>
+                </Flex>
+              </Box>
             </Box>
           </Box>
-        </Box>
-      )}
+        )}
 
       {/* Mission Cards Section - Show during mission period */}
-      {userProgress.overallStatus !== "completed" && (
+      {userProgress && userProgress.overallStatus !== "completed" && (
         <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
           <Flex
             align="center"
@@ -1089,11 +1150,27 @@ export function Challenges() {
             >
               Annotation Challenges
             </Text>
+            {isConnected && (
+              <Badge
+                style={{
+                  background: `${theme.colors.status.success}15`,
+                  color: theme.colors.status.success,
+                  border: `1px solid ${theme.colors.status.success}30`,
+                  padding: "2px 8px",
+                  borderRadius: theme.borders.radius.full,
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  marginLeft: theme.spacing.semantic.component.sm,
+                }}
+              >
+                🔗 Wallet Connected
+              </Badge>
+            )}
           </Flex>
 
           {/* Mission Cards with Inline Videos */}
           <Flex direction="column" gap="6">
-            {userProgress.missions.map((mission, index) => {
+            {userProgress?.missions.map((mission, index) => {
               const challenge = filteredChallenges.find(c => c.id === mission.challengeId);
               if (!challenge) return null;
 
@@ -1262,11 +1339,13 @@ export function Challenges() {
       {/*</Box>*/}
 
       {/* Compact Mission Status - Fixed at bottom right */}
-      <CompactMissionStatus
-        userProgress={userProgress}
-        onMissionClick={handleMissionClick}
-        onViewCertificate={() => setShowCertificateModal(true)}
-      />
+      {userProgress && (
+        <CompactMissionStatus
+          userProgress={userProgress}
+          onMissionClick={handleMissionClick}
+          onViewCertificate={() => setShowCertificateModal(true)}
+        />
+      )}
 
       {/* Mission Success Animation */}
       {successMissionData && (
@@ -1283,11 +1362,18 @@ export function Challenges() {
       )}
 
       {/* Certificate Modal */}
-      <CertificateModal
-        userProgress={userProgress}
-        isOpen={showCertificateModal}
-        onClose={() => setShowCertificateModal(false)}
-      />
+      {certificateData.userProgress &&
+        certificateData.userProgress.certificate &&
+        certificateData.userProgress.missionScores &&
+        certificateData.userProgress.missions &&
+        certificateData.userProgress.missionScores.length > 0 &&
+        certificateData.userProgress.missions.length > 0 && (
+          <CertificateModal
+            userProgress={certificateData.userProgress}
+            isOpen={showCertificateModal}
+            onClose={() => setShowCertificateModal(false)}
+          />
+        )}
 
       <style>
         {`

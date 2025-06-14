@@ -143,7 +143,7 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
   }
 }
 
-export function useWorkspace(datasetId: string, images: ImageData[] = []) {
+export function useWorkspace(datasetId: string, images: ImageData[] = [], maxStackSize?: number) {
   const [state, dispatch] = useReducer(workspaceReducer, {
     ...initialState,
     totalImages: images.length,
@@ -151,7 +151,8 @@ export function useWorkspace(datasetId: string, images: ImageData[] = []) {
     availableLabels: [], // User can input custom labels
   });
 
-  // Annotation stack 관리
+  // Annotation stack 관리 - maxStackSize는 이미지 개수 또는 기본값 30
+  const stackSize = maxStackSize || images.length || 30;
   const {
     stackState,
     maxSize,
@@ -160,7 +161,7 @@ export function useWorkspace(datasetId: string, images: ImageData[] = []) {
     clearStack,
     prepareForSuiSave,
     getStackStats,
-  } = useAnnotationStack();
+  } = useAnnotationStack(stackSize);
 
   // Annotation 저장 관리
   const {
