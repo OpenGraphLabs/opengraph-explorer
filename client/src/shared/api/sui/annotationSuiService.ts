@@ -77,8 +77,10 @@ export function useAnnotationSuiService() {
 
         // 1. Label Annotation 객체들 생성
         if (hasLabelAnnotations) {
-          console.log(`Processing ${labelAnnotations.length} label annotations for data: ${dataPath}`);
-          
+          console.log(
+            `Processing ${labelAnnotations.length} label annotations for data: ${dataPath}`
+          );
+
           const labelAnnotationCalls = labelAnnotations.map(labelAnnotation => {
             return tx.moveCall({
               target: `${SUI_CONTRACT.PACKAGE_ID}::annotation::new_label_annotation`,
@@ -88,14 +90,16 @@ export function useAnnotationSuiService() {
               ],
             });
           });
-          
+
           allAnnotationCalls.push(...labelAnnotationCalls);
         }
 
         // 2. BBox Annotation 객체들 생성
         if (hasBboxAnnotations) {
-          console.log(`Processing ${bboxAnnotations.length} bbox annotations for data: ${dataPath}`);
-          
+          console.log(
+            `Processing ${bboxAnnotations.length} bbox annotations for data: ${dataPath}`
+          );
+
           const bboxAnnotationCalls = bboxAnnotations.map(bboxAnnotation => {
             return tx.moveCall({
               target: `${SUI_CONTRACT.PACKAGE_ID}::annotation::new_bbox_annotation`,
@@ -108,7 +112,7 @@ export function useAnnotationSuiService() {
               ],
             });
           });
-          
+
           allAnnotationCalls.push(...bboxAnnotationCalls);
         }
 
@@ -127,7 +131,9 @@ export function useAnnotationSuiService() {
           });
 
           const totalAnnotations = (labelAnnotations?.length || 0) + (bboxAnnotations?.length || 0);
-          console.log(`Added ${totalAnnotations} annotations (${labelAnnotations?.length || 0} labels, ${bboxAnnotations?.length || 0} bboxes) to data ${dataPath}`);
+          console.log(
+            `Added ${totalAnnotations} annotations (${labelAnnotations?.length || 0} labels, ${bboxAnnotations?.length || 0} bboxes) to data ${dataPath}`
+          );
         }
       }
 
@@ -220,7 +226,15 @@ export function useAnnotationSuiService() {
     onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
   ) => {
-    return addAnnotationsToData(datasetId, dataId, dataPath, labelAnnotations, undefined, onSuccess, onError);
+    return addAnnotationsToData(
+      datasetId,
+      dataId,
+      dataPath,
+      labelAnnotations,
+      undefined,
+      onSuccess,
+      onError
+    );
   };
 
   /**
@@ -241,7 +255,15 @@ export function useAnnotationSuiService() {
     onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
   ) => {
-    return addAnnotationsToData(datasetId, dataId, dataPath, undefined, bboxAnnotations, onSuccess, onError);
+    return addAnnotationsToData(
+      datasetId,
+      dataId,
+      dataPath,
+      undefined,
+      bboxAnnotations,
+      onSuccess,
+      onError
+    );
   };
 
   /**
@@ -256,9 +278,9 @@ export function useAnnotationSuiService() {
       totalLabelCount: 0,
       totalBboxCount: 0,
       averageAnnotationsPerData: 0,
-      dataAnnotationCounts: [] as { 
-        dataPath: string; 
-        labelCount: number; 
+      dataAnnotationCounts: [] as {
+        dataPath: string;
+        labelCount: number;
         bboxCount: number;
         totalCount: number;
       }[],
@@ -268,17 +290,17 @@ export function useAnnotationSuiService() {
       const labelCount = dataAnnotation.labelAnnotations?.length || 0;
       const bboxCount = dataAnnotation.bboxAnnotations?.length || 0;
       const totalCount = labelCount + bboxCount;
-      
+
       stats.dataAnnotationCounts.push({
         dataPath: dataAnnotation.dataPath,
         labelCount,
         bboxCount,
         totalCount,
       });
-      
+
       stats.totalLabelCount += labelCount;
       stats.totalBboxCount += bboxCount;
-      
+
       return total + totalCount;
     }, 0);
 
@@ -293,7 +315,9 @@ export function useAnnotationSuiService() {
    * @param batchInput 검증할 배치 입력
    * @returns 검증 결과와 오류 메시지
    */
-  const validateBatchInput = (batchInput: BatchAnnotationInput): { isValid: boolean; errors: string[] } => {
+  const validateBatchInput = (
+    batchInput: BatchAnnotationInput
+  ): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
     if (!batchInput.datasetId || batchInput.datasetId.trim() === "") {
@@ -312,12 +336,16 @@ export function useAnnotationSuiService() {
           errors.push(`Data annotation ${index}: dataPath is required`);
         }
 
-        const hasLabelAnnotations = dataAnnotation.labelAnnotations && dataAnnotation.labelAnnotations.length > 0;
-        const hasBboxAnnotations = dataAnnotation.bboxAnnotations && dataAnnotation.bboxAnnotations.length > 0;
+        const hasLabelAnnotations =
+          dataAnnotation.labelAnnotations && dataAnnotation.labelAnnotations.length > 0;
+        const hasBboxAnnotations =
+          dataAnnotation.bboxAnnotations && dataAnnotation.bboxAnnotations.length > 0;
 
         // 적어도 하나의 annotation 타입은 있어야 함
         if (!hasLabelAnnotations && !hasBboxAnnotations) {
-          errors.push(`Data annotation ${index}: at least one annotation (label or bbox) is required`);
+          errors.push(
+            `Data annotation ${index}: at least one annotation (label or bbox) is required`
+          );
         }
 
         // Label annotation 검증

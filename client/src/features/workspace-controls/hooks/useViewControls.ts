@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from "react";
 
 interface ViewControlsProps {
   zoom: number;
@@ -29,4 +29,4 @@ export function useViewControls({ zoom, panOffset, onZoomChange, onPanChange }: 
     handleResetView,
     zoomPercentage,
   };
-} 
+}

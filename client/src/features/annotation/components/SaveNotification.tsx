@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { CloudArrowUp, CheckCircle, Warning } from "phosphor-react";
-import { type SaveState } from '../hooks/useAnnotationSave';
+import { type SaveState } from "../hooks/useAnnotationSave";
 
 interface SaveNotificationProps {
   saveState: SaveState;
@@ -99,10 +99,9 @@ export function SaveNotification({
               lineHeight: 1.4,
             }}
           >
-            {saveState.savedCount > 0 
+            {saveState.savedCount > 0
               ? `${saveState.savedCount} annotations have been saved to the blockchain.`
-              : "Your annotations are now stored on Sui blockchain."
-            }
+              : "Your annotations are now stored on Sui blockchain."}
           </Text>
           <Flex gap="2" style={{ marginTop: theme.spacing.semantic.component.xs }}>
             <Button
@@ -147,9 +146,7 @@ export function SaveNotification({
         <Flex direction="column" gap="3">
           <Flex align="center" gap="3">
             <Warning size={20} style={{ color: theme.colors.text.inverse }} />
-            <Text style={{ color: theme.colors.text.inverse, fontWeight: 600 }}>
-              Save Failed
-            </Text>
+            <Text style={{ color: theme.colors.text.inverse, fontWeight: 600 }}>Save Failed</Text>
           </Flex>
           <Text
             size="2"
@@ -199,4 +196,4 @@ export function SaveNotification({
 
   // No notification
   return null;
-} 
+}

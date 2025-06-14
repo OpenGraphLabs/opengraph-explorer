@@ -1,8 +1,8 @@
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Target, Trash } from "phosphor-react";
-import { AnnotationType, AnnotationData } from '../types/workspace';
-import { AnnotationItem } from './AnnotationItem';
+import { AnnotationType, AnnotationData } from "../types/workspace";
+import { AnnotationItem } from "./AnnotationItem";
 
 interface AnnotationListPanelProps {
   annotations: AnnotationData;
@@ -10,10 +10,17 @@ interface AnnotationListPanelProps {
   onClearAll: () => void;
 }
 
-export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAll }: AnnotationListPanelProps) {
+export function AnnotationListPanel({
+  annotations,
+  onDeleteAnnotation,
+  onClearAll,
+}: AnnotationListPanelProps) {
   const { theme } = useTheme();
 
-  const totalAnnotations = (annotations.labels?.length || 0) + (annotations.boundingBoxes?.length || 0) + (annotations.polygons?.length || 0);
+  const totalAnnotations =
+    (annotations.labels?.length || 0) +
+    (annotations.boundingBoxes?.length || 0) +
+    (annotations.polygons?.length || 0);
 
   return (
     <Box
@@ -74,7 +81,13 @@ export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAl
               padding: theme.spacing.semantic.component.md,
             }}
           >
-            <Target size={24} style={{ color: theme.colors.text.tertiary, marginBottom: theme.spacing.semantic.component.sm }} />
+            <Target
+              size={24}
+              style={{
+                color: theme.colors.text.tertiary,
+                marginBottom: theme.spacing.semantic.component.sm,
+              }}
+            />
             <Text
               as="p"
               size="2"
@@ -100,7 +113,7 @@ export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAl
         ) : (
           <Flex direction="column" gap="1">
             {/* Labels */}
-            {annotations.labels?.map((label) => (
+            {annotations.labels?.map(label => (
               <AnnotationItem
                 key={label.id}
                 type="label"
@@ -110,17 +123,12 @@ export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAl
             ))}
 
             {/* Bounding Boxes */}
-            {annotations.boundingBoxes?.map((bbox) => (
-              <AnnotationItem
-                key={bbox.id}
-                type="bbox"
-                data={bbox}
-                onDelete={onDeleteAnnotation}
-              />
+            {annotations.boundingBoxes?.map(bbox => (
+              <AnnotationItem key={bbox.id} type="bbox" data={bbox} onDelete={onDeleteAnnotation} />
             ))}
 
             {/* Polygons */}
-            {annotations.polygons?.map((polygon) => (
+            {annotations.polygons?.map(polygon => (
               <AnnotationItem
                 key={polygon.id}
                 type="segmentation"
@@ -164,4 +172,4 @@ export function AnnotationListPanel({ annotations, onDeleteAnnotation, onClearAl
       )}
     </Box>
   );
-} 
+}

@@ -1,11 +1,6 @@
-import { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-} from "@/shared/ui/design-system/components";
+import { useState, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/widgets/layout/AppLayout";
 import {
@@ -20,48 +15,59 @@ import {
   CheckCircle,
   Clock,
 } from "phosphor-react";
-import { useWorkspace } from '@/features/annotation/hooks/useWorkspace';
-import { ImageViewer } from '@/features/annotation/components/ImageViewer';
-import { AnnotationType } from '@/features/annotation/types/workspace';
-import { useChallenge } from '@/features/challenge';
-import { useChallengeDataset } from '@/features/challenge/hooks/useChallengeDataset';
-import { usePhaseConstraints } from '@/features/annotation';
+import { useWorkspace } from "@/features/annotation/hooks/useWorkspace";
+import { ImageViewer } from "@/features/annotation/components/ImageViewer";
+import { AnnotationType } from "@/features/annotation/types/workspace";
+import { useChallenge } from "@/features/challenge";
+import { useChallengeDataset } from "@/features/challenge/hooks/useChallengeDataset";
+import { usePhaseConstraints } from "@/features/annotation";
 
 // Import new modular components
-import { AnnotationSidebar } from '@/widgets/annotation-sidebar';
-import { AnnotationListPanel, InlineToolBar, AnnotationStackViewer, SaveNotification } from '@/features/annotation';
-import { WorkspaceStatusBar } from '@/features/workspace-controls';
-import { useAnnotationTools, useImageNavigation } from '@/features/annotation';
+import { AnnotationSidebar } from "@/widgets/annotation-sidebar";
+import {
+  AnnotationListPanel,
+  InlineToolBar,
+  AnnotationStackViewer,
+  SaveNotification,
+} from "@/features/annotation";
+import { WorkspaceStatusBar } from "@/features/workspace-controls";
+import { useAnnotationTools, useImageNavigation } from "@/features/annotation";
 
 export function AnnotationWorkspace() {
   const { challengeId } = useParams<{ challengeId: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [selectedAnnotation, setSelectedAnnotation] = useState<{type: AnnotationType, id: string} | null>(null);
-  
+  const [selectedAnnotation, setSelectedAnnotation] = useState<{
+    type: AnnotationType;
+    id: string;
+  } | null>(null);
+
   // Challenge data
-  const { challenge, loading: challengeLoading, error: challengeError } = useChallenge(challengeId || '');
-  
+  const {
+    challenge,
+    loading: challengeLoading,
+    error: challengeError,
+  } = useChallenge(challengeId || "");
+
   // Dataset integration - 실제 Dataset 이미지 사용
-  const { 
-    images: datasetImages, 
-    loading: datasetLoading, 
+  const {
+    images: datasetImages,
+    loading: datasetLoading,
     error: datasetError,
     progress: datasetProgress,
     isDatasetValidForChallenge,
-    datasetId
+    datasetId,
   } = useChallengeDataset(challenge);
-  
+
   // Phase constraints
-  const currentPhase = challenge?.currentPhase || 'label';
-  const { 
-    isToolAllowed, 
-    getDisallowedMessage, 
-    canAnnotate 
-  } = usePhaseConstraints(currentPhase);
-  
+  const currentPhase = challenge?.currentPhase || "label";
+  const { isToolAllowed, getDisallowedMessage, canAnnotate } = usePhaseConstraints(currentPhase);
+
   // Workspace state - Dataset 이미지 사용 (annotation stack 포함)
-  const { state, actions, annotationStack, saveStatus } = useWorkspace(datasetId || '', datasetImages);
+  const { state, actions, annotationStack, saveStatus } = useWorkspace(
+    datasetId || "",
+    datasetImages
+  );
 
   // Enhanced tool configuration with phase constraints
   const toolConfig = {
@@ -74,49 +80,54 @@ export function AnnotationWorkspace() {
   const { getToolConstraintMessage } = useAnnotationTools(toolConfig);
 
   // Custom tool change handler with phase constraints
-  const handleToolChange = useCallback((tool: AnnotationType) => {
-    if (!isToolAllowed(tool)) {
-      // Show constraint message instead of changing tool
-      return;
-    }
-    actions.setCurrentTool(tool);
-  }, [isToolAllowed, actions]);
-  
-  const {
-    currentImageIndex,
-    progress,
-    canGoNext,
-    canGoPrevious,
-    handleNext,
-    handlePrevious,
-  } = useImageNavigation({
-    images: datasetImages,
-    currentImage: state.currentImage,
-    onImageChange: (image) => {
-      // 이미지 변경 시 즉시 설정 (ImageViewer에서 자동 피팅 처리됨)
-      actions.setCurrentImage(image);
+  const handleToolChange = useCallback(
+    (tool: AnnotationType) => {
+      if (!isToolAllowed(tool)) {
+        // Show constraint message instead of changing tool
+        return;
+      }
+      actions.setCurrentTool(tool);
     },
-  });
+    [isToolAllowed, actions]
+  );
+
+  const { currentImageIndex, progress, canGoNext, canGoPrevious, handleNext, handlePrevious } =
+    useImageNavigation({
+      images: datasetImages,
+      currentImage: state.currentImage,
+      onImageChange: image => {
+        // 이미지 변경 시 즉시 설정 (ImageViewer에서 자동 피팅 처리됨)
+        actions.setCurrentImage(image);
+      },
+    });
 
   // Handle annotation selection
   const handleSelectAnnotation = useCallback((type: AnnotationType, id: string) => {
     setSelectedAnnotation({ type, id });
   }, []);
 
-  const handleDeleteAnnotation = useCallback((type: AnnotationType, id: string) => {
-    actions.deleteAnnotation(type, id);
-    if (selectedAnnotation?.type === type && selectedAnnotation?.id === id) {
-      setSelectedAnnotation(null);
-    }
-  }, [actions, selectedAnnotation]);
+  const handleDeleteAnnotation = useCallback(
+    (type: AnnotationType, id: string) => {
+      actions.deleteAnnotation(type, id);
+      if (selectedAnnotation?.type === type && selectedAnnotation?.id === id) {
+        setSelectedAnnotation(null);
+      }
+    },
+    [actions, selectedAnnotation]
+  );
 
   const handleClearAll = useCallback(() => {
-    state.annotations.labels?.forEach(label => handleDeleteAnnotation('label', label.id));
-    state.annotations.boundingBoxes?.forEach(bbox => handleDeleteAnnotation('bbox', bbox.id));
-    state.annotations.polygons?.forEach(polygon => handleDeleteAnnotation('segmentation', polygon.id));
+    state.annotations.labels?.forEach(label => handleDeleteAnnotation("label", label.id));
+    state.annotations.boundingBoxes?.forEach(bbox => handleDeleteAnnotation("bbox", bbox.id));
+    state.annotations.polygons?.forEach(polygon =>
+      handleDeleteAnnotation("segmentation", polygon.id)
+    );
   }, [state.annotations, handleDeleteAnnotation]);
 
-  const totalAnnotations = (state.annotations.labels?.length || 0) + (state.annotations.boundingBoxes?.length || 0) + (state.annotations.polygons?.length || 0);
+  const totalAnnotations =
+    (state.annotations.labels?.length || 0) +
+    (state.annotations.boundingBoxes?.length || 0) +
+    (state.annotations.polygons?.length || 0);
   const stackStats = annotationStack.stats;
 
   // Loading state - Dataset 로딩 포함
@@ -171,7 +182,7 @@ export function AnnotationWorkspace() {
               }}
             />
           </Box>
-          
+
           <Box style={{ textAlign: "center" }}>
             <Text
               size="4"
@@ -181,9 +192,9 @@ export function AnnotationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.xs,
               }}
             >
-              {challengeLoading ? 'Loading Challenge...' : 'Loading Dataset Images...'}
+              {challengeLoading ? "Loading Challenge..." : "Loading Dataset Images..."}
             </Text>
-            
+
             {datasetLoading && datasetProgress.total > 0 && (
               <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
                 <Text
@@ -257,7 +268,7 @@ export function AnnotationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.xs,
               }}
             >
-              {challengeError ? 'Challenge Not Found' : 'Dataset Loading Error'}
+              {challengeError ? "Challenge Not Found" : "Dataset Loading Error"}
             </Text>
             <Text
               size="2"
@@ -267,10 +278,12 @@ export function AnnotationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.md,
               }}
             >
-              {challengeError || datasetError || 'Dataset is not compatible with annotation challenges'}
+              {challengeError ||
+                datasetError ||
+                "Dataset is not compatible with annotation challenges"}
             </Text>
             <Button
-              onClick={() => navigate('/challenges')}
+              onClick={() => navigate("/challenges")}
               style={{
                 background: theme.colors.interactive.primary,
                 color: theme.colors.text.inverse,
@@ -385,7 +398,16 @@ export function AnnotationWorkspace() {
         text: `${totalAnnotations} Local • ${stackStats.total}/${annotationStack.maxSize} Stack`,
       },
       {
-        icon: <FloppyDisk size={10} style={{ color: state.unsavedChanges ? theme.colors.status.warning : theme.colors.status.success }} />,
+        icon: (
+          <FloppyDisk
+            size={10}
+            style={{
+              color: state.unsavedChanges
+                ? theme.colors.status.warning
+                : theme.colors.status.success,
+            }}
+          />
+        ),
         text: state.unsavedChanges ? "Unsaved Changes" : "All Saved",
       },
     ],
@@ -403,10 +425,10 @@ export function AnnotationWorkspace() {
           phaseConstraints={{
             currentPhase,
             isToolAllowed,
-            getDisallowedMessage
+            getDisallowedMessage,
           }}
         />
-        
+
         {/* Annotation Stack Viewer */}
         <AnnotationStackViewer
           stackState={annotationStack.state}
@@ -437,7 +459,11 @@ export function AnnotationWorkspace() {
             padding: theme.spacing.semantic.component.md,
           }}
         >
-          <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+          <Flex
+            justify="between"
+            align="center"
+            style={{ marginBottom: theme.spacing.semantic.component.sm }}
+          >
             <Flex align="center" gap="3">
               <Button
                 onClick={() => navigate(`/challenges/${challengeId}`)}
@@ -457,7 +483,7 @@ export function AnnotationWorkspace() {
                 <ArrowLeft size={14} />
                 Back
               </Button>
-              
+
               <Box>
                 <Flex align="center" gap="2">
                   <Text
@@ -467,38 +493,42 @@ export function AnnotationWorkspace() {
                       color: theme.colors.text.secondary,
                     }}
                   >
-                    Challenge: {challenge?.title || 'Loading...'}
+                    Challenge: {challenge?.title || "Loading..."}
                   </Text>
-                  
+
                   {/* Dataset 연동 상태 표시 */}
                   {datasetStatusIndicator}
-                  
+
                   {/* Compact Phase Indicator */}
                   {challenge && (
                     <Box
                       style={{
                         padding: "2px 8px",
-                        background: currentPhase === 'label' 
-                          ? `${theme.colors.status.info}15` 
-                          : currentPhase === 'bbox'
-                            ? `${theme.colors.status.warning}15`
-                            : currentPhase === 'segmentation'
-                              ? `${theme.colors.status.success}15`
-                              : `${theme.colors.interactive.accent}15`,
-                        color: currentPhase === 'label' 
-                          ? theme.colors.status.info
-                          : currentPhase === 'bbox'
-                            ? theme.colors.status.warning
-                            : currentPhase === 'segmentation'
-                              ? theme.colors.status.success
-                              : theme.colors.interactive.accent,
-                        border: `1px solid ${currentPhase === 'label' 
-                          ? theme.colors.status.info
-                          : currentPhase === 'bbox'
-                            ? theme.colors.status.warning
-                            : currentPhase === 'segmentation'
-                              ? theme.colors.status.success
-                              : theme.colors.interactive.accent}30`,
+                        background:
+                          currentPhase === "label"
+                            ? `${theme.colors.status.info}15`
+                            : currentPhase === "bbox"
+                              ? `${theme.colors.status.warning}15`
+                              : currentPhase === "segmentation"
+                                ? `${theme.colors.status.success}15`
+                                : `${theme.colors.interactive.accent}15`,
+                        color:
+                          currentPhase === "label"
+                            ? theme.colors.status.info
+                            : currentPhase === "bbox"
+                              ? theme.colors.status.warning
+                              : currentPhase === "segmentation"
+                                ? theme.colors.status.success
+                                : theme.colors.interactive.accent,
+                        border: `1px solid ${
+                          currentPhase === "label"
+                            ? theme.colors.status.info
+                            : currentPhase === "bbox"
+                              ? theme.colors.status.warning
+                              : currentPhase === "segmentation"
+                                ? theme.colors.status.success
+                                : theme.colors.interactive.accent
+                        }30`,
                         borderRadius: theme.borders.radius.full,
                         fontSize: "10px",
                         fontWeight: 700,
@@ -506,7 +536,7 @@ export function AnnotationWorkspace() {
                         letterSpacing: "0.5px",
                         cursor: "help",
                       }}
-                      title={`Current Phase: ${currentPhase}\n${canAnnotate ? `Available tools: ${isToolAllowed('label') ? 'Labels' : ''}${isToolAllowed('bbox') ? (isToolAllowed('label') ? ', ' : '') + 'BBoxes' : ''}${isToolAllowed('segmentation') ? (isToolAllowed('label') || isToolAllowed('bbox') ? ', ' : '') + 'Segmentation' : ''}` : 'Annotation is currently disabled'}`}
+                      title={`Current Phase: ${currentPhase}\n${canAnnotate ? `Available tools: ${isToolAllowed("label") ? "Labels" : ""}${isToolAllowed("bbox") ? (isToolAllowed("label") ? ", " : "") + "BBoxes" : ""}${isToolAllowed("segmentation") ? (isToolAllowed("label") || isToolAllowed("bbox") ? ", " : "") + "Segmentation" : ""}` : "Annotation is currently disabled"}`}
                     >
                       {currentPhase} Phase
                     </Box>
@@ -516,20 +546,26 @@ export function AnnotationWorkspace() {
             </Flex>
 
             <Flex align="center" gap="2">
-              <Text size="1" style={{ color: theme.colors.text.secondary, marginRight: theme.spacing.semantic.component.xs }}>
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.secondary,
+                  marginRight: theme.spacing.semantic.component.xs,
+                }}
+              >
                 {currentImageIndex + 1} / {datasetImages.length}
               </Text>
-              
+
               <Button
                 onClick={actions.saveToBlockchain}
                 disabled={!state.unsavedChanges && !annotationStack.state.hasItems}
                 style={{
                   background: saveStatus.state.isSaving
                     ? theme.colors.status.warning
-                    : (state.unsavedChanges || annotationStack.state.hasItems) 
+                    : state.unsavedChanges || annotationStack.state.hasItems
                       ? annotationStack.state.isFull
                         ? theme.colors.status.error
-                        : theme.colors.status.success 
+                        : theme.colors.status.success
                       : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
@@ -537,23 +573,26 @@ export function AnnotationWorkspace() {
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                   fontWeight: 600,
                   fontSize: "12px",
-                  cursor: (state.unsavedChanges || annotationStack.state.hasItems) && !saveStatus.state.isSaving ? "pointer" : "not-allowed",
+                  cursor:
+                    (state.unsavedChanges || annotationStack.state.hasItems) &&
+                    !saveStatus.state.isSaving
+                      ? "pointer"
+                      : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.xs,
                 }}
               >
                 <FloppyDisk size={14} />
-                {saveStatus.state.isSaving 
-                  ? 'Saving...' 
-                  : annotationStack.state.isFull 
-                    ? `Save ${stackStats.total} (Full!)` 
-                    : annotationStack.state.hasItems 
+                {saveStatus.state.isSaving
+                  ? "Saving..."
+                  : annotationStack.state.isFull
+                    ? `Save ${stackStats.total} (Full!)`
+                    : annotationStack.state.hasItems
                       ? `Save ${stackStats.total}`
-                      : 'Save'
-                }
+                      : "Save"}
               </Button>
-              
+
               <Button
                 style={{
                   background: "transparent",
@@ -609,16 +648,15 @@ export function AnnotationWorkspace() {
         />
 
         {/* Main Content */}
-        <Flex 
-          style={{ 
-            flex: 1, 
+        <Flex
+          style={{
+            flex: 1,
             overflow: "hidden",
             border: `1px solid ${theme.colors.border.primary}`,
-            borderTop: 'none',
+            borderTop: "none",
             borderRadius: `0 0 ${theme.borders.radius.md} ${theme.borders.radius.md}`,
           }}
         >
-
           {/* Center - Image Viewer */}
           <Box
             style={{
@@ -642,13 +680,13 @@ export function AnnotationWorkspace() {
                 isDrawing={state.isDrawing}
                 onZoomChange={actions.setZoom}
                 onPanChange={actions.setPanOffset}
-                onAddBoundingBox={(bbox) => {
-                  if (isToolAllowed('bbox')) {
+                onAddBoundingBox={bbox => {
+                  if (isToolAllowed("bbox")) {
                     actions.addBoundingBox(bbox);
                   }
                 }}
-                onAddPolygon={(polygon) => {
-                  if (isToolAllowed('segmentation')) {
+                onAddPolygon={polygon => {
+                  if (isToolAllowed("segmentation")) {
                     actions.addPolygon(polygon);
                   }
                 }}
@@ -685,13 +723,14 @@ export function AnnotationWorkspace() {
           unsavedChanges={state.unsavedChanges}
           constraintMessage={getToolConstraintMessage}
           currentPhase={currentPhase}
-          phaseConstraintMessage={!isToolAllowed(state.currentTool) 
-            ? getDisallowedMessage(state.currentTool)
-            : annotationStack.state.isFull
-              ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Save annotations to continue.`
-              : saveStatus.state.error
-                ? `Save error: ${saveStatus.state.error}`
-                : undefined
+          phaseConstraintMessage={
+            !isToolAllowed(state.currentTool)
+              ? getDisallowedMessage(state.currentTool)
+              : annotationStack.state.isFull
+                ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Save annotations to continue.`
+                : saveStatus.state.error
+                  ? `Save error: ${saveStatus.state.error}`
+                  : undefined
           }
         />
       </Box>
@@ -729,4 +768,4 @@ export function AnnotationWorkspace() {
       </style>
     </SidebarLayout>
   );
-} 
+}

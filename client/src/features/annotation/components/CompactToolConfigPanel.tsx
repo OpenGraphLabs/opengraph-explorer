@@ -1,7 +1,7 @@
 import { Box, Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Target, Circle, Info, CheckCircle } from "phosphor-react";
-import { ToolConfig } from '../types/annotation';
+import { ToolConfig } from "../types/annotation";
 
 interface CompactToolConfigPanelProps {
   config: ToolConfig;
@@ -12,29 +12,29 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
 
   const getStatusInfo = () => {
     switch (config.currentTool) {
-      case 'label':
+      case "label":
         return {
           icon: <Info size={16} style={{ color: theme.colors.status.info }} />,
-          title: 'Label Mode',
-          description: 'Add descriptive labels to the image',
+          title: "Label Mode",
+          description: "Add descriptive labels to the image",
           stats: `${config.existingLabels.length} labels created`,
           color: theme.colors.status.info,
         };
 
-      case 'bbox':
+      case "bbox":
         return {
           icon: <Target size={16} style={{ color: theme.colors.status.warning }} />,
-          title: 'Bounding Box Mode',
-          description: 'Draw boxes around labeled objects',
+          title: "Bounding Box Mode",
+          description: "Draw boxes around labeled objects",
           stats: `${config.boundingBoxes.length} boxes drawn`,
           color: theme.colors.status.warning,
         };
 
-      case 'segmentation':
+      case "segmentation":
         return {
           icon: <Circle size={16} style={{ color: theme.colors.status.success }} />,
-          title: 'Segmentation Mode',
-          description: 'Draw precise object boundaries',
+          title: "Segmentation Mode",
+          description: "Draw precise object boundaries",
           stats: `0 polygons created`, // TODO: add polygon count
           color: theme.colors.status.success,
         };
@@ -59,7 +59,7 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
       >
         Current Tool
       </Text>
-      
+
       <Box
         style={{
           padding: theme.spacing.semantic.component.md,
@@ -81,7 +81,7 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
             {statusInfo.title}
           </Text>
         </Flex>
-        
+
         <Text
           size="1"
           style={{
@@ -92,7 +92,7 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
         >
           {statusInfo.description}
         </Text>
-        
+
         <Badge
           style={{
             background: `${statusInfo.color}20`,
@@ -109,16 +109,19 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
       </Box>
 
       {/* Quick Status for Dependencies */}
-      {config.currentTool === 'bbox' && (
+      {config.currentTool === "bbox" && (
         <Box
           style={{
             padding: theme.spacing.semantic.component.sm,
-            background: config.existingLabels.length > 0 
-              ? `${theme.colors.status.success}10`
-              : `${theme.colors.status.warning}10`,
-            border: `1px solid ${config.existingLabels.length > 0 
-              ? theme.colors.status.success
-              : theme.colors.status.warning}30`,
+            background:
+              config.existingLabels.length > 0
+                ? `${theme.colors.status.success}10`
+                : `${theme.colors.status.warning}10`,
+            border: `1px solid ${
+              config.existingLabels.length > 0
+                ? theme.colors.status.success
+                : theme.colors.status.warning
+            }30`,
             borderRadius: theme.borders.radius.sm,
             marginBottom: theme.spacing.semantic.component.md,
           }}
@@ -133,30 +136,33 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
               size="1"
               style={{
                 fontWeight: 600,
-                color: config.existingLabels.length > 0 
-                  ? theme.colors.status.success
-                  : theme.colors.status.warning,
+                color:
+                  config.existingLabels.length > 0
+                    ? theme.colors.status.success
+                    : theme.colors.status.warning,
               }}
             >
-              {config.existingLabels.length > 0 
+              {config.existingLabels.length > 0
                 ? `Ready with ${config.existingLabels.length} labels`
-                : 'Need labels first'
-              }
+                : "Need labels first"}
             </Text>
           </Flex>
         </Box>
       )}
 
-      {config.currentTool === 'segmentation' && (
+      {config.currentTool === "segmentation" && (
         <Box
           style={{
             padding: theme.spacing.semantic.component.sm,
-            background: config.boundingBoxes.length > 0 
-              ? `${theme.colors.status.success}10`
-              : `${theme.colors.status.warning}10`,
-            border: `1px solid ${config.boundingBoxes.length > 0 
-              ? theme.colors.status.success
-              : theme.colors.status.warning}30`,
+            background:
+              config.boundingBoxes.length > 0
+                ? `${theme.colors.status.success}10`
+                : `${theme.colors.status.warning}10`,
+            border: `1px solid ${
+              config.boundingBoxes.length > 0
+                ? theme.colors.status.success
+                : theme.colors.status.warning
+            }30`,
             borderRadius: theme.borders.radius.sm,
             marginBottom: theme.spacing.semantic.component.md,
           }}
@@ -171,15 +177,15 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
               size="1"
               style={{
                 fontWeight: 600,
-                color: config.boundingBoxes.length > 0 
-                  ? theme.colors.status.success
-                  : theme.colors.status.warning,
+                color:
+                  config.boundingBoxes.length > 0
+                    ? theme.colors.status.success
+                    : theme.colors.status.warning,
               }}
             >
-              {config.boundingBoxes.length > 0 
+              {config.boundingBoxes.length > 0
                 ? `Ready with ${config.boundingBoxes.length} boxes`
-                : 'Need bounding boxes first'
-              }
+                : "Need bounding boxes first"}
             </Text>
           </Flex>
         </Box>
@@ -203,7 +209,7 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
         >
           Quick Tip
         </Text>
-        
+
         <Text
           size="1"
           style={{
@@ -211,11 +217,14 @@ export function CompactToolConfigPanel({ config }: CompactToolConfigPanelProps) 
             lineHeight: 1.3,
           }}
         >
-          {config.currentTool === 'label' && 'Use the floating panel above the image to add labels quickly'}
-          {config.currentTool === 'bbox' && 'Select a label from the bottom toolbar, then click and drag on the image'}
-          {config.currentTool === 'segmentation' && 'Select a bounding box from the bottom toolbar, then draw polygon points'}
+          {config.currentTool === "label" &&
+            "Use the floating panel above the image to add labels quickly"}
+          {config.currentTool === "bbox" &&
+            "Select a label from the bottom toolbar, then click and drag on the image"}
+          {config.currentTool === "segmentation" &&
+            "Select a bounding box from the bottom toolbar, then draw polygon points"}
         </Text>
       </Box>
     </Box>
   );
-} 
+}

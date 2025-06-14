@@ -1,1 +1,1 @@
-export { ValidationSidebar } from './ValidationSidebar'; 
+export { ValidationSidebar } from "./ValidationSidebar";

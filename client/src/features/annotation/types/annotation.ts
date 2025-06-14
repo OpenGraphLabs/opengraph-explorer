@@ -1,4 +1,4 @@
-import { AnnotationType } from './workspace';
+import { AnnotationType } from "./workspace";
 
 export interface AnnotationToolConfig {
   type: AnnotationType;
@@ -20,4 +20,4 @@ export interface ToolConfig {
     width: number;
     height: number;
   }>;
-} 
+}

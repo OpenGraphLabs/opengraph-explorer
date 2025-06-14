@@ -1,15 +1,8 @@
 import { Flex, Box, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { ViewControls } from '@/features/workspace-controls';
-import { ChallengePhase } from '@/features/challenge';
-import { 
-  Shield, 
-  CheckCircle, 
-  XCircle, 
-  Clock,
-  Target,
-  Eye
-} from "phosphor-react";
+import { ViewControls } from "@/features/workspace-controls";
+import { ChallengePhase } from "@/features/challenge";
+import { Shield, CheckCircle, XCircle, Clock, Target, Eye } from "phosphor-react";
 
 interface ValidationSidebarProps {
   currentPhase: ChallengePhase;
@@ -37,29 +30,39 @@ export function ValidationSidebar({
 
   const getPhaseColor = (phase: ChallengePhase) => {
     switch (phase) {
-      case 'label': return theme.colors.status.info;
-      case 'bbox': return theme.colors.status.warning;
-      case 'segmentation': return theme.colors.status.success;
-      default: return theme.colors.interactive.accent;
+      case "label":
+        return theme.colors.status.info;
+      case "bbox":
+        return theme.colors.status.warning;
+      case "segmentation":
+        return theme.colors.status.success;
+      default:
+        return theme.colors.interactive.accent;
     }
   };
 
   const getPhaseIcon = (phase: ChallengePhase) => {
     switch (phase) {
-      case 'label': return <Target size={14} />;
-      case 'bbox': return <Target size={14} />;
-      case 'segmentation': return <Target size={14} />;
-      default: return <Shield size={14} />;
+      case "label":
+        return <Target size={14} />;
+      case "bbox":
+        return <Target size={14} />;
+      case "segmentation":
+        return <Target size={14} />;
+      default:
+        return <Shield size={14} />;
     }
   };
 
-  const completionRate = validationProgress.total > 0 
-    ? (validationProgress.validated / validationProgress.total) * 100 
-    : 0;
+  const completionRate =
+    validationProgress.total > 0
+      ? (validationProgress.validated / validationProgress.total) * 100
+      : 0;
 
-  const approvalRate = validationProgress.validated > 0 
-    ? (validationProgress.approved / validationProgress.validated) * 100 
-    : 0;
+  const approvalRate =
+    validationProgress.validated > 0
+      ? (validationProgress.approved / validationProgress.validated) * 100
+      : 0;
 
   return (
     <Flex direction="column" gap="6" style={{ height: "100%" }}>
@@ -90,7 +93,7 @@ export function ValidationSidebar({
               textTransform: "capitalize",
             }}
           >
-            {currentPhase === 'bbox' ? 'Bounding Box' : currentPhase} Validation
+            {currentPhase === "bbox" ? "Bounding Box" : currentPhase} Validation
           </Text>
         </Flex>
 
@@ -293,7 +296,7 @@ export function ValidationSidebar({
         >
           View Controls
         </Text>
-        
+
         <ViewControls
           zoom={zoom}
           panOffset={panOffset}
@@ -303,4 +306,4 @@ export function ValidationSidebar({
       </Box>
     </Flex>
   );
-} 
+}

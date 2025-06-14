@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
-import { ChallengePhase } from '@/features/challenge';
-import { AnnotationType } from '../types/workspace';
-import { 
-  getPhaseConstraints, 
-  isToolAllowed, 
+import { useMemo } from "react";
+import { ChallengePhase } from "@/features/challenge";
+import { AnnotationType } from "../types/workspace";
+import {
+  getPhaseConstraints,
+  isToolAllowed,
   getDisallowedToolMessage,
   getNextAvailablePhase,
-  PhaseConstraints 
-} from '../utils/phaseConstraints';
+  PhaseConstraints,
+} from "../utils/phaseConstraints";
 
 export interface PhaseConstraintsHookResult {
   constraints: PhaseConstraints;
@@ -23,7 +23,7 @@ export interface PhaseConstraintsHookResult {
 export function usePhaseConstraints(currentPhase: ChallengePhase): PhaseConstraintsHookResult {
   const constraints = useMemo(() => getPhaseConstraints(currentPhase), [currentPhase]);
 
-  const allTools: AnnotationType[] = ['label', 'bbox', 'segmentation'];
+  const allTools: AnnotationType[] = ["label", "bbox", "segmentation"];
 
   const allowedTools = useMemo(() => {
     return allTools.filter(tool => isToolAllowed(currentPhase, tool));
@@ -45,6 +45,6 @@ export function usePhaseConstraints(currentPhase: ChallengePhase): PhaseConstrai
     canAnnotate,
     phaseMessage: constraints.message,
     allowedTools,
-    disallowedTools
+    disallowedTools,
   };
-} 
+}

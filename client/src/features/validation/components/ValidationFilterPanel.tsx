@@ -1,23 +1,9 @@
-import { useState } from 'react';
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Badge,
-} from "@/shared/ui/design-system/components";
+import { useState } from "react";
+import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import {
-  Funnel,
-  Star,
-  Clock,
-  User,
-  Sliders,
-  SortAscending,
-  SortDescending,
-} from "phosphor-react";
-import { PendingAnnotation } from '../types/validation';
-import { ChallengePhase } from '@/features/challenge';
+import { Funnel, Star, Clock, User, Sliders, SortAscending, SortDescending } from "phosphor-react";
+import { PendingAnnotation } from "../types/validation";
+import { ChallengePhase } from "@/features/challenge";
 
 interface ValidationFilterPanelProps {
   currentPhase: ChallengePhase;
@@ -28,9 +14,9 @@ interface ValidationFilterPanelProps {
 interface FilterOptions {
   qualityRange: [number, number];
   participantFilter: string[];
-  timeRange: 'all' | 'today' | 'week' | 'month';
-  sortBy: 'quality' | 'timestamp' | 'participant';
-  sortOrder: 'asc' | 'desc';
+  timeRange: "all" | "today" | "week" | "month";
+  sortBy: "quality" | "timestamp" | "participant";
+  sortOrder: "asc" | "desc";
 }
 
 export function ValidationFilterPanel({
@@ -42,15 +28,13 @@ export function ValidationFilterPanel({
   const [filters, setFilters] = useState<FilterOptions>({
     qualityRange: [0, 1],
     participantFilter: [],
-    timeRange: 'all',
-    sortBy: 'quality',
-    sortOrder: 'desc',
+    timeRange: "all",
+    sortBy: "quality",
+    sortOrder: "desc",
   });
 
   // Get unique participants
-  const uniqueParticipants = Array.from(
-    new Set(pendingAnnotations.map(a => a.participantId))
-  );
+  const uniqueParticipants = Array.from(new Set(pendingAnnotations.map(a => a.participantId)));
 
   // Quality distribution
   const qualityDistribution = {
@@ -70,24 +54,28 @@ export function ValidationFilterPanel({
     const newParticipants = filters.participantFilter.includes(participantId)
       ? filters.participantFilter.filter(p => p !== participantId)
       : [...filters.participantFilter, participantId];
-    
+
     const newFilters = { ...filters, participantFilter: newParticipants };
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
-  const handleTimeRangeChange = (timeRange: FilterOptions['timeRange']) => {
+  const handleTimeRangeChange = (timeRange: FilterOptions["timeRange"]) => {
     const newFilters = { ...filters, timeRange };
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
-  const handleSortChange = (sortBy: FilterOptions['sortBy'], sortOrder?: FilterOptions['sortOrder']) => {
-    const newFilters = { 
-      ...filters, 
+  const handleSortChange = (
+    sortBy: FilterOptions["sortBy"],
+    sortOrder?: FilterOptions["sortOrder"]
+  ) => {
+    const newFilters = {
+      ...filters,
       sortBy,
-      sortOrder: sortOrder || (filters.sortBy === sortBy ? 
-        (filters.sortOrder === 'asc' ? 'desc' : 'asc') : 'desc')
+      sortOrder:
+        sortOrder ||
+        (filters.sortBy === sortBy ? (filters.sortOrder === "asc" ? "desc" : "asc") : "desc"),
     };
     setFilters(newFilters);
     onFilterChange(newFilters);
@@ -97,9 +85,9 @@ export function ValidationFilterPanel({
     const resetFilters: FilterOptions = {
       qualityRange: [0, 1],
       participantFilter: [],
-      timeRange: 'all',
-      sortBy: 'quality',
-      sortOrder: 'desc',
+      timeRange: "all",
+      sortBy: "quality",
+      sortOrder: "desc",
     };
     setFilters(resetFilters);
     onFilterChange(resetFilters);
@@ -130,7 +118,7 @@ export function ValidationFilterPanel({
               Advanced Filters
             </Text>
           </Flex>
-          
+
           <Button
             onClick={resetFilters}
             style={{
@@ -164,7 +152,7 @@ export function ValidationFilterPanel({
             <Star size={10} />
             Quality Score Range
           </Text>
-          
+
           <Flex direction="column" gap="2">
             {/* Quality distribution */}
             <Flex align="center" gap="2" style={{ marginBottom: "8px" }}>
@@ -217,14 +205,18 @@ export function ValidationFilterPanel({
                 Poor: {qualityDistribution.poor}
               </Badge>
             </Flex>
-            
+
             {/* Quality preset buttons */}
             <Flex gap="1">
               <Button
                 onClick={() => handleQualityRangeChange(0.9, 1)}
                 style={{
-                  background: filters.qualityRange[0] >= 0.9 ? theme.colors.status.success : "transparent",
-                  color: filters.qualityRange[0] >= 0.9 ? theme.colors.text.inverse : theme.colors.status.success,
+                  background:
+                    filters.qualityRange[0] >= 0.9 ? theme.colors.status.success : "transparent",
+                  color:
+                    filters.qualityRange[0] >= 0.9
+                      ? theme.colors.text.inverse
+                      : theme.colors.status.success,
                   border: `1px solid ${theme.colors.status.success}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -239,8 +231,14 @@ export function ValidationFilterPanel({
               <Button
                 onClick={() => handleQualityRangeChange(0.7, 1)}
                 style={{
-                  background: filters.qualityRange[0] >= 0.7 ? theme.colors.interactive.primary : "transparent",
-                  color: filters.qualityRange[0] >= 0.7 ? theme.colors.text.inverse : theme.colors.interactive.primary,
+                  background:
+                    filters.qualityRange[0] >= 0.7
+                      ? theme.colors.interactive.primary
+                      : "transparent",
+                  color:
+                    filters.qualityRange[0] >= 0.7
+                      ? theme.colors.text.inverse
+                      : theme.colors.interactive.primary,
                   border: `1px solid ${theme.colors.interactive.primary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -255,8 +253,12 @@ export function ValidationFilterPanel({
               <Button
                 onClick={() => handleQualityRangeChange(0, 0.6)}
                 style={{
-                  background: filters.qualityRange[1] <= 0.6 ? theme.colors.status.warning : "transparent",
-                  color: filters.qualityRange[1] <= 0.6 ? theme.colors.text.inverse : theme.colors.status.warning,
+                  background:
+                    filters.qualityRange[1] <= 0.6 ? theme.colors.status.warning : "transparent",
+                  color:
+                    filters.qualityRange[1] <= 0.6
+                      ? theme.colors.text.inverse
+                      : theme.colors.status.warning,
                   border: `1px solid ${theme.colors.status.warning}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -288,12 +290,14 @@ export function ValidationFilterPanel({
             <User size={10} />
             Participants ({uniqueParticipants.length})
           </Text>
-          
+
           <Flex direction="column" gap="1" style={{ maxHeight: "120px", overflow: "auto" }}>
-            {uniqueParticipants.map((participantId) => {
+            {uniqueParticipants.map(participantId => {
               const isSelected = filters.participantFilter.includes(participantId);
-              const count = pendingAnnotations.filter(a => a.participantId === participantId).length;
-              
+              const count = pendingAnnotations.filter(
+                a => a.participantId === participantId
+              ).length;
+
               return (
                 <Button
                   key={participantId}
@@ -325,7 +329,9 @@ export function ValidationFilterPanel({
                   </Text>
                   <Badge
                     style={{
-                      background: isSelected ? theme.colors.background.card : `${theme.colors.text.tertiary}15`,
+                      background: isSelected
+                        ? theme.colors.background.card
+                        : `${theme.colors.text.tertiary}15`,
                       color: isSelected ? theme.colors.text.secondary : theme.colors.text.tertiary,
                       fontSize: "8px",
                       fontWeight: 600,
@@ -358,15 +364,21 @@ export function ValidationFilterPanel({
             <Clock size={10} />
             Time Range
           </Text>
-          
+
           <Flex gap="1">
-            {(['all', 'today', 'week', 'month'] as const).map((timeRange) => (
+            {(["all", "today", "week", "month"] as const).map(timeRange => (
               <Button
                 key={timeRange}
                 onClick={() => handleTimeRangeChange(timeRange)}
                 style={{
-                  background: filters.timeRange === timeRange ? theme.colors.interactive.accent : "transparent",
-                  color: filters.timeRange === timeRange ? theme.colors.text.inverse : theme.colors.text.secondary,
+                  background:
+                    filters.timeRange === timeRange
+                      ? theme.colors.interactive.accent
+                      : "transparent",
+                  color:
+                    filters.timeRange === timeRange
+                      ? theme.colors.text.inverse
+                      : theme.colors.text.secondary,
                   border: `1px solid ${theme.colors.border.primary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -377,7 +389,7 @@ export function ValidationFilterPanel({
                   textTransform: "capitalize",
                 }}
               >
-                {timeRange === 'all' ? 'All Time' : timeRange}
+                {timeRange === "all" ? "All Time" : timeRange}
               </Button>
             ))}
           </Flex>
@@ -399,15 +411,19 @@ export function ValidationFilterPanel({
             <Funnel size={10} />
             Sort By
           </Text>
-          
+
           <Flex gap="1">
-            {(['quality', 'timestamp', 'participant'] as const).map((sortBy) => (
+            {(["quality", "timestamp", "participant"] as const).map(sortBy => (
               <Button
                 key={sortBy}
                 onClick={() => handleSortChange(sortBy)}
                 style={{
-                  background: filters.sortBy === sortBy ? theme.colors.background.primary : "transparent",
-                  color: filters.sortBy === sortBy ? theme.colors.text.primary : theme.colors.text.secondary,
+                  background:
+                    filters.sortBy === sortBy ? theme.colors.background.primary : "transparent",
+                  color:
+                    filters.sortBy === sortBy
+                      ? theme.colors.text.primary
+                      : theme.colors.text.secondary,
                   border: `1px solid ${theme.colors.border.primary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -421,12 +437,11 @@ export function ValidationFilterPanel({
                   gap: "2px",
                 }}
               >
-                {sortBy === 'quality' ? 'Quality' : 
-                 sortBy === 'timestamp' ? 'Time' : 'Participant'}
-                
+                {sortBy === "quality" ? "Quality" : sortBy === "timestamp" ? "Time" : "Participant"}
+
                 {filters.sortBy === sortBy && (
                   <Box style={{ marginLeft: "2px" }}>
-                    {filters.sortOrder === 'desc' ? (
+                    {filters.sortOrder === "desc" ? (
                       <SortDescending size={8} />
                     ) : (
                       <SortAscending size={8} />
@@ -457,7 +472,7 @@ export function ValidationFilterPanel({
           >
             Filter Summary:
           </Text>
-          
+
           <Text
             size="1"
             style={{
@@ -471,4 +486,4 @@ export function ValidationFilterPanel({
       </Flex>
     </Box>
   );
-} 
+}

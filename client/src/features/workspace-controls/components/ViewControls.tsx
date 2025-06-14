@@ -1,11 +1,7 @@
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import {
-  MagnifyingGlassPlus,
-  MagnifyingGlassMinus,
-  ArrowsOut,
-} from "phosphor-react";
-import { useViewControls } from '../hooks/useViewControls';
+import { MagnifyingGlassPlus, MagnifyingGlassMinus, ArrowsOut } from "phosphor-react";
+import { useViewControls } from "../hooks/useViewControls";
 
 interface ViewControlsProps {
   zoom: number;
@@ -36,7 +32,7 @@ export function ViewControls({ zoom, panOffset, onZoomChange, onPanChange }: Vie
       >
         View Controls
       </Text>
-      
+
       <Flex gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
         <Button
           onClick={handleZoomIn}
@@ -93,7 +89,7 @@ export function ViewControls({ zoom, panOffset, onZoomChange, onPanChange }: Vie
           <ArrowsOut size={16} />
         </Button>
       </Flex>
-      
+
       <Text
         as="p"
         size="1"
@@ -107,4 +103,4 @@ export function ViewControls({ zoom, panOffset, onZoomChange, onPanChange }: Vie
       </Text>
     </Box>
   );
-} 
+}

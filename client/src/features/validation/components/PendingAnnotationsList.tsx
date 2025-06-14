@@ -1,27 +1,20 @@
-import { useState } from 'react';
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Button, 
-  Badge, 
-  Checkbox 
-} from "@/shared/ui/design-system/components";
+import { useState } from "react";
+import { Box, Flex, Text, Button, Badge, Checkbox } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Flag, 
-  Clock, 
+import {
+  CheckCircle,
+  XCircle,
+  Flag,
+  Clock,
   User,
   Tag,
   Target,
   Polygon,
   CaretDown,
-  CaretRight
+  CaretRight,
 } from "phosphor-react";
-import { PendingAnnotation, ValidationAction } from '../types/validation';
-import { AnnotationType } from '@/features/annotation/types/workspace';
+import { PendingAnnotation, ValidationAction } from "../types/validation";
+import { AnnotationType } from "@/features/annotation/types/workspace";
 
 interface PendingAnnotationsListProps {
   pendingAnnotations: PendingAnnotation[];
@@ -32,7 +25,7 @@ interface PendingAnnotationsListProps {
   onSelectAll: () => void;
   onClearSelection: () => void;
   onSetActive: (annotationId: string | null) => void;
-  onValidateSelected: (action: 'approve' | 'reject' | 'flag', reason?: string) => void;
+  onValidateSelected: (action: "approve" | "reject" | "flag", reason?: string) => void;
 }
 
 export function PendingAnnotationsList({
@@ -47,33 +40,46 @@ export function PendingAnnotationsList({
   onValidateSelected,
 }: PendingAnnotationsListProps) {
   const { theme } = useTheme();
-  const [expandedGroups, setExpandedGroups] = useState<Set<AnnotationType>>(new Set(['label', 'bbox', 'segmentation']));
-  const [reasonText, setReasonText] = useState('');
+  const [expandedGroups, setExpandedGroups] = useState<Set<AnnotationType>>(
+    new Set(["label", "bbox", "segmentation"])
+  );
+  const [reasonText, setReasonText] = useState("");
 
   // Group annotations by type
-  const groupedAnnotations = pendingAnnotations.reduce((groups, annotation) => {
-    if (!groups[annotation.type]) {
-      groups[annotation.type] = [];
-    }
-    groups[annotation.type].push(annotation);
-    return groups;
-  }, {} as Record<AnnotationType, PendingAnnotation[]>);
+  const groupedAnnotations = pendingAnnotations.reduce(
+    (groups, annotation) => {
+      if (!groups[annotation.type]) {
+        groups[annotation.type] = [];
+      }
+      groups[annotation.type].push(annotation);
+      return groups;
+    },
+    {} as Record<AnnotationType, PendingAnnotation[]>
+  );
 
   const getAnnotationIcon = (type: AnnotationType) => {
     switch (type) {
-      case 'label': return <Tag size={14} />;
-      case 'bbox': return <Target size={14} />;
-      case 'segmentation': return <Polygon size={14} />;
-      default: return <Tag size={14} />;
+      case "label":
+        return <Tag size={14} />;
+      case "bbox":
+        return <Target size={14} />;
+      case "segmentation":
+        return <Polygon size={14} />;
+      default:
+        return <Tag size={14} />;
     }
   };
 
   const getTypeColor = (type: AnnotationType) => {
     switch (type) {
-      case 'label': return theme.colors.status.info;
-      case 'bbox': return theme.colors.status.warning;
-      case 'segmentation': return theme.colors.status.success;
-      default: return theme.colors.text.secondary;
+      case "label":
+        return theme.colors.status.info;
+      case "bbox":
+        return theme.colors.status.warning;
+      case "segmentation":
+        return theme.colors.status.success;
+      default:
+        return theme.colors.text.secondary;
     }
   };
 
@@ -83,26 +89,26 @@ export function PendingAnnotationsList({
 
   const getAnnotationSummary = (annotation: PendingAnnotation) => {
     switch (annotation.type) {
-      case 'label':
+      case "label":
         if (annotation.data.labels && annotation.data.labels.length > 0) {
-          const labelTexts = annotation.data.labels.map(l => l.label).join(', ');
+          const labelTexts = annotation.data.labels.map(l => l.label).join(", ");
           return `${annotation.data.labels.length} labels: ${labelTexts}`;
         }
-        return 'Label annotation';
-      case 'bbox':
+        return "Label annotation";
+      case "bbox":
         if (annotation.data.boundingBoxes && annotation.data.boundingBoxes.length > 0) {
-          const bboxLabels = annotation.data.boundingBoxes.map(b => b.label).join(', ');
+          const bboxLabels = annotation.data.boundingBoxes.map(b => b.label).join(", ");
           return `${annotation.data.boundingBoxes.length} boxes: ${bboxLabels}`;
         }
-        return 'Bounding box annotation';
-      case 'segmentation':
+        return "Bounding box annotation";
+      case "segmentation":
         if (annotation.data.polygons && annotation.data.polygons.length > 0) {
-          const polygonLabels = annotation.data.polygons.map(p => p.label).join(', ');
+          const polygonLabels = annotation.data.polygons.map(p => p.label).join(", ");
           return `${annotation.data.polygons.length} regions: ${polygonLabels}`;
         }
-        return 'Segmentation annotation';
+        return "Segmentation annotation";
       default:
-        return 'Unknown annotation';
+        return "Unknown annotation";
     }
   };
 
@@ -116,7 +122,8 @@ export function PendingAnnotationsList({
     setExpandedGroups(newExpanded);
   };
 
-  const allSelected = pendingAnnotations.length > 0 && 
+  const allSelected =
+    pendingAnnotations.length > 0 &&
     pendingAnnotations.every(annotation => selectedAnnotations.has(annotation.id));
   const someSelected = selectedAnnotations.size > 0;
 
@@ -165,7 +172,7 @@ export function PendingAnnotationsList({
           <Flex align="center" gap="2">
             <Checkbox
               checked={allSelected}
-              onCheckedChange={(checked) => {
+              onCheckedChange={checked => {
                 if (checked) {
                   onSelectAll();
                 } else {
@@ -180,10 +187,7 @@ export function PendingAnnotationsList({
                 flex: 1,
               }}
             >
-              {selectedAnnotations.size > 0 
-                ? `${selectedAnnotations.size} selected`
-                : 'Select all'
-              }
+              {selectedAnnotations.size > 0 ? `${selectedAnnotations.size} selected` : "Select all"}
             </Text>
           </Flex>
 
@@ -191,7 +195,7 @@ export function PendingAnnotationsList({
           {selectedAnnotations.size > 0 && (
             <Flex gap="2">
               <Button
-                onClick={() => onValidateSelected('approve')}
+                onClick={() => onValidateSelected("approve")}
                 style={{
                   background: theme.colors.status.success,
                   color: theme.colors.text.inverse,
@@ -210,9 +214,9 @@ export function PendingAnnotationsList({
                 <CheckCircle size={12} />
                 Approve
               </Button>
-              
+
               <Button
-                onClick={() => onValidateSelected('reject', reasonText || 'Quality insufficient')}
+                onClick={() => onValidateSelected("reject", reasonText || "Quality insufficient")}
                 style={{
                   background: theme.colors.status.error,
                   color: theme.colors.text.inverse,
@@ -277,7 +281,11 @@ export function PendingAnnotationsList({
                   textAlign: "left",
                 }}
               >
-                {type === 'bbox' ? 'Bounding Boxes' : type === 'segmentation' ? 'Segmentation' : 'Labels'}
+                {type === "bbox"
+                  ? "Bounding Boxes"
+                  : type === "segmentation"
+                    ? "Segmentation"
+                    : "Labels"}
               </Text>
               <Badge
                 style={{
@@ -296,7 +304,7 @@ export function PendingAnnotationsList({
             {/* Annotations in group */}
             {expandedGroups.has(type as AnnotationType) && (
               <Box style={{ paddingLeft: theme.spacing.semantic.component.sm }}>
-                {annotations.map((annotation) => {
+                {annotations.map(annotation => {
                   const validationStatus = getValidationStatus(annotation.id);
                   const isSelected = selectedAnnotations.has(annotation.id);
                   const isActive = activeAnnotationId === annotation.id;
@@ -306,15 +314,13 @@ export function PendingAnnotationsList({
                       key={annotation.id}
                       onClick={() => onSetActive(isActive ? null : annotation.id)}
                       style={{
-                        background: isActive 
-                          ? theme.colors.interactive.primary + '10'
+                        background: isActive
+                          ? theme.colors.interactive.primary + "10"
                           : isSelected
                             ? theme.colors.background.secondary
                             : "transparent",
                         border: `1px solid ${
-                          isActive 
-                            ? theme.colors.interactive.primary + '40'
-                            : "transparent"
+                          isActive ? theme.colors.interactive.primary + "40" : "transparent"
                         }`,
                         borderRadius: theme.borders.radius.sm,
                         padding: theme.spacing.semantic.component.xs,
@@ -327,9 +333,9 @@ export function PendingAnnotationsList({
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => onToggleSelection(annotation.id)}
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={e => e.stopPropagation()}
                         />
-                        
+
                         <Box style={{ flex: 1, minWidth: 0 }}>
                           <Flex align="center" gap="2" style={{ marginBottom: "2px" }}>
                             <Text
@@ -345,22 +351,25 @@ export function PendingAnnotationsList({
                             >
                               {getAnnotationSummary(annotation)}
                             </Text>
-                            
+
                             {validationStatus && (
                               <Box>
-                                {validationStatus.action === 'approve' && (
-                                  <CheckCircle size={12} style={{ color: theme.colors.status.success }} />
+                                {validationStatus.action === "approve" && (
+                                  <CheckCircle
+                                    size={12}
+                                    style={{ color: theme.colors.status.success }}
+                                  />
                                 )}
-                                {validationStatus.action === 'reject' && (
+                                {validationStatus.action === "reject" && (
                                   <XCircle size={12} style={{ color: theme.colors.status.error }} />
                                 )}
-                                {validationStatus.action === 'flag' && (
+                                {validationStatus.action === "flag" && (
                                   <Flag size={12} style={{ color: theme.colors.status.warning }} />
                                 )}
                               </Box>
                             )}
                           </Flex>
-                          
+
                           <Flex align="center" gap="2">
                             <User size={10} style={{ color: theme.colors.text.tertiary }} />
                             <Text
@@ -395,4 +404,4 @@ export function PendingAnnotationsList({
       </Box>
     </Box>
   );
-} 
+}

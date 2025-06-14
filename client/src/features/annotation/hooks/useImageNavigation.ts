@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from "react";
 
-import { ImageData } from '../types/workspace.ts';
+import { ImageData } from "../types/workspace.ts";
 
 interface ImageNavigationProps {
   images: ImageData[];
@@ -37,11 +37,14 @@ export function useImageNavigation({ images, currentImage, onImageChange }: Imag
     }
   }, [canGoPrevious, currentImageIndex, images, onImageChange]);
 
-  const handleNavigate = useCallback((index: number) => {
-    if (images[index]) {
-      onImageChange(images[index]);
-    }
-  }, [images, onImageChange]);
+  const handleNavigate = useCallback(
+    (index: number) => {
+      if (images[index]) {
+        onImageChange(images[index]);
+      }
+    },
+    [images, onImageChange]
+  );
 
   return {
     currentImageIndex,
@@ -53,4 +56,4 @@ export function useImageNavigation({ images, currentImage, onImageChange }: Imag
     handleNavigate,
     totalImages: images.length,
   };
-} 
+}

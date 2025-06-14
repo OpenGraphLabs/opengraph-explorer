@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Challenge, ChallengeFilters, ChallengeStatus, ChallengePhase } from '../types/challenge';
-import { mockChallenges } from '../data/mockChallenges';
+import { useState, useEffect, useMemo } from "react";
+import { Challenge, ChallengeFilters, ChallengeStatus, ChallengePhase } from "../types/challenge";
+import { mockChallenges } from "../data/mockChallenges";
 
 // Simulate API delay
-const simulateApiDelay = (ms: number = 800) => 
-  new Promise(resolve => setTimeout(resolve, ms));
+const simulateApiDelay = (ms: number = 800) => new Promise(resolve => setTimeout(resolve, ms));
 
 export function useChallenges() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -13,13 +12,13 @@ export function useChallenges() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const [filters, setFilters] = useState<ChallengeFilters>({
-    status: 'all',
-    phase: 'all',
-    difficulty: 'all',
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
-    searchQuery: '',
-    tags: []
+    status: "all",
+    phase: "all",
+    difficulty: "all",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+    searchQuery: "",
+    tags: [],
   });
 
   // Fetch challenges (simulated API call)
@@ -27,14 +26,14 @@ export function useChallenges() {
     try {
       setLoading(true);
       setError(null);
-      
+
       await simulateApiDelay();
-      
+
       // Simulate API response
       setChallenges(mockChallenges);
       setIsLoaded(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch challenges');
+      setError(err instanceof Error ? err.message : "Failed to fetch challenges");
     } finally {
       setLoading(false);
     }
@@ -50,28 +49,29 @@ export function useChallenges() {
     let filtered = [...challenges];
 
     // Status filter
-    if (filters.status !== 'all') {
+    if (filters.status !== "all") {
       filtered = filtered.filter(challenge => challenge.status === filters.status);
     }
 
     // Phase filter
-    if (filters.phase !== 'all') {
+    if (filters.phase !== "all") {
       filtered = filtered.filter(challenge => challenge.currentPhase === filters.phase);
     }
 
     // Difficulty filter
-    if (filters.difficulty !== 'all') {
+    if (filters.difficulty !== "all") {
       filtered = filtered.filter(challenge => challenge.difficulty === filters.difficulty);
     }
 
     // Search query
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
-      filtered = filtered.filter(challenge => 
-        challenge.title.toLowerCase().includes(query) ||
-        challenge.description.toLowerCase().includes(query) ||
-        challenge.datasetName.toLowerCase().includes(query) ||
-        challenge.tags.some(tag => tag.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        challenge =>
+          challenge.title.toLowerCase().includes(query) ||
+          challenge.description.toLowerCase().includes(query) ||
+          challenge.datasetName.toLowerCase().includes(query) ||
+          challenge.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
 
@@ -88,19 +88,19 @@ export function useChallenges() {
       let bValue: any;
 
       switch (filters.sortBy) {
-        case 'createdAt':
+        case "createdAt":
           aValue = a.createdAt.getTime();
           bValue = b.createdAt.getTime();
           break;
-        case 'bounty':
+        case "bounty":
           aValue = a.bounty.totalAmount;
           bValue = b.bounty.totalAmount;
           break;
-        case 'participants':
+        case "participants":
           aValue = a.stats.totalParticipants;
           bValue = b.stats.totalParticipants;
           break;
-        case 'deadline':
+        case "deadline":
           aValue = a.timeline.endDate.getTime();
           bValue = b.timeline.endDate.getTime();
           break;
@@ -109,7 +109,7 @@ export function useChallenges() {
           bValue = b.createdAt.getTime();
       }
 
-      if (filters.sortOrder === 'asc') {
+      if (filters.sortOrder === "asc") {
         return aValue - bValue;
       } else {
         return bValue - aValue;
@@ -126,10 +126,7 @@ export function useChallenges() {
   };
 
   // Update specific filter
-  const updateFilter = <K extends keyof ChallengeFilters>(
-    key: K,
-    value: ChallengeFilters[K]
-  ) => {
+  const updateFilter = <K extends keyof ChallengeFilters>(key: K, value: ChallengeFilters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -137,9 +134,7 @@ export function useChallenges() {
   const toggleTag = (tag: string) => {
     setFilters(prev => ({
       ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter(t => t !== tag)
-        : [...prev.tags, tag]
+      tags: prev.tags.includes(tag) ? prev.tags.filter(t => t !== tag) : [...prev.tags, tag],
     }));
   };
 
@@ -151,13 +146,13 @@ export function useChallenges() {
   // Reset all filters
   const resetFilters = () => {
     setFilters({
-      status: 'all',
-      phase: 'all',
-      difficulty: 'all',
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-      searchQuery: '',
-      tags: []
+      status: "all",
+      phase: "all",
+      difficulty: "all",
+      sortBy: "createdAt",
+      sortOrder: "desc",
+      searchQuery: "",
+      tags: [],
     });
   };
 
@@ -174,14 +169,16 @@ export function useChallenges() {
   // Get trending challenges (high participation, recent)
   const getTrendingChallenges = () => {
     return challenges
-      .filter(challenge => challenge.status === 'active')
+      .filter(challenge => challenge.status === "active")
       .sort((a, b) => {
         // Weighted score: participants * recency * bounty
-        const aScore = a.stats.totalParticipants * 
-          (1 / ((Date.now() - a.createdAt.getTime()) / (1000 * 60 * 60 * 24))) * 
+        const aScore =
+          a.stats.totalParticipants *
+          (1 / ((Date.now() - a.createdAt.getTime()) / (1000 * 60 * 60 * 24))) *
           (a.bounty.totalAmount / 1000);
-        const bScore = b.stats.totalParticipants * 
-          (1 / ((Date.now() - b.createdAt.getTime()) / (1000 * 60 * 60 * 24))) * 
+        const bScore =
+          b.stats.totalParticipants *
+          (1 / ((Date.now() - b.createdAt.getTime()) / (1000 * 60 * 60 * 24))) *
           (b.bounty.totalAmount / 1000);
         return bScore - aScore;
       })
@@ -211,7 +208,7 @@ export function useChallenges() {
     getTrendingChallenges,
 
     // Refetch alias
-    refetch: fetchChallenges
+    refetch: fetchChallenges,
   };
 }
 
@@ -225,17 +222,17 @@ export function useChallenge(challengeId: string) {
     try {
       setLoading(true);
       setError(null);
-      
+
       await simulateApiDelay(400);
-      
+
       const foundChallenge = mockChallenges.find(c => c.id === challengeId);
       if (!foundChallenge) {
-        throw new Error('Challenge not found');
+        throw new Error("Challenge not found");
       }
-      
+
       setChallenge(foundChallenge);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch challenge');
+      setError(err instanceof Error ? err.message : "Failed to fetch challenge");
     } finally {
       setLoading(false);
     }
@@ -251,6 +248,6 @@ export function useChallenge(challengeId: string) {
     challenge,
     loading,
     error,
-    refetch: fetchChallenge
+    refetch: fetchChallenge,
   };
-} 
+}

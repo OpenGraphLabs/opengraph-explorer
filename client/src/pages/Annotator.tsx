@@ -521,15 +521,17 @@ export function Annotator() {
                       }}
                     >
                       {/* ImageViewer temporarily disabled for build fix */}
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        height: '400px',
-                        background: '#f0f0f0',
-                        color: '#666',
-                        fontSize: '14px'
-                      }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "400px",
+                          background: "#f0f0f0",
+                          color: "#666",
+                          fontSize: "14px",
+                        }}
+                      >
                         Image Viewer (temporarily disabled)
                       </div>
                     </Box>

@@ -1,11 +1,5 @@
-import { useState } from 'react';
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Badge,
-} from "@/shared/ui/design-system/components";
+import { useState } from "react";
+import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import {
   CheckCircle,
@@ -16,12 +10,12 @@ import {
   Sparkle,
   Lightning,
 } from "phosphor-react";
-import { PendingAnnotation } from '../types/validation';
+import { PendingAnnotation } from "../types/validation";
 
 interface ValidationQuickActionsProps {
   selectedCount: number;
   currentImageAnnotations: PendingAnnotation[];
-  onBulkValidation: (action: 'approve' | 'reject' | 'flag', reason?: string) => void;
+  onBulkValidation: (action: "approve" | "reject" | "flag", reason?: string) => void;
   onSelectAll: () => void;
   onClearSelection: () => void;
   className?: string;
@@ -37,19 +31,19 @@ export function ValidationQuickActions({
 }: ValidationQuickActionsProps) {
   const { theme } = useTheme();
   const [showReasonInput, setShowReasonInput] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const highQualityCount = currentImageAnnotations.filter(a => a.qualityScore >= 0.8).length;
   const needsReviewCount = currentImageAnnotations.filter(a => a.qualityScore < 0.6).length;
 
   const handleQuickApprove = () => {
-    onBulkValidation('approve');
+    onBulkValidation("approve");
   };
 
   const handleQuickReject = () => {
     if (showReasonInput && rejectionReason.trim()) {
-      onBulkValidation('reject', rejectionReason);
-      setRejectionReason('');
+      onBulkValidation("reject", rejectionReason);
+      setRejectionReason("");
       setShowReasonInput(false);
     } else {
       setShowReasonInput(true);
@@ -57,7 +51,7 @@ export function ValidationQuickActions({
   };
 
   const handleQuickFlag = () => {
-    onBulkValidation('flag', 'Flagged for additional review');
+    onBulkValidation("flag", "Flagged for additional review");
   };
 
   const handleSelectHighQuality = () => {
@@ -77,7 +71,7 @@ export function ValidationQuickActions({
         background: `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.secondary})`,
         borderBottom: `1px solid ${theme.colors.border.primary}`,
         padding: theme.spacing.semantic.component.md,
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
       }}
     >
       <Flex direction="column" gap="3">
@@ -96,7 +90,7 @@ export function ValidationQuickActions({
                 Quick Actions
               </Text>
             </Flex>
-            
+
             <Flex align="center" gap="2">
               <Badge
                 style={{
@@ -114,7 +108,7 @@ export function ValidationQuickActions({
                 <Sparkle size={8} />
                 {highQualityCount} High Quality
               </Badge>
-              
+
               {needsReviewCount > 0 && (
                 <Badge
                   style={{
@@ -190,19 +184,18 @@ export function ValidationQuickActions({
                   alignItems: "center",
                   gap: "6px",
                   flex: 1,
-                  boxShadow: '0 2px 6px rgba(16, 185, 129, 0.3)',
-                  transition: 'all 0.2s ease',
+                  boxShadow: "0 2px 6px rgba(16, 185, 129, 0.3)",
+                  transition: "all 0.2s ease",
                 }}
-
               >
                 <CheckCircle size={14} weight="fill" />
                 Approve {selectedCount}
               </Button>
-              
+
               <Button
                 onClick={handleQuickReject}
                 style={{
-                  background: showReasonInput 
+                  background: showReasonInput
                     ? `linear-gradient(135deg, ${theme.colors.status.warning}, ${theme.colors.status.warning}E0)`
                     : `linear-gradient(135deg, ${theme.colors.status.error}, ${theme.colors.status.error}E0)`,
                   color: theme.colors.text.inverse,
@@ -216,16 +209,16 @@ export function ValidationQuickActions({
                   alignItems: "center",
                   gap: "6px",
                   flex: 1,
-                  boxShadow: showReasonInput 
-                    ? '0 2px 6px rgba(245, 158, 11, 0.3)'
-                    : '0 2px 6px rgba(239, 68, 68, 0.3)',
-                  transition: 'all 0.2s ease',
+                  boxShadow: showReasonInput
+                    ? "0 2px 6px rgba(245, 158, 11, 0.3)"
+                    : "0 2px 6px rgba(239, 68, 68, 0.3)",
+                  transition: "all 0.2s ease",
                 }}
               >
                 <XCircle size={14} weight="fill" />
-                {showReasonInput ? 'Submit Rejection' : `Reject ${selectedCount}`}
+                {showReasonInput ? "Submit Rejection" : `Reject ${selectedCount}`}
               </Button>
-              
+
               <Button
                 onClick={handleQuickFlag}
                 style={{
@@ -240,8 +233,8 @@ export function ValidationQuickActions({
                   display: "flex",
                   alignItems: "center",
                   gap: "6px",
-                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.3)',
-                  transition: 'all 0.2s ease',
+                  boxShadow: "0 2px 6px rgba(245, 158, 11, 0.3)",
+                  transition: "all 0.2s ease",
                 }}
               >
                 <Flag size={14} weight="fill" />
@@ -256,9 +249,9 @@ export function ValidationQuickActions({
                   type="text"
                   placeholder="Enter rejection reason..."
                   value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && rejectionReason.trim()) {
+                  onChange={e => setRejectionReason(e.target.value)}
+                  onKeyPress={e => {
+                    if (e.key === "Enter" && rejectionReason.trim()) {
                       handleQuickReject();
                     }
                   }}
@@ -271,14 +264,14 @@ export function ValidationQuickActions({
                     color: theme.colors.text.primary,
                     fontSize: "12px",
                     outline: "none",
-                    transition: 'border-color 0.2s ease',
+                    transition: "border-color 0.2s ease",
                   }}
                   autoFocus
                 />
                 <Button
                   onClick={() => {
                     setShowReasonInput(false);
-                    setRejectionReason('');
+                    setRejectionReason("");
                   }}
                   style={{
                     background: "transparent",
@@ -314,7 +307,7 @@ export function ValidationQuickActions({
               >
                 Clear Selection
               </Button>
-              
+
               <Button
                 onClick={onSelectAll}
                 style={{
@@ -337,4 +330,4 @@ export function ValidationQuickActions({
       </Flex>
     </Box>
   );
-} 
+}

@@ -30,32 +30,32 @@ import { useNavigate } from "react-router-dom";
 // Challenge Status Badge Component
 function ChallengeStatusBadge({ status }: { status: ChallengeStatus }) {
   const { theme } = useTheme();
-  
+
   const statusConfig = {
-    active: { 
-      color: theme.colors.status.success, 
+    active: {
+      color: theme.colors.status.success,
       bg: `${theme.colors.status.success}15`,
-      text: 'Active' 
+      text: "Active",
     },
-    draft: { 
-      color: theme.colors.text.tertiary, 
+    draft: {
+      color: theme.colors.text.tertiary,
       bg: `${theme.colors.text.tertiary}15`,
-      text: 'Draft' 
+      text: "Draft",
     },
-    completed: { 
-      color: theme.colors.interactive.primary, 
+    completed: {
+      color: theme.colors.interactive.primary,
       bg: `${theme.colors.interactive.primary}15`,
-      text: 'Completed' 
+      text: "Completed",
     },
-    cancelled: { 
-      color: theme.colors.status.error, 
+    cancelled: {
+      color: theme.colors.status.error,
       bg: `${theme.colors.status.error}15`,
-      text: 'Cancelled' 
+      text: "Cancelled",
     },
-    validating: { 
-      color: theme.colors.status.warning, 
+    validating: {
+      color: theme.colors.status.warning,
       bg: `${theme.colors.status.warning}15`,
-      text: 'Validating' 
+      text: "Validating",
     },
   };
 
@@ -79,24 +79,24 @@ function ChallengeStatusBadge({ status }: { status: ChallengeStatus }) {
 }
 
 // Challenge Difficulty Badge
-function DifficultyBadge({ difficulty }: { difficulty: Challenge['difficulty'] }) {
+function DifficultyBadge({ difficulty }: { difficulty: Challenge["difficulty"] }) {
   const { theme } = useTheme();
-  
+
   const difficultyConfig = {
-    beginner: { 
-      color: theme.colors.status.success, 
+    beginner: {
+      color: theme.colors.status.success,
       icon: <Circle size={6} weight="fill" />,
-      text: 'Beginner'
+      text: "Beginner",
     },
-    intermediate: { 
-      color: theme.colors.status.warning, 
+    intermediate: {
+      color: theme.colors.status.warning,
       icon: <Star size={8} />,
-      text: 'Intermediate'
+      text: "Intermediate",
     },
-    advanced: { 
-      color: theme.colors.status.error, 
+    advanced: {
+      color: theme.colors.status.error,
       icon: <Fire size={8} />,
-      text: 'Advanced'
+      text: "Advanced",
     },
   };
 
@@ -117,13 +117,18 @@ function ChallengeCard({ challenge, index }: { challenge: Challenge; index: numb
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  const daysLeft = Math.max(0, Math.ceil(
-    (challenge.timeline.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  ));
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((challenge.timeline.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  );
 
-  const progressPercentage = challenge.stats.totalParticipants > 0 
-    ? Math.min(100, (challenge.stats.completedAnnotations / (challenge.stats.totalParticipants * 100)) * 100)
-    : 0;
+  const progressPercentage =
+    challenge.stats.totalParticipants > 0
+      ? Math.min(
+          100,
+          (challenge.stats.completedAnnotations / (challenge.stats.totalParticipants * 100)) * 100
+        )
+      : 0;
 
   return (
     <Box
@@ -139,19 +144,23 @@ function ChallengeCard({ challenge, index }: { challenge: Challenge; index: numb
         position: "relative",
         overflow: "hidden",
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         e.currentTarget.style.transform = "translateY(-2px)";
         e.currentTarget.style.boxShadow = theme.shadows.semantic.card.high;
         e.currentTarget.style.borderColor = theme.colors.interactive.primary;
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={e => {
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
         e.currentTarget.style.borderColor = theme.colors.border.primary;
       }}
     >
       {/* Header */}
-      <Flex justify="between" align="start" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+      <Flex
+        justify="between"
+        align="start"
+        style={{ marginBottom: theme.spacing.semantic.component.md }}
+      >
         <Box style={{ flex: 1 }}>
           <Text
             as="div"
@@ -174,20 +183,19 @@ function ChallengeCard({ challenge, index }: { challenge: Challenge; index: numb
               marginBottom: theme.spacing.semantic.component.sm,
             }}
           >
-            {challenge.description.length > 120 
+            {challenge.description.length > 120
               ? `${challenge.description.substring(0, 120)}...`
-              : challenge.description
-            }
+              : challenge.description}
           </Text>
         </Box>
         <ChallengeStatusBadge status={challenge.status} />
       </Flex>
 
       {/* Dataset Info */}
-      <Flex 
-        align="center" 
-        gap="2" 
-        style={{ 
+      <Flex
+        align="center"
+        gap="2"
+        style={{
           marginBottom: theme.spacing.semantic.component.md,
           padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
           background: theme.colors.background.secondary,
@@ -249,7 +257,7 @@ function ChallengeCard({ challenge, index }: { challenge: Challenge; index: numb
             </Text>
           </Flex>
           <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
-            {daysLeft > 0 ? `${daysLeft} days` : 'Ended'}
+            {daysLeft > 0 ? `${daysLeft} days` : "Ended"}
           </Text>
         </Flex>
 
@@ -288,7 +296,11 @@ function ChallengeCard({ challenge, index }: { challenge: Challenge; index: numb
       </Grid>
 
       {/* Tags & Difficulty */}
-      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+      <Flex
+        justify="between"
+        align="center"
+        style={{ marginBottom: theme.spacing.semantic.component.md }}
+      >
         <Flex gap="1" style={{ flexWrap: "wrap" }}>
           {challenge.tags.slice(0, 3).map((tag, idx) => (
             <Badge
@@ -349,7 +361,13 @@ function ChallengeCard({ challenge, index }: { challenge: Challenge; index: numb
 }
 
 // Filter Component
-function ChallengeFilters({ filters, onUpdateFilter, availableTags, onToggleTag, onClearTags }: any) {
+function ChallengeFilters({
+  filters,
+  onUpdateFilter,
+  availableTags,
+  onToggleTag,
+  onClearTags,
+}: any) {
   const { theme } = useTheme();
 
   return (
@@ -370,7 +388,7 @@ function ChallengeFilters({ filters, onUpdateFilter, availableTags, onToggleTag,
           type="text"
           placeholder="Search challenges..."
           value={filters.searchQuery}
-          onChange={(e) => onUpdateFilter('searchQuery', e.target.value)}
+          onChange={e => onUpdateFilter("searchQuery", e.target.value)}
           style={{
             width: "100%",
             padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -398,7 +416,7 @@ function ChallengeFilters({ filters, onUpdateFilter, availableTags, onToggleTag,
         </Text>
         <select
           value={filters.status}
-          onChange={(e) => onUpdateFilter('status', e.target.value)}
+          onChange={e => onUpdateFilter("status", e.target.value)}
           style={{
             width: "100%",
             padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -433,7 +451,7 @@ function ChallengeFilters({ filters, onUpdateFilter, availableTags, onToggleTag,
         </Text>
         <select
           value={filters.difficulty}
-          onChange={(e) => onUpdateFilter('difficulty', e.target.value)}
+          onChange={e => onUpdateFilter("difficulty", e.target.value)}
           style={{
             width: "100%",
             padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -455,7 +473,11 @@ function ChallengeFilters({ filters, onUpdateFilter, availableTags, onToggleTag,
       {/* Tags */}
       {availableTags.length > 0 && (
         <Box>
-          <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+          <Flex
+            justify="between"
+            align="center"
+            style={{ marginBottom: theme.spacing.semantic.component.sm }}
+          >
             <Text size="2" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
               Tags
             </Text>
@@ -685,7 +707,8 @@ export function Challenges() {
               color: theme.colors.text.primary,
             }}
           >
-            {filteredChallenges.length} {filteredChallenges.length === 1 ? "Challenge" : "Challenges"}
+            {filteredChallenges.length}{" "}
+            {filteredChallenges.length === 1 ? "Challenge" : "Challenges"}
           </Text>
         </Flex>
 
@@ -722,8 +745,11 @@ export function Challenges() {
                 gap: "4px",
               }}
             >
-              <MagnifyingGlass size={10} />
-              "{filters.searchQuery.length > 20 ? filters.searchQuery.substring(0, 20) + "..." : filters.searchQuery}"
+              <MagnifyingGlass size={10} />"
+              {filters.searchQuery.length > 20
+                ? filters.searchQuery.substring(0, 20) + "..."
+                : filters.searchQuery}
+              "
             </Badge>
           )}
 
@@ -752,7 +778,7 @@ export function Challenges() {
         </Text>
         <select
           value={filters.sortBy}
-          onChange={(e) => updateFilter('sortBy', e.target.value as any)}
+          onChange={e => updateFilter("sortBy", e.target.value as any)}
           style={{
             background: theme.colors.background.primary,
             border: `1px solid ${theme.colors.border.primary}`,
@@ -786,7 +812,7 @@ export function Challenges() {
     stats: [
       {
         icon: <Circle size={6} weight="fill" style={{ color: theme.colors.status.success }} />,
-        text: `${filteredChallenges.filter(c => c.status === 'active').length} Active`,
+        text: `${filteredChallenges.filter(c => c.status === "active").length} Active`,
       },
       {
         icon: <Lightning size={10} style={{ color: theme.colors.interactive.accent }} />,

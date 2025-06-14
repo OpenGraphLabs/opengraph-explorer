@@ -1,18 +1,11 @@
-import { useState, useMemo } from 'react';
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  Button, 
-  Badge, 
-  Checkbox 
-} from "@/shared/ui/design-system/components";
+import { useState, useMemo } from "react";
+import { Box, Flex, Text, Button, Badge, Checkbox } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Flag, 
-  Clock, 
+import {
+  CheckCircle,
+  XCircle,
+  Flag,
+  Clock,
   User,
   Tag,
   Target,
@@ -23,11 +16,11 @@ import {
   Warning,
   ShieldCheck,
   TrendUp,
-  Sparkle
+  Sparkle,
 } from "phosphor-react";
-import { PendingAnnotation, ValidationAction } from '../types/validation';
-import { AnnotationType } from '@/features/annotation/types/workspace';
-import { ChallengePhase } from '@/features/challenge';
+import { PendingAnnotation, ValidationAction } from "../types/validation";
+import { AnnotationType } from "@/features/annotation/types/workspace";
+import { ChallengePhase } from "@/features/challenge";
 
 interface EnhancedPendingAnnotationsListProps {
   pendingAnnotations: PendingAnnotation[];
@@ -38,12 +31,12 @@ interface EnhancedPendingAnnotationsListProps {
   onSelectAll: () => void;
   onClearSelection: () => void;
   onSetActive: (annotationId: string | null) => void;
-  onValidateSelected: (action: 'approve' | 'reject' | 'flag', reason?: string) => void;
+  onValidateSelected: (action: "approve" | "reject" | "flag", reason?: string) => void;
   currentPhase: ChallengePhase;
 }
 
-type SortBy = 'timestamp' | 'quality' | 'participant' | 'type';
-type FilterBy = 'all' | 'high-quality' | 'needs-review' | 'flagged';
+type SortBy = "timestamp" | "quality" | "participant" | "type";
+type FilterBy = "all" | "high-quality" | "needs-review" | "flagged";
 
 export function EnhancedPendingAnnotationsList({
   pendingAnnotations,
@@ -58,10 +51,12 @@ export function EnhancedPendingAnnotationsList({
   currentPhase,
 }: EnhancedPendingAnnotationsListProps) {
   const { theme } = useTheme();
-  const [expandedGroups, setExpandedGroups] = useState<Set<AnnotationType>>(new Set(['label', 'bbox', 'segmentation']));
-  const [reasonText, setReasonText] = useState('');
-  const [sortBy, setSortBy] = useState<SortBy>('quality');
-  const [filterBy, setFilterBy] = useState<FilterBy>('all');
+  const [expandedGroups, setExpandedGroups] = useState<Set<AnnotationType>>(
+    new Set(["label", "bbox", "segmentation"])
+  );
+  const [reasonText, setReasonText] = useState("");
+  const [sortBy, setSortBy] = useState<SortBy>("quality");
+  const [filterBy, setFilterBy] = useState<FilterBy>("all");
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   // Enhanced filtering and sorting
@@ -70,31 +65,31 @@ export function EnhancedPendingAnnotationsList({
 
     // Apply filters
     switch (filterBy) {
-      case 'high-quality':
+      case "high-quality":
         filtered = filtered.filter(a => a.qualityScore >= 0.8);
         break;
-      case 'needs-review':
+      case "needs-review":
         filtered = filtered.filter(a => a.qualityScore < 0.6 || a.validationCount === 0);
         break;
-      case 'flagged':
-        filtered = filtered.filter(a => 
-          validatedAnnotations.some(v => v.annotationId === a.id && v.action === 'flag')
+      case "flagged":
+        filtered = filtered.filter(a =>
+          validatedAnnotations.some(v => v.annotationId === a.id && v.action === "flag")
         );
         break;
     }
 
     // Apply sorting
     switch (sortBy) {
-      case 'quality':
+      case "quality":
         filtered.sort((a, b) => b.qualityScore - a.qualityScore);
         break;
-      case 'timestamp':
+      case "timestamp":
         filtered.sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime());
         break;
-      case 'participant':
+      case "participant":
         filtered.sort((a, b) => a.participantId.localeCompare(b.participantId));
         break;
-      case 'type':
+      case "type":
         filtered.sort((a, b) => a.type.localeCompare(b.type));
         break;
     }
@@ -104,38 +99,52 @@ export function EnhancedPendingAnnotationsList({
 
   // Group annotations by type
   const groupedAnnotations = useMemo(() => {
-    return filteredAndSortedAnnotations.reduce((groups, annotation) => {
-      if (!groups[annotation.type]) {
-        groups[annotation.type] = [];
-      }
-      groups[annotation.type].push(annotation);
-      return groups;
-    }, {} as Record<AnnotationType, PendingAnnotation[]>);
+    return filteredAndSortedAnnotations.reduce(
+      (groups, annotation) => {
+        if (!groups[annotation.type]) {
+          groups[annotation.type] = [];
+        }
+        groups[annotation.type].push(annotation);
+        return groups;
+      },
+      {} as Record<AnnotationType, PendingAnnotation[]>
+    );
   }, [filteredAndSortedAnnotations]);
 
   const getAnnotationIcon = (type: AnnotationType) => {
     switch (type) {
-      case 'label': return <Tag size={14} />;
-      case 'bbox': return <Target size={14} />;
-      case 'segmentation': return <Polygon size={14} />;
-      default: return <Tag size={14} />;
+      case "label":
+        return <Tag size={14} />;
+      case "bbox":
+        return <Target size={14} />;
+      case "segmentation":
+        return <Polygon size={14} />;
+      default:
+        return <Tag size={14} />;
     }
   };
 
   const getTypeColor = (type: AnnotationType) => {
     switch (type) {
-      case 'label': return theme.colors.status.info;
-      case 'bbox': return theme.colors.status.warning;
-      case 'segmentation': return theme.colors.status.success;
-      default: return theme.colors.text.secondary;
+      case "label":
+        return theme.colors.status.info;
+      case "bbox":
+        return theme.colors.status.warning;
+      case "segmentation":
+        return theme.colors.status.success;
+      default:
+        return theme.colors.text.secondary;
     }
   };
 
   const getQualityIndicator = (score: number) => {
-    if (score >= 0.9) return { icon: <Sparkle size={12} />, color: theme.colors.status.success, text: 'Excellent' };
-    if (score >= 0.7) return { icon: <Star size={12} />, color: theme.colors.interactive.primary, text: 'Good' };
-    if (score >= 0.5) return { icon: <Warning size={12} />, color: theme.colors.status.warning, text: 'Review' };
-    return { icon: <Flag size={12} />, color: theme.colors.status.error, text: 'Poor' };
+    if (score >= 0.9)
+      return { icon: <Sparkle size={12} />, color: theme.colors.status.success, text: "Excellent" };
+    if (score >= 0.7)
+      return { icon: <Star size={12} />, color: theme.colors.interactive.primary, text: "Good" };
+    if (score >= 0.5)
+      return { icon: <Warning size={12} />, color: theme.colors.status.warning, text: "Review" };
+    return { icon: <Flag size={12} />, color: theme.colors.status.error, text: "Poor" };
   };
 
   const getValidationStatus = (annotationId: string) => {
@@ -144,26 +153,26 @@ export function EnhancedPendingAnnotationsList({
 
   const getAnnotationSummary = (annotation: PendingAnnotation) => {
     switch (annotation.type) {
-      case 'label':
+      case "label":
         if (annotation.data.labels && annotation.data.labels.length > 0) {
-          const labelTexts = annotation.data.labels.map(l => l.label).join(', ');
+          const labelTexts = annotation.data.labels.map(l => l.label).join(", ");
           return `${annotation.data.labels.length} labels: ${labelTexts}`;
         }
-        return 'Label annotation';
-      case 'bbox':
+        return "Label annotation";
+      case "bbox":
         if (annotation.data.boundingBoxes && annotation.data.boundingBoxes.length > 0) {
-          const bboxLabels = annotation.data.boundingBoxes.map(b => b.label).join(', ');
+          const bboxLabels = annotation.data.boundingBoxes.map(b => b.label).join(", ");
           return `${annotation.data.boundingBoxes.length} boxes: ${bboxLabels}`;
         }
-        return 'Bounding box annotation';
-      case 'segmentation':
+        return "Bounding box annotation";
+      case "segmentation":
         if (annotation.data.polygons && annotation.data.polygons.length > 0) {
-          const polygonLabels = annotation.data.polygons.map(p => p.label).join(', ');
+          const polygonLabels = annotation.data.polygons.map(p => p.label).join(", ");
           return `${annotation.data.polygons.length} regions: ${polygonLabels}`;
         }
-        return 'Segmentation annotation';
+        return "Segmentation annotation";
       default:
-        return 'Unknown annotation';
+        return "Unknown annotation";
     }
   };
 
@@ -177,7 +186,8 @@ export function EnhancedPendingAnnotationsList({
     setExpandedGroups(newExpanded);
   };
 
-  const allSelected = filteredAndSortedAnnotations.length > 0 && 
+  const allSelected =
+    filteredAndSortedAnnotations.length > 0 &&
     filteredAndSortedAnnotations.every(annotation => selectedAnnotations.has(annotation.id));
   const someSelected = selectedAnnotations.size > 0;
 
@@ -249,7 +259,7 @@ export function EnhancedPendingAnnotationsList({
               </Text>
               <select
                 value={filterBy}
-                onChange={(e) => setFilterBy(e.target.value as FilterBy)}
+                onChange={e => setFilterBy(e.target.value as FilterBy)}
                 style={{
                   width: "100%",
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -267,7 +277,7 @@ export function EnhancedPendingAnnotationsList({
                 <option value="flagged">Flagged</option>
               </select>
             </Box>
-            
+
             <Box style={{ flex: 1 }}>
               <Text
                 size="1"
@@ -283,7 +293,7 @@ export function EnhancedPendingAnnotationsList({
               </Text>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortBy)}
+                onChange={e => setSortBy(e.target.value as SortBy)}
                 style={{
                   width: "100%",
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -307,7 +317,7 @@ export function EnhancedPendingAnnotationsList({
           <Flex align="center" gap="2">
             <Checkbox
               checked={allSelected}
-              onCheckedChange={(checked) => {
+              onCheckedChange={checked => {
                 if (checked) {
                   onSelectAll();
                 } else {
@@ -322,12 +332,9 @@ export function EnhancedPendingAnnotationsList({
                 flex: 1,
               }}
             >
-              {selectedAnnotations.size > 0 
-                ? `${selectedAnnotations.size} selected`
-                : 'Select all'
-              }
+              {selectedAnnotations.size > 0 ? `${selectedAnnotations.size} selected` : "Select all"}
             </Text>
-            
+
             {selectedAnnotations.size > 0 && (
               <Button
                 onClick={() => setShowBulkActions(!showBulkActions)}
@@ -353,7 +360,7 @@ export function EnhancedPendingAnnotationsList({
               <Flex gap="2">
                 <Button
                   onClick={() => {
-                    onValidateSelected('approve');
+                    onValidateSelected("approve");
                     setShowBulkActions(false);
                   }}
                   style={{
@@ -369,16 +376,16 @@ export function EnhancedPendingAnnotationsList({
                     alignItems: "center",
                     gap: "4px",
                     flex: 1,
-                    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)',
+                    boxShadow: "0 2px 4px rgba(16, 185, 129, 0.3)",
                   }}
                 >
                   <CheckCircle size={12} weight="fill" />
                   Approve
                 </Button>
-                
+
                 <Button
                   onClick={() => {
-                    onValidateSelected('reject', reasonText || 'Quality insufficient');
+                    onValidateSelected("reject", reasonText || "Quality insufficient");
                     setShowBulkActions(false);
                   }}
                   style={{
@@ -394,16 +401,16 @@ export function EnhancedPendingAnnotationsList({
                     alignItems: "center",
                     gap: "4px",
                     flex: 1,
-                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                    boxShadow: "0 2px 4px rgba(239, 68, 68, 0.3)",
                   }}
                 >
                   <XCircle size={12} weight="fill" />
                   Reject
                 </Button>
-                
+
                 <Button
                   onClick={() => {
-                    onValidateSelected('flag', 'Marked for further review');
+                    onValidateSelected("flag", "Marked for further review");
                     setShowBulkActions(false);
                   }}
                   style={{
@@ -418,20 +425,20 @@ export function EnhancedPendingAnnotationsList({
                     display: "flex",
                     alignItems: "center",
                     gap: "4px",
-                    boxShadow: '0 2px 4px rgba(245, 158, 11, 0.3)',
+                    boxShadow: "0 2px 4px rgba(245, 158, 11, 0.3)",
                   }}
                 >
                   <Flag size={12} weight="fill" />
                   Flag
                 </Button>
               </Flex>
-              
+
               {/* Quick reason input */}
               <input
                 type="text"
                 placeholder="Optional rejection reason..."
                 value={reasonText}
-                onChange={(e) => setReasonText(e.target.value)}
+                onChange={e => setReasonText(e.target.value)}
                 style={{
                   width: "100%",
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -492,7 +499,11 @@ export function EnhancedPendingAnnotationsList({
                   textAlign: "left",
                 }}
               >
-                {type === 'bbox' ? 'Bounding Boxes' : type === 'segmentation' ? 'Segmentation' : 'Labels'}
+                {type === "bbox"
+                  ? "Bounding Boxes"
+                  : type === "segmentation"
+                    ? "Segmentation"
+                    : "Labels"}
               </Text>
               <Badge
                 style={{
@@ -512,7 +523,7 @@ export function EnhancedPendingAnnotationsList({
             {/* Enhanced Annotations in Group */}
             {expandedGroups.has(type as AnnotationType) && (
               <Box style={{ paddingLeft: theme.spacing.semantic.component.sm }}>
-                {annotations.map((annotation) => {
+                {annotations.map(annotation => {
                   const validationStatus = getValidationStatus(annotation.id);
                   const isSelected = selectedAnnotations.has(annotation.id);
                   const isActive = activeAnnotationId === annotation.id;
@@ -523,20 +534,20 @@ export function EnhancedPendingAnnotationsList({
                       key={annotation.id}
                       onClick={() => onSetActive(isActive ? null : annotation.id)}
                       style={{
-                        background: isActive 
+                        background: isActive
                           ? `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.primary}08)`
                           : isSelected
                             ? theme.colors.background.secondary
                             : "transparent",
                         border: `2px solid ${
-                          isActive 
-                            ? theme.colors.interactive.primary + '60'
-                            : validationStatus?.action === 'approve'
-                              ? theme.colors.status.success + '40'
-                              : validationStatus?.action === 'reject'
-                                ? theme.colors.status.error + '40'
-                                : validationStatus?.action === 'flag'
-                                  ? theme.colors.status.warning + '40'
+                          isActive
+                            ? theme.colors.interactive.primary + "60"
+                            : validationStatus?.action === "approve"
+                              ? theme.colors.status.success + "40"
+                              : validationStatus?.action === "reject"
+                                ? theme.colors.status.error + "40"
+                                : validationStatus?.action === "flag"
+                                  ? theme.colors.status.warning + "40"
                                   : "transparent"
                         }`,
                         borderRadius: theme.borders.radius.md,
@@ -560,14 +571,14 @@ export function EnhancedPendingAnnotationsList({
                           borderRadius: "1px",
                         }}
                       />
-                      
+
                       <Flex align="start" gap="2">
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => onToggleSelection(annotation.id)}
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={e => e.stopPropagation()}
                         />
-                        
+
                         <Box style={{ flex: 1, minWidth: 0 }}>
                           <Flex align="center" gap="2" style={{ marginBottom: "4px" }}>
                             <Text
@@ -583,12 +594,10 @@ export function EnhancedPendingAnnotationsList({
                             >
                               {getAnnotationSummary(annotation)}
                             </Text>
-                            
+
                             {/* Quality indicator */}
                             <Flex align="center" gap="1">
-                              <Box style={{ color: quality.color }}>
-                                {quality.icon}
-                              </Box>
+                              <Box style={{ color: quality.color }}>{quality.icon}</Box>
                               <Text
                                 size="1"
                                 style={{
@@ -600,22 +609,25 @@ export function EnhancedPendingAnnotationsList({
                                 {Math.round(annotation.qualityScore * 100)}%
                               </Text>
                             </Flex>
-                            
+
                             {validationStatus && (
                               <Box>
-                                {validationStatus.action === 'approve' && (
-                                  <CheckCircle size={12} style={{ color: theme.colors.status.success }} />
+                                {validationStatus.action === "approve" && (
+                                  <CheckCircle
+                                    size={12}
+                                    style={{ color: theme.colors.status.success }}
+                                  />
                                 )}
-                                {validationStatus.action === 'reject' && (
+                                {validationStatus.action === "reject" && (
                                   <XCircle size={12} style={{ color: theme.colors.status.error }} />
                                 )}
-                                {validationStatus.action === 'flag' && (
+                                {validationStatus.action === "flag" && (
                                   <Flag size={12} style={{ color: theme.colors.status.warning }} />
                                 )}
                               </Box>
                             )}
                           </Flex>
-                          
+
                           <Flex align="center" gap="2" style={{ marginBottom: "4px" }}>
                             <User size={10} style={{ color: theme.colors.text.tertiary }} />
                             <Text
@@ -639,7 +651,7 @@ export function EnhancedPendingAnnotationsList({
                               {annotation.submittedAt.toLocaleDateString()}
                             </Text>
                           </Flex>
-                          
+
                           {/* Enhanced metadata */}
                           <Flex align="center" gap="2">
                             <Badge
@@ -656,7 +668,7 @@ export function EnhancedPendingAnnotationsList({
                             >
                               {quality.text}
                             </Badge>
-                            
+
                             {annotation.validationCount > 0 && (
                               <Badge
                                 style={{
@@ -668,7 +680,8 @@ export function EnhancedPendingAnnotationsList({
                                   borderRadius: theme.borders.radius.full,
                                 }}
                               >
-                                {annotation.validationCount}/{annotation.requiredValidations} validated
+                                {annotation.validationCount}/{annotation.requiredValidations}{" "}
+                                validated
                               </Badge>
                             )}
                           </Flex>
@@ -681,7 +694,7 @@ export function EnhancedPendingAnnotationsList({
             )}
           </Box>
         ))}
-        
+
         {filteredAndSortedAnnotations.length === 0 && (
           <Box
             style={{
@@ -702,4 +715,4 @@ export function EnhancedPendingAnnotationsList({
       </Box>
     </Box>
   );
-} 
+}

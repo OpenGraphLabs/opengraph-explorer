@@ -1,1 +1,1 @@
-export { AnnotationSidebar } from './AnnotationSidebar'; 
+export { AnnotationSidebar } from "./AnnotationSidebar";

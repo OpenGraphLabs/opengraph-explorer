@@ -1,8 +1,8 @@
 import { Flex } from "@/shared/ui/design-system/components";
-import { CompactToolConfigPanel } from '@/features/annotation';
-import { ViewControls } from '@/features/workspace-controls';
-import { AnnotationType } from '@/features/annotation/types/workspace';
-import { ChallengePhase } from '@/features/challenge';
+import { CompactToolConfigPanel } from "@/features/annotation";
+import { ViewControls } from "@/features/workspace-controls";
+import { AnnotationType } from "@/features/annotation/types/workspace";
+import { ChallengePhase } from "@/features/challenge";
 
 interface AnnotationSidebarProps {
   currentTool: AnnotationType;
@@ -47,9 +47,7 @@ export function AnnotationSidebar({
 
   return (
     <Flex direction="column" gap="4">
-      <CompactToolConfigPanel
-        config={toolConfig}
-      />
+      <CompactToolConfigPanel config={toolConfig} />
 
       <ViewControls
         zoom={zoom}
@@ -59,4 +57,4 @@ export function AnnotationSidebar({
       />
     </Flex>
   );
-} 
+}

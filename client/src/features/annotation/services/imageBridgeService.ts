@@ -1,6 +1,6 @@
-import { DatasetObject, DataObject } from '@/features/dataset/types';
-import { ImageData, AnnotationData } from '../types/workspace';
-import { WALRUS_AGGREGATOR_URL } from '@/shared/api/walrus/walrusService';
+import { DatasetObject, DataObject } from "@/features/dataset/types";
+import { ImageData, AnnotationData } from "../types/workspace";
+import { WALRUS_AGGREGATOR_URL } from "@/shared/api/walrus/walrusService";
 
 export interface ImageBridgeConfig {
   enableCache: boolean;
@@ -31,20 +31,20 @@ export class ImageBridgeService {
     }
 
     const images: ImageData[] = [];
-    
+
     // 고유한 blobId 추출 및 배치 처리
     const uniqueBlobIds = Array.from(new Set(dataset.data.map(item => item.blobId)));
-    
+
     for (const blobId of uniqueBlobIds) {
       await this.loadBlobIfNeeded(blobId);
-      
+
       // 같은 blobId를 참조하는 모든 데이터 처리
       const blobData = dataset.data.filter(item => item.blobId === blobId);
-      
+
       for (let i = 0; i < blobData.length; i++) {
         const dataItem = blobData[i];
         const imageData = await this.convertDataObjectToImage(dataItem, i, dataset.id);
-        
+
         if (imageData) {
           images.push(imageData);
         }
@@ -58,8 +58,8 @@ export class ImageBridgeService {
    * 개별 DataObject를 ImageData로 변환
    */
   private async convertDataObjectToImage(
-    dataItem: DataObject, 
-    index: number, 
+    dataItem: DataObject,
+    index: number,
     datasetId: string
   ): Promise<ImageData | null> {
     try {
@@ -96,14 +96,14 @@ export class ImageBridgeService {
     }
 
     try {
-      const walrusUrl = WALRUS_AGGREGATOR_URL || 'https://aggregator-testnet.walrus.space';
+      const walrusUrl = WALRUS_AGGREGATOR_URL || "https://aggregator-testnet.walrus.space";
       const response = await fetch(`${walrusUrl}/v1/blobs/${blobId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch blob: ${response.status}`);
       }
 
       const buffer = await response.arrayBuffer();
-      
+
       // 캐시 크기 관리
       if (this.blobCache.size >= this.config.maxCacheSize) {
         const firstKey = this.blobCache.keys().next().value;
@@ -111,7 +111,7 @@ export class ImageBridgeService {
           this.blobCache.delete(firstKey);
         }
       }
-      
+
       this.blobCache.set(blobId, buffer);
     } catch (error) {
       console.error(`Error loading blob ${blobId}:`, error);
@@ -124,7 +124,7 @@ export class ImageBridgeService {
    */
   private async generateImageUrl(dataItem: DataObject, index: number): Promise<string> {
     const cacheKey = `${dataItem.blobId}_${index}`;
-    
+
     if (this.imageUrlCache.has(cacheKey)) {
       return this.imageUrlCache.get(cacheKey)!;
     }
@@ -135,11 +135,11 @@ export class ImageBridgeService {
     }
 
     let imageBlob: Blob;
-    
+
     if (dataItem.range) {
       const start = parseInt(String(dataItem.range.start), 10);
       const end = parseInt(String(dataItem.range.end), 10) + 1;
-      
+
       if (!isNaN(start) && !isNaN(end) && start >= 0 && end <= buffer.byteLength && start < end) {
         const slice = buffer.slice(start, end);
         imageBlob = new Blob([slice], { type: dataItem.dataType });
@@ -153,7 +153,7 @@ export class ImageBridgeService {
 
     const url = URL.createObjectURL(imageBlob);
     this.imageUrlCache.set(cacheKey, url);
-    
+
     return url;
   }
 
@@ -167,7 +167,7 @@ export class ImageBridgeService {
         resolve({ width: img.naturalWidth, height: img.naturalHeight });
       };
       img.onerror = () => {
-        reject(new Error('Failed to load image for dimension detection'));
+        reject(new Error("Failed to load image for dimension detection"));
       };
       img.src = imageUrl;
     });
@@ -180,7 +180,7 @@ export class ImageBridgeService {
     const result: AnnotationData = {
       labels: [],
       boundingBoxes: [],
-      polygons: []
+      polygons: [],
     };
 
     annotations.forEach((annotation, index) => {
@@ -189,10 +189,10 @@ export class ImageBridgeService {
         result.labels.push({
           id: `label_${index}`,
           label: annotation.label,
-          confidence: annotation.confidence || 1.0
+          confidence: annotation.confidence || 1.0,
         });
       }
-      
+
       // BBox annotation
       if (annotation.label && annotation.boundingBox) {
         result.boundingBoxes.push({
@@ -202,7 +202,7 @@ export class ImageBridgeService {
           width: annotation.boundingBox.width,
           height: annotation.boundingBox.height,
           label: annotation.label,
-          confidence: annotation.confidence || 1.0
+          confidence: annotation.confidence || 1.0,
         });
       }
     });
@@ -214,7 +214,7 @@ export class ImageBridgeService {
    * 유틸리티 메서드들
    */
   private isImageDataset(dataset: DatasetObject): boolean {
-    return dataset.dataType.toLowerCase().includes('image');
+    return dataset.dataType.toLowerCase().includes("image");
   }
 
   private generateImageId(dataItem: DataObject, index: number): string {
@@ -222,7 +222,7 @@ export class ImageBridgeService {
   }
 
   private extractFilename(path: string): string {
-    return path.split('/').pop() || `image_${Date.now()}`;
+    return path.split("/").pop() || `image_${Date.now()}`;
   }
 
   /**
@@ -231,15 +231,15 @@ export class ImageBridgeService {
   cleanup(): void {
     // URL 정리
     this.imageUrlCache.forEach(url => {
-      if (url.startsWith('blob:')) {
+      if (url.startsWith("blob:")) {
         URL.revokeObjectURL(url);
       }
     });
-    
+
     this.imageUrlCache.clear();
     this.blobCache.clear();
   }
 }
 
 // 싱글톤 인스턴스
-export const imageBridgeService = new ImageBridgeService(); 
+export const imageBridgeService = new ImageBridgeService();

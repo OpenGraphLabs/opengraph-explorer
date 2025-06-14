@@ -1,12 +1,6 @@
-import { useState, useCallback, useEffect, Suspense, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Badge,
-} from "@/shared/ui/design-system/components";
+import { useState, useCallback, useEffect, Suspense, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import {
   ArrowLeft,
@@ -22,16 +16,16 @@ import {
   Play,
   Pause,
 } from "phosphor-react";
-import { useValidationWorkspace } from '@/features/validation/hooks/useValidationWorkspace';
-import { ImageViewer } from '@/features/annotation/components/ImageViewer';
-import { useChallenge } from '@/features/challenge';
-import { useChallengeDataset } from '@/features/challenge/hooks/useChallengeDataset';
+import { useValidationWorkspace } from "@/features/validation/hooks/useValidationWorkspace";
+import { ImageViewer } from "@/features/annotation/components/ImageViewer";
+import { useChallenge } from "@/features/challenge";
+import { useChallengeDataset } from "@/features/challenge/hooks/useChallengeDataset";
 
 export function ValidationWorkspace() {
   const { challengeId } = useParams<{ challengeId: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  
+
   // UI State
   const [currentLabelGroupIndex, setCurrentLabelGroupIndex] = useState(0);
   const [selectedAnnotationIds, setSelectedAnnotationIds] = useState<Set<string>>(new Set());
@@ -39,45 +33,46 @@ export function ValidationWorkspace() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [showAnnotationDetails, setShowAnnotationDetails] = useState(true);
-  
+
   // Challenge data
-  const { challenge, loading: challengeLoading, error: challengeError } = useChallenge(challengeId || '');
-  
+  const {
+    challenge,
+    loading: challengeLoading,
+    error: challengeError,
+  } = useChallenge(challengeId || "");
+
   // Dataset integration
-  const { 
-    images: datasetImages, 
-    loading: datasetLoading, 
-  } = useChallengeDataset(challenge);
+  const { images: datasetImages, loading: datasetLoading } = useChallengeDataset(challenge);
 
   // Fallback to mock images
   const mockImages = [
-      {
-          id: '1',
-          url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop',
-          filename: 'street_scene_01.jpg',
-          width: 800,
-          height: 600,
-          completed: false,
-          skipped: false,
-          annotations: { labels: [], boundingBoxes: [], polygons: [] }
-      },
-      {
-          id: '2',
-          url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-          filename: 'city_traffic_02.jpg',
-          width: 800,
-          height: 600,
-          completed: false,
-          skipped: false,
-          annotations: { labels: [], boundingBoxes: [], polygons: [] }
-      }
+    {
+      id: "1",
+      url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop",
+      filename: "street_scene_01.jpg",
+      width: 800,
+      height: 600,
+      completed: false,
+      skipped: false,
+      annotations: { labels: [], boundingBoxes: [], polygons: [] },
+    },
+    {
+      id: "2",
+      url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop",
+      filename: "city_traffic_02.jpg",
+      width: 800,
+      height: 600,
+      completed: false,
+      skipped: false,
+      annotations: { labels: [], boundingBoxes: [], polygons: [] },
+    },
   ];
   // const effectiveImages = datasetImages.length > 0 ? datasetImages : mockImages;
-    const effectiveImages = mockImages;
-  
+  const effectiveImages = mockImages;
+
   // Validation workspace state
-  const { state, actions } = useValidationWorkspace(challengeId || '', effectiveImages);
-  
+  const { state, actions } = useValidationWorkspace(challengeId || "", effectiveImages);
+
   // Memoize action functions to prevent infinite loops
   const initializeSession = useCallback((phase: string) => {
     actions.initializeSession(phase as any);
@@ -86,143 +81,145 @@ export function ValidationWorkspace() {
   const setCurrentImage = useCallback((image: any) => {
     actions.setCurrentImage(image);
   }, []);
-  
+
   // Get current phase annotations for validation
-  const currentPhaseAnnotations = state.validationSession?.pendingAnnotations.filter(
-    annotation => {
+  const currentPhaseAnnotations =
+    state.validationSession?.pendingAnnotations.filter(annotation => {
       switch (state.currentPhase) {
-        case 'label':
-          return annotation.type === 'label';
-        case 'bbox':
-          return annotation.type === 'bbox';
-        case 'segmentation':
-          return annotation.type === 'segmentation';
+        case "label":
+          return annotation.type === "label";
+        case "bbox":
+          return annotation.type === "bbox";
+        case "segmentation":
+          return annotation.type === "segmentation";
         default:
           return true;
       }
-    }
-  ) || [];
+    }) || [];
 
   // Group individual bbox/label/polygon items by their label
   const annotationGroups = useMemo(() => {
-    const groups: Record<string, {
-      label: string;
-      items: Array<{
-        annotationId: string;
-        annotation: typeof currentPhaseAnnotations[0];
-        itemId: string;
-        itemData: any;
-      }>;
-      imageId: string;
-    }> = {};
-    
+    const groups: Record<
+      string,
+      {
+        label: string;
+        items: Array<{
+          annotationId: string;
+          annotation: (typeof currentPhaseAnnotations)[0];
+          itemId: string;
+          itemData: any;
+        }>;
+        imageId: string;
+      }
+    > = {};
+
     currentPhaseAnnotations.forEach(annotation => {
-      if (annotation.type === 'label') {
+      if (annotation.type === "label") {
         // For label annotations, create group for each individual label
-        annotation.data.labels?.forEach((labelItem) => {
-          const groupKey = labelItem.label || 'unlabeled';
-          
+        annotation.data.labels?.forEach(labelItem => {
+          const groupKey = labelItem.label || "unlabeled";
+
           if (!groups[groupKey]) {
             groups[groupKey] = {
               label: groupKey,
               items: [],
-              imageId: annotation.dataId
+              imageId: annotation.dataId,
             };
           }
-          
+
           groups[groupKey].items.push({
             annotationId: annotation.id,
             annotation,
             itemId: labelItem.id,
-            itemData: labelItem
+            itemData: labelItem,
           });
         });
-      } else if (annotation.type === 'bbox') {
+      } else if (annotation.type === "bbox") {
         // For bbox annotations, create group for each individual bbox
-        annotation.data.boundingBoxes?.forEach((bboxItem) => {
-          const groupKey = bboxItem.label || 'unlabeled';
-          
+        annotation.data.boundingBoxes?.forEach(bboxItem => {
+          const groupKey = bboxItem.label || "unlabeled";
+
           if (!groups[groupKey]) {
             groups[groupKey] = {
               label: groupKey,
               items: [],
-              imageId: annotation.dataId
+              imageId: annotation.dataId,
             };
           }
-          
+
           groups[groupKey].items.push({
             annotationId: annotation.id,
             annotation,
             itemId: bboxItem.id,
-            itemData: bboxItem
+            itemData: bboxItem,
           });
         });
-      } else if (annotation.type === 'segmentation') {
+      } else if (annotation.type === "segmentation") {
         // For segmentation annotations, create group for each individual polygon
-        annotation.data.polygons?.forEach((polygonItem) => {
-          const groupKey = polygonItem.label || 'unlabeled';
-          
+        annotation.data.polygons?.forEach(polygonItem => {
+          const groupKey = polygonItem.label || "unlabeled";
+
           if (!groups[groupKey]) {
             groups[groupKey] = {
               label: groupKey,
               items: [],
-              imageId: annotation.dataId
+              imageId: annotation.dataId,
             };
           }
-          
+
           groups[groupKey].items.push({
             annotationId: annotation.id,
             annotation,
             itemId: polygonItem.id,
-            itemData: polygonItem
+            itemData: polygonItem,
           });
         });
       }
     });
-    
+
     return Object.values(groups);
   }, [currentPhaseAnnotations]);
 
   // Current label group and items
   const currentLabelGroup = annotationGroups[currentLabelGroupIndex];
   const currentGroupItems = currentLabelGroup?.items || [];
-  
+
   // Find current image - try multiple strategies
   const currentImage = useMemo(() => {
     if (!currentLabelGroup) {
-      console.log('No current label group, using first image:', effectiveImages[0]);
+      console.log("No current label group, using first image:", effectiveImages[0]);
       return effectiveImages[0];
     }
-    
-    console.log('Finding image for label group:', {
+
+    console.log("Finding image for label group:", {
       groupLabel: currentLabelGroup.label,
       groupImageId: currentLabelGroup.imageId,
       availableImageIds: effectiveImages.map(img => img.id),
-      availableImageUrls: effectiveImages.map(img => img.url)
+      availableImageUrls: effectiveImages.map(img => img.url),
     });
-    
+
     // First, try to find by exact ID match
     let image = effectiveImages.find(img => img.id === currentLabelGroup.imageId);
-    
+
     // If not found, try to find by annotation's imageUrl
     if (!image && currentGroupItems.length > 0) {
       const firstAnnotation = currentGroupItems[0].annotation;
-      console.log('Trying to find by annotation imageUrl:', firstAnnotation.imageUrl);
+      console.log("Trying to find by annotation imageUrl:", firstAnnotation.imageUrl);
       if (firstAnnotation.imageUrl) {
         image = effectiveImages.find(img => img.url === firstAnnotation.imageUrl);
       }
     }
-    
+
     // If still not found, use the first image
     if (!image) {
-      console.log('No matching image found, using first image');
+      console.log("No matching image found, using first image");
       image = effectiveImages[0];
     }
-    
-    console.log('Selected image:', image);
+
+    console.log("Selected image:", image);
     return image;
   }, [currentLabelGroup, currentGroupItems, effectiveImages]);
-  
+
   // Navigation handlers
   const handleNextLabelGroup = useCallback(() => {
     if (currentLabelGroupIndex < annotationGroups.length - 1) {
@@ -230,7 +227,7 @@ export function ValidationWorkspace() {
       setSelectedAnnotationIds(new Set()); // Clear selections when moving to next group
     }
   }, [currentLabelGroupIndex, annotationGroups.length]);
-  
+
   const handlePreviousLabelGroup = useCallback(() => {
     if (currentLabelGroupIndex > 0) {
       setCurrentLabelGroupIndex(prev => prev - 1);
@@ -258,43 +255,52 @@ export function ValidationWorkspace() {
   const clearAllSelections = useCallback(() => {
     setSelectedAnnotationIds(new Set());
   }, []);
-  
-
 
   // Bulk validation handler
-  const handleBulkValidation = useCallback(async (action: 'approve' | 'reject' | 'flag', reason?: string) => {
-    if (selectedAnnotationIds.size === 0 || isValidating) return;
-    
-    setIsValidating(true);
-    try {
-      const promises = Array.from(selectedAnnotationIds).map(id =>
-        actions.validateAnnotation(id, action, reason)
-      );
-      await Promise.all(promises);
-      
-      // Clear selections after validation
-      setSelectedAnnotationIds(new Set());
-      
-      // Auto advance if enabled and not the last group
-      if (autoAdvance && currentLabelGroupIndex < annotationGroups.length - 1) {
-        setTimeout(() => {
-          handleNextLabelGroup();
+  const handleBulkValidation = useCallback(
+    async (action: "approve" | "reject" | "flag", reason?: string) => {
+      if (selectedAnnotationIds.size === 0 || isValidating) return;
+
+      setIsValidating(true);
+      try {
+        const promises = Array.from(selectedAnnotationIds).map(id =>
+          actions.validateAnnotation(id, action, reason)
+        );
+        await Promise.all(promises);
+
+        // Clear selections after validation
+        setSelectedAnnotationIds(new Set());
+
+        // Auto advance if enabled and not the last group
+        if (autoAdvance && currentLabelGroupIndex < annotationGroups.length - 1) {
+          setTimeout(() => {
+            handleNextLabelGroup();
+            setIsValidating(false);
+          }, 500);
+        } else {
           setIsValidating(false);
-        }, 500);
-      } else {
+        }
+      } catch (error) {
+        console.error("Bulk validation failed:", error);
         setIsValidating(false);
       }
-    } catch (error) {
-      console.error('Bulk validation failed:', error);
-      setIsValidating(false);
-    }
-  }, [selectedAnnotationIds, isValidating, actions, autoAdvance, currentLabelGroupIndex, annotationGroups.length, handleNextLabelGroup]);
+    },
+    [
+      selectedAnnotationIds,
+      isValidating,
+      actions,
+      autoAdvance,
+      currentLabelGroupIndex,
+      annotationGroups.length,
+      handleNextLabelGroup,
+    ]
+  );
 
   // Initialize validation session
   useEffect(() => {
     if (challenge && effectiveImages.length > 0 && !state.validationSession) {
-      console.log('Initializing validation session with phase:', challenge.currentPhase || 'bbox');
-      initializeSession(challenge.currentPhase || 'bbox');
+      console.log("Initializing validation session with phase:", challenge.currentPhase || "bbox");
+      initializeSession(challenge.currentPhase || "bbox");
     }
   }, [challenge, effectiveImages.length, state.validationSession]);
 
@@ -309,59 +315,69 @@ export function ValidationWorkspace() {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (isValidating) return;
-      
+
       // Ignore if typing in input fields
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
-      
+
       switch (event.key.toLowerCase()) {
-        case 'a':
+        case "a":
           event.preventDefault();
-          handleBulkValidation('approve');
+          handleBulkValidation("approve");
           break;
-        case 'r':
+        case "r":
           event.preventDefault();
-          handleBulkValidation('reject');
+          handleBulkValidation("reject");
           break;
-        case 'f':
+        case "f":
           event.preventDefault();
-          handleBulkValidation('flag');
+          handleBulkValidation("flag");
           break;
-        case 'arrowright':
+        case "arrowright":
           event.preventDefault();
           handleNextLabelGroup();
           break;
-        case 'arrowleft':
+        case "arrowleft":
           event.preventDefault();
           handlePreviousLabelGroup();
           break;
-        case ' ':
+        case " ":
           event.preventDefault();
           setAutoAdvance(!autoAdvance);
           break;
-        case 's':
+        case "s":
           event.preventDefault();
           selectAllItems();
           break;
-        case 'c':
+        case "c":
           event.preventDefault();
           clearAllSelections();
           break;
-        case 'h':
+        case "h":
           event.preventDefault();
           setShowKeyboardShortcuts(!showKeyboardShortcuts);
           break;
-        case 'd':
+        case "d":
           event.preventDefault();
           setShowAnnotationDetails(!showAnnotationDetails);
           break;
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isValidating, handleBulkValidation, handleNextLabelGroup, handlePreviousLabelGroup, autoAdvance, showKeyboardShortcuts, showAnnotationDetails, selectAllItems, clearAllSelections]);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [
+    isValidating,
+    handleBulkValidation,
+    handleNextLabelGroup,
+    handlePreviousLabelGroup,
+    autoAdvance,
+    showKeyboardShortcuts,
+    showAnnotationDetails,
+    selectAllItems,
+    clearAllSelections,
+  ]);
 
   // Loading state
   if (challengeLoading || datasetLoading) {
@@ -410,7 +426,7 @@ export function ValidationWorkspace() {
                 lineHeight: 1.5,
               }}
             >
-              {challengeLoading ? 'Loading challenge data...' : 'Loading dataset images...'}
+              {challengeLoading ? "Loading challenge data..." : "Loading dataset images..."}
             </Text>
           </Box>
         </Flex>
@@ -464,10 +480,10 @@ export function ValidationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.md,
               }}
             >
-              {challengeError || 'Failed to load challenge data'}
+              {challengeError || "Failed to load challenge data"}
             </Text>
             <Button
-              onClick={() => navigate('/challenges')}
+              onClick={() => navigate("/challenges")}
               style={{
                 background: theme.colors.interactive.primary,
                 color: theme.colors.text.inverse,
@@ -487,8 +503,9 @@ export function ValidationWorkspace() {
     );
   }
 
-  const validationProgress = state.validationSession ? 
-    (state.validationSession.progress.validated / state.validationSession.progress.total) * 100 : 0;
+  const validationProgress = state.validationSession
+    ? (state.validationSession.progress.validated / state.validationSession.progress.total) * 100
+    : 0;
 
   return (
     <Box
@@ -530,7 +547,7 @@ export function ValidationWorkspace() {
               <ArrowLeft size={14} />
               Back
             </Button>
-            
+
             <Text
               size="3"
               style={{
@@ -538,9 +555,9 @@ export function ValidationWorkspace() {
                 color: theme.colors.text.primary,
               }}
             >
-              Validation: {challenge?.title || 'Loading...'}
+              Validation: {challenge?.title || "Loading..."}
             </Text>
-            
+
             <Badge
               style={{
                 background: `${theme.colors.status.warning}15`,
@@ -568,7 +585,7 @@ export function ValidationWorkspace() {
             >
               Group {currentLabelGroupIndex + 1} / {annotationGroups.length}
             </Text>
-            
+
             {/* Selected Count */}
             {selectedAnnotationIds.size > 0 && (
               <Text
@@ -582,7 +599,7 @@ export function ValidationWorkspace() {
                 {selectedAnnotationIds.size} selected
               </Text>
             )}
-            
+
             {/* Auto Advance Toggle */}
             <Button
               onClick={() => setAutoAdvance(!autoAdvance)}
@@ -603,13 +620,17 @@ export function ValidationWorkspace() {
               {autoAdvance ? <Play size={12} weight="fill" /> : <Pause size={12} />}
               Auto
             </Button>
-            
+
             {/* Keyboard Shortcuts Toggle */}
             <Button
               onClick={() => setShowKeyboardShortcuts(!showKeyboardShortcuts)}
               style={{
-                background: showKeyboardShortcuts ? theme.colors.interactive.primary : "transparent",
-                color: showKeyboardShortcuts ? theme.colors.text.inverse : theme.colors.text.secondary,
+                background: showKeyboardShortcuts
+                  ? theme.colors.interactive.primary
+                  : "transparent",
+                color: showKeyboardShortcuts
+                  ? theme.colors.text.inverse
+                  : theme.colors.text.secondary,
                 border: `1px solid ${showKeyboardShortcuts ? theme.colors.interactive.primary : theme.colors.border.primary}`,
                 borderRadius: theme.borders.radius.sm,
                 padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
@@ -624,14 +645,14 @@ export function ValidationWorkspace() {
               <Keyboard size={12} />
               Help
             </Button>
-            
+
             {/* Save Button */}
             <Button
               onClick={actions.saveValidations}
               disabled={!state.unsavedChanges}
               style={{
-                background: state.unsavedChanges 
-                  ? theme.colors.status.success 
+                background: state.unsavedChanges
+                  ? theme.colors.status.success
                   : theme.colors.interactive.disabled,
                 color: theme.colors.text.inverse,
                 border: "none",
@@ -650,7 +671,7 @@ export function ValidationWorkspace() {
             </Button>
           </Flex>
         </Flex>
-        
+
         {/* Progress Bar */}
         <Box
           style={{
@@ -694,7 +715,11 @@ export function ValidationWorkspace() {
                 borderBottom: `1px solid ${theme.colors.border.primary}`,
               }}
             >
-              <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+              <Flex
+                justify="between"
+                align="center"
+                style={{ marginBottom: theme.spacing.semantic.component.sm }}
+              >
                 <Text
                   size="2"
                   style={{
@@ -716,10 +741,12 @@ export function ValidationWorkspace() {
                   <EyeSlash size={14} />
                 </Button>
               </Flex>
-              
+
               <Flex direction="column" gap="2">
                 <Flex align="center" gap="2">
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>Type:</Text>
+                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+                    Type:
+                  </Text>
                   <Badge
                     style={{
                       background: `${theme.colors.interactive.primary}15`,
@@ -733,9 +760,11 @@ export function ValidationWorkspace() {
                     {state.currentPhase}
                   </Badge>
                 </Flex>
-                
+
                 <Flex align="center" gap="2">
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>Total:</Text>
+                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+                    Total:
+                  </Text>
                   <Text
                     size="1"
                     style={{
@@ -747,15 +776,18 @@ export function ValidationWorkspace() {
                     {currentGroupItems.length} items
                   </Text>
                 </Flex>
-                
+
                 <Flex align="center" gap="2">
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>Selected:</Text>
+                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+                    Selected:
+                  </Text>
                   <Text
                     size="1"
                     style={{
-                      color: selectedAnnotationIds.size > 0 
-                        ? theme.colors.status.success 
-                        : theme.colors.text.secondary,
+                      color:
+                        selectedAnnotationIds.size > 0
+                          ? theme.colors.status.success
+                          : theme.colors.text.secondary,
                       fontWeight: 600,
                       fontFeatureSettings: '"tnum"',
                     }}
@@ -777,34 +809,34 @@ export function ValidationWorkspace() {
             overflow: "hidden",
           }}
         >
-          
-          
           {currentImage ? (
-            <Suspense fallback={
-              <Flex
-                align="center"
-                justify="center"
-                style={{
-                  height: "100%",
-                  color: theme.colors.text.secondary,
-                }}
-              >
-                <Box
+            <Suspense
+              fallback={
+                <Flex
+                  align="center"
+                  justify="center"
                   style={{
-                    width: "24px",
-                    height: "24px",
-                    border: `3px solid ${theme.colors.interactive.primary}40`,
-                    borderTop: `3px solid ${theme.colors.interactive.primary}`,
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                    marginRight: theme.spacing.semantic.component.sm,
+                    height: "100%",
+                    color: theme.colors.text.secondary,
                   }}
-                />
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Loading Image Viewer...
-                </Text>
-              </Flex>
-            }>
+                >
+                  <Box
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      border: `3px solid ${theme.colors.interactive.primary}40`,
+                      borderTop: `3px solid ${theme.colors.interactive.primary}`,
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                      marginRight: theme.spacing.semantic.component.sm,
+                    }}
+                  />
+                  <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                    Loading Image Viewer...
+                  </Text>
+                </Flex>
+              }
+            >
               <ImageViewer
                 imageUrl={currentImage.url}
                 imageWidth={currentImage.width}
@@ -812,22 +844,26 @@ export function ValidationWorkspace() {
                 zoom={state.zoom}
                 panOffset={state.panOffset}
                 boundingBoxes={currentGroupItems
-                  .filter(item => item.annotation.type === 'bbox')
+                  .filter(item => item.annotation.type === "bbox")
                   .map(item => ({
                     ...item.itemData,
                     id: item.itemId,
-                    selected: selectedAnnotationIds.has(item.itemId)
-                  }))
-                }
+                    selected: selectedAnnotationIds.has(item.itemId),
+                  }))}
                 polygons={currentGroupItems
-                  .filter(item => item.annotation.type === 'segmentation')
+                  .filter(item => item.annotation.type === "segmentation")
                   .map(item => ({
                     ...item.itemData,
                     id: item.itemId,
-                    selected: selectedAnnotationIds.has(item.itemId)
-                  }))
+                    selected: selectedAnnotationIds.has(item.itemId),
+                  }))}
+                currentTool={
+                  state.currentPhase === "bbox"
+                    ? "bbox"
+                    : state.currentPhase === "segmentation"
+                      ? "segmentation"
+                      : "label"
                 }
-                currentTool={state.currentPhase === 'bbox' ? 'bbox' : state.currentPhase === 'segmentation' ? 'segmentation' : 'label'}
                 selectedLabel={currentLabelGroup?.label || ""}
                 isDrawing={false}
                 onZoomChange={actions.setZoom}
@@ -835,7 +871,7 @@ export function ValidationWorkspace() {
                 onAddBoundingBox={() => {}}
                 onAddPolygon={() => {}}
                 onSelectAnnotation={(type, id) => {
-                  if (type === 'bbox' || type === 'segmentation') {
+                  if (type === "bbox" || type === "segmentation") {
                     toggleItemSelection(id);
                   }
                 }}
@@ -858,7 +894,13 @@ export function ValidationWorkspace() {
                 textAlign: "center",
               }}
             >
-              <Shield size={48} style={{ color: theme.colors.text.tertiary, marginBottom: theme.spacing.semantic.component.md }} />
+              <Shield
+                size={48}
+                style={{
+                  color: theme.colors.text.tertiary,
+                  marginBottom: theme.spacing.semantic.component.md,
+                }}
+              />
               <Text
                 size="3"
                 style={{
@@ -876,24 +918,24 @@ export function ValidationWorkspace() {
                   lineHeight: 1.5,
                 }}
               >
-                {annotationGroups.length === 0 
-                  ? 'No label groups pending validation in this phase'
-                  : 'Current label group has no associated image data'
-                }
+                {annotationGroups.length === 0
+                  ? "No label groups pending validation in this phase"
+                  : "Current label group has no associated image data"}
               </Text>
               <Text
                 size="1"
                 style={{
                   color: theme.colors.text.tertiary,
                   marginTop: theme.spacing.semantic.component.sm,
-                  fontFamily: 'monospace',
+                  fontFamily: "monospace",
                 }}
               >
-                Debug: Current group index {currentLabelGroupIndex}, Total groups {annotationGroups.length}
+                Debug: Current group index {currentLabelGroupIndex}, Total groups{" "}
+                {annotationGroups.length}
               </Text>
             </Flex>
           )}
-          
+
           {/* Annotation Selection Controls */}
           {currentGroupItems.length > 0 && (
             <Box
@@ -917,7 +959,7 @@ export function ValidationWorkspace() {
                 <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
                   {currentLabelGroup.label}:
                 </Text>
-                
+
                 <Button
                   onClick={selectAllItems}
                   style={{
@@ -932,7 +974,7 @@ export function ValidationWorkspace() {
                 >
                   All
                 </Button>
-                
+
                 <Button
                   onClick={clearAllSelections}
                   style={{
@@ -947,11 +989,11 @@ export function ValidationWorkspace() {
                 >
                   None
                 </Button>
-                
+
                 {currentGroupItems.map((item, index) => {
                   const isSelected = selectedAnnotationIds.has(item.itemId);
                   const itemLabel = item.itemData.label || `Item ${index + 1}`;
-                  
+
                   return (
                     <Button
                       key={item.itemId}
@@ -960,12 +1002,10 @@ export function ValidationWorkspace() {
                         background: isSelected
                           ? theme.colors.status.success
                           : theme.colors.background.secondary,
-                        color: isSelected
-                          ? theme.colors.text.inverse
-                          : theme.colors.text.primary,
-                        border: `2px solid ${isSelected
-                          ? theme.colors.status.success
-                          : theme.colors.border.primary}`,
+                        color: isSelected ? theme.colors.text.inverse : theme.colors.text.primary,
+                        border: `2px solid ${
+                          isSelected ? theme.colors.status.success : theme.colors.border.primary
+                        }`,
                         borderRadius: theme.borders.radius.sm,
                         padding: "4px 8px",
                         fontSize: "11px",
@@ -1012,20 +1052,24 @@ export function ValidationWorkspace() {
                   Select items above or click on image to validate
                 </Text>
               )}
-              
+
               <Flex align="center" gap="3">
                 <Button
-                  onClick={() => handleBulkValidation('approve')}
+                  onClick={() => handleBulkValidation("approve")}
                   disabled={selectedAnnotationIds.size === 0 || isValidating}
                   style={{
-                    background: selectedAnnotationIds.size > 0 ? theme.colors.status.success : theme.colors.interactive.disabled,
+                    background:
+                      selectedAnnotationIds.size > 0
+                        ? theme.colors.status.success
+                        : theme.colors.interactive.disabled,
                     color: theme.colors.text.inverse,
                     border: "none",
                     borderRadius: theme.borders.radius.md,
                     padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                     fontWeight: 600,
                     fontSize: "14px",
-                    cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
+                    cursor:
+                      selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
                     display: "flex",
                     alignItems: "center",
                     gap: theme.spacing.semantic.component.sm,
@@ -1036,21 +1080,27 @@ export function ValidationWorkspace() {
                   }}
                 >
                   <CheckCircle size={16} weight="fill" />
-                  {selectedAnnotationIds.size > 0 ? `Approve (${selectedAnnotationIds.size})` : 'Approve'}
+                  {selectedAnnotationIds.size > 0
+                    ? `Approve (${selectedAnnotationIds.size})`
+                    : "Approve"}
                 </Button>
-              
+
                 <Button
-                  onClick={() => handleBulkValidation('reject')}
+                  onClick={() => handleBulkValidation("reject")}
                   disabled={selectedAnnotationIds.size === 0 || isValidating}
                   style={{
-                    background: selectedAnnotationIds.size > 0 ? theme.colors.status.error : theme.colors.interactive.disabled,
+                    background:
+                      selectedAnnotationIds.size > 0
+                        ? theme.colors.status.error
+                        : theme.colors.interactive.disabled,
                     color: theme.colors.text.inverse,
                     border: "none",
                     borderRadius: theme.borders.radius.md,
                     padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                     fontWeight: 600,
                     fontSize: "14px",
-                    cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
+                    cursor:
+                      selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
                     display: "flex",
                     alignItems: "center",
                     gap: theme.spacing.semantic.component.sm,
@@ -1061,21 +1111,27 @@ export function ValidationWorkspace() {
                   }}
                 >
                   <XCircle size={16} weight="fill" />
-                  {selectedAnnotationIds.size > 0 ? `Reject (${selectedAnnotationIds.size})` : 'Reject'}
+                  {selectedAnnotationIds.size > 0
+                    ? `Reject (${selectedAnnotationIds.size})`
+                    : "Reject"}
                 </Button>
-                
+
                 <Button
-                  onClick={() => handleBulkValidation('flag')}
+                  onClick={() => handleBulkValidation("flag")}
                   disabled={selectedAnnotationIds.size === 0 || isValidating}
                   style={{
-                    background: selectedAnnotationIds.size > 0 ? theme.colors.status.warning : theme.colors.interactive.disabled,
+                    background:
+                      selectedAnnotationIds.size > 0
+                        ? theme.colors.status.warning
+                        : theme.colors.interactive.disabled,
                     color: theme.colors.text.inverse,
                     border: "none",
                     borderRadius: theme.borders.radius.md,
                     padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
                     fontWeight: 600,
                     fontSize: "14px",
-                    cursor: selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
+                    cursor:
+                      selectedAnnotationIds.size > 0 && !isValidating ? "pointer" : "not-allowed",
                     display: "flex",
                     alignItems: "center",
                     gap: theme.spacing.semantic.component.sm,
@@ -1086,19 +1142,27 @@ export function ValidationWorkspace() {
                   }}
                 >
                   <Flag size={16} weight="fill" />
-                  {selectedAnnotationIds.size > 0 ? `Flag (${selectedAnnotationIds.size})` : 'Flag'}
+                  {selectedAnnotationIds.size > 0 ? `Flag (${selectedAnnotationIds.size})` : "Flag"}
                 </Button>
               </Flex>
             </Flex>
-            
-                        {/* Navigation Controls */}
-            <Flex justify="center" align="center" gap="2" style={{ marginTop: theme.spacing.semantic.component.sm }}>
+
+            {/* Navigation Controls */}
+            <Flex
+              justify="center"
+              align="center"
+              gap="2"
+              style={{ marginTop: theme.spacing.semantic.component.sm }}
+            >
               <Button
                 onClick={handlePreviousLabelGroup}
                 disabled={currentLabelGroupIndex === 0}
                 style={{
                   background: "transparent",
-                  color: currentLabelGroupIndex === 0 ? theme.colors.text.tertiary : theme.colors.text.primary,
+                  color:
+                    currentLabelGroupIndex === 0
+                      ? theme.colors.text.tertiary
+                      : theme.colors.text.primary,
                   border: `1px solid ${currentLabelGroupIndex === 0 ? theme.colors.border.secondary : theme.colors.border.primary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: theme.spacing.semantic.component.xs,
@@ -1107,7 +1171,7 @@ export function ValidationWorkspace() {
               >
                 <ArrowLeft size={14} />
               </Button>
-              
+
               <Text
                 size="1"
                 style={{
@@ -1119,24 +1183,30 @@ export function ValidationWorkspace() {
               >
                 Group {currentLabelGroupIndex + 1} / {annotationGroups.length}
               </Text>
-              
+
               <Button
                 onClick={handleNextLabelGroup}
                 disabled={currentLabelGroupIndex === annotationGroups.length - 1}
                 style={{
                   background: "transparent",
-                  color: currentLabelGroupIndex === annotationGroups.length - 1 ? theme.colors.text.tertiary : theme.colors.text.primary,
+                  color:
+                    currentLabelGroupIndex === annotationGroups.length - 1
+                      ? theme.colors.text.tertiary
+                      : theme.colors.text.primary,
                   border: `1px solid ${currentLabelGroupIndex === annotationGroups.length - 1 ? theme.colors.border.secondary : theme.colors.border.primary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: theme.spacing.semantic.component.xs,
-                  cursor: currentLabelGroupIndex === annotationGroups.length - 1 ? "not-allowed" : "pointer",
+                  cursor:
+                    currentLabelGroupIndex === annotationGroups.length - 1
+                      ? "not-allowed"
+                      : "pointer",
                 }}
               >
                 <ArrowRight size={14} />
               </Button>
-          </Flex>
+            </Flex>
           </Box>
-          
+
           {/* Show/Hide Details Button */}
           {!showAnnotationDetails && (
             <Button
@@ -1158,7 +1228,7 @@ export function ValidationWorkspace() {
               <Eye size={14} />
             </Button>
           )}
-          
+
           {/* Validation Status Indicator */}
           {isValidating && (
             <Box
@@ -1214,7 +1284,11 @@ export function ValidationWorkspace() {
             minWidth: "400px",
           }}
         >
-          <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+          <Flex
+            justify="between"
+            align="center"
+            style={{ marginBottom: theme.spacing.semantic.component.md }}
+          >
             <Text
               size="3"
               style={{
@@ -1236,49 +1310,159 @@ export function ValidationWorkspace() {
               <XCircle size={16} />
             </Button>
           </Flex>
-          
-                    <Flex direction="column" gap="3">
+
+          <Flex direction="column" gap="3">
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Approve Selected</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>A</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Approve Selected
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                A
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Reject Selected</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>R</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Reject Selected
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                R
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Flag Selected</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>F</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Flag Selected
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                F
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Next Label Group</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>→</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Next Label Group
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                →
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Previous Label Group</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>←</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Previous Label Group
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                ←
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Select All Items</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>S</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Select All Items
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                S
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Clear Selections</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>C</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Clear Selections
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                C
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Toggle Auto Advance</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>Space</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Toggle Auto Advance
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                Space
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Toggle Details Panel</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>D</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Toggle Details Panel
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                D
+              </Badge>
             </Flex>
             <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.primary }}>Show/Hide This Help</Text>
-              <Badge style={{ background: theme.colors.background.secondary, color: theme.colors.text.primary, fontSize: "11px", padding: "4px 8px" }}>H</Badge>
+              <Text size="2" style={{ color: theme.colors.text.primary }}>
+                Show/Hide This Help
+              </Text>
+              <Badge
+                style={{
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.text.primary,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              >
+                H
+              </Badge>
             </Flex>
-        </Flex>
+          </Flex>
         </Box>
       )}
 
@@ -1292,4 +1476,4 @@ export function ValidationWorkspace() {
       </style>
     </Box>
   );
-} 
+}

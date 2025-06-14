@@ -1,9 +1,9 @@
 // Types
-export * from './types/challenge';
+export * from "./types/challenge";
 
 // Hooks
-export * from './hooks/useChallenges';
-export * from './hooks/useParticipation';
+export * from "./hooks/useChallenges";
+export * from "./hooks/useParticipation";
 
 // Data
-export * from './data/mockChallenges'; 
+export * from "./data/mockChallenges";

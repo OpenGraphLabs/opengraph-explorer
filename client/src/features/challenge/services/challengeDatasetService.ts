@@ -1,7 +1,7 @@
-import { datasetGraphQLService } from '@/shared/api/graphql/datasetGraphQLService';
-import { mockChallenges } from '../data/mockChallenges';
-import type { Challenge } from '../types/challenge';
-import type { DatasetObject } from '@/shared/api/graphql/datasetGraphQLService';
+import { datasetGraphQLService } from "@/shared/api/graphql/datasetGraphQLService";
+import { mockChallenges } from "../data/mockChallenges";
+import type { Challenge } from "../types/challenge";
+import type { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 
 class ChallengeDatasetService {
   private datasetCache = new Map<string, DatasetObject | null>();
@@ -14,7 +14,7 @@ class ChallengeDatasetService {
       id: `fallback-${challenge.id}`,
       name: `${challenge.datasetName} (Fallback)`,
       description: `Fallback dataset for challenge: ${challenge.title}`,
-      dataType: 'image',
+      dataType: "image",
       dataSize: 1024000, // 1MB mock size
       dataCount: 10,
       createdAt: new Date().toISOString(),
@@ -22,27 +22,27 @@ class ChallengeDatasetService {
         hasNextPage: false,
         hasPreviousPage: false,
         startCursor: undefined,
-        endCursor: undefined
+        endCursor: undefined,
       },
       data: [
         // Mock data items with DataObject structure
         {
-          path: '/mock/image1.jpg',
-          annotations: [{ label: 'mock-label' }],
-          blobId: 'mock-blob-1',
-          blobHash: 'mock-hash-1',
-          dataType: 'image',
-          pendingAnnotationStats: []
+          path: "/mock/image1.jpg",
+          annotations: [{ label: "mock-label" }],
+          blobId: "mock-blob-1",
+          blobHash: "mock-hash-1",
+          dataType: "image",
+          pendingAnnotationStats: [],
         },
         {
-          path: '/mock/image2.jpg',
-          annotations: [{ label: 'mock-label' }],
-          blobId: 'mock-blob-2', 
-          blobHash: 'mock-hash-2',
-          dataType: 'image',
-          pendingAnnotationStats: []
-        }
-      ]
+          path: "/mock/image2.jpg",
+          annotations: [{ label: "mock-label" }],
+          blobId: "mock-blob-2",
+          blobHash: "mock-hash-2",
+          dataType: "image",
+          pendingAnnotationStats: [],
+        },
+      ],
     };
   }
 
@@ -55,7 +55,6 @@ class ChallengeDatasetService {
     isRealDataset: boolean;
   }> {
     try {
-
       console.log("challengeId: ", challengeId);
       // 챌린지 정보 가져오기
       const challenge = mockChallenges.find(c => c.id === challengeId);
@@ -71,10 +70,10 @@ class ChallengeDatasetService {
       if (this.datasetCache.has(challenge.datasetId)) {
         console.log("캐시에서 데이터셋 정보 가져옴");
         const dataset = this.datasetCache.get(challenge.datasetId) ?? null;
-        return { 
-          challenge, 
-          dataset, 
-          isRealDataset: dataset !== null && !dataset.id.startsWith('fallback-') 
+        return {
+          challenge,
+          dataset,
+          isRealDataset: dataset !== null && !dataset.id.startsWith("fallback-"),
         };
       }
 
@@ -93,7 +92,7 @@ class ChallengeDatasetService {
         return { challenge, dataset: fallbackDataset, isRealDataset: false };
       }
     } catch (error) {
-      console.error('getChallengeWithRealDataset 에러:', error);
+      console.error("getChallengeWithRealDataset 에러:", error);
       throw error;
     }
   }
@@ -106,7 +105,7 @@ class ChallengeDatasetService {
       const allDatasets = await datasetGraphQLService.getAllDatasets();
       return allDatasets.length > 0 ? allDatasets[0] : null;
     } catch (error) {
-      console.error('Error finding fallback dataset:', error);
+      console.error("Error finding fallback dataset:", error);
       return null;
     }
   }
@@ -114,13 +113,15 @@ class ChallengeDatasetService {
   /**
    * 모든 챌린지를 실제 데이터셋과 연결하여 가져옵니다
    */
-  async getAllChallengesWithRealDatasets(): Promise<Array<{
-    challenge: Challenge;
-    dataset: DatasetObject | null;
-    isRealDataset: boolean;
-  }>> {
+  async getAllChallengesWithRealDatasets(): Promise<
+    Array<{
+      challenge: Challenge;
+      dataset: DatasetObject | null;
+      isRealDataset: boolean;
+    }>
+  > {
     const results = await Promise.all(
-      mockChallenges.map(async (challenge) => {
+      mockChallenges.map(async challenge => {
         const result = await this.getChallengeWithRealDataset(challenge.id);
         return {
           challenge: result.challenge || challenge,
@@ -148,4 +149,4 @@ class ChallengeDatasetService {
   }
 }
 
-export const challengeDatasetService = new ChallengeDatasetService(); 
+export const challengeDatasetService = new ChallengeDatasetService();

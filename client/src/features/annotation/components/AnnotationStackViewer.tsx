@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Stack, Image, Tag, Archive, CheckCircle } from "phosphor-react";
-import { type AnnotationStackState, type AnnotationStackItem } from '../hooks/useAnnotationStack';
+import { type AnnotationStackState, type AnnotationStackItem } from "../hooks/useAnnotationStack";
 
 interface AnnotationStackViewerProps {
   stackState: AnnotationStackState;
@@ -12,39 +12,45 @@ interface AnnotationStackViewerProps {
   isSaving?: boolean;
 }
 
-export function AnnotationStackViewer({ 
-  stackState, 
-  maxSize, 
-  onRemoveItem, 
+export function AnnotationStackViewer({
+  stackState,
+  maxSize,
+  onRemoveItem,
   onClearStack,
-  isSaving = false 
+  isSaving = false,
 }: AnnotationStackViewerProps) {
   const { theme } = useTheme();
 
   // 이미지별로 annotation을 그룹화
   const groupedByImage = React.useMemo(() => {
-    const groups = stackState.items.reduce((acc, item) => {
-      const imageId = item.imageData.id;
-      if (!acc[imageId]) {
-        acc[imageId] = {
-          imageData: item.imageData,
-          labels: [],
-          bboxes: [],
-        };
-      }
+    const groups = stackState.items.reduce(
+      (acc, item) => {
+        const imageId = item.imageData.id;
+        if (!acc[imageId]) {
+          acc[imageId] = {
+            imageData: item.imageData,
+            labels: [],
+            bboxes: [],
+          };
+        }
 
-      if (item.type === 'label') {
-        acc[imageId].labels.push(item);
-      } else if (item.type === 'bbox') {
-        acc[imageId].bboxes.push(item);
-      }
+        if (item.type === "label") {
+          acc[imageId].labels.push(item);
+        } else if (item.type === "bbox") {
+          acc[imageId].bboxes.push(item);
+        }
 
-      return acc;
-    }, {} as Record<string, {
-      imageData: any;
-      labels: AnnotationStackItem[];
-      bboxes: AnnotationStackItem[];
-    }>);
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          imageData: any;
+          labels: AnnotationStackItem[];
+          bboxes: AnnotationStackItem[];
+        }
+      >
+    );
 
     return Object.values(groups);
   }, [stackState.items]);
@@ -84,14 +90,23 @@ export function AnnotationStackViewer({
       }}
     >
       {/* Header */}
-      <Flex align="center" justify="between" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+      <Flex
+        align="center"
+        justify="between"
+        style={{ marginBottom: theme.spacing.semantic.component.sm }}
+      >
         <Flex align="center" gap="2">
-          <Stack size={14} style={{ color: stackState.isFull ? theme.colors.status.error : theme.colors.text.secondary }} />
+          <Stack
+            size={14}
+            style={{
+              color: stackState.isFull ? theme.colors.status.error : theme.colors.text.secondary,
+            }}
+          />
           <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
             Stack ({stackState.count}/{maxSize})
           </Text>
         </Flex>
-        
+
         {stackState.hasItems && !isSaving && (
           <button
             onClick={onClearStack}
@@ -126,9 +141,9 @@ export function AnnotationStackViewer({
           style={{
             height: "100%",
             width: `${(stackState.count / maxSize) * 100}%`,
-            background: stackState.isFull 
-              ? theme.colors.status.error 
-              : stackState.count > maxSize * 0.8 
+            background: stackState.isFull
+              ? theme.colors.status.error
+              : stackState.count > maxSize * 0.8
                 ? theme.colors.status.warning
                 : theme.colors.status.success,
             transition: "width 0.3s ease, background-color 0.3s ease",
@@ -192,10 +207,10 @@ export function AnnotationStackViewer({
             {/* Image Info */}
             <Flex align="center" gap="2" style={{ marginBottom: "4px" }}>
               <Image size={12} style={{ color: theme.colors.text.secondary }} />
-              <Text 
-                size="1" 
-                style={{ 
-                  color: theme.colors.text.primary, 
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.primary,
                   fontWeight: 600,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -224,7 +239,7 @@ export function AnnotationStackViewer({
                   </Text>
                 </Box>
               )}
-              
+
               {group.bboxes.length > 0 && (
                 <Box
                   style={{
@@ -246,7 +261,7 @@ export function AnnotationStackViewer({
               <Box style={{ marginTop: "4px" }}>
                 <Flex gap="1" wrap="wrap">
                   {/* Show latest 2 labels */}
-                  {group.labels.slice(-2).map((item) => (
+                  {group.labels.slice(-2).map(item => (
                     <Box
                       key={item.id}
                       style={{
@@ -256,9 +271,9 @@ export function AnnotationStackViewer({
                         maxWidth: "40px",
                       }}
                     >
-                      <Text 
-                        size="1" 
-                        style={{ 
+                      <Text
+                        size="1"
+                        style={{
                           color: theme.colors.text.tertiary,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -270,9 +285,9 @@ export function AnnotationStackViewer({
                       </Text>
                     </Box>
                   ))}
-                  
+
                   {/* Show if more annotations exist */}
-                  {(group.labels.length + group.bboxes.length) > 2 && (
+                  {group.labels.length + group.bboxes.length > 2 && (
                     <Text size="1" style={{ color: theme.colors.text.tertiary }}>
                       +{group.labels.length + group.bboxes.length - 2}
                     </Text>
@@ -285,4 +300,4 @@ export function AnnotationStackViewer({
       </Box>
     </Box>
   );
-} 
+}

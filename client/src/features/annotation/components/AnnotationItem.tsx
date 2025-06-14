@@ -1,7 +1,7 @@
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Tag, Target, Circle, Trash } from "phosphor-react";
-import { AnnotationType } from '../types/workspace';
+import { AnnotationType } from "../types/workspace";
 
 interface AnnotationItemProps {
   type: AnnotationType;
@@ -14,11 +14,11 @@ export function AnnotationItem({ type, data, onDelete }: AnnotationItemProps) {
 
   const getIcon = () => {
     switch (type) {
-      case 'label':
+      case "label":
         return <Tag size={12} style={{ color: theme.colors.status.info }} />;
-      case 'bbox':
+      case "bbox":
         return <Target size={12} style={{ color: theme.colors.status.success }} />;
-      case 'segmentation':
+      case "segmentation":
         return <Circle size={12} style={{ color: theme.colors.status.warning }} />;
       default:
         return null;
@@ -27,24 +27,25 @@ export function AnnotationItem({ type, data, onDelete }: AnnotationItemProps) {
 
   const getContent = () => {
     switch (type) {
-      case 'label':
+      case "label":
         return (
           <Text size="1" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
             {data.label}
           </Text>
         );
-      case 'bbox':
+      case "bbox":
         return (
           <Box>
             <Text size="1" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
               {data.label}
             </Text>
             <Text size="1" style={{ color: theme.colors.text.secondary, fontSize: "10px" }}>
-              {Math.round(data.x)}, {Math.round(data.y)} • {Math.round(data.width)} × {Math.round(data.height)}
+              {Math.round(data.x)}, {Math.round(data.y)} • {Math.round(data.width)} ×{" "}
+              {Math.round(data.height)}
             </Text>
           </Box>
         );
-      case 'segmentation':
+      case "segmentation":
         return (
           <Box>
             <Text size="1" style={{ fontWeight: 600, color: theme.colors.text.primary }}>
@@ -92,4 +93,4 @@ export function AnnotationItem({ type, data, onDelete }: AnnotationItemProps) {
       </Flex>
     </Box>
   );
-} 
+}

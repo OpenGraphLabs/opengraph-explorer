@@ -1,11 +1,5 @@
-import { useState } from 'react';
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Badge,
-} from "@/shared/ui/design-system/components";
+import { useState } from "react";
+import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import {
   X,
@@ -23,12 +17,12 @@ import {
   TrendUp,
   Eye,
 } from "phosphor-react";
-import { PendingAnnotation, ValidationAction } from '../types/validation';
+import { PendingAnnotation, ValidationAction } from "../types/validation";
 
 interface AnnotationDetailPanelProps {
   annotation?: PendingAnnotation;
   validationActions: ValidationAction[];
-  onValidate: (action: 'approve' | 'reject' | 'flag', reason?: string) => void;
+  onValidate: (action: "approve" | "reject" | "flag", reason?: string) => void;
   onClose: () => void;
 }
 
@@ -39,7 +33,7 @@ export function AnnotationDetailPanel({
   onClose,
 }: AnnotationDetailPanelProps) {
   const { theme } = useTheme();
-  const [customReason, setCustomReason] = useState('');
+  const [customReason, setCustomReason] = useState("");
   const [showReasonInput, setShowReasonInput] = useState(false);
 
   if (!annotation) {
@@ -55,64 +49,72 @@ export function AnnotationDetailPanel({
 
   const getAnnotationIcon = (type: string) => {
     switch (type) {
-      case 'label': return <Tag size={16} />;
-      case 'bbox': return <Target size={16} />;
-      case 'segmentation': return <Polygon size={16} />;
-      default: return <Tag size={16} />;
+      case "label":
+        return <Tag size={16} />;
+      case "bbox":
+        return <Target size={16} />;
+      case "segmentation":
+        return <Polygon size={16} />;
+      default:
+        return <Tag size={16} />;
     }
   };
 
   const getAnnotationTypeColor = (type: string) => {
     switch (type) {
-      case 'label': return theme.colors.status.info;
-      case 'bbox': return theme.colors.status.warning;
-      case 'segmentation': return theme.colors.status.success;
-      default: return theme.colors.text.secondary;
+      case "label":
+        return theme.colors.status.info;
+      case "bbox":
+        return theme.colors.status.warning;
+      case "segmentation":
+        return theme.colors.status.success;
+      default:
+        return theme.colors.text.secondary;
     }
   };
 
-  const handleValidation = (action: 'approve' | 'reject' | 'flag') => {
-    if (action === 'reject' && !customReason.trim()) {
+  const handleValidation = (action: "approve" | "reject" | "flag") => {
+    if (action === "reject" && !customReason.trim()) {
       setShowReasonInput(true);
       return;
     }
-    
+
     onValidate(action, customReason || undefined);
-    setCustomReason('');
+    setCustomReason("");
     setShowReasonInput(false);
   };
 
   const getAnnotationContent = () => {
     const content = [];
-    
+
     if (annotation.data.labels?.length) {
       content.push({
-        type: 'Labels',
-        items: annotation.data.labels.map(l => `${l.label} (${Math.round((l.confidence || 1) * 100)}%)`),
-        color: theme.colors.status.info
+        type: "Labels",
+        items: annotation.data.labels.map(
+          l => `${l.label} (${Math.round((l.confidence || 1) * 100)}%)`
+        ),
+        color: theme.colors.status.info,
       });
     }
-    
+
     if (annotation.data.boundingBoxes?.length) {
       content.push({
-        type: 'Bounding Boxes',
-        items: annotation.data.boundingBoxes.map(b => 
-          `${b.label}: ${b.width}×${b.height} at (${b.x}, ${b.y})`
+        type: "Bounding Boxes",
+        items: annotation.data.boundingBoxes.map(
+          b => `${b.label}: ${b.width}×${b.height} at (${b.x}, ${b.y})`
         ),
-        color: theme.colors.status.warning
+        color: theme.colors.status.warning,
       });
     }
-    
+
     if (annotation.data.polygons?.length) {
       content.push({
-        type: 'Polygons',
-        items: annotation.data.polygons.map(p => 
-          `${p.label}: ${p.points.length} points`
-        ),
-        color: theme.colors.status.success
+        type: "Polygons",
+        items: annotation.data.polygons.map(p => `${p.label}: ${p.points.length} points`),
+        color: theme.colors.status.success,
       });
     }
-    
+
     return content;
   };
 
@@ -127,7 +129,7 @@ export function AnnotationDetailPanel({
         display: "flex",
         flexDirection: "column",
         maxHeight: "100%",
-        boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
+        boxShadow: "0 0 20px rgba(0, 0, 0, 0.1)",
       }}
     >
       {/* Header */}
@@ -138,7 +140,11 @@ export function AnnotationDetailPanel({
           background: `linear-gradient(135deg, ${theme.colors.background.tertiary}, ${theme.colors.background.card})`,
         }}
       >
-        <Flex align="center" justify="between" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+        <Flex
+          align="center"
+          justify="between"
+          style={{ marginBottom: theme.spacing.semantic.component.sm }}
+        >
           <Flex align="center" gap="2">
             <Eye size={16} style={{ color: theme.colors.interactive.primary }} />
             <Text
@@ -151,7 +157,7 @@ export function AnnotationDetailPanel({
               Annotation Details
             </Text>
           </Flex>
-          
+
           <Button
             onClick={onClose}
             style={{
@@ -185,7 +191,7 @@ export function AnnotationDetailPanel({
               textTransform: "capitalize",
             }}
           >
-            {annotation.type === 'bbox' ? 'Bounding Box' : annotation.type} Annotation
+            {annotation.type === "bbox" ? "Bounding Box" : annotation.type} Annotation
           </Badge>
         </Flex>
       </Box>
@@ -215,7 +221,7 @@ export function AnnotationDetailPanel({
               <Star size={12} />
               Quality Score
             </Text>
-            
+
             <Box
               style={{
                 background: theme.colors.background.secondary,
@@ -236,7 +242,7 @@ export function AnnotationDetailPanel({
                 >
                   {Math.round(annotation.qualityScore * 100)}%
                 </Text>
-                
+
                 <Text
                   size="1"
                   style={{
@@ -244,12 +250,16 @@ export function AnnotationDetailPanel({
                     fontWeight: 500,
                   }}
                 >
-                  {annotation.qualityScore >= 0.9 ? 'Excellent' :
-                   annotation.qualityScore >= 0.7 ? 'Good' :
-                   annotation.qualityScore >= 0.5 ? 'Fair' : 'Poor'}
+                  {annotation.qualityScore >= 0.9
+                    ? "Excellent"
+                    : annotation.qualityScore >= 0.7
+                      ? "Good"
+                      : annotation.qualityScore >= 0.5
+                        ? "Fair"
+                        : "Poor"}
                 </Text>
               </Flex>
-              
+
               <Box
                 style={{
                   width: "100%",
@@ -288,7 +298,7 @@ export function AnnotationDetailPanel({
               <User size={12} />
               Participant
             </Text>
-            
+
             <Box
               style={{
                 background: theme.colors.background.secondary,
@@ -306,7 +316,7 @@ export function AnnotationDetailPanel({
               >
                 {annotation.participantId}
               </Text>
-              
+
               <Text
                 size="1"
                 style={{
@@ -317,7 +327,7 @@ export function AnnotationDetailPanel({
               >
                 {annotation.participantAddress}
               </Text>
-              
+
               <Flex align="center" gap="2" style={{ marginTop: "8px" }}>
                 <Calendar size={10} style={{ color: theme.colors.text.tertiary }} />
                 <Text
@@ -349,7 +359,7 @@ export function AnnotationDetailPanel({
               <Info size={12} />
               Content
             </Text>
-            
+
             {getAnnotationContent().map((section, index) => (
               <Box
                 key={index}
@@ -371,7 +381,7 @@ export function AnnotationDetailPanel({
                 >
                   {section.type}
                 </Text>
-                
+
                 {section.items.map((item, itemIndex) => (
                   <Text
                     key={itemIndex}
@@ -407,7 +417,7 @@ export function AnnotationDetailPanel({
                 <Clock size={12} />
                 Validation History
               </Text>
-              
+
               {validationActions.map((validation, index) => (
                 <Box
                   key={index}
@@ -417,23 +427,25 @@ export function AnnotationDetailPanel({
                     padding: theme.spacing.semantic.component.sm,
                     marginBottom: theme.spacing.semantic.component.xs,
                     border: `1px solid ${
-                      validation.action === 'approve' ? theme.colors.status.success :
-                      validation.action === 'reject' ? theme.colors.status.error :
-                      theme.colors.status.warning
+                      validation.action === "approve"
+                        ? theme.colors.status.success
+                        : validation.action === "reject"
+                          ? theme.colors.status.error
+                          : theme.colors.status.warning
                     }30`,
                   }}
                 >
                   <Flex align="center" gap="2" style={{ marginBottom: "4px" }}>
-                    {validation.action === 'approve' && (
+                    {validation.action === "approve" && (
                       <CheckCircle size={12} style={{ color: theme.colors.status.success }} />
                     )}
-                    {validation.action === 'reject' && (
+                    {validation.action === "reject" && (
                       <XCircle size={12} style={{ color: theme.colors.status.error }} />
                     )}
-                    {validation.action === 'flag' && (
+                    {validation.action === "flag" && (
                       <Flag size={12} style={{ color: theme.colors.status.warning }} />
                     )}
-                    
+
                     <Text
                       size="1"
                       style={{
@@ -444,7 +456,7 @@ export function AnnotationDetailPanel({
                     >
                       {validation.action}d
                     </Text>
-                    
+
                     <Text
                       size="1"
                       style={{
@@ -455,7 +467,7 @@ export function AnnotationDetailPanel({
                       {validation.timestamp.toLocaleTimeString()}
                     </Text>
                   </Flex>
-                  
+
                   {validation.reason && (
                     <Text
                       size="1"
@@ -489,7 +501,7 @@ export function AnnotationDetailPanel({
               <TrendUp size={12} />
               Validation Progress
             </Text>
-            
+
             <Box
               style={{
                 background: theme.colors.background.secondary,
@@ -507,7 +519,7 @@ export function AnnotationDetailPanel({
                 >
                   {annotation.validationCount} / {annotation.requiredValidations}
                 </Text>
-                
+
                 <Text
                   size="1"
                   style={{
@@ -517,7 +529,7 @@ export function AnnotationDetailPanel({
                   validations
                 </Text>
               </Flex>
-              
+
               <Box
                 style={{
                   width: "100%",
@@ -567,7 +579,7 @@ export function AnnotationDetailPanel({
                 type="text"
                 placeholder="Enter reason for rejection..."
                 value={customReason}
-                onChange={(e) => setCustomReason(e.target.value)}
+                onChange={e => setCustomReason(e.target.value)}
                 style={{
                   width: "100%",
                   padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -582,11 +594,11 @@ export function AnnotationDetailPanel({
               />
             </Box>
           )}
-          
+
           {!lastValidation ? (
             <Flex gap="2">
               <Button
-                onClick={() => handleValidation('approve')}
+                onClick={() => handleValidation("approve")}
                 style={{
                   background: `linear-gradient(135deg, ${theme.colors.status.success}, ${theme.colors.status.success}E0)`,
                   color: theme.colors.text.inverse,
@@ -605,9 +617,9 @@ export function AnnotationDetailPanel({
                 <CheckCircle size={14} />
                 Approve
               </Button>
-              
+
               <Button
-                onClick={() => handleValidation('reject')}
+                onClick={() => handleValidation("reject")}
                 style={{
                   background: `linear-gradient(135deg, ${theme.colors.status.error}, ${theme.colors.status.error}E0)`,
                   color: theme.colors.text.inverse,
@@ -626,9 +638,9 @@ export function AnnotationDetailPanel({
                 <XCircle size={14} />
                 Reject
               </Button>
-              
+
               <Button
-                onClick={() => handleValidation('flag')}
+                onClick={() => handleValidation("flag")}
                 style={{
                   background: `linear-gradient(135deg, ${theme.colors.status.warning}, ${theme.colors.status.warning}E0)`,
                   color: theme.colors.text.inverse,
@@ -660,14 +672,17 @@ export function AnnotationDetailPanel({
                 size="2"
                 style={{
                   fontWeight: 600,
-                  color: lastValidation.action === 'approve' ? theme.colors.status.success :
-                        lastValidation.action === 'reject' ? theme.colors.status.error :
-                        theme.colors.status.warning,
+                  color:
+                    lastValidation.action === "approve"
+                      ? theme.colors.status.success
+                      : lastValidation.action === "reject"
+                        ? theme.colors.status.error
+                        : theme.colors.status.warning,
                 }}
               >
                 Already {lastValidation.action}d
               </Text>
-              
+
               <Text
                 size="1"
                 style={{
@@ -683,4 +698,4 @@ export function AnnotationDetailPanel({
       </Box>
     </Box>
   );
-} 
+}
