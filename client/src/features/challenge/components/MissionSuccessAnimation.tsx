@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { 
-  Trophy, 
-  CheckCircle, 
-  Star,
-  Sparkle,
-  Lightning,
-  Target
-} from "phosphor-react";
+import { Trophy, CheckCircle, Star, Sparkle, Lightning, Target } from "phosphor-react";
 
 interface MissionSuccessAnimationProps {
   isVisible: boolean;
@@ -23,7 +16,7 @@ export const MissionSuccessAnimation: React.FC<MissionSuccessAnimationProps> = (
   missionTitle,
   completedCount,
   requiredCount,
-  onAnimationComplete
+  onAnimationComplete,
 }) => {
   const { theme } = useTheme();
   const [showContent, setShowContent] = useState(false);
@@ -276,8 +269,8 @@ export const MissionSuccessAnimation: React.FC<MissionSuccessAnimationProps> = (
               maxWidth: "350px",
             }}
           >
-            Your annotations help train the next generation of Physical AI systems. 
-            Every label contributes to building smarter, more reliable AI models.
+            Your annotations help train the next generation of Physical AI systems. Every label
+            contributes to building smarter, more reliable AI models.
           </Text>
         </Flex>
 
@@ -359,4 +352,4 @@ export const MissionSuccessAnimation: React.FC<MissionSuccessAnimationProps> = (
       </style>
     </Box>
   );
-}; 
+};

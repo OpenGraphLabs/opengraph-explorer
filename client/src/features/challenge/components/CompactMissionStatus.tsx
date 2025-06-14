@@ -2,15 +2,7 @@ import React, { useState } from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { UserMissionProgress } from "../types/mission";
-import { 
-  Trophy, 
-  Target, 
-  CheckCircle, 
-  PlayCircle,
-  Star,
-  X,
-  Minus
-} from "phosphor-react";
+import { Trophy, Target, CheckCircle, PlayCircle, Star, X, Minus } from "phosphor-react";
 
 interface CompactMissionStatusProps {
   userProgress: UserMissionProgress;
@@ -21,7 +13,7 @@ interface CompactMissionStatusProps {
 export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
   userProgress,
   onMissionClick,
-  onViewCertificate
+  onViewCertificate,
 }) => {
   const { theme } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -34,9 +26,13 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle size={12} weight="fill" style={{ color: theme.colors.status.success }} />;
+        return (
+          <CheckCircle size={12} weight="fill" style={{ color: theme.colors.status.success }} />
+        );
       case "in_progress":
-        return <PlayCircle size={12} weight="fill" style={{ color: theme.colors.interactive.primary }} />;
+        return (
+          <PlayCircle size={12} weight="fill" style={{ color: theme.colors.interactive.primary }} />
+        );
       default:
         return <Target size={12} style={{ color: theme.colors.text.tertiary }} />;
     }
@@ -118,7 +114,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
             Mission Progress
           </Text>
         </Flex>
-        
+
         <Flex gap="1">
           <Button
             onClick={() => setIsMinimized(true)}
@@ -153,7 +149,11 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
 
       {/* Progress Bar */}
       <Box style={{ padding: theme.spacing.semantic.component.md }}>
-        <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+        <Flex
+          justify="between"
+          align="center"
+          style={{ marginBottom: theme.spacing.semantic.component.xs }}
+        >
           <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
             {completedMissions} / {totalMissions} completed
           </Text>
@@ -161,7 +161,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
             {Math.round(progressPercentage)}%
           </Text>
         </Flex>
-        
+
         <Box
           style={{
             width: "100%",
@@ -183,7 +183,11 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
       </Box>
 
       {/* Mission Steps */}
-      <Box style={{ padding: `0 ${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.md}` }}>
+      <Box
+        style={{
+          padding: `0 ${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.md}`,
+        }}
+      >
         {userProgress.missions.map((mission, index) => (
           <Flex
             key={mission.id}
@@ -191,20 +195,21 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
             gap="2"
             style={{
               padding: theme.spacing.semantic.component.sm,
-              background: mission.status === "completed" 
-                ? `${theme.colors.status.success}10` 
-                : mission.status === "in_progress"
-                ? `${theme.colors.interactive.primary}10`
-                : theme.colors.background.secondary,
+              background:
+                mission.status === "completed"
+                  ? `${theme.colors.status.success}10`
+                  : mission.status === "in_progress"
+                    ? `${theme.colors.interactive.primary}10`
+                    : theme.colors.background.secondary,
               borderRadius: theme.borders.radius.sm,
               marginBottom: theme.spacing.semantic.component.xs,
               cursor: mission.status !== "completed" ? "pointer" : "default",
               border: `1px solid ${
-                mission.status === "completed" 
-                  ? `${theme.colors.status.success}30` 
+                mission.status === "completed"
+                  ? `${theme.colors.status.success}30`
                   : mission.status === "in_progress"
-                  ? `${theme.colors.interactive.primary}30`
-                  : theme.colors.border.primary
+                    ? `${theme.colors.interactive.primary}30`
+                    : theme.colors.border.primary
               }`,
             }}
             onClick={() => {
@@ -218,11 +223,12 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
               size="1"
               style={{
                 fontWeight: 600,
-                color: mission.status === "completed" 
-                  ? theme.colors.status.success 
-                  : mission.status === "in_progress"
-                  ? theme.colors.interactive.primary
-                  : theme.colors.text.secondary,
+                color:
+                  mission.status === "completed"
+                    ? theme.colors.status.success
+                    : mission.status === "in_progress"
+                      ? theme.colors.interactive.primary
+                      : theme.colors.text.secondary,
                 flex: 1,
               }}
             >
@@ -256,7 +262,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
               animation: "shimmer 3s infinite",
             }}
           />
-          
+
           <Flex direction="column" gap="2" style={{ position: "relative", zIndex: 1 }}>
             <Flex align="center" justify="center" gap="2">
               <Box
@@ -284,7 +290,7 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
                 🎉 Physical AI Training Complete!
               </Text>
             </Flex>
-            
+
             {/* Certificate Button */}
             {userProgress.certificate && onViewCertificate && (
               <Button
@@ -340,4 +346,4 @@ export const CompactMissionStatus: React.FC<CompactMissionStatusProps> = ({
       </style>
     </Box>
   );
-}; 
+};

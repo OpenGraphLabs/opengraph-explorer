@@ -25,87 +25,87 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/challenges/:id" element={<ChallengeDetail />} />
-        
+
         {/* Protected routes - wallet required */}
-        <Route 
-          path="/models" 
+        <Route
+          path="/models"
           element={
             <ProtectedRoute>
               <Models />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/models/upload" 
+        <Route
+          path="/models/upload"
           element={
             <ProtectedRoute>
               <UploadModel />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/models/:id" 
+        <Route
+          path="/models/:id"
           element={
             <ProtectedRoute>
               <ModelDetail />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/datasets" 
+        <Route
+          path="/datasets"
           element={
             <ProtectedRoute>
               <Datasets />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/datasets/upload" 
+        <Route
+          path="/datasets/upload"
           element={
             <ProtectedRoute>
               <UploadDataset />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/datasets/:id" 
+        <Route
+          path="/datasets/:id"
           element={
             <ProtectedRoute>
               <DatasetDetail />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/challenges/:challengeId/annotate" 
+        <Route
+          path="/challenges/:challengeId/annotate"
           element={
             <ProtectedRoute>
               <AnnotationWorkspace />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/challenges/:challengeId/validate" 
+        <Route
+          path="/challenges/:challengeId/validate"
           element={
             <ProtectedRoute>
               <ValidationWorkspace />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/annotator" 
+        <Route
+          path="/annotator"
           element={
             <ProtectedRoute>
               <Annotator />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/profile" 
+        <Route
+          path="/profile"
           element={
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
-          } 
+          }
         />
       </Routes>
     </AppLayout>

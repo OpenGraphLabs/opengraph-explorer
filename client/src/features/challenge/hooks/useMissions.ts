@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Mission, UserMissionProgress, MissionStatus } from "../types/mission";
-import { 
-  mockMissions, 
-  mockUserMissionProgress, 
+import {
+  mockMissions,
+  mockUserMissionProgress,
   updateMissionProgress,
-  checkAllMissionsCompleted 
+  checkAllMissionsCompleted,
 } from "../data/mockMissions";
 
 export const useMissions = () => {
@@ -20,10 +20,12 @@ export const useMissions = () => {
         const parsed = JSON.parse(savedProgress);
         // Convert date strings back to Date objects
         parsed.completedAt = parsed.completedAt ? new Date(parsed.completedAt) : undefined;
-        parsed.certificate = parsed.certificate ? {
-          ...parsed.certificate,
-          issuedAt: new Date(parsed.certificate.issuedAt)
-        } : undefined;
+        parsed.certificate = parsed.certificate
+          ? {
+              ...parsed.certificate,
+              issuedAt: new Date(parsed.certificate.issuedAt),
+            }
+          : undefined;
         setUserProgress(parsed);
       } catch (err) {
         console.error("Failed to load mission progress:", err);
@@ -42,21 +44,24 @@ export const useMissions = () => {
 
     try {
       const updatedMission = updateMissionProgress(missionId, completedCount);
-      
+
       setUserProgress(prev => {
-        const updatedMissions = prev.missions.map(mission => 
+        const updatedMissions = prev.missions.map(mission =>
           mission.id === missionId ? updatedMission : mission
         );
 
         const allCompleted = checkAllMissionsCompleted(updatedMissions);
-        const overallStatus: MissionStatus = allCompleted ? "completed" : 
-                                           updatedMissions.some(m => m.status === "in_progress") ? "in_progress" : "not_started";
+        const overallStatus: MissionStatus = allCompleted
+          ? "completed"
+          : updatedMissions.some(m => m.status === "in_progress")
+            ? "in_progress"
+            : "not_started";
 
         return {
           ...prev,
           missions: updatedMissions,
           overallStatus,
-          completedAt: allCompleted ? new Date() : prev.completedAt
+          completedAt: allCompleted ? new Date() : prev.completedAt,
         };
       });
     } catch (err) {
@@ -77,7 +82,7 @@ export const useMissions = () => {
   const getNextMission = (): Mission | undefined => {
     const currentMission = getCurrentMission();
     if (!currentMission) return undefined;
-    
+
     const currentIndex = userProgress.missions.findIndex(m => m.id === currentMission.id);
     return userProgress.missions[currentIndex + 1];
   };
@@ -85,25 +90,25 @@ export const useMissions = () => {
   const canAccessMission = (missionId: string): boolean => {
     const mission = getMissionById(missionId);
     if (!mission) return false;
-    
+
     // Step 1은 항상 접근 가능
     if (mission.order === 1) return true;
-    
+
     // Step 2는 Step 1이 완료되어야 접근 가능
     if (mission.order === 2) {
       const step1Mission = userProgress.missions.find(m => m.order === 1);
       return step1Mission?.status === "completed";
     }
-    
+
     return false;
   };
 
   const getMissionStatus = (missionId: string): "locked" | "available" | "completed" => {
     const mission = getMissionById(missionId);
     if (!mission) return "locked";
-    
+
     if (mission.status === "completed") return "completed";
-    
+
     return canAccessMission(missionId) ? "available" : "locked";
   };
 
@@ -119,12 +124,12 @@ export const useMissions = () => {
       id: `cert-${Date.now()}`,
       title: "OpenGraph Data Annotator Certificate",
       issuedAt: new Date(),
-      shareableUrl: `https://opengraph.io/certificate/${Date.now()}`
+      shareableUrl: `https://opengraph.io/certificate/${Date.now()}`,
     };
 
     setUserProgress(prev => ({
       ...prev,
-      certificate
+      certificate,
     }));
   };
 
@@ -140,6 +145,6 @@ export const useMissions = () => {
     getMissionStatus,
     resetProgress,
     generateCertificate,
-    isAllCompleted: userProgress.overallStatus === "completed"
+    isAllCompleted: userProgress.overallStatus === "completed",
   };
-}; 
+};

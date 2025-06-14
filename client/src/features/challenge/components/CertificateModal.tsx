@@ -3,10 +3,10 @@ import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/compon
 import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { UserMissionProgress } from "../types/mission";
-import { 
-  Trophy, 
-  Download, 
-  TwitterLogo, 
+import {
+  Trophy,
+  Download,
+  TwitterLogo,
   CheckCircle,
   Star,
   Sparkle,
@@ -16,7 +16,7 @@ import {
   Shield,
   Confetti,
   Copy,
-  ClipboardText
+  ClipboardText,
 } from "phosphor-react";
 
 interface CertificateModalProps {
@@ -29,14 +29,14 @@ interface CertificateModalProps {
 const generateCertificateId = async (walletAddress: string): Promise<string> => {
   const prefix = "OG"; // OpenGraph prefix
   const input = `opengraph-${walletAddress}-certificate`;
-  
+
   // Web Crypto API를 사용하여 해시 생성
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+
   // 12자리로 제한하여 적절한 길이로 만들기
   return `${prefix}${hashHex.slice(0, 10).toUpperCase()}`;
 };
@@ -44,7 +44,7 @@ const generateCertificateId = async (walletAddress: string): Promise<string> => 
 export const CertificateModal: React.FC<CertificateModalProps> = ({
   userProgress,
   isOpen,
-  onClose
+  onClose,
 }) => {
   const { theme } = useTheme();
   const { walletAddress } = useAuth();
@@ -63,10 +63,10 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
   // 현재 날짜 사용
   const currentDate = new Date();
-  const issuedDate = currentDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  const issuedDate = currentDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   if (!isOpen || !userProgress.certificate) return null;
@@ -77,8 +77,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
     try {
       // Create high-quality certificate image
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       // Set high-resolution canvas - 좌우 공백 줄이고 컴팩트한 크기
@@ -89,15 +89,15 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
       // Background - match modal design
       const bgGradient = ctx.createLinearGradient(0, 0, 650, 500);
-      bgGradient.addColorStop(0, '#0f0f23');
-      bgGradient.addColorStop(0.3, '#1a1a2e');
-      bgGradient.addColorStop(0.7, '#16213e');
-      bgGradient.addColorStop(1, '#0f3460');
+      bgGradient.addColorStop(0, "#0f0f23");
+      bgGradient.addColorStop(0.3, "#1a1a2e");
+      bgGradient.addColorStop(0.7, "#16213e");
+      bgGradient.addColorStop(1, "#0f3460");
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, 650, 500);
 
       // Grid pattern overlay (더 섬세하게)
-      ctx.strokeStyle = 'rgba(100, 255, 218, 0.06)';
+      ctx.strokeStyle = "rgba(100, 255, 218, 0.06)";
       ctx.lineWidth = 1;
       for (let i = 0; i < 650; i += 25) {
         ctx.beginPath();
@@ -113,102 +113,102 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       }
 
       // 장식 요소들 (더 작고 효율적으로)
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
       ctx.beginPath();
       ctx.arc(550, 60, 30, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(100, 255, 218, 0.25)';
+      ctx.strokeStyle = "rgba(100, 255, 218, 0.25)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.04)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.04)";
       ctx.beginPath();
       ctx.arc(100, 420, 35, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.strokeStyle = "rgba(100, 255, 218, 0.15)";
       ctx.lineWidth = 1;
       ctx.stroke();
 
       // Trophy icon area (더 위쪽으로)
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.15)";
       ctx.beginPath();
       ctx.arc(325, 75, 28, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#64ffda';
+      ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 2;
       ctx.stroke();
 
       // Trophy symbol
-      ctx.fillStyle = '#64ffda';
-      ctx.font = 'bold 24px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('🏆', 325, 83);
+      ctx.fillStyle = "#64ffda";
+      ctx.font = "bold 24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🏆", 325, 83);
 
       // Main title (트로피와 간격 늘리기)
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = "#ffffff";
       ctx.font = 'bold 28px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('CERTIFICATE', 325, 140);
+      ctx.textAlign = "center";
+      ctx.fillText("CERTIFICATE", 325, 140);
 
       // Subtitle
       ctx.font = '16px "Inter", sans-serif';
-      ctx.fillStyle = '#64ffda';
-      ctx.fillText('Data Annotation Specialist', 325, 165);
+      ctx.fillStyle = "#64ffda";
+      ctx.fillText("Data Annotation Specialist", 325, 165);
 
       // Achievement text (더 컴팩트하게)
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = "#ffffff";
       ctx.font = '14px "Inter", sans-serif';
-      ctx.fillText('Successfully completed', 325, 200);
+      ctx.fillText("Successfully completed", 325, 200);
       ctx.font = 'bold 14px "Inter", sans-serif';
-      ctx.fillText('OpenGraph Physical AI Training', 325, 220);
+      ctx.fillText("OpenGraph Physical AI Training", 325, 220);
 
       // Completion stats
-      ctx.fillStyle = '#64ffda';
+      ctx.fillStyle = "#64ffda";
       ctx.font = '13px "Inter", sans-serif';
       const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
       const totalMissions = userProgress.missions.length;
       ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
 
       // Tech badges section (더 작게)
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
       ctx.fillRect(150, 270, 350, 45);
-      ctx.strokeStyle = '#64ffda';
+      ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
       ctx.strokeRect(150, 270, 350, 45);
 
-      ctx.fillStyle = '#64ffda';
+      ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 11px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('POWERED BY SUI & WALRUS', 325, 290);
+      ctx.textAlign = "center";
+      ctx.fillText("POWERED BY SUI & WALRUS", 325, 290);
       ctx.font = '10px "Inter", sans-serif';
-      ctx.fillText('Decentralized AI Infrastructure', 325, 305);
+      ctx.fillText("Decentralized AI Infrastructure", 325, 305);
 
       // Certificate ID and date (더 아래쪽으로)
-      ctx.fillStyle = '#888888';
+      ctx.fillStyle = "#888888";
       ctx.font = '11px "Inter", sans-serif';
-      ctx.textAlign = 'center';
+      ctx.textAlign = "center";
       ctx.fillText(`Certificate ID: ${certificateId}`, 325, 350);
       ctx.fillText(`Issued: ${issuedDate}`, 325, 368);
 
       // OpenGraph signature (더 아래쪽으로)
-      ctx.strokeStyle = '#64ffda';
+      ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(225, 400);
       ctx.lineTo(425, 400);
       ctx.stroke();
-      
-      ctx.fillStyle = '#64ffda';
+
+      ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 10px "Inter", sans-serif';
-      ctx.fillText('OPENGRAPH', 325, 415);
+      ctx.fillText("OPENGRAPH", 325, 415);
 
       // Download the certificate
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.download = `opengraph-certificate-${certificateId}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
+      link.href = canvas.toDataURL("image/png", 1.0);
       link.click();
     } catch (error) {
-      console.error('Failed to generate certificate:', error);
+      console.error("Failed to generate certificate:", error);
     } finally {
       setIsDownloading(false);
     }
@@ -220,8 +220,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
     try {
       // Create certificate image
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       // Set high-resolution canvas - 좌우 공백 줄이고 컴팩트한 크기
@@ -232,15 +232,15 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
       // Background - match modal design
       const bgGradient = ctx.createLinearGradient(0, 0, 650, 500);
-      bgGradient.addColorStop(0, '#0f0f23');
-      bgGradient.addColorStop(0.3, '#1a1a2e');
-      bgGradient.addColorStop(0.7, '#16213e');
-      bgGradient.addColorStop(1, '#0f3460');
+      bgGradient.addColorStop(0, "#0f0f23");
+      bgGradient.addColorStop(0.3, "#1a1a2e");
+      bgGradient.addColorStop(0.7, "#16213e");
+      bgGradient.addColorStop(1, "#0f3460");
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, 650, 500);
 
       // Grid pattern overlay (더 섬세하게)
-      ctx.strokeStyle = 'rgba(100, 255, 218, 0.06)';
+      ctx.strokeStyle = "rgba(100, 255, 218, 0.06)";
       ctx.lineWidth = 1;
       for (let i = 0; i < 650; i += 25) {
         ctx.beginPath();
@@ -256,114 +256,117 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       }
 
       // 장식 요소들 (더 작고 효율적으로)
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
       ctx.beginPath();
       ctx.arc(550, 60, 30, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(100, 255, 218, 0.25)';
+      ctx.strokeStyle = "rgba(100, 255, 218, 0.25)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.04)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.04)";
       ctx.beginPath();
       ctx.arc(100, 420, 35, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.strokeStyle = "rgba(100, 255, 218, 0.15)";
       ctx.lineWidth = 1;
       ctx.stroke();
 
       // Trophy icon area (더 위쪽으로)
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.15)";
       ctx.beginPath();
       ctx.arc(325, 75, 28, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#64ffda';
+      ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 2;
       ctx.stroke();
 
       // Trophy symbol
-      ctx.fillStyle = '#64ffda';
-      ctx.font = 'bold 24px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('🏆', 325, 83);
+      ctx.fillStyle = "#64ffda";
+      ctx.font = "bold 24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🏆", 325, 83);
 
       // Main title (트로피와 간격 늘리기)
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = "#ffffff";
       ctx.font = 'bold 28px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('CERTIFICATE', 325, 140);
+      ctx.textAlign = "center";
+      ctx.fillText("CERTIFICATE", 325, 140);
 
       // Subtitle
       ctx.font = '16px "Inter", sans-serif';
-      ctx.fillStyle = '#64ffda';
-      ctx.fillText('Data Annotation Specialist', 325, 165);
+      ctx.fillStyle = "#64ffda";
+      ctx.fillText("Data Annotation Specialist", 325, 165);
 
       // Achievement text (더 컴팩트하게)
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = "#ffffff";
       ctx.font = '14px "Inter", sans-serif';
-      ctx.fillText('Successfully completed', 325, 200);
+      ctx.fillText("Successfully completed", 325, 200);
       ctx.font = 'bold 14px "Inter", sans-serif';
-      ctx.fillText('OpenGraph Physical AI Training', 325, 220);
+      ctx.fillText("OpenGraph Physical AI Training", 325, 220);
 
       // Completion stats
-      ctx.fillStyle = '#64ffda';
+      ctx.fillStyle = "#64ffda";
       ctx.font = '13px "Inter", sans-serif';
       const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
       const totalMissions = userProgress.missions.length;
       ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
 
       // Tech badges section (더 작게)
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.fillStyle = "rgba(100, 255, 218, 0.08)";
       ctx.fillRect(150, 270, 350, 45);
-      ctx.strokeStyle = '#64ffda';
+      ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
       ctx.strokeRect(150, 270, 350, 45);
 
-      ctx.fillStyle = '#64ffda';
+      ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 11px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('POWERED BY SUI & WALRUS', 325, 290);
+      ctx.textAlign = "center";
+      ctx.fillText("POWERED BY SUI & WALRUS", 325, 290);
       ctx.font = '10px "Inter", sans-serif';
-      ctx.fillText('Decentralized AI Infrastructure', 325, 305);
+      ctx.fillText("Decentralized AI Infrastructure", 325, 305);
 
       // Certificate ID and date (더 아래쪽으로)
-      ctx.fillStyle = '#888888';
+      ctx.fillStyle = "#888888";
       ctx.font = '11px "Inter", sans-serif';
-      ctx.textAlign = 'center';
+      ctx.textAlign = "center";
       ctx.fillText(`Certificate ID: ${certificateId}`, 325, 350);
       ctx.fillText(`Issued: ${issuedDate}`, 325, 368);
 
       // OpenGraph signature (더 아래쪽으로)
-      ctx.strokeStyle = '#64ffda';
+      ctx.strokeStyle = "#64ffda";
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(225, 400);
       ctx.lineTo(425, 400);
       ctx.stroke();
-      
-      ctx.fillStyle = '#64ffda';
+
+      ctx.fillStyle = "#64ffda";
       ctx.font = 'bold 10px "Inter", sans-serif';
-      ctx.fillText('OPENGRAPH', 325, 415);
+      ctx.fillText("OPENGRAPH", 325, 415);
 
       // Copy to clipboard
-      canvas.toBlob(async (blob) => {
-        if (blob && navigator.clipboard) {
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                'image/png': blob
-              })
-            ]);
-            setCopySuccess(true);
-            setTimeout(() => setCopySuccess(false), 3000);
-          } catch (error) {
-            console.error('Failed to copy certificate:', error);
+      canvas.toBlob(
+        async blob => {
+          if (blob && navigator.clipboard) {
+            try {
+              await navigator.clipboard.write([
+                new ClipboardItem({
+                  "image/png": blob,
+                }),
+              ]);
+              setCopySuccess(true);
+              setTimeout(() => setCopySuccess(false), 3000);
+            } catch (error) {
+              console.error("Failed to copy certificate:", error);
+            }
           }
-        }
-      }, 'image/png', 1.0);
-
+        },
+        "image/png",
+        1.0
+      );
     } catch (error) {
-      console.error('Failed to generate certificate for copying:', error);
+      console.error("Failed to generate certificate for copying:", error);
     } finally {
       setIsCopying(false);
     }
@@ -372,11 +375,11 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   const shareOnTwitter = () => {
     const text = encodeURIComponent(
       `🏆 Earned OpenGraph AI Data Certification!\n\n` +
-      `Completed Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
-      `@OpenGraph_Labs #PhysicalAI #Web3AI`
+        `Completed Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
+        `@OpenGraph_Labs #PhysicalAI #Web3AI`
     );
-    const url = encodeURIComponent('https://explorer.opengraphlabs.xyz/challenges');
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+    const url = encodeURIComponent("https://explorer.opengraphlabs.xyz/challenges");
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
   };
 
   return (
@@ -501,7 +504,11 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             }}
           />
 
-          <Flex align="center" gap="4" style={{ marginBottom: theme.spacing.semantic.component.md, zIndex: 1 }}>
+          <Flex
+            align="center"
+            gap="4"
+            style={{ marginBottom: theme.spacing.semantic.component.md, zIndex: 1 }}
+          >
             <Box
               style={{
                 width: "80px",
@@ -545,34 +552,46 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
           {/* Technology badges */}
           <Flex gap="3" style={{ zIndex: 1 }}>
-            <Flex align="center" gap="1" style={{
-              background: "rgba(100, 255, 218, 0.1)",
-              padding: "6px 12px",
-              borderRadius: theme.borders.radius.full,
-              border: "1px solid rgba(100, 255, 218, 0.3)",
-            }}>
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: "rgba(100, 255, 218, 0.1)",
+                padding: "6px 12px",
+                borderRadius: theme.borders.radius.full,
+                border: "1px solid rgba(100, 255, 218, 0.3)",
+              }}
+            >
               <Database size={14} style={{ color: "#64ffda" }} />
               <Text size="1" style={{ color: "#64ffda", fontWeight: 600 }}>
                 SUI
               </Text>
             </Flex>
-            <Flex align="center" gap="1" style={{
-              background: "rgba(100, 255, 218, 0.1)",
-              padding: "6px 12px",
-              borderRadius: theme.borders.radius.full,
-              border: "1px solid rgba(100, 255, 218, 0.3)",
-            }}>
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: "rgba(100, 255, 218, 0.1)",
+                padding: "6px 12px",
+                borderRadius: theme.borders.radius.full,
+                border: "1px solid rgba(100, 255, 218, 0.3)",
+              }}
+            >
               <Globe size={14} style={{ color: "#64ffda" }} />
               <Text size="1" style={{ color: "#64ffda", fontWeight: 600 }}>
                 WALRUS
               </Text>
             </Flex>
-            <Flex align="center" gap="1" style={{
-              background: "rgba(100, 255, 218, 0.1)",
-              padding: "6px 12px",
-              borderRadius: theme.borders.radius.full,
-              border: "1px solid rgba(100, 255, 218, 0.3)",
-            }}>
+            <Flex
+              align="center"
+              gap="1"
+              style={{
+                background: "rgba(100, 255, 218, 0.1)",
+                padding: "6px 12px",
+                borderRadius: theme.borders.radius.full,
+                border: "1px solid rgba(100, 255, 218, 0.3)",
+              }}
+            >
               <Shield size={14} style={{ color: "#64ffda" }} />
               <Text size="1" style={{ color: "#64ffda", fontWeight: 600 }}>
                 WEB3
@@ -609,9 +628,14 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               border: `1px solid rgba(100, 255, 218, 0.2)`,
             }}
           >
-            <Flex align="center" justify="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+            <Flex
+              align="center"
+              justify="center"
+              gap="2"
+              style={{ marginBottom: theme.spacing.semantic.component.md }}
+            >
               <Lightning size={18} style={{ color: "#64ffda" }} />
-              <Text 
+              <Text
                 as="p"
                 size="2"
                 style={{
@@ -622,22 +646,28 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 Achievements
               </Text>
             </Flex>
-            
+
             <Flex direction="column" gap="3">
               {userProgress.missions.map(mission => (
                 <Flex key={mission.id} align="center" gap="3" justify="center">
                   <CheckCircle size={18} style={{ color: theme.colors.status.success }} />
-                  <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
+                  <Text
+                    as="p"
+                    size="2"
+                    style={{ color: theme.colors.text.primary, fontWeight: 600 }}
+                  >
                     {mission.title}
                   </Text>
-                  <Badge style={{
-                    background: `${theme.colors.status.success}15`,
-                    color: theme.colors.status.success,
-                    padding: "2px 8px",
-                    borderRadius: theme.borders.radius.full,
-                    fontSize: "11px",
-                    fontWeight: 600,
-                  }}>
+                  <Badge
+                    style={{
+                      background: `${theme.colors.status.success}15`,
+                      color: theme.colors.status.success,
+                      padding: "2px 8px",
+                      borderRadius: theme.borders.radius.full,
+                      fontSize: "11px",
+                      fontWeight: 600,
+                    }}
+                  >
                     {mission.completedCount}/{mission.requiredCount}
                   </Badge>
                 </Flex>
@@ -646,7 +676,11 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
           </Box>
 
           {/* Certificate Details */}
-          <Flex justify="center" gap="6" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+          <Flex
+            justify="center"
+            gap="6"
+            style={{ marginBottom: theme.spacing.semantic.component.lg }}
+          >
             <Box style={{ textAlign: "center" }}>
               <Text as="p" size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
                 ISSUED DATE
@@ -659,7 +693,15 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               <Text as="p" size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
                 CERTIFICATE ID
               </Text>
-              <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 700, fontFamily: "monospace" }}>
+              <Text
+                as="p"
+                size="2"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: 700,
+                  fontFamily: "monospace",
+                }}
+              >
                 {certificateId}
               </Text>
             </Box>
@@ -667,7 +709,11 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
         </Box>
 
         {/* Action Buttons */}
-        <Flex gap="3" justify="center" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+        <Flex
+          gap="3"
+          justify="center"
+          style={{ marginBottom: theme.spacing.semantic.component.lg }}
+        >
           <Button
             onClick={downloadCertificate}
             disabled={isDownloading}
@@ -695,7 +741,9 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             onClick={copyCertificate}
             disabled={isCopying}
             style={{
-              background: copySuccess ? "#22c55e" : `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+              background: copySuccess
+                ? "#22c55e"
+                : `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
               color: "#0f0f23",
               border: "none",
               borderRadius: theme.borders.radius.md,
@@ -707,14 +755,16 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               alignItems: "center",
               gap: "8px",
               opacity: isCopying ? 0.7 : 1,
-              boxShadow: copySuccess ? "0 4px 12px rgba(34, 197, 94, 0.3)" : "0 4px 12px rgba(100, 255, 218, 0.3)",
+              boxShadow: copySuccess
+                ? "0 4px 12px rgba(34, 197, 94, 0.3)"
+                : "0 4px 12px rgba(100, 255, 218, 0.3)",
               transition: "all 0.3s ease",
             }}
           >
             {copySuccess ? <CheckCircle size={16} /> : <Copy size={16} />}
             {isCopying ? "Copying..." : copySuccess ? "Copied!" : "Copy Image"}
           </Button>
-          
+
           <Button
             onClick={shareOnTwitter}
             style={{
@@ -750,7 +800,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               animation: "fadeIn 0.5s ease-in",
             }}
           >
-            <Flex align="center" justify="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+            <Flex
+              align="center"
+              justify="center"
+              gap="2"
+              style={{ marginBottom: theme.spacing.semantic.component.xs }}
+            >
               <ClipboardText size={18} style={{ color: "#22c55e" }} />
               <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
                 Certificate copied to clipboard!
@@ -808,4 +863,4 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       </style>
     </Box>
   );
-}; 
+};

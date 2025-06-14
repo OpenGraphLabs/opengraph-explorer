@@ -17,7 +17,7 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
   width = 280,
   height = 160,
   autoplay = true,
-  isLocked = false
+  isLocked = false,
 }) => {
   const { theme } = useTheme();
 
@@ -25,10 +25,10 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
   const getYouTubeEmbedUrl = (missionId: string) => {
     const videoMap: Record<string, string> = {
       "mission-1": "NWa_WwcIadw", // Label annotation guide
-      "mission-2": "NWa_WwcIadw" // Bounding box guide (same video for now)
+      "mission-2": "NWa_WwcIadw", // Bounding box guide (same video for now)
     };
     const videoId = videoMap[missionId] || "NWa_WwcIadw";
-    
+
     // YouTube embed URL with autoplay and other parameters
     const params = new URLSearchParams({
       autoplay: autoplay && !isLocked ? "1" : "0",
@@ -38,9 +38,9 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
       controls: "1",
       modestbranding: "1",
       rel: "0",
-      showinfo: "0"
+      showinfo: "0",
     });
-    
+
     return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
   };
 
@@ -60,7 +60,6 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
         opacity: isLocked ? 0.6 : 1,
         filter: isLocked ? "grayscale(50%)" : "none",
       }}
-
     >
       {/* YouTube Iframe */}
       <iframe
@@ -74,10 +73,6 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
         allowFullScreen
         title={`${mission.title} Guide Video`}
       />
-
-
-
-
 
       {/* Locked Overlay - Only show when locked */}
       {isLocked && (
@@ -111,4 +106,4 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
       )}
     </Box>
   );
-}; 
+};

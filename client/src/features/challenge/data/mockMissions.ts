@@ -15,11 +15,11 @@ export const mockMissions: Mission[] = [
     reward: {
       type: "badge",
       name: "Label Master",
-      description: "Successfully completed label annotation training"
-    }
+      description: "Successfully completed label annotation training",
+    },
   },
   {
-    id: "mission-2", 
+    id: "mission-2",
     type: "bbox",
     title: "Step 2: Urban Traffic Image Bounding Box",
     description: "Complete 3 bounding box annotations",
@@ -31,9 +31,9 @@ export const mockMissions: Mission[] = [
     reward: {
       type: "certificate",
       name: "OpenGraph Data Annotator",
-      description: "Certified data annotator for AI/ML datasets"
-    }
-  }
+      description: "Certified data annotator for AI/ML datasets",
+    },
+  },
 ];
 
 // Mock user mission progress
@@ -46,8 +46,8 @@ export const mockUserMissionProgress: UserMissionProgress = {
     id: "OG-CERT-2024-001",
     title: "OpenGraph Data Annotation Specialist",
     issuedAt: new Date("2024-01-15"),
-    shareableUrl: "https://opengraph.io/certificate/OG-CERT-2024-001"
-  }
+    shareableUrl: "https://opengraph.io/certificate/OG-CERT-2024-001",
+  },
 };
 
 // Helper functions
@@ -59,22 +59,23 @@ export const getMissionsByType = (type: "label" | "bbox"): Mission[] => {
   return mockMissions.filter(mission => mission.type === type);
 };
 
-export const updateMissionProgress = (
-  missionId: string, 
-  completedCount: number
-): Mission => {
+export const updateMissionProgress = (missionId: string, completedCount: number): Mission => {
   const mission = getMissionById(missionId);
   if (!mission) {
     throw new Error(`Mission ${missionId} not found`);
   }
 
-  const status: MissionStatus = completedCount >= mission.requiredCount ? "completed" : 
-                                completedCount > 0 ? "in_progress" : "not_started";
+  const status: MissionStatus =
+    completedCount >= mission.requiredCount
+      ? "completed"
+      : completedCount > 0
+        ? "in_progress"
+        : "not_started";
 
   const updatedMission = {
     ...mission,
     completedCount,
-    status
+    status,
   };
 
   return updatedMission;
@@ -82,4 +83,4 @@ export const updateMissionProgress = (
 
 export const checkAllMissionsCompleted = (missions: Mission[]): boolean => {
   return missions.every(mission => mission.status === "completed");
-}; 
+};

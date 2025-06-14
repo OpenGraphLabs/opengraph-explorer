@@ -1,6 +1,6 @@
-import React from 'react';
-import { Box } from '@/shared/ui/design-system/components';
-import { LAYOUT_CONSTANTS } from '../constants/layout';
+import React from "react";
+import { Box } from "@/shared/ui/design-system/components";
+import { LAYOUT_CONSTANTS } from "../constants/layout";
 
 interface FullHeightLayoutProps {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ interface FullHeightLayoutProps {
   /**
    * 배경 스타일
    */
-  background?: React.CSSProperties['background'];
+  background?: React.CSSProperties["background"];
   /**
    * 추가 스타일
    */
@@ -29,9 +29,9 @@ export const FullHeightLayout: React.FC<FullHeightLayoutProps> = ({
       style={{
         minHeight: `calc(100vh - ${LAYOUT_CONSTANTS.HEADER_HEIGHT})`,
         height: `calc(100vh - ${LAYOUT_CONSTANTS.HEADER_HEIGHT})`,
-        display: center ? 'flex' : 'block',
-        alignItems: center ? 'center' : 'stretch',
-        justifyContent: center ? 'center' : 'flex-start',
+        display: center ? "flex" : "block",
+        alignItems: center ? "center" : "stretch",
+        justifyContent: center ? "center" : "flex-start",
         background,
         ...style,
       }}
@@ -39,4 +39,4 @@ export const FullHeightLayout: React.FC<FullHeightLayoutProps> = ({
       {children}
     </Box>
   );
-}; 
+};

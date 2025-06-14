@@ -3,14 +3,7 @@ import { Box, Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Mission } from "../types/mission";
 import { Challenge } from "../types/challenge";
-import { 
-  CheckCircle, 
-  Circle, 
-  PlayCircle, 
-  Trophy, 
-  Star,
-  ArrowRight
-} from "phosphor-react";
+import { CheckCircle, Circle, PlayCircle, Trophy, Star, ArrowRight } from "phosphor-react";
 
 interface MissionCardProps {
   mission: Mission;
@@ -23,16 +16,20 @@ export const MissionCard: React.FC<MissionCardProps> = ({
   mission,
   challenge,
   isActive,
-  onClick
+  onClick,
 }) => {
   const { theme } = useTheme();
 
   const getStatusIcon = () => {
     switch (mission.status) {
       case "completed":
-        return <CheckCircle size={20} weight="fill" style={{ color: theme.colors.status.success }} />;
+        return (
+          <CheckCircle size={20} weight="fill" style={{ color: theme.colors.status.success }} />
+        );
       case "in_progress":
-        return <PlayCircle size={20} weight="fill" style={{ color: theme.colors.interactive.primary }} />;
+        return (
+          <PlayCircle size={20} weight="fill" style={{ color: theme.colors.interactive.primary }} />
+        );
       default:
         return <Circle size={20} style={{ color: theme.colors.text.tertiary }} />;
     }
@@ -55,17 +52,18 @@ export const MissionCard: React.FC<MissionCardProps> = ({
     <Box
       onClick={onClick}
       style={{
-        background: mission.status === "completed" 
-          ? `linear-gradient(135deg, ${theme.colors.status.success}08, ${theme.colors.status.success}15)` 
-          : isActive 
-          ? `${theme.colors.interactive.primary}08` 
-          : theme.colors.background.card,
+        background:
+          mission.status === "completed"
+            ? `linear-gradient(135deg, ${theme.colors.status.success}08, ${theme.colors.status.success}15)`
+            : isActive
+              ? `${theme.colors.interactive.primary}08`
+              : theme.colors.background.card,
         border: `2px solid ${
-          mission.status === "completed" 
-            ? theme.colors.status.success 
-            : isActive 
-            ? theme.colors.interactive.primary 
-            : theme.colors.border.primary
+          mission.status === "completed"
+            ? theme.colors.status.success
+            : isActive
+              ? theme.colors.interactive.primary
+              : theme.colors.border.primary
         }`,
         borderRadius: theme.borders.radius.lg,
         padding: theme.spacing.semantic.component.lg,
@@ -106,7 +104,15 @@ export const MissionCard: React.FC<MissionCardProps> = ({
       )}
 
       {/* Step Badge */}
-      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md, position: "relative", zIndex: 1 }}>
+      <Flex
+        justify="between"
+        align="center"
+        style={{
+          marginBottom: theme.spacing.semantic.component.md,
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <Badge
           style={{
             background: `${getStatusColor()}15`,
@@ -124,7 +130,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
           {getStatusIcon()}
           Step {mission.order}
         </Badge>
-        
+
         {mission.status === "completed" && (
           <Flex align="center" gap="1">
             <Box
@@ -187,7 +193,11 @@ export const MissionCard: React.FC<MissionCardProps> = ({
 
       {/* Progress */}
       <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
-        <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+        <Flex
+          justify="between"
+          align="center"
+          style={{ marginBottom: theme.spacing.semantic.component.xs }}
+        >
           <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
             Progress
           </Text>
@@ -195,7 +205,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
             {mission.completedCount} / {mission.requiredCount}
           </Text>
         </Flex>
-        
+
         <Box
           style={{
             width: "100%",
@@ -243,7 +253,9 @@ export const MissionCard: React.FC<MissionCardProps> = ({
         gap="2"
         style={{
           padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-          background: isActive ? theme.colors.interactive.primary : theme.colors.background.secondary,
+          background: isActive
+            ? theme.colors.interactive.primary
+            : theme.colors.background.secondary,
           color: isActive ? theme.colors.text.inverse : theme.colors.text.primary,
           borderRadius: theme.borders.radius.md,
           fontWeight: 600,
@@ -284,4 +296,4 @@ export const MissionCard: React.FC<MissionCardProps> = ({
       </style>
     </Box>
   );
-}; 
+};

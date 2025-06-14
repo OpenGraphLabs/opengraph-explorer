@@ -2,14 +2,7 @@ import React from "react";
 import { Box, Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { UserMissionProgress } from "../types/mission";
-import { 
-  Trophy, 
-  Target, 
-  CheckCircle, 
-  PlayCircle,
-  Star,
-  Sparkle
-} from "phosphor-react";
+import { Trophy, Target, CheckCircle, PlayCircle, Star, Sparkle } from "phosphor-react";
 
 interface MissionProgressProps {
   userProgress: UserMissionProgress;
@@ -38,7 +31,9 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
       case "completed":
         return <Trophy size={20} weight="fill" style={{ color: theme.colors.status.success }} />;
       case "in_progress":
-        return <PlayCircle size={20} weight="fill" style={{ color: theme.colors.interactive.primary }} />;
+        return (
+          <PlayCircle size={20} weight="fill" style={{ color: theme.colors.interactive.primary }} />
+        );
       default:
         return <Target size={20} style={{ color: theme.colors.text.tertiary }} />;
     }
@@ -55,7 +50,11 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
       }}
     >
       {/* Header */}
-      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+      <Flex
+        justify="between"
+        align="center"
+        style={{ marginBottom: theme.spacing.semantic.component.lg }}
+      >
         <Flex align="center" gap="3">
           <Box
             style={{
@@ -111,7 +110,11 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
 
       {/* Progress Bar */}
       <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
-        <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+        <Flex
+          justify="between"
+          align="center"
+          style={{ marginBottom: theme.spacing.semantic.component.sm }}
+        >
           <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
             Overall Progress
           </Text>
@@ -119,7 +122,7 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
             {completedMissions} / {totalMissions} missions completed
           </Text>
         </Flex>
-        
+
         <Box
           style={{
             width: "100%",
@@ -148,23 +151,29 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
             style={{
               flex: 1,
               padding: theme.spacing.semantic.component.md,
-              background: mission.status === "completed" 
-                ? `${theme.colors.status.success}10` 
-                : mission.status === "in_progress"
-                ? `${theme.colors.interactive.primary}10`
-                : theme.colors.background.secondary,
-              border: `1px solid ${
-                mission.status === "completed" 
-                  ? `${theme.colors.status.success}30` 
+              background:
+                mission.status === "completed"
+                  ? `${theme.colors.status.success}10`
                   : mission.status === "in_progress"
-                  ? `${theme.colors.interactive.primary}30`
-                  : theme.colors.border.primary
+                    ? `${theme.colors.interactive.primary}10`
+                    : theme.colors.background.secondary,
+              border: `1px solid ${
+                mission.status === "completed"
+                  ? `${theme.colors.status.success}30`
+                  : mission.status === "in_progress"
+                    ? `${theme.colors.interactive.primary}30`
+                    : theme.colors.border.primary
               }`,
               borderRadius: theme.borders.radius.md,
               textAlign: "center",
             }}
           >
-            <Flex align="center" justify="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+            <Flex
+              align="center"
+              justify="center"
+              gap="2"
+              style={{ marginBottom: theme.spacing.semantic.component.xs }}
+            >
               {mission.status === "completed" ? (
                 <CheckCircle size={16} style={{ color: theme.colors.status.success }} />
               ) : mission.status === "in_progress" ? (
@@ -176,17 +185,18 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
                 size="1"
                 style={{
                   fontWeight: 600,
-                  color: mission.status === "completed" 
-                    ? theme.colors.status.success 
-                    : mission.status === "in_progress"
-                    ? theme.colors.interactive.primary
-                    : theme.colors.text.tertiary,
+                  color:
+                    mission.status === "completed"
+                      ? theme.colors.status.success
+                      : mission.status === "in_progress"
+                        ? theme.colors.interactive.primary
+                        : theme.colors.text.tertiary,
                 }}
               >
                 Step {mission.order}
               </Text>
             </Flex>
-            
+
             <Text
               size="2"
               style={{
@@ -197,7 +207,7 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
             >
               {mission.completedCount}/{mission.requiredCount}
             </Text>
-            
+
             <Text
               size="1"
               style={{
@@ -223,7 +233,12 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
             textAlign: "center",
           }}
         >
-          <Flex align="center" justify="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+          <Flex
+            align="center"
+            justify="center"
+            gap="2"
+            style={{ marginBottom: theme.spacing.semantic.component.xs }}
+          >
             <Star size={16} style={{ color: theme.colors.status.warning }} />
             <Text
               size="2"
@@ -247,4 +262,4 @@ export const MissionProgress: React.FC<MissionProgressProps> = ({ userProgress }
       )}
     </Box>
   );
-}; 
+};

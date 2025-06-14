@@ -2,24 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Mission } from "../types/mission";
-import { 
-  Play, 
-  Pause, 
-  CheckCircle, 
-  Target,
-  Sparkle,
-  ArrowRight
-} from "phosphor-react";
+import { Play, Pause, CheckCircle, Target, Sparkle, ArrowRight } from "phosphor-react";
 
 interface MissionDemoProps {
   mission: Mission;
   onProgressUpdate: (missionId: string, completedCount: number) => void;
 }
 
-export const MissionDemo: React.FC<MissionDemoProps> = ({
-  mission,
-  onProgressUpdate
-}) => {
+export const MissionDemo: React.FC<MissionDemoProps> = ({ mission, onProgressUpdate }) => {
   const { theme } = useTheme();
   const [isRunning, setIsRunning] = useState(false);
   const [currentProgress, setCurrentProgress] = useState(mission.completedCount);
@@ -41,15 +31,15 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
 
   const startDemo = () => {
     if (isRunning) return;
-    
+
     setIsRunning(true);
     let progress = currentProgress;
-    
+
     intervalRef.current = setInterval(() => {
       progress += 1;
       setCurrentProgress(progress);
       onProgressUpdate(mission.id, progress);
-      
+
       if (progress >= mission.requiredCount) {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -90,7 +80,11 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
         marginBottom: theme.spacing.semantic.component.md,
       }}
     >
-      <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+      <Flex
+        justify="between"
+        align="center"
+        style={{ marginBottom: theme.spacing.semantic.component.md }}
+      >
         <Flex align="center" gap="2">
           <Target size={16} style={{ color: theme.colors.interactive.primary }} />
           <Text
@@ -103,18 +97,16 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
             Demo: {mission.title}
           </Text>
         </Flex>
-        
+
         <Badge
           style={{
-            background: isRunning 
-              ? `${theme.colors.status.warning}15` 
+            background: isRunning
+              ? `${theme.colors.status.warning}15`
               : `${theme.colors.status.success}15`,
-            color: isRunning 
-              ? theme.colors.status.warning 
-              : theme.colors.status.success,
-            border: `1px solid ${isRunning 
-              ? `${theme.colors.status.warning}30` 
-              : `${theme.colors.status.success}30`}`,
+            color: isRunning ? theme.colors.status.warning : theme.colors.status.success,
+            border: `1px solid ${
+              isRunning ? `${theme.colors.status.warning}30` : `${theme.colors.status.success}30`
+            }`,
             padding: "4px 8px",
             borderRadius: theme.borders.radius.full,
             fontSize: "11px",
@@ -127,7 +119,11 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
 
       {/* Progress Display */}
       <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
-        <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+        <Flex
+          justify="between"
+          align="center"
+          style={{ marginBottom: theme.spacing.semantic.component.xs }}
+        >
           <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 600 }}>
             Progress
           </Text>
@@ -135,7 +131,7 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
             {currentProgress} / {mission.requiredCount}
           </Text>
         </Flex>
-        
+
         <Box
           style={{
             width: "100%",
@@ -163,12 +159,14 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
             onClick={startDemo}
             disabled={currentProgress >= mission.requiredCount}
             style={{
-              background: currentProgress >= mission.requiredCount 
-                ? theme.colors.background.secondary 
-                : theme.colors.interactive.primary,
-              color: currentProgress >= mission.requiredCount 
-                ? theme.colors.text.secondary 
-                : theme.colors.text.inverse,
+              background:
+                currentProgress >= mission.requiredCount
+                  ? theme.colors.background.secondary
+                  : theme.colors.interactive.primary,
+              color:
+                currentProgress >= mission.requiredCount
+                  ? theme.colors.text.secondary
+                  : theme.colors.text.inverse,
               border: "none",
               borderRadius: theme.borders.radius.md,
               padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -204,7 +202,7 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
             Pause Demo
           </Button>
         )}
-        
+
         <Button
           onClick={resetDemo}
           style={{
@@ -265,10 +263,12 @@ export const MissionDemo: React.FC<MissionDemoProps> = ({
             lineHeight: 1.4,
           }}
         >
-          <strong>Demo Instructions:</strong> Click "Start Demo" to simulate completing {mission.requiredCount} {mission.type === "label" ? "label annotations" : "bounding box annotations"}. 
-          This will automatically update your mission progress every second.
+          <strong>Demo Instructions:</strong> Click "Start Demo" to simulate completing{" "}
+          {mission.requiredCount}{" "}
+          {mission.type === "label" ? "label annotations" : "bounding box annotations"}. This will
+          automatically update your mission progress every second.
         </Text>
       </Box>
     </Box>
   );
-}; 
+};

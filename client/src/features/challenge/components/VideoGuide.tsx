@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Mission } from "../types/mission";
-import { 
-  Play, 
-  Pause, 
-  SkipBack, 
+import {
+  Play,
+  Pause,
+  SkipBack,
   SkipForward,
   SpeakerHigh,
   SpeakerSlash,
   X,
-  Target
+  Target,
 } from "phosphor-react";
 
 interface VideoGuideProps {
@@ -19,11 +19,7 @@ interface VideoGuideProps {
   onClose: () => void;
 }
 
-export const VideoGuide: React.FC<VideoGuideProps> = ({
-  mission,
-  isOpen,
-  onClose
-}) => {
+export const VideoGuide: React.FC<VideoGuideProps> = ({ mission, isOpen, onClose }) => {
   const { theme } = useTheme();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -47,7 +43,7 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handlePlayPause = () => {
@@ -116,7 +112,7 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({
               {mission.title} - Tutorial Guide
             </Text>
           </Flex>
-          
+
           <Button
             onClick={onClose}
             style={{
@@ -157,7 +153,7 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
-          
+
           {/* Video Overlay Controls */}
           <Box
             style={{
@@ -185,7 +181,7 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({
                 marginBottom: theme.spacing.semantic.component.sm,
               }}
             />
-            
+
             {/* Controls */}
             <Flex justify="between" align="center">
               <Flex align="center" gap="2">
@@ -208,7 +204,7 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({
                     <Play size={16} style={{ color: "#ffffff" }} />
                   )}
                 </Button>
-                
+
                 <Button
                   onClick={handleMuteToggle}
                   style={{
@@ -228,7 +224,7 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({
                     <SpeakerHigh size={16} style={{ color: "#ffffff" }} />
                   )}
                 </Button>
-                
+
                 <Text
                   size="1"
                   style={{
@@ -299,12 +295,13 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({
               lineHeight: 1.6,
             }}
           >
-            Watch this tutorial to understand how to complete {mission.requiredCount} {mission.type === "label" ? "label annotations" : "bounding box annotations"}. 
-            Follow along with the video and practice the techniques shown. Once you're confident, 
-            you can start the actual challenge!
+            Watch this tutorial to understand how to complete {mission.requiredCount}{" "}
+            {mission.type === "label" ? "label annotations" : "bounding box annotations"}. Follow
+            along with the video and practice the techniques shown. Once you're confident, you can
+            start the actual challenge!
           </Text>
         </Box>
       </Box>
     </Box>
   );
-}; 
+};

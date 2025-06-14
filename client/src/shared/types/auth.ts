@@ -1,4 +1,4 @@
-export type PagePermission = 'public' | 'wallet-required';
+export type PagePermission = "public" | "wallet-required";
 
 export interface RouteConfig {
   path: string;
@@ -10,4 +10,4 @@ export interface AuthState {
   isWalletConnected: boolean;
   walletAddress?: string;
   isLoading: boolean;
-} 
+}

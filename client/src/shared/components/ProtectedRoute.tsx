@@ -1,9 +1,9 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useRoutePermission } from '../hooks/useAuth';
-import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { Wallet, ArrowRight, Sparkle } from 'phosphor-react';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useRoutePermission } from "../hooks/useAuth";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { Wallet, ArrowRight, Sparkle } from "phosphor-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -25,18 +25,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         background: theme.colors.background.primary,
         minHeight: `calc(100vh - 56px)`,
         height: `calc(100vh - 56px)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         padding: theme.spacing.semantic.layout.lg,
-        position: 'relative',
-        overflow: 'hidden',
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       {/* Subtle Background Pattern */}
       <Box
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
@@ -52,10 +52,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       {/* Main Content */}
       <Box
         style={{
-          position: 'relative',
+          position: "relative",
           zIndex: 1,
-          width: '100%',
-          maxWidth: '420px',
+          width: "100%",
+          maxWidth: "420px",
         }}
       >
         {/* Card Container */}
@@ -66,41 +66,41 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             border: `1px solid ${theme.colors.border.primary}`,
             boxShadow: `0 8px 32px rgba(0, 0, 0, 0.08)`,
             padding: theme.spacing.semantic.layout.xl,
-            textAlign: 'center',
-            position: 'relative',
-            width: '100%',
+            textAlign: "center",
+            position: "relative",
+            width: "100%",
           }}
         >
           {/* Simple Icon */}
           <Box
             style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
+              width: "64px",
+              height: "64px",
+              borderRadius: "50%",
               background: `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.accent}15)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto",
               marginBottom: theme.spacing.semantic.component.lg,
-              position: 'relative',
+              position: "relative",
             }}
           >
             <Wallet size={28} style={{ color: theme.colors.interactive.primary }} />
-            
+
             {/* Subtle Sparkle */}
             <Box
               style={{
-                position: 'absolute',
-                top: '-4px',
-                right: '-4px',
-                width: '16px',
-                height: '16px',
+                position: "absolute",
+                top: "-4px",
+                right: "-4px",
+                width: "16px",
+                height: "16px",
                 background: theme.colors.status.success,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 boxShadow: `0 2px 8px ${theme.colors.status.success}30`,
               }}
             >
@@ -143,18 +143,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
               borderRadius: theme.borders.radius.md,
               fontWeight: 600,
               padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.xl}`,
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: theme.spacing.semantic.component.sm,
               boxShadow: `0 4px 16px ${theme.colors.interactive.primary}25`,
-              border: 'none',
+              border: "none",
               fontSize: theme.typography.body.fontSize,
-              minWidth: '200px',
-              margin: '0 auto',
+              minWidth: "200px",
+              margin: "0 auto",
             }}
             onClick={() => {
               // Trigger wallet connection modal
-              const connectButton = document.querySelector('[data-testid="connect-button"]') as HTMLElement;
+              const connectButton = document.querySelector(
+                '[data-testid="connect-button"]'
+              ) as HTMLElement;
               if (connectButton) {
                 connectButton.click();
               }
@@ -169,8 +171,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           {routeConfig?.redirectTo && (
             <Button
               style={{
-                background: 'transparent',
-                border: 'none',
+                background: "transparent",
+                border: "none",
                 color: theme.colors.text.tertiary,
                 fontWeight: 500,
                 padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -206,4 +208,4 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       </Box>
     </Box>
   );
-}; 
+};

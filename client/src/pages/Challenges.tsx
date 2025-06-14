@@ -30,13 +30,13 @@ import {
   TwitterLogo,
 } from "phosphor-react";
 import { useChallenges, Challenge, ChallengeStatus } from "@/features/challenge";
-import { 
-  useMissions, 
-  CompactMissionStatus, 
+import {
+  useMissions,
+  CompactMissionStatus,
   CertificateModal,
   MissionCard,
   InlineVideoGuide,
-  MissionSuccessAnimation
+  MissionSuccessAnimation,
 } from "@/features/challenge";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -609,19 +609,19 @@ export function Challenges() {
         generateCertificate();
         setShowCertificateModal(true);
       }, 4500); // Show after success animation completes
-      
+
       return () => clearTimeout(timer);
     }
   }, [isAllCompleted, userProgress.certificate, generateCertificate]);
 
   // Get mission-related challenges
-  const missionChallenges = filteredChallenges.filter(challenge => 
+  const missionChallenges = filteredChallenges.filter(challenge =>
     userProgress.missions.some(mission => mission.challengeId === challenge.id)
   );
 
   // Get current mission and its challenge
   const currentMission = getCurrentMission();
-  const currentChallenge = currentMission 
+  const currentChallenge = currentMission
     ? filteredChallenges.find(c => c.id === currentMission.challengeId)
     : null;
 
@@ -958,9 +958,14 @@ export function Challenges() {
                 animation: "certificateShimmer 4s infinite",
               }}
             />
-            
+
             <Box style={{ position: "relative", zIndex: 1 }}>
-              <Flex align="center" justify="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+              <Flex
+                align="center"
+                justify="center"
+                gap="3"
+                style={{ marginBottom: theme.spacing.semantic.component.md }}
+              >
                 <Box
                   style={{
                     background: `linear-gradient(135deg, ${theme.colors.status.success}, #1de9b6)`,
@@ -996,7 +1001,7 @@ export function Challenges() {
                   </Text>
                 </Box>
               </Flex>
-              
+
               <Flex gap="3" justify="center">
                 <Button
                   onClick={() => setShowCertificateModal(true)}
@@ -1018,19 +1023,24 @@ export function Challenges() {
                   <Trophy size={16} weight="fill" />
                   View & Download Certificate
                 </Button>
-                
+
                 <Button
                   onClick={() => {
                     const text = encodeURIComponent(
                       `🎯 Just earned my OpenGraph Data Annotation Specialist Certificate! 🏆\n\n` +
-                      `🤖 Mastered AI dataset preparation for Physical AI systems\n` +
-                      `🔗 Powered by Sui blockchain & Walrus decentralized storage\n` +
-                      `🌐 Contributing to the future of real-world AI applications\n\n` +
-                      `Ready to shape the next generation of Physical AI! 🚀\n\n` +
-                      `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
+                        `🤖 Mastered AI dataset preparation for Physical AI systems\n` +
+                        `🔗 Powered by Sui blockchain & Walrus decentralized storage\n` +
+                        `🌐 Contributing to the future of real-world AI applications\n\n` +
+                        `Ready to shape the next generation of Physical AI! 🚀\n\n` +
+                        `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
                     );
-                    const url = encodeURIComponent(userProgress.certificate?.shareableUrl || 'https://opengraph.io/certificate');
-                    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+                    const url = encodeURIComponent(
+                      userProgress.certificate?.shareableUrl || "https://opengraph.io/certificate"
+                    );
+                    window.open(
+                      `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+                      "_blank"
+                    );
                   }}
                   style={{
                     background: "#1DA1F2",
@@ -1059,7 +1069,11 @@ export function Challenges() {
       {/* Mission Cards Section - Show during mission period */}
       {userProgress.overallStatus !== "completed" && (
         <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
-          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+          <Flex
+            align="center"
+            gap="2"
+            style={{ marginBottom: theme.spacing.semantic.component.lg }}
+          >
             <Trophy size={20} style={{ color: theme.colors.interactive.accent }} />
             <Text
               size="3"
@@ -1071,16 +1085,16 @@ export function Challenges() {
               Annotation Challenges
             </Text>
           </Flex>
-          
+
           {/* Mission Cards with Inline Videos */}
           <Flex direction="column" gap="6">
             {userProgress.missions.map((mission, index) => {
               const challenge = filteredChallenges.find(c => c.id === mission.challengeId);
               if (!challenge) return null;
-              
+
               const missionStatus = getMissionStatus(mission.id);
               const isLocked = missionStatus === "locked";
-              
+
               return (
                 <Box key={mission.id}>
                   {/* Desktop Layout: Side by side */}
@@ -1102,7 +1116,7 @@ export function Challenges() {
                           }}
                         />
                       </Box>
-                      
+
                       {/* Inline Video Guide */}
                       <Box style={{ flex: "0 0 auto" }}>
                         <InlineVideoGuide
@@ -1129,7 +1143,7 @@ export function Challenges() {
                           isLocked={isLocked}
                         />
                       </Box>
-                      
+
                       {/* Mission Card */}
                       <MissionCard
                         mission={mission}
@@ -1269,8 +1283,6 @@ export function Challenges() {
         isOpen={showCertificateModal}
         onClose={() => setShowCertificateModal(false)}
       />
-
-
 
       <style>
         {`

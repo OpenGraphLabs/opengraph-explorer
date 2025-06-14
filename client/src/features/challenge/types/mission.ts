@@ -37,4 +37,4 @@ export interface MissionCompletion {
   completedAt: Date;
   annotations: string[]; // annotation IDs that contributed to completion
   qualityScore: number;
-} 
+}
