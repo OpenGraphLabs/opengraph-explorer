@@ -930,9 +930,7 @@ export function Challenges() {
     //     onClearTags={clearTags}
     //   />
     // ),
-    filters: (
-      <></>
-    )
+    filters: <></>,
   };
 
   return (
