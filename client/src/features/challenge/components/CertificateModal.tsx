@@ -77,25 +77,25 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set high-resolution canvas - 더 컴팩트한 크기
+      // Set high-resolution canvas - 좌우 공백 줄이고 컴팩트한 크기
       const scale = 2;
-      canvas.width = 750 * scale;
+      canvas.width = 650 * scale;
       canvas.height = 500 * scale;
       ctx.scale(scale, scale);
 
       // Background - match modal design
-      const bgGradient = ctx.createLinearGradient(0, 0, 750, 500);
+      const bgGradient = ctx.createLinearGradient(0, 0, 650, 500);
       bgGradient.addColorStop(0, '#0f0f23');
       bgGradient.addColorStop(0.3, '#1a1a2e');
       bgGradient.addColorStop(0.7, '#16213e');
       bgGradient.addColorStop(1, '#0f3460');
       ctx.fillStyle = bgGradient;
-      ctx.fillRect(0, 0, 750, 500);
+      ctx.fillRect(0, 0, 650, 500);
 
       // Grid pattern overlay (더 섬세하게)
       ctx.strokeStyle = 'rgba(100, 255, 218, 0.06)';
       ctx.lineWidth = 1;
-      for (let i = 0; i < 750; i += 25) {
+      for (let i = 0; i < 650; i += 25) {
         ctx.beginPath();
         ctx.moveTo(i, 0);
         ctx.lineTo(i, 500);
@@ -104,14 +104,14 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       for (let i = 0; i < 500; i += 25) {
         ctx.beginPath();
         ctx.moveTo(0, i);
-        ctx.lineTo(750, i);
+        ctx.lineTo(650, i);
         ctx.stroke();
       }
 
       // 장식 요소들 (더 작고 효율적으로)
       ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
       ctx.beginPath();
-      ctx.arc(650, 60, 30, 0, Math.PI * 2);
+      ctx.arc(550, 60, 30, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = 'rgba(100, 255, 218, 0.25)';
       ctx.lineWidth = 2;
@@ -128,7 +128,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       // Trophy icon area (더 위쪽으로)
       ctx.fillStyle = 'rgba(100, 255, 218, 0.15)';
       ctx.beginPath();
-      ctx.arc(375, 80, 28, 0, Math.PI * 2);
+      ctx.arc(325, 75, 28, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#64ffda';
       ctx.lineWidth = 2;
@@ -138,65 +138,65 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       ctx.fillStyle = '#64ffda';
       ctx.font = 'bold 24px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('🏆', 375, 88);
+      ctx.fillText('🏆', 325, 83);
 
-      // Main title (더 위쪽으로)
+      // Main title (트로피와 간격 늘리기)
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 28px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('CERTIFICATE', 375, 130);
+      ctx.fillText('CERTIFICATE', 325, 140);
 
       // Subtitle
       ctx.font = '16px "Inter", sans-serif';
       ctx.fillStyle = '#64ffda';
-      ctx.fillText('Data Annotation Specialist', 375, 155);
+      ctx.fillText('Data Annotation Specialist', 325, 165);
 
       // Achievement text (더 컴팩트하게)
       ctx.fillStyle = '#ffffff';
       ctx.font = '14px "Inter", sans-serif';
-      ctx.fillText('Successfully completed', 375, 190);
+      ctx.fillText('Successfully completed', 325, 200);
       ctx.font = 'bold 14px "Inter", sans-serif';
-      ctx.fillText('OpenGraph Physical AI Training', 375, 210);
+      ctx.fillText('OpenGraph Physical AI Training', 325, 220);
 
       // Completion stats
       ctx.fillStyle = '#64ffda';
       ctx.font = '13px "Inter", sans-serif';
       const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
       const totalMissions = userProgress.missions.length;
-      ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 375, 240);
+      ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 325, 250);
 
       // Tech badges section (더 작게)
       ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
-      ctx.fillRect(200, 260, 350, 45);
+      ctx.fillRect(150, 270, 350, 45);
       ctx.strokeStyle = '#64ffda';
       ctx.lineWidth = 1;
-      ctx.strokeRect(200, 260, 350, 45);
+      ctx.strokeRect(150, 270, 350, 45);
 
       ctx.fillStyle = '#64ffda';
       ctx.font = 'bold 11px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('POWERED BY SUI & WALRUS', 375, 280);
+      ctx.fillText('POWERED BY SUI & WALRUS', 325, 290);
       ctx.font = '10px "Inter", sans-serif';
-      ctx.fillText('Decentralized AI Infrastructure', 375, 295);
+      ctx.fillText('Decentralized AI Infrastructure', 325, 305);
 
       // Certificate ID and date (더 아래쪽으로)
       ctx.fillStyle = '#888888';
       ctx.font = '11px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`Certificate ID: ${certificateId}`, 375, 340);
-      ctx.fillText(`Issued: ${issuedDate}`, 375, 358);
+      ctx.fillText(`Certificate ID: ${certificateId}`, 325, 350);
+      ctx.fillText(`Issued: ${issuedDate}`, 325, 368);
 
       // OpenGraph signature (더 아래쪽으로)
       ctx.strokeStyle = '#64ffda';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(275, 390);
-      ctx.lineTo(475, 390);
+      ctx.moveTo(225, 400);
+      ctx.lineTo(425, 400);
       ctx.stroke();
       
       ctx.fillStyle = '#64ffda';
       ctx.font = 'bold 10px "Inter", sans-serif';
-      ctx.fillText('OPENGRAPH', 375, 405);
+      ctx.fillText('OPENGRAPH', 325, 415);
 
       // Download the certificate
       const link = document.createElement('a');
