@@ -795,7 +795,7 @@ export function AnnotationWorkspace() {
                           ? theme.colors.interactive.disabled
                           : canSave
                             ? annotationStack.state.isFull
-                              ? theme.colors.status.error
+                              ? theme.colors.interactive.primary  // 빨간색 대신 primary 색상 사용
                               : theme.colors.status.success
                             : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,

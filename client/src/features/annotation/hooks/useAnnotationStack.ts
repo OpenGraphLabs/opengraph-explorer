@@ -34,17 +34,20 @@ export function useAnnotationStack(maxSize: number = 30) {
   );
 
   /**
-   * 스택에 annotation 추가
+   * 스택에 annotation 추가 (이미지당 1개만 유지)
    */
   const addToStack = useCallback(
     (imageData: ImageData, type: "label" | "bbox", annotation: LabelAnnotation | BoundingBox) => {
-      if (stack.length >= maxSize) {
+      // 스택이 가득 찬 경우 확인 (기존 이미지 교체는 허용)
+      const existingItemForImage = stack.find(item => item.imageData.id === imageData.id);
+      if (!existingItemForImage && stack.length >= maxSize) {
         console.warn(
           "Annotation stack is full. Please save current annotations before adding more."
         );
         return false;
       }
 
+      // 새로운 스택 아이템 생성
       const stackItem: AnnotationStackItem = {
         id: `${imageData.id}_${type}_${annotation.id}_${Date.now()}`,
         imageData,
@@ -53,10 +56,15 @@ export function useAnnotationStack(maxSize: number = 30) {
         timestamp: Date.now(),
       };
 
-      setStack(prev => [...prev, stackItem]);
+      setStack(prev => {
+        // 같은 이미지의 기존 annotation이 있으면 교체, 없으면 추가
+        const filteredStack = prev.filter(item => item.imageData.id !== imageData.id);
+        return [...filteredStack, stackItem];
+      });
+      
       return true;
     },
-    [stack.length, maxSize]
+    [stack, maxSize]
   );
 
   /**
