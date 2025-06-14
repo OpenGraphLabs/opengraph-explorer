@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/widgets/layout/AppLayout";
 import { ScrollToTop } from "@/shared/components/ScrollToTop";
+import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Home } from "@/pages/Home";
 import { Models } from "@/pages/Models";
 import { ModelDetail } from "@/pages/ModelDetail";
@@ -20,19 +21,92 @@ export default function App() {
     <AppLayout>
       <ScrollToTop />
       <Routes>
+        {/* Public routes - no wallet required */}
         <Route path="/" element={<Home />} />
-        <Route path="/models" element={<Models />} />
-        <Route path="/models/upload" element={<UploadModel />} />
-        <Route path="/models/:id" element={<ModelDetail />} />
-        <Route path="/datasets" element={<Datasets />} />
-        <Route path="/datasets/upload" element={<UploadDataset />} />
-        <Route path="/datasets/:id" element={<DatasetDetail />} />
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/challenges/:id" element={<ChallengeDetail />} />
-        <Route path="/challenges/:challengeId/annotate" element={<AnnotationWorkspace />} />
-        <Route path="/challenges/:challengeId/validate" element={<ValidationWorkspace />} />
-        <Route path="/annotator" element={<Annotator />} />
-        <Route path="/profile" element={<Profile />} />
+        
+        {/* Protected routes - wallet required */}
+        <Route 
+          path="/models" 
+          element={
+            <ProtectedRoute>
+              <Models />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/models/upload" 
+          element={
+            <ProtectedRoute>
+              <UploadModel />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/models/:id" 
+          element={
+            <ProtectedRoute>
+              <ModelDetail />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/datasets" 
+          element={
+            <ProtectedRoute>
+              <Datasets />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/datasets/upload" 
+          element={
+            <ProtectedRoute>
+              <UploadDataset />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/datasets/:id" 
+          element={
+            <ProtectedRoute>
+              <DatasetDetail />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/challenges/:challengeId/annotate" 
+          element={
+            <ProtectedRoute>
+              <AnnotationWorkspace />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/challenges/:challengeId/validate" 
+          element={
+            <ProtectedRoute>
+              <ValidationWorkspace />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/annotator" 
+          element={
+            <ProtectedRoute>
+              <Annotator />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </AppLayout>
   );

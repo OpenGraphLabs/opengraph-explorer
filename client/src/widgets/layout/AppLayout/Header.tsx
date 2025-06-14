@@ -4,6 +4,7 @@ import { ConnectButton, useCurrentWallet } from "@mysten/dapp-kit";
 import { Box, Flex, Text, Avatar, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { HamburgerMenuIcon, GitHubLogoIcon, SunIcon, MoonIcon } from "@radix-ui/react-icons";
+import { requiresWallet } from "@/shared/config/routePermissions";
 import logoImage from "@/assets/logo/logo.png";
 
 export function Header() {
@@ -59,16 +60,32 @@ export function Header() {
           <Flex gap="1" className="hidden md:flex">
             {" "}
             {/* Reduced gap */}
-            <NavLink to="/models" current={location.pathname === "/models"}>
+            <NavLink 
+              to="/models" 
+              current={location.pathname === "/models"}
+              disabled={!isConnected && requiresWallet("/models")}
+            >
               Models
             </NavLink>
-            <NavLink to="/datasets" current={location.pathname === "/datasets"}>
+            <NavLink 
+              to="/datasets" 
+              current={location.pathname === "/datasets"}
+              disabled={!isConnected && requiresWallet("/datasets")}
+            >
               Datasets
             </NavLink>
-            <NavLink to="/challenges" current={location.pathname.startsWith("/challenges")}>
+            <NavLink 
+              to="/challenges" 
+              current={location.pathname.startsWith("/challenges")}
+              disabled={false}
+            >
               Challenges
             </NavLink>
-            <NavLink to="/annotator" current={location.pathname === "/annotator"}>
+            <NavLink 
+              to="/annotator" 
+              current={location.pathname === "/annotator"}
+              disabled={!isConnected && requiresWallet("/annotator")}
+            >
               Annotator
             </NavLink>
           </Flex>
@@ -139,6 +156,7 @@ export function Header() {
           {/* Compact Connect Button */}
           <ConnectButton
             connectText="Connect"
+            data-testid="connect-button"
             style={{
               borderRadius: theme.borders.radius.sm,
               background: isConnected
@@ -194,6 +212,7 @@ export function Header() {
               to="/"
               current={location.pathname === "/"}
               onClick={() => setIsMobileMenuOpen(false)}
+              disabled={false}
             >
               Home
             </MobileNavLink>
@@ -201,6 +220,7 @@ export function Header() {
               to="/models"
               current={location.pathname === "/models"}
               onClick={() => setIsMobileMenuOpen(false)}
+              disabled={!isConnected && requiresWallet("/models")}
             >
               Models
             </MobileNavLink>
@@ -208,6 +228,7 @@ export function Header() {
               to="/datasets"
               current={location.pathname === "/datasets"}
               onClick={() => setIsMobileMenuOpen(false)}
+              disabled={!isConnected && requiresWallet("/datasets")}
             >
               Datasets
             </MobileNavLink>
@@ -215,13 +236,15 @@ export function Header() {
               to="/challenges"
               current={location.pathname.startsWith("/challenges")}
               onClick={() => setIsMobileMenuOpen(false)}
+              disabled={false}
             >
               Challenges
             </MobileNavLink>
             <MobileNavLink
-              to="/upload"
-              current={location.pathname === "/upload"}
+              to="/models/upload"
+              current={location.pathname === "/models/upload"}
               onClick={() => setIsMobileMenuOpen(false)}
+              disabled={!isConnected && requiresWallet("/models/upload")}
             >
               Upload Model
             </MobileNavLink>
@@ -229,6 +252,7 @@ export function Header() {
               to="/annotator"
               current={location.pathname === "/annotator"}
               onClick={() => setIsMobileMenuOpen(false)}
+              disabled={!isConnected && requiresWallet("/annotator")}
             >
               Annotator
             </MobileNavLink>
@@ -244,12 +268,36 @@ function NavLink({
   to,
   current,
   children,
+  disabled = false,
 }: {
   to: string;
   current: boolean;
   children: React.ReactNode;
+  disabled?: boolean;
 }) {
   const { theme } = useTheme();
+
+  if (disabled) {
+    return (
+      <Text
+        style={{
+          color: theme.colors.text.tertiary,
+          fontWeight: theme.typography.body.fontWeight,
+          padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+          borderRadius: theme.borders.radius.sm,
+          fontSize: theme.typography.bodySmall.fontSize,
+          height: "32px",
+          display: "flex",
+          alignItems: "center",
+          minWidth: "fit-content",
+          cursor: "not-allowed",
+          opacity: 0.5,
+        }}
+      >
+        {children}
+      </Text>
+    );
+  }
 
   return (
     <Link
@@ -279,13 +327,34 @@ function MobileNavLink({
   current,
   children,
   onClick,
+  disabled = false,
 }: {
   to: string;
   current: boolean;
   children: React.ReactNode;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   const { theme } = useTheme();
+
+  if (disabled) {
+    return (
+      <Text
+        style={{
+          padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`,
+          borderRadius: theme.borders.radius.sm,
+          color: theme.colors.text.tertiary,
+          fontWeight: theme.typography.body.fontWeight,
+          fontSize: theme.typography.bodySmall.fontSize,
+          display: "block",
+          opacity: 0.5,
+          cursor: "not-allowed",
+        }}
+      >
+        {children}
+      </Text>
+    );
+  }
 
   return (
     <Link
