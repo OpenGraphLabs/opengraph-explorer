@@ -10,17 +10,18 @@ services:
       - db_user
       - db_name
     environment:
-      POSTGRES_DB_FILE: /run/secrets/db_name
-      POSTGRES_USER_FILE: /run/secrets/db_user  
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: opengraph
+      POSTGRES_USER: opengraph
+      POSTGRES_PASSWORD: password123
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-secrets.sh:/docker-entrypoint-initdb.d/init-secrets.sh
     networks:
       - opengraph-backend-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/db_user) -d $$(cat /run/secrets/db_name)"]
+      test: ["CMD-SHELL", "pg_isready -U opengraph -d opengraph"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -43,9 +44,9 @@ services:
       - db_user
       - db_name
     environment:
-      DATABASE_URL: postgresql://$$(cat /run/secrets/db_user):$$(cat /run/secrets/db_password)@postgres:5432/$$(cat /run/secrets/db_name)
       PORT: 8080
       RUST_LOG: info
+    entrypoint: ["/app/entrypoint.sh"]
     depends_on:
       postgres:
         condition: service_healthy
