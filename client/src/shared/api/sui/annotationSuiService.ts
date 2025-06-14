@@ -449,3 +449,79 @@ export async function getDataObjectIds(datasetId: string, dataPaths: string[]) {
     };
   }
 }
+
+/**
+ * Fetches all annotations for a data object without type safety
+ * This is a simplified version that returns raw annotation data
+ * @param dataId The ID of the data object
+ * @returns Promise<any[]> Array of raw annotation objects
+ */
+export async function fetchAllAnnotationsForData(dataId: string): Promise<any[]> {
+  const annotations: any[] = [];
+
+  try {
+    // 1단계: 해당 DataId에 속한 Dynamic Field (== Annotation 목록) 조회
+    const annotationFields = await suiClient.getDynamicFields({ parentId: dataId });
+
+    const annotationIds = annotationFields.data.map(field => field.objectId);
+
+    // 2단계: annotation object 상세 조회
+    const annotationObjects = await suiClient.multiGetObjects({
+      ids: annotationIds,
+      options: { showContent: true },
+    });
+
+    for (const annotationObj of annotationObjects) {
+      const content = annotationObj.data?.content as any;
+      if (!content || !content.type.includes('::annotation::Annotation')) continue;
+
+      const annotationId = annotationObj.data?.objectId;
+      const fields = content.fields;
+      const status = fields.status;   // Pending, Confirmed, Rejected 중 하나
+      const value = fields.value;
+
+      let annotationData: any = {
+        annotationId,
+        status,
+        valueType: null,
+        value: null,
+      };
+
+      if (value.type.includes('::annotation::AnnotationValue::Label')) {
+        const labelFields = value.fields;
+        annotationData.valueType = 'Label';
+        annotationData.value = {
+          label: labelFields.label,
+          annotated_by: labelFields.annotated_by,
+        };
+      } else if (value.type.includes('::annotation::AnnotationValue::BBox')) {
+        const bboxFields = value.fields;
+        annotationData.valueType = 'BBox';
+        annotationData.value = {
+          x: bboxFields.x,
+          y: bboxFields.y,
+          w: bboxFields.w,
+          h: bboxFields.h,
+          annotated_by: bboxFields.annotated_by,
+        };
+      } else if (value.type.includes('::annotation::AnnotationValue::Skeleton')) {
+        const skeletonFields = value.fields;
+        annotationData.valueType = 'Skeleton';
+        annotationData.value = {
+          keypoints: skeletonFields.keypoints,
+          edges: skeletonFields.edges,
+          annotated_by: skeletonFields.annotated_by,
+        };
+      } else {
+        // 예상되지 않은 타입 처리
+        annotationData.valueType = 'Unknown';
+      }
+
+      annotations.push(annotationData);
+    }
+  } catch (err) {
+    console.error('Failed to fetch annotations', err);
+  }
+
+  return annotations;
+}
