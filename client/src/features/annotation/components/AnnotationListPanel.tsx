@@ -1,6 +1,6 @@
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { Target, Trash, Stack, Archive, CheckCircle, Image } from "phosphor-react";
+import { Target, Trash, Stack, Archive, CheckCircle, Image, Tag } from "phosphor-react";
 import { AnnotationType, AnnotationData } from "../types/workspace";
 import { AnnotationItem } from "./AnnotationItem";
 import { type AnnotationStackState } from "../hooks/useAnnotationStack";
@@ -37,30 +37,14 @@ export function AnnotationListPanel({
     (annotations.boundingBoxes?.length || 0) +
     (annotations.polygons?.length || 0);
 
-  // Group stack items by image (avoiding filename exposure)
-  const groupedStackItems = stackState?.items.reduce(
-    (acc, item) => {
-      const imageId = item.imageData.id;
-      if (!acc[imageId]) {
-        acc[imageId] = {
-          imageId,
-          labels: [],
-          bboxes: [],
-        };
-      }
-
-      if (item.type === "label") {
-        acc[imageId].labels.push(item);
-      } else if (item.type === "bbox") {
-        acc[imageId].bboxes.push(item);
-      }
-
-      return acc;
-    },
-    {} as Record<string, { imageId: string; labels: any[]; bboxes: any[] }>
-  ) || {};
-
-  const stackGroups = Object.values(groupedStackItems);
+  // Process stack items for display (1 annotation per image) - latest first
+  const stackItems = stackState?.items
+    .slice()
+    .reverse()
+    .map((item, index) => ({
+      ...item,
+      displayIndex: stackState.items.length - index, // Show original order in display
+    })) || [];
 
   return (
     <Box
@@ -211,7 +195,7 @@ export function AnnotationListPanel({
         }}
       >
         {/* Current Image Annotations */}
-        {totalAnnotations === 0 && stackGroups.length === 0 ? (
+        {totalAnnotations === 0 && stackItems.length === 0 ? (
           <Box
             style={{
               textAlign: "center",
@@ -248,12 +232,19 @@ export function AnnotationListPanel({
             </Text>
           </Box>
         ) : (
-          <Flex direction="column" gap="2">
+          <Flex direction="column" gap="3">
             {/* Current Image Section */}
             {totalAnnotations > 0 && (
               <Box>
                 <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
-                  <Image size={12} style={{ color: theme.colors.interactive.primary }} />
+                  <Box
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: theme.colors.interactive.primary,
+                    }}
+                  />
                   <Text
                     size="1"
                     style={{
@@ -263,16 +254,16 @@ export function AnnotationListPanel({
                       letterSpacing: "0.5px",
                     }}
                   >
-                    Current Image ({currentImageIndex + 1}/{totalImages})
+                    Current ({currentImageIndex + 1}/{totalImages})
                   </Text>
                 </Flex>
                 
                 <Box
                   style={{
                     padding: theme.spacing.semantic.component.xs,
-                    background: theme.colors.background.secondary,
-                    borderRadius: theme.borders.radius.sm,
-                    border: `1px solid ${theme.colors.border.primary}`,
+                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}08, ${theme.colors.interactive.primary}04)`,
+                    borderRadius: theme.borders.radius.md,
+                    border: `1px solid ${theme.colors.interactive.primary}20`,
                   }}
                 >
                   <Flex direction="column" gap="1">
@@ -305,11 +296,18 @@ export function AnnotationListPanel({
               </Box>
             )}
 
-            {/* Stack Section - Compact Style */}
-            {stackGroups.length > 0 && (
+            {/* Saved Annotations Stack */}
+            {stackItems.length > 0 && (
               <Box>
                 <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
-                  <Archive size={12} style={{ color: theme.colors.status.success }} />
+                  <Box
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: theme.colors.status.success,
+                    }}
+                  />
                   <Text
                     size="1"
                     style={{
@@ -319,86 +317,138 @@ export function AnnotationListPanel({
                       letterSpacing: "0.5px",
                     }}
                   >
-                    Saved ({stackState?.count || 0})
+                    Saved ({stackItems.length})
                   </Text>
                 </Flex>
 
                 <Box
                   style={{
-                    maxHeight: "300px", // Increased height for better scrolling
+                    maxHeight: "400px",
                     overflow: "auto",
                     scrollbarWidth: "thin",
                   }}
                 >
-                  <Flex direction="column" gap="1">
-                    {stackGroups.map((group, index) => (
-                      <Box
-                        key={group.imageId}
-                        style={{
-                          padding: "4px 6px", // Reduced padding
-                          background: theme.colors.background.secondary,
-                          borderRadius: theme.borders.radius.sm,
-                          border: `1px solid ${theme.colors.border.primary}`,
-                        }}
-                      >
-                        {/* Compact Image Info */}
-                        <Flex align="center" justify="between">
-                          <Flex align="center" gap="1">
-                            <Image size={10} style={{ color: theme.colors.text.secondary }} />
-                            <Text
-                              size="1"
+                  <Flex direction="column" gap="2">
+                    {stackItems.map((item) => {
+                      const getAnnotationIcon = () => {
+                        switch (item.type) {
+                          case "label":
+                            return <Tag size={14} style={{ color: theme.colors.status.info }} />;
+                          case "bbox":
+                            return <Target size={14} style={{ color: theme.colors.status.warning }} />;
+                          default:
+                            return <Tag size={14} style={{ color: theme.colors.text.secondary }} />;
+                        }
+                      };
+
+                      const getAnnotationColor = () => {
+                        switch (item.type) {
+                          case "label":
+                            return theme.colors.status.info;
+                          case "bbox":
+                            return theme.colors.status.warning;
+                          default:
+                            return theme.colors.text.secondary;
+                        }
+                      };
+
+                      const getAnnotationContent = () => {
+                        if (item.type === "label") {
+                          return item.annotation.label;
+                        } else if (item.type === "bbox") {
+                          const bbox = item.annotation as any;
+                          return `${bbox.label} (${Math.round(bbox.width)}×${Math.round(bbox.height)})`;
+                        }
+                        return "Unknown";
+                      };
+
+                      return (
+                        <Box
+                          key={item.id}
+                          style={{
+                            padding: "8px 12px",
+                            background: theme.colors.background.card,
+                            borderRadius: theme.borders.radius.md,
+                            border: `1px solid ${getAnnotationColor()}20`,
+                            boxShadow: `0 1px 3px ${theme.colors.background.primary}40`,
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          <Flex align="center" gap="3">
+                            {/* Image indicator */}
+                            <Flex align="center" gap="2">
+                              <Box
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  borderRadius: theme.borders.radius.sm,
+                                  background: `${theme.colors.text.secondary}10`,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  border: `1px solid ${theme.colors.text.secondary}20`,
+                                }}
+                              >
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: theme.colors.text.secondary,
+                                    fontWeight: 600,
+                                    fontSize: "9px",
+                                  }}
+                                >
+                                  {item.displayIndex}
+                                </Text>
+                              </Box>
+                            </Flex>
+
+                            {/* Annotation content */}
+                            <Flex direction="column" style={{ flex: 1, minWidth: 0 }}>
+                              <Flex align="center" gap="2" style={{ marginBottom: "2px" }}>
+                                {getAnnotationIcon()}
+                                <Text
+                                  size="1"
+                                  style={{
+                                    color: getAnnotationColor(),
+                                    fontWeight: 600,
+                                    fontSize: "10px",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.5px",
+                                  }}
+                                >
+                                  {item.type === "bbox" ? "bbox" : item.type}
+                                </Text>
+                              </Flex>
+                              
+                              <Text
+                                size="2"
+                                style={{
+                                  color: theme.colors.text.primary,
+                                  fontWeight: 500,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                {getAnnotationContent()}
+                              </Text>
+                            </Flex>
+
+                            {/* Visual indicator */}
+                            <Box
                               style={{
-                                color: theme.colors.text.primary,
-                                fontWeight: 500,
-                                fontSize: "11px",
+                                width: "3px",
+                                height: "24px",
+                                borderRadius: "2px",
+                                background: getAnnotationColor(),
+                                opacity: 0.6,
                               }}
-                            >
-                              #{index + 1}
-                            </Text>
+                            />
                           </Flex>
-
-                          {/* Compact Annotation Counts */}
-                          <Flex gap="1">
-                            {group.labels.length > 0 && (
-                              <Text size="1" style={{ 
-                                color: theme.colors.status.info, 
-                                fontWeight: 600,
-                                fontSize: "10px",
-                              }}>
-                                {group.labels.length}L
-                              </Text>
-                            )}
-                            {group.bboxes.length > 0 && (
-                              <Text size="1" style={{ 
-                                color: theme.colors.status.warning, 
-                                fontWeight: 600,
-                                fontSize: "10px",
-                              }}>
-                                {group.bboxes.length}B
-                              </Text>
-                            )}
-                          </Flex>
-                        </Flex>
-
-                        {/* Latest annotation preview - single line */}
-                        {group.labels.length > 0 && (
-                          <Text
-                            size="1"
-                            style={{
-                              color: theme.colors.text.tertiary,
-                              fontSize: "10px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              marginTop: "2px",
-                            }}
-                          >
-                            {group.labels[group.labels.length - 1]?.annotation.label}
-                            {group.labels.length + group.bboxes.length > 1 && ` +${group.labels.length + group.bboxes.length - 1}`}
-                          </Text>
-                        )}
-                      </Box>
-                    ))}
+                        </Box>
+                      );
+                    })}
                   </Flex>
                 </Box>
               </Box>
