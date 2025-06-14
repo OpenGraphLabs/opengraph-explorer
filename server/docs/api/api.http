@@ -52,7 +52,7 @@ Content-Type: application/json
 }
 
 ### List All Missions
-GET {{host}}/missions?limit=20&offset=0
+GET {{host}}/missions
 
 ### List Active Missions Only
 GET {{host}}/missions?status=active&limit=10
