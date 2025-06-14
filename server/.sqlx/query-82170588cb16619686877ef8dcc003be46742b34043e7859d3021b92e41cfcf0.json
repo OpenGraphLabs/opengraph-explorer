@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, description, mission_type as \"mission_type: _\", total_items, status as \"status: _\", created_at, updated_at FROM missions ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+  "query": "\n            SELECT id, mission_id, item_id, labels, bounding_boxes, created_at, updated_at\n            FROM mission_ground_truths \n            WHERE mission_id = $1 AND item_id = $2\n            ",
   "describe": {
     "columns": [
       {
@@ -10,36 +10,31 @@
       },
       {
         "ordinal": 1,
-        "name": "name",
-        "type_info": "Varchar"
+        "name": "mission_id",
+        "type_info": "Int8"
       },
       {
         "ordinal": 2,
-        "name": "description",
+        "name": "item_id",
         "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "mission_type: _",
-        "type_info": "Varchar"
+        "name": "labels",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 4,
-        "name": "total_items",
-        "type_info": "Int4"
+        "name": "bounding_boxes",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 5,
-        "name": "status: _",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -47,7 +42,7 @@
     "parameters": {
       "Left": [
         "Int8",
-        "Int8"
+        "Text"
       ]
     },
     "nullable": [
@@ -57,9 +52,8 @@
       false,
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "9405eb1a859bd40a1b3c1867d8287c67e9d3ea58f1b858767379c4d7482cb1b3"
+  "hash": "82170588cb16619686877ef8dcc003be46742b34043e7859d3021b92e41cfcf0"
 }

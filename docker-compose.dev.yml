@@ -1,6 +1,64 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database for Development
+  postgres-dev:
+    image: postgres:15
+    container_name: opengraph-postgres-dev
+    environment:
+      POSTGRES_DB: opengraph_dev
+      POSTGRES_USER: opengraph_dev_user
+      POSTGRES_PASSWORD: opengraph_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - opengraph-dev-backend-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opengraph_dev_user -d opengraph_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Rust Backend Server for Development
+  server-dev:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    container_name: opengraph-server-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server:/app/src
+    environment:
+      DATABASE_URL: postgresql://opengraph_dev_user:opengraph_dev_password@postgres-dev:5432/opengraph_dev
+      PORT: 8080
+      RUST_LOG: debug
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+    networks:
+      - opengraph-dev-backend-network
+      - opengraph-dev-frontend-network
+
+  # Python ML Converter Service for Development
+  converter-dev:
+    build:
+      context: .
+      dockerfile: docker/converter/Dockerfile
+    container_name: opengraph-converter-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./converter:/app
+    env_file:
+      - converter/.env.development
+    networks:
+      - opengraph-dev-frontend-network
+    command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
+
+  # React Frontend Client for Development
   client-dev:
     build:
       context: .
@@ -11,29 +69,20 @@ services:
     volumes:
       - ./client:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=development
     env_file:
       - ./client/.env.development
+    depends_on:
+      - server-dev
+      - converter-dev
     networks:
-      - opengraph-dev-network
+      - opengraph-dev-frontend-network
     command: yarn dev
 
-  server-dev:
-    build:
-      context: .
-      dockerfile: docker/converter/Dockerfile
-    container_name: opengraph-server-dev
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./server:/app
-    env_file:
-      - converter/.env
-    networks:
-      - opengraph-dev-network
-    command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
-
 networks:
-  opengraph-dev-network:
-    driver: bridge 
+  opengraph-dev-backend-network:
+    driver: bridge
+  opengraph-dev-frontend-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data: 

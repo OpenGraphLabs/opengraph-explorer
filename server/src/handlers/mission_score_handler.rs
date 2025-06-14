@@ -5,7 +5,7 @@ use axum::{
 use serde::Deserialize;
 
 use crate::{
-    models::{MissionScore, CreateMissionScoreRequest},
+    models::{MissionScore, CreateMissionSubmissionRequest},
     services::MissionScoreService,
     error::AppError,
 };
@@ -15,14 +15,6 @@ use sqlx::PgPool;
 pub struct ListQuery {
     pub limit: Option<i64>,
     pub offset: Option<i64>,
-}
-
-pub async fn create_or_update_score(
-    State(pool): State<PgPool>,
-    Json(req): Json<CreateMissionScoreRequest>,
-) -> Result<Json<MissionScore>, AppError> {
-    let score = MissionScoreService::create_or_update_score(&pool, req).await?;
-    Ok(Json(score))
 }
 
 pub async fn get_score(
@@ -68,4 +60,12 @@ pub async fn get_annotator_average_score(
 ) -> Result<Json<Option<f64>>, AppError> {
     let average = MissionScoreService::get_annotator_average_score(&pool, annotator_id).await?;
     Ok(Json(average))
+}
+
+pub async fn submit_and_score(
+    State(pool): State<PgPool>,
+    Json(req): Json<CreateMissionSubmissionRequest>,
+) -> Result<Json<MissionScore>, AppError> {
+    let score = MissionScoreService::submit_and_score(&pool, req).await?;
+    Ok(Json(score))
 } 

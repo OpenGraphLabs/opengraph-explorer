@@ -1,5 +1,12 @@
-/target
+# Rust Build artifacts
+/target/
+**/*.rs.bk
 
+# IDE
+.vscode/
+.idea/
 
-/.idea
-/.vscode
+# Environment variables (if any server-specific)
+.env
+.env.local
+.env.production

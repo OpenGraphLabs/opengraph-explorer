@@ -1,0 +1,54 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, mission_id, annotator_id, score, created_at, updated_at FROM mission_scores WHERE mission_id = $1 ORDER BY score DESC LIMIT $2 OFFSET $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "mission_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "annotator_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "score",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3fbeeaa21aa16a36f55cdc7e1ec53430c7db4211167b77a5a2d8ddf0d0b875fb"
+}

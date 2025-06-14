@@ -18,7 +18,7 @@ GET {{host}}/annotators/1
 ### Get Annotator by Sui Address
 GET {{host}}/annotators/sui/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
 
-### Create Mission
+### Create Mission - Animal Classification (Label Annotation)
 POST {{host}}/missions
 Content-Type: application/json
 
@@ -26,6 +26,17 @@ Content-Type: application/json
   "name": "Sea Animal Classification",
   "description": "Label annotation for sea animals - classify 10 different marine species",
   "mission_type": "label_annotation",
+  "total_items": 10
+}
+
+### Create Mission - Urban Traffic Dataset (BBox Annotation)
+POST {{host}}/missions
+Content-Type: application/json
+
+{
+  "name": "Urban Traffic Dataset",
+  "description": "Bounding box annotation for urban traffic objects",
+  "mission_type": "bbox_annotation",
   "total_items": 3
 }
 
@@ -285,6 +296,60 @@ Content-Type: application/json
           "confidence": 0.91
         }
       ]
+    }
+  ]
+}
+
+### Upload Ground Truth Data (Admin Only)
+POST {{host}}/ground-truth/bulk
+Content-Type: application/json
+
+{
+  "mission_id": 2,
+  "raw_data": [
+    {
+      "img_name": "street_1.jpg",
+      "annotation": {
+        "traffic light": [
+          [106.92, 19.65, 31.8, 62.24],
+          [150.22, 19.65, 29.77, 62.92],
+          [102.19, 203.67, 25.03, 25.71]
+        ],
+        "car": [
+          [349.14, 265.24, 89.3, 56.16],
+          [207.06, 262.53, 53.44, 16.92],
+          [540.6, 267.95, 74.4, 41.27]
+        ],
+        "people": [
+          [569.7, 253.06, 41.94, 68.34]
+        ]
+      }
+    },
+    {
+      "img_name": "street_2.jpg",
+      "annotation": {
+        "people": [
+          [113.06, 162.36, 220.32, 528.47]
+        ],
+        "car": [
+          [604.55, 260.97, 342.03, 171.02],
+          [6.75, 297.79, 55.47, 46.38]
+        ]
+      }
+    },
+    {
+      "img_name": "street_3.jpg",
+      "annotation": {
+        "car": [
+          [742.59, 470.4, 826.36, 571.64]
+        ],
+        "people": [
+          [597.46, 500.02, 343.58, 571.63]
+        ],
+        "bicycle": [
+          [576.73, 748.81, 379.12, 476.86]
+        ]
+      }
     }
   ]
 }

@@ -89,6 +89,13 @@ export const mockChallenges: Challenge[] = [
     status: "active",
     currentPhase: "bbox",
 
+    // 이미지별 미리 정의된 label 목록
+    predefinedLabels: {
+      0: ["traffic light", "car", "people"], // 첫 번째 이미지: 3개 label
+      1: ["people", "car"], // 두 번째 이미지: 2개 label
+      2: ["people", "car", "bicycle"], // 세 번째 이미지: 3개 label
+    },
+
     bounty: {
       totalAmount: 2500,
       currency: "SUI",

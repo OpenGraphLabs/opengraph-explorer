@@ -1,5 +1,5 @@
 -- Create annotators table
-CREATE TABLE annotators (
+CREATE TABLE IF NOT EXISTS annotators (
     id BIGSERIAL PRIMARY KEY,
     sui_address VARCHAR(200) NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -7,7 +7,7 @@ CREATE TABLE annotators (
 );
 
 -- Create missions table
-CREATE TABLE missions (
+CREATE TABLE IF NOT EXISTS missions (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(500) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE missions (
 );
 
 -- Create mission_scores table
-CREATE TABLE mission_scores (
+CREATE TABLE IF NOT EXISTS mission_scores (
     id BIGSERIAL PRIMARY KEY,
     mission_id BIGINT NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
     annotator_id BIGINT NOT NULL REFERENCES annotators(id) ON DELETE CASCADE,
@@ -30,11 +30,11 @@ CREATE TABLE mission_scores (
 );
 
 -- Create indexes for better performance
-CREATE INDEX idx_missions_status ON missions(status);
-CREATE INDEX idx_missions_type ON missions(mission_type);
-CREATE INDEX idx_mission_scores_mission_id ON mission_scores(mission_id);
-CREATE INDEX idx_mission_scores_annotator_id ON mission_scores(annotator_id);
-CREATE INDEX idx_mission_scores_score ON mission_scores(score DESC);
+CREATE INDEX IF NOT EXISTS idx_missions_status ON missions(status);
+CREATE INDEX IF NOT EXISTS idx_missions_type ON missions(mission_type);
+CREATE INDEX IF NOT EXISTS idx_mission_scores_mission_id ON mission_scores(mission_id);
+CREATE INDEX IF NOT EXISTS idx_mission_scores_annotator_id ON mission_scores(annotator_id);
+CREATE INDEX IF NOT EXISTS idx_mission_scores_score ON mission_scores(score DESC);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()

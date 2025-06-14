@@ -92,11 +92,40 @@ export function AnnotationWorkspace() {
     }
   }, [currentPhase, isToolAllowed, state.currentTool, actions]);
 
+  // Auto-select first predefined label when switching to an image with predefined labels
+  useEffect(() => {
+    if (challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage) {
+      const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
+      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
+      
+      if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
+        // Auto-select first predefined label if no label is currently selected
+        if (!state.selectedLabel) {
+          actions.setSelectedLabel(predefinedLabelsForImage[0]);
+        }
+      }
+    }
+  }, [challenge, state.currentImage, state.selectedLabel, datasetImages, actions]);
+
   // Enhanced tool configuration with phase constraints
+  // challenge-2의 각 이미지별 미리 정의된 label 가져오기
+  const getPredefinedLabels = (): string[] => {
+    if (challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage) {
+      const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
+      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
+      return predefinedLabelsForImage || [];
+    }
+    return [];
+  };
+
+  const existingLabels = Array.from(new Set(state.annotations.labels?.map(label => label.label) || []));
+  const predefinedLabels = getPredefinedLabels();
+  const allAvailableLabels = Array.from(new Set([...existingLabels, ...predefinedLabels]));
+
   const toolConfig = {
     currentTool: state.currentTool,
     selectedLabel: state.selectedLabel,
-    existingLabels: Array.from(new Set(state.annotations.labels?.map(label => label.label) || [])),
+    existingLabels: allAvailableLabels,
     boundingBoxes: state.annotations.boundingBoxes || [],
   };
 
@@ -451,7 +480,7 @@ export function AnnotationWorkspace() {
         <AnnotationSidebar
           currentTool={state.currentTool}
           selectedLabel={state.selectedLabel}
-          existingLabels={toolConfig.existingLabels}
+          existingLabels={allAvailableLabels}
           boundingBoxes={state.annotations.boundingBoxes || []}
           zoom={state.zoom}
           panOffset={state.panOffset}
@@ -533,6 +562,35 @@ export function AnnotationWorkspace() {
 
                   {/* Dataset 연동 상태 표시 */}
                   {datasetStatusIndicator}
+
+                  {/* Predefined Labels Indicator */}
+                  {challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage && (() => {
+                    const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
+                    const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
+                    
+                    if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
+                      return (
+                        <Box
+                          style={{
+                            padding: "2px 8px",
+                            background: `${theme.colors.interactive.primary}15`,
+                            color: theme.colors.interactive.primary,
+                            border: `1px solid ${theme.colors.interactive.primary}30`,
+                            borderRadius: theme.borders.radius.full,
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            cursor: "help",
+                          }}
+                          title={`Predefined Labels Available (${predefinedLabelsForImage.length}):\n${predefinedLabelsForImage.join(", ")}`}
+                        >
+                          {predefinedLabelsForImage.length} Labels Ready
+                        </Box>
+                      );
+                    }
+                    return null;
+                  })()}
 
                   {/* Compact Phase Indicator */}
                   {challenge && (
@@ -672,7 +730,7 @@ export function AnnotationWorkspace() {
         <InlineToolBar
           currentTool={state.currentTool}
           selectedLabel={state.selectedLabel}
-          existingLabels={toolConfig.existingLabels}
+          existingLabels={allAvailableLabels}
           boundingBoxes={state.annotations.boundingBoxes || []}
           currentPhase={currentPhase}
           onToolChange={handleToolChange}

@@ -47,6 +47,12 @@ pub struct CreateMissionSubmissionRequest {
     pub submissions: Vec<MissionSubmission>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct CreateGroundTruthRequest {
+    pub mission_id: i64,
+    pub raw_data: serde_json::Value,
+}
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use validator::Validate; 

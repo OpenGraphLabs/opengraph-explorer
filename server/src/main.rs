@@ -20,9 +20,10 @@ use handlers::{
     annotator_handler::{create_annotator, get_annotator, get_annotator_by_sui_address, list_annotators},
     mission_handler::{create_mission, get_mission, list_missions, update_mission_status},
     mission_score_handler::{
-        create_or_update_score, get_score, get_scores_by_mission, 
-        get_scores_by_annotator, get_top_scores, get_annotator_average_score
+        get_score, get_scores_by_mission,
+        get_scores_by_annotator, get_top_scores, get_annotator_average_score, submit_and_score
     },
+    ground_truth_handler::{bulk_create_ground_truth, get_ground_truth_by_mission, get_ground_truth_by_item},
 };
 use config::{Config, create_db_pool};
 
@@ -61,12 +62,17 @@ async fn main() -> anyhow::Result<()> {
         .route("/missions/:id/status", put(update_mission_status))
         
         // Mission score routes
-        .route("/scores", post(create_or_update_score))
+        .route("/scores", post(submit_and_score))
         .route("/scores/:id", get(get_score))
         .route("/scores/top", get(get_top_scores))
         .route("/missions/:mission_id/scores", get(get_scores_by_mission))
         .route("/annotators/:annotator_id/scores", get(get_scores_by_annotator))
         .route("/annotators/:annotator_id/average", get(get_annotator_average_score))
+        
+        // Ground truth routes
+        .route("/ground-truth/bulk", post(bulk_create_ground_truth))
+        .route("/ground-truth/missions/:mission_id", get(get_ground_truth_by_mission))
+        .route("/ground-truth/missions/:mission_id/items/:item_id", get(get_ground_truth_by_item))
         
         // middlewares
         .layer(TraceLayer::new_for_http())
