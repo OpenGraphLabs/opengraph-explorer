@@ -5,6 +5,19 @@
   <h3>Bringing Transparency to AI through On-Chain Machine Learning</h3>
 </div>
 
+## SUI Overflow !!
+
+Our Overflow Deck : 
+https://www.figma.com/deck/jz6NCLwVX3RazYHqBvoOnE/OpenGraph--Overflow2025--AI-?node-id=2011-1313&t=ZetcuAb0izQp9lVz-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1
+
+Vote! [AI Track - OpenGraph]
+https://vote.sui.io/
+
+Twitter :
+https://x.com/opengraph_labs
+
+
+
 ## 🌟 Vision
 
 OpenGraph Explorer is pioneering a new era of transparent and decentralized AI by bringing machine learning models fully on-chain. We're transforming the traditional "black box" nature of AI into a transparent, auditable, and community-owned ecosystem powered by the Sui blockchain.
