@@ -300,6 +300,166 @@ Content-Type: application/json
   ]
 }
 
+### Upload Sea Animal Data (Admin Only)
+POST {{host}}/ground-truth/bulk
+Content-Type: application/json
+
+{
+  "mission_id": 1,
+  "raw_data": [
+    {
+      "img_name": "dugong_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "dugong",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "dugong_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "dugong",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "dugong_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "dugong",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seal_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seal",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seal_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seal",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seal_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seal",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "sealion_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "sealion",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "sealion_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "sealion",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "sealion_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "sealion",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seaotter_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seaotter",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seaotter_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seaotter",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "seaotter_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "seaotter",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "walrus_1.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "walrus",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "walrus_2.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "walrus",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "img_name": "walrus_3.jpg",
+      "annotation": [
+        {
+          "id": "1",
+          "label": "walrus",
+          "confidence": 1.0
+        }
+      ]
+    }
+  ]
+}
+
 ### Upload Ground Truth Data (Admin Only)
 POST {{host}}/ground-truth/bulk
 Content-Type: application/json
@@ -353,3 +513,5 @@ Content-Type: application/json
     }
   ]
 }
+
+

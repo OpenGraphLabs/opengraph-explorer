@@ -145,11 +145,36 @@ impl GroundTruthService {
                 .ok_or_else(|| AppError::BadRequest("Missing img_name".to_string()))?;
             
             let annotation = &item["annotation"];
+            let mut labels = Vec::new();
             let mut bounding_boxes = Vec::new();
             let mut bbox_counter = 1;
             
-            // annotation 객체의 각 라벨에 대해 바운딩박스들을 변환
-            if let Some(obj) = annotation.as_object() {
+            // annotation이 배열인 경우 - Label Annotation 처리
+            if let Some(label_array) = annotation.as_array() {
+                for label_item in label_array {
+                    if let Some(obj) = label_item.as_object() {
+                        let id = obj.get("id")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| format!("label_{}", labels.len() + 1));
+                        
+                        let label = obj.get("label")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| AppError::BadRequest("Missing label field in label annotation".to_string()))?;
+                        
+                        let confidence = obj.get("confidence")
+                            .and_then(|v| v.as_f64());
+                        
+                        labels.push(LabelAnnotation {
+                            id,
+                            label: label.to_string(),
+                            confidence,
+                        });
+                    }
+                }
+            }
+            // annotation이 객체인 경우 - Bounding Box Annotation 처리  
+            else if let Some(obj) = annotation.as_object() {
                 for (label, bbox_array) in obj {
                     if let Some(bboxes) = bbox_array.as_array() {
                         for bbox_coords in bboxes {
@@ -177,9 +202,6 @@ impl GroundTruthService {
                     }
                 }
             }
-            
-            // 이 경우 라벨 어노테이션은 없고 바운딩박스만 있음
-            let labels = Vec::new();
             
             result.push((img_name.to_string(), labels, bounding_boxes));
         }
