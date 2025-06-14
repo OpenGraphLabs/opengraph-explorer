@@ -81,7 +81,7 @@ export const mockChallenges: Challenge[] = [
     title: "Urban Traffic Image Annotation",
     description:
       "Annotate urban traffic images to improve autonomous driving systems and enhance road safety.",
-    datasetId: "0x857a14ce08cc70ab60246af66b643fe1386ab3258339d7dc28fb54661e5c76f9",
+    datasetId: "0xb1a537f4fa4cc97a542d0837ea63b63684512ef55874dd5c6ad6ac203a1feaab",
     datasetName: "Urban Traffic Dataset",
     ownerId: "owner-3",
     ownerAddress: "0x9abc...ijkl",

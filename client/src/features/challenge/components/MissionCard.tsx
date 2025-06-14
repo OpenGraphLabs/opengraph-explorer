@@ -154,6 +154,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
 
       {/* Mission Title */}
       <Text
+        as="p"
         size="3"
         style={{
           fontWeight: 700,
@@ -167,6 +168,7 @@ export const MissionCard: React.FC<MissionCardProps> = ({
 
       {/* Mission Description */}
       <Text
+        as="p"
         size="2"
         style={{
           color: theme.colors.text.secondary,

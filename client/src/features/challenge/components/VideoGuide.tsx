@@ -32,11 +32,11 @@ export const VideoGuide: React.FC<VideoGuideProps> = ({ mission, isOpen, onClose
   const getVideoUrl = (missionType: string) => {
     switch (missionType) {
       case "label":
-        return "https://www.youtube.com/embed/dQw4w9WgXcQ"; // Placeholder URL
+        return "https://www.youtube.com/embed/3T1xoSGOY2M"; // Placeholder URL
       case "bbox":
-        return "https://www.youtube.com/embed/dQw4w9WgXcQ"; // Placeholder URL
+        return "https://www.youtube.com/embed/BI0LyOaxuKU"; // Placeholder URL
       default:
-        return "https://www.youtube.com/embed/dQw4w9WgXcQ";
+        return "https://www.youtube.com/embed/3T1xoSGOY2M";
     }
   };
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
@@ -69,6 +69,29 @@ export function AnnotationWorkspace() {
     datasetImages
   );
 
+  // Auto-set default tool based on current phase
+  useEffect(() => {
+    const getDefaultToolForPhase = (phase: string): AnnotationType => {
+      switch (phase) {
+        case "label":
+          return "label";
+        case "bbox":
+          return "bbox";
+        case "segmentation":
+          return "segmentation";
+        default:
+          return "label";
+      }
+    };
+
+    const defaultTool = getDefaultToolForPhase(currentPhase);
+    
+    // Only change tool if current tool is not allowed in the new phase
+    if (!isToolAllowed(state.currentTool)) {
+      actions.setCurrentTool(defaultTool);
+    }
+  }, [currentPhase, isToolAllowed, state.currentTool, actions]);
+
   // Enhanced tool configuration with phase constraints
   const toolConfig = {
     currentTool: state.currentTool,
@@ -87,6 +110,18 @@ export function AnnotationWorkspace() {
         return;
       }
       actions.setCurrentTool(tool);
+    },
+    [isToolAllowed, actions]
+  );
+
+  // Custom label add handler with phase constraints
+  const handleAddLabel = useCallback(
+    (label: string) => {
+      if (!isToolAllowed("label")) {
+        // Don't add label if not allowed in current phase
+        return;
+      }
+      actions.addLabel(label);
     },
     [isToolAllowed, actions]
   );
@@ -641,7 +676,7 @@ export function AnnotationWorkspace() {
           boundingBoxes={state.annotations.boundingBoxes || []}
           currentPhase={currentPhase}
           onToolChange={handleToolChange}
-          onAddLabel={actions.addLabel}
+          onAddLabel={handleAddLabel}
           onSelectLabel={actions.setSelectedLabel}
           isToolAllowed={isToolAllowed}
           getDisallowedMessage={getDisallowedMessage}

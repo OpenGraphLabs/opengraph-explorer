@@ -1,6 +1,6 @@
 import { Model } from "../types/model";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const CONVERTER_BASE_URL = import.meta.env.VITE_CONVERTER_BASE_URL || "http://localhost:3000";
 
 export interface ModelUploadResponse {
   model: Model;
@@ -23,7 +23,7 @@ export const modelService = {
     formData.append("model", file);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/models/convert`, {
+      const response = await fetch(`${CONVERTER_BASE_URL}/api/v1/models/convert`, {
         method: "POST",
         body: formData,
       });

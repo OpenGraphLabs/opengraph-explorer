@@ -192,10 +192,13 @@ export function InlineToolBar({
               alignItems: "center",
               gap: theme.spacing.semantic.component.sm,
               padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              background: `${theme.colors.status.warning}08`,
+              border: `1px solid ${theme.colors.status.warning}30`,
+              borderRadius: theme.borders.radius.md,
             }}
           >
             <Text size="2" style={{ color: theme.colors.status.warning, fontWeight: 600 }}>
-              Create labels first to draw bboxes
+              No labels available - switch to Label phase to create labels first
             </Text>
           </Box>
         </Flex>

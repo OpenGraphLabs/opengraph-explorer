@@ -1,0 +1,67 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO missions (name, description, mission_type, total_items)\n            VALUES ($1, $2, $3, $4)\n            RETURNING id, name, description, mission_type as \"mission_type: _\", total_items, status as \"status: _\", created_at, updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "mission_type: _",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_items",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "status: _",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b2518de784c0a9a7777918a0d5a79b2f8ded6e5c366c9918c58cccb56c736155"
+}

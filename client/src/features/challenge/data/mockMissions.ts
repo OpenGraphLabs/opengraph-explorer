@@ -9,8 +9,8 @@ export const mockMissions: Mission[] = [
     description: "Complete 10 sea animal classification annotations",
     challengeId: "challenge-1", // Sea Animal Classification
     requiredCount: 10,
-    completedCount: 0,
-    status: "not_started", // completed
+    completedCount: 10,
+    status: "completed", // completed
     order: 1,
     reward: {
       type: "badge",
