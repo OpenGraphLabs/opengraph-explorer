@@ -867,8 +867,9 @@ export function Challenges() {
         </Flex>
       </Flex>
 
+      {/* TODO(Jerry): comment out sort for mission period */}
       {/* Sort */}
-      <Flex align="center" gap="2">
+      {/* <Flex align="center" gap="2">
         <Text size="1" style={{ color: theme.colors.text.tertiary }}>
           Sort:
         </Text>
@@ -890,7 +891,7 @@ export function Challenges() {
           <option value="participants">Participants</option>
           <option value="deadline">Deadline</option>
         </select>
-      </Flex>
+      </Flex> */}
     </Flex>
   );
 
@@ -919,15 +920,19 @@ export function Challenges() {
         text: "Decentralized Rewards",
       },
     ],
+    // TODO(Jerry): comment out filters for mission period
+    // filters: (
+    //   <ChallengeFilters
+    //     filters={filters}
+    //     availableTags={getAllUniqueTags()}
+    //     onUpdateFilter={updateFilter}
+    //     onToggleTag={toggleTag}
+    //     onClearTags={clearTags}
+    //   />
+    // ),
     filters: (
-      <ChallengeFilters
-        filters={filters}
-        availableTags={getAllUniqueTags()}
-        onUpdateFilter={updateFilter}
-        onToggleTag={toggleTag}
-        onClearTags={clearTags}
-      />
-    ),
+      <></>
+    )
   };
 
   return (
@@ -981,6 +986,7 @@ export function Challenges() {
                 </Box>
                 <Box>
                   <Text
+                    as="p"
                     size="4"
                     style={{
                       fontWeight: 800,
@@ -991,6 +997,7 @@ export function Challenges() {
                     🎉 Congratulations!
                   </Text>
                   <Text
+                    as="p"
                     size="2"
                     style={{
                       color: theme.colors.text.secondary,

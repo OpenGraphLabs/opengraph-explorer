@@ -9,8 +9,8 @@ export const mockMissions: Mission[] = [
     description: "Complete 10 sea animal classification annotations",
     challengeId: "challenge-1", // Sea Animal Classification
     requiredCount: 10,
-    completedCount: 10,
-    status: "completed",
+    completedCount: 0,
+    status: "not_started", // completed
     order: 1,
     reward: {
       type: "badge",
@@ -25,8 +25,8 @@ export const mockMissions: Mission[] = [
     description: "Complete 3 bounding box annotations",
     challengeId: "challenge-2", // Urban Traffic Image Annotation
     requiredCount: 3,
-    completedCount: 3,
-    status: "completed",
+    completedCount: 0,
+    status: "not_started",
     order: 2,
     reward: {
       type: "certificate",
@@ -40,7 +40,7 @@ export const mockMissions: Mission[] = [
 export const mockUserMissionProgress: UserMissionProgress = {
   userId: "user-1",
   missions: [...mockMissions],
-  overallStatus: "completed",
+  overallStatus: "not_started", // completed
   completedAt: new Date("2024-01-15"),
   certificate: {
     id: "OG-CERT-2024-001",
