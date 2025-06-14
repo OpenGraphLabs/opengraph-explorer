@@ -14,6 +14,7 @@ import {
   Database,
   CheckCircle,
   Clock,
+  Trophy,
 } from "phosphor-react";
 import { useWorkspace } from "@/features/annotation/hooks/useWorkspace";
 import { ImageViewer } from "@/features/annotation/components/ImageViewer";
@@ -22,7 +23,7 @@ import { useChallenge } from "@/features/challenge";
 import { useChallengeDataset } from "@/features/challenge/hooks/useChallengeDataset";
 import { usePhaseConstraints } from "@/features/annotation";
 
-// Import new modular components
+// Import new modular components  
 import { AnnotationSidebar } from "@/widgets/annotation-sidebar";
 import {
   AnnotationListPanel,
@@ -31,6 +32,10 @@ import {
 } from "@/features/annotation";
 import { WorkspaceStatusBar } from "@/features/workspace-controls";
 import { useAnnotationTools, useImageNavigation } from "@/features/annotation";
+
+// Import new complete submission hook and notification
+import { useCompleteAnnotationSubmission } from "@/features/annotation/hooks/useCompleteAnnotationSubmission";
+import { SubmissionNotification } from "@/features/annotation/components/SubmissionNotification";
 
 export function AnnotationWorkspace() {
   const { challengeId } = useParams<{ challengeId: string }>();
@@ -68,6 +73,9 @@ export function AnnotationWorkspace() {
     datasetImages,
     datasetImages.length // Pass total images as maxStackSize
   );
+
+  // Complete annotation submission hook
+  const completeSubmission = useCompleteAnnotationSubmission();
 
   // Auto-set default tool based on current phase
   useEffect(() => {
@@ -274,6 +282,51 @@ export function AnnotationWorkspace() {
   const completedImagesCount = stackStats.total + (hasCurrentImageAnnotation ? 1 : 0);
   const allImagesCompleted = completedImagesCount >= totalImages;
   const canSave = allImagesCompleted && (state.unsavedChanges || annotationStack.state.hasItems);
+
+  // Enhanced save handler with complete submission flow
+  const handleCompleteSubmission = useCallback(async () => {
+    if (!challengeId || !datasetId || !canSave) return;
+
+    try {
+      // Ensure current image annotation is added to stack if needed
+      if (hasCurrentImageAnnotation && !annotationStack.state.hasItems) {
+        await actions.saveToBlockchain();
+      }
+
+      // Convert annotation stack to submission format
+      const annotationData = annotationStack.state.items.map((item) => ({
+        imageId: item.imageData.id,
+        imagePath: item.imageData.url || `image_${item.imageData.id}`,
+        annotations: {
+          labels: item.type === "label" ? [item.annotation as any] : [],
+          boundingBoxes: item.type === "bbox" ? [item.annotation as any] : [],
+          polygons: [], // Add polygon support if needed
+        },
+      }));
+
+      // Submit complete annotations
+      await completeSubmission.submitCompleteAnnotations(
+        challengeId,
+        datasetId,
+        annotationData,
+        datasetImages.length
+      );
+
+      // Clear annotation stack after successful submission
+      annotationStack.actions.clearStack();
+    } catch (error) {
+      console.error("Failed to submit complete annotations:", error);
+    }
+  }, [
+    challengeId,
+    datasetId,
+    canSave,
+    hasCurrentImageAnnotation,
+    annotationStack,
+    actions,
+    datasetImages,
+    completeSubmission,
+  ]);
 
   // Loading state - Dataset 로딩 포함
   if (challengeLoading || datasetLoading) {
@@ -721,40 +774,56 @@ export function AnnotationWorkspace() {
               </Text>
 
               <Button
-                onClick={actions.saveToBlockchain}
-                disabled={!canSave || saveStatus.state.isSaving}
+                onClick={handleCompleteSubmission}
+                disabled={!canSave || completeSubmission.isSubmitting}
                 style={{
-                  background: saveStatus.state.isSaving
-                    ? theme.colors.status.warning
-                    : !allImagesCompleted
-                      ? theme.colors.interactive.disabled
-                      : canSave
-                        ? annotationStack.state.isFull
-                          ? theme.colors.status.error
-                          : theme.colors.status.success
-                        : theme.colors.interactive.disabled,
+                  background: completeSubmission.isSubmitting
+                    ? theme.colors.status.info
+                    : completeSubmission.hasError
+                      ? theme.colors.status.error
+                      : completeSubmission.isCompleted
+                        ? theme.colors.status.success
+                        : !allImagesCompleted
+                          ? theme.colors.interactive.disabled
+                          : canSave
+                            ? annotationStack.state.isFull
+                              ? theme.colors.status.error
+                              : theme.colors.status.success
+                            : theme.colors.interactive.disabled,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                   fontWeight: 600,
                   fontSize: "12px",
-                  cursor: canSave && !saveStatus.state.isSaving ? "pointer" : "not-allowed",
+                  cursor: canSave && !completeSubmission.isSubmitting ? "pointer" : "not-allowed",
                   display: "flex",
                   alignItems: "center",
                   gap: theme.spacing.semantic.component.xs,
                 }}
               >
-                <FloppyDisk size={14} />
-                {saveStatus.state.isSaving
-                  ? "Saving..."
-                  : !allImagesCompleted
-                    ? `Complete ${totalImages - completedImagesCount} more`
-                    : annotationStack.state.isFull
-                      ? `Save ${stackStats.total} (Full!)`
-                      : annotationStack.state.hasItems
-                        ? `Save ${stackStats.total}`
-                        : "Save"}
+                {completeSubmission.isCompleted ? (
+                  <Trophy size={14} />
+                ) : (
+                  <FloppyDisk size={14} />
+                )}
+                {completeSubmission.isSubmitting
+                  ? completeSubmission.status.phase === "blockchain"
+                    ? "Submitting to Blockchain..."
+                    : completeSubmission.status.phase === "scoring"
+                      ? "Calculating Score..."
+                      : "Processing..."
+                  : completeSubmission.isCompleted
+                    ? `Score: ${completeSubmission.finalScore || 0}`
+                    : completeSubmission.hasError
+                      ? "Submission Failed"
+                      : !allImagesCompleted
+                        ? `Complete ${totalImages - completedImagesCount} more`
+                        : annotationStack.state.isFull
+                          ? `Submit ${stackStats.total} (Full!)`
+                          : annotationStack.state.hasItems
+                            ? `Submit ${stackStats.total}`
+                            : "Submit Annotations"}
               </Button>
 
               <Button
@@ -886,26 +955,42 @@ export function AnnotationWorkspace() {
           constraintMessage={getToolConstraintMessage}
           currentPhase={currentPhase}
           phaseConstraintMessage={
-            !allImagesCompleted
-              ? `Complete all images to enable save (${completedImagesCount}/${totalImages} completed)`
-              : !isToolAllowed(state.currentTool)
-                ? getDisallowedMessage(state.currentTool)
-                : annotationStack.state.isFull
-                  ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Save annotations to continue.`
-                  : saveStatus.state.error
-                    ? `Save error: ${saveStatus.state.error}`
-                    : undefined
+            completeSubmission.isSubmitting
+              ? `${
+                  completeSubmission.status.phase === "validating"
+                    ? completeSubmission.status.message
+                    : completeSubmission.status.phase === "preparing"
+                      ? completeSubmission.status.message
+                      : completeSubmission.status.phase === "blockchain"
+                        ? `${completeSubmission.status.message}${
+                            completeSubmission.status.progress ? ` (${completeSubmission.status.progress}%)` : ""
+                          }`
+                        : completeSubmission.status.phase === "scoring"
+                          ? completeSubmission.status.message
+                          : "Processing submission..."
+                }`
+              : completeSubmission.hasError
+                ? `Submission error: ${completeSubmission.errorMessage}`
+                : completeSubmission.isCompleted
+                  ? `Submission completed! Score: ${completeSubmission.finalScore || 0} | Transaction: ${completeSubmission.transactionHash?.slice(0, 8)}...`
+                  : !allImagesCompleted
+                    ? `Complete all images to enable submission (${completedImagesCount}/${totalImages} completed)`
+                    : !isToolAllowed(state.currentTool)
+                      ? getDisallowedMessage(state.currentTool)
+                      : annotationStack.state.isFull
+                        ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Submit annotations to continue.`
+                        : saveStatus.state.error
+                          ? `Save error: ${saveStatus.state.error}`
+                          : undefined
           }
         />
       </Box>
 
-      {/* Save Notification */}
-      <SaveNotification
-        saveState={saveStatus.state}
-        stackTotal={stackStats.total}
-        onDismissSuccess={saveStatus.actions.resetSaveState}
-        onDismissError={saveStatus.actions.clearError}
-        onRetry={actions.saveToBlockchain}
+      {/* Enhanced Submission Notification */}
+      <SubmissionNotification
+        status={completeSubmission.status}
+        onDismiss={completeSubmission.resetStatus}
+        onRetry={handleCompleteSubmission}
       />
 
       <style>

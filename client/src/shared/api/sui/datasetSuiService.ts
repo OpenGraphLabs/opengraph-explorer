@@ -42,132 +42,6 @@ export function useDatasetSuiService() {
   const { uploadMultipleMedia } = useWalrusService();
 
   /**
-   * 데이터셋 생성 및 데이터 추가 (개별 파일 업로드 방식)
-   */
-  const createDataset = async (
-    metadata: DatasetMetadata,
-    annotations: string[],
-    files: { blobId: string; fileHash: string }[],
-    onSuccess?: (result: any) => void,
-    onError?: (error: Error) => void
-  ) => {
-    if (!account) {
-      const error = new Error("Wallet account not found. Please connect your wallet first.");
-      if (onError) onError(error);
-      throw error;
-    }
-
-    try {
-      const tx = new Transaction();
-      tx.setGasBudget(GAS_BUDGET);
-
-      // 1. 메타데이터 객체 생성
-      const metadataObject = tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::metadata::new_metadata`,
-        arguments: [
-          tx.pure.option("string", metadata.description),
-          tx.pure.string(metadata.dataType),
-          tx.pure.u64(BigInt(metadata.dataSize)),
-          tx.pure.u64(BigInt(metadata.dataCount)),
-          tx.pure.option("string", metadata.creator),
-          tx.pure.option("string", metadata.license),
-          tx.pure.option("vector<string>", metadata.tags),
-        ],
-      });
-
-      // 2. 데이터셋 객체 생성
-      const dataset = tx.moveCall({
-        target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_dataset`,
-        arguments: [tx.pure.string(metadata.name), metadataObject],
-      });
-
-      // 3. 각 파일을 Walrus에 업로드하고 데이터 객체 생성
-      const dataIds: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const annotation = annotations[i];
-
-        try {
-          // blob range 객체 생성
-          const rangeOptionObject = tx.moveCall({
-            target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_range_option`,
-            arguments: [
-              tx.pure.option("u64", null), // range start
-              tx.pure.option("u64", null), // range end
-            ],
-          });
-
-          // 데이터 객체 생성
-          const dataObject = tx.moveCall({
-            target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::new_data`,
-            arguments: [
-              tx.pure.string(`data_${i}`),
-              tx.pure.string(file.blobId),
-              tx.pure.string(file.fileHash),
-              rangeOptionObject,
-            ],
-          });
-
-          // 어노테이션 추가
-          tx.moveCall({
-            target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_annotation_label`,
-            arguments: [dataObject, tx.pure.string(annotation)],
-          });
-
-          // 데이터셋에 데이터 추가
-          tx.moveCall({
-            target: `${SUI_CONTRACT.PACKAGE_ID}::dataset::add_data`,
-            arguments: [dataset, dataObject],
-          });
-
-          dataIds.push(file.blobId);
-        } catch (error) {
-          console.error(`Error processing data object ${i + 1}:`, error);
-          throw new Error(
-            `Failed to process data object ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`
-          );
-        }
-      }
-
-      tx.transferObjects([dataset], account.address);
-
-      // 4. 트랜잭션 실행
-      return await signAndExecuteTransaction(
-        {
-          transaction: tx,
-          chain: `sui:${SUI_NETWORK.TYPE}`,
-        },
-        {
-          onSuccess: result => {
-            console.log("Dataset creation successful:", result);
-            if (onSuccess) {
-              onSuccess(result);
-            }
-            return result;
-          },
-          onError: error => {
-            console.error("Transaction execution failed:", error);
-            if (onError) {
-              onError(
-                new Error(
-                  `Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`
-                )
-              );
-            }
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error creating dataset:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      if (onError) {
-        onError(new Error(`Failed to create dataset: ${errorMessage}`));
-      }
-      throw new Error(`Failed to create dataset: ${errorMessage}`);
-    }
-  };
-
-  /**
    * 여러 파일을 하나의 Blob으로 업로드하고 데이터셋 생성
    * @param metadata 데이터셋 메타데이터
    * @param files 업로드할 파일 배열
@@ -194,7 +68,6 @@ export function useDatasetSuiService() {
 
       // 1. 여러 파일을 하나의 blob으로 Walrus에 업로드
       const blobUploadResult = await uploadMultipleMedia(files, account.address, epochs);
-      console.log("Blob upload result:", blobUploadResult);
 
       // 2. Sui 트랜잭션 생성
       const tx = new Transaction();
@@ -224,8 +97,6 @@ export function useDatasetSuiService() {
       const dataIds: string[] = [];
       const { blobId, filesMetadata } = blobUploadResult;
 
-      console.log("file metadata length:", filesMetadata.length);
-      console.log("file metadata:", filesMetadata);
       for (let i = 0; i < filesMetadata.length; i++) {
         const fileMetadata = filesMetadata[i];
 
@@ -407,7 +278,6 @@ export function useDatasetSuiService() {
   };
 
   return {
-    createDataset,
     createDatasetWithMultipleFiles,
     addAnnotationLabels,
     addConfirmedAnnotationLabels,
