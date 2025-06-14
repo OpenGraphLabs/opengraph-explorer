@@ -42,6 +42,9 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 
+// Import certificate hook
+import { useCertificateData } from "@/features/challenge/hooks/useCertificateData";
+
 // Challenge Status Badge Component
 function ChallengeStatusBadge({ status }: { status: ChallengeStatus }) {
   const { theme } = useTheme();
@@ -583,6 +586,9 @@ export function Challenges() {
     isAllCompleted,
   } = useMissions();
 
+  // Certificate data hook for server-based certificate system
+  const certificateData = useCertificateData();
+
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [successMissionData, setSuccessMissionData] = useState<{
@@ -977,7 +983,12 @@ export function Challenges() {
   return (
     <SidebarLayout sidebar={sidebarConfig} topBar={topBar}>
       {/* Certificate Achievement Banner - Show when completed */}
-      {userProgress.overallStatus === "completed" && userProgress.certificate && (
+      {certificateData.userProgress?.certificate && 
+       certificateData.userProgress.missionScores && 
+       certificateData.userProgress.missions && 
+       certificateData.userProgress.missionScores.length > 0 && 
+       certificateData.userProgress.missions.length > 0 && 
+       certificateData.userProgress.overallStatus === "completed" && (
         <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
           <Box
             style={{
@@ -1081,7 +1092,7 @@ export function Challenges() {
                         `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
                     );
                     const url = encodeURIComponent(
-                      userProgress.certificate?.shareableUrl || "https://opengraph.io/certificate"
+                      certificateData.userProgress?.certificate?.shareableUrl || "https://opengraph.io/certificate"
                     );
                     window.open(
                       `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
@@ -1342,11 +1353,18 @@ export function Challenges() {
       )}
 
       {/* Certificate Modal */}
-      <CertificateModal
-        userProgress={userProgress}
-        isOpen={showCertificateModal}
-        onClose={() => setShowCertificateModal(false)}
-      />
+      {certificateData.userProgress && 
+       certificateData.userProgress.certificate &&
+       certificateData.userProgress.missionScores && 
+       certificateData.userProgress.missions &&
+       certificateData.userProgress.missionScores.length > 0 &&
+       certificateData.userProgress.missions.length > 0 && (
+        <CertificateModal
+          userProgress={certificateData.userProgress}
+          isOpen={showCertificateModal}
+          onClose={() => setShowCertificateModal(false)}
+        />
+      )}
 
       <style>
         {`

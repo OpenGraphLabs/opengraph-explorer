@@ -37,6 +37,10 @@ import { useAnnotationTools, useImageNavigation } from "@/features/annotation";
 import { useCompleteAnnotationSubmission } from "@/features/annotation/hooks/useCompleteAnnotationSubmission";
 import { SubmissionNotification } from "@/features/annotation/components/SubmissionNotification";
 
+// Import certificate components
+import { useCertificateData } from "@/features/challenge/hooks/useCertificateData";
+import { CertificateModal } from "@/features/challenge/components/CertificateModal";
+
 export function AnnotationWorkspace() {
   const { challengeId } = useParams<{ challengeId: string }>();
   const navigate = useNavigate();
@@ -76,6 +80,12 @@ export function AnnotationWorkspace() {
 
   // Complete annotation submission hook
   const completeSubmission = useCompleteAnnotationSubmission();
+
+  // Certificate data hook
+  const certificateData = useCertificateData();
+  
+  // Certificate modal state
+  const [showCertificate, setShowCertificate] = useState(false);
 
   // Auto-set default tool based on current phase
   useEffect(() => {
@@ -322,6 +332,9 @@ export function AnnotationWorkspace() {
 
       // Clear annotation stack after successful submission
       annotationStack.actions.clearStack();
+      
+      // Refresh certificate data after successful submission
+      certificateData.refetch();
     } catch (error) {
       console.error("Failed to submit complete annotations:", error);
     }
@@ -334,6 +347,7 @@ export function AnnotationWorkspace() {
     actions,
     datasetImages,
     completeSubmission,
+    certificateData,
   ]);
 
   // Loading state - Dataset 로딩 포함
@@ -834,6 +848,35 @@ export function AnnotationWorkspace() {
                             : "Submit Annotations"}
               </Button>
 
+              {/* Show Certificate Button if eligible */}
+              {certificateData.userProgress && 
+               certificateData.userProgress.certificate &&
+               certificateData.userProgress.missionScores && 
+               certificateData.userProgress.missions &&
+               certificateData.userProgress.missionScores.length > 0 &&
+               certificateData.userProgress.missions.length > 0 && (
+                <Button
+                  onClick={() => setShowCertificate(true)}
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
+                    color: "#0f0f23",
+                    border: "none",
+                    borderRadius: theme.borders.radius.md,
+                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.xs,
+                    boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
+                  }}
+                >
+                  <Trophy size={14} />
+                  View Certificate
+                </Button>
+              )}
+
               <Button
                 style={{
                   background: "transparent",
@@ -963,33 +1006,38 @@ export function AnnotationWorkspace() {
           constraintMessage={getToolConstraintMessage}
           currentPhase={currentPhase}
           phaseConstraintMessage={
-            completeSubmission.isSubmitting
-              ? `${
-                  completeSubmission.status.phase === "validating"
-                    ? completeSubmission.status.message
-                    : completeSubmission.status.phase === "preparing"
+            certificateData.userProgress?.certificate && 
+            certificateData.userProgress.missionScores && 
+            certificateData.userProgress.missions &&
+            certificateData.userProgress.overallStatus === "completed"
+              ? `🏆 Certificate Available! Total Score: ${certificateData.userProgress.totalScore}/${certificateData.userProgress.maxPossibleScore} points (${Math.round((certificateData.userProgress.totalScore / certificateData.userProgress.maxPossibleScore) * 100)}%) - Click View Certificate button!`
+              : completeSubmission.isSubmitting
+                ? `${
+                    completeSubmission.status.phase === "validating"
                       ? completeSubmission.status.message
-                      : completeSubmission.status.phase === "blockchain"
-                        ? `${completeSubmission.status.message}${
-                            completeSubmission.status.progress ? ` (${completeSubmission.status.progress}%)` : ""
-                          }`
-                        : completeSubmission.status.phase === "scoring"
-                          ? completeSubmission.status.message
-                          : "Processing submission..."
-                }`
-              : completeSubmission.hasError
-                ? `Submission error: ${completeSubmission.errorMessage}`
-                : completeSubmission.isCompleted
-                  ? `Submission completed! Score: ${completeSubmission.finalScore || 0} | Transaction: ${completeSubmission.transactionHash?.slice(0, 8)}...`
-                  : !allImagesCompleted
-                    ? `Complete all images to enable submission (${completedImagesCount}/${totalImages} completed)`
-                    : !isToolAllowed(state.currentTool)
-                      ? getDisallowedMessage(state.currentTool)
-                      : annotationStack.state.isFull
-                        ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Submit annotations to continue.`
-                        : saveStatus.state.error
-                          ? `Save error: ${saveStatus.state.error}`
-                          : undefined
+                      : completeSubmission.status.phase === "preparing"
+                        ? completeSubmission.status.message
+                        : completeSubmission.status.phase === "blockchain"
+                          ? `${completeSubmission.status.message}${
+                              completeSubmission.status.progress ? ` (${completeSubmission.status.progress}%)` : ""
+                            }`
+                          : completeSubmission.status.phase === "scoring"
+                            ? completeSubmission.status.message
+                            : "Processing submission..."
+                  }`
+                : completeSubmission.hasError
+                  ? `Submission error: ${completeSubmission.errorMessage}`
+                  : completeSubmission.isCompleted
+                    ? `Submission completed! Score: ${completeSubmission.finalScore || 0} | Transaction: ${completeSubmission.transactionHash?.slice(0, 8)}...`
+                    : !allImagesCompleted
+                      ? `Complete all images to enable submission (${completedImagesCount}/${totalImages} completed)`
+                      : !isToolAllowed(state.currentTool)
+                        ? getDisallowedMessage(state.currentTool)
+                        : annotationStack.state.isFull
+                          ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Submit annotations to continue.`
+                          : saveStatus.state.error
+                            ? `Save error: ${saveStatus.state.error}`
+                            : undefined
           }
         />
       </Box>
@@ -1000,6 +1048,20 @@ export function AnnotationWorkspace() {
         onDismiss={completeSubmission.resetStatus}
         onRetry={handleCompleteSubmission}
       />
+
+      {/* Certificate Modal */}
+      {certificateData.userProgress && 
+       certificateData.userProgress.certificate &&
+       certificateData.userProgress.missionScores && 
+       certificateData.userProgress.missions &&
+       certificateData.userProgress.missionScores.length > 0 &&
+       certificateData.userProgress.missions.length > 0 && (
+        <CertificateModal
+          userProgress={certificateData.userProgress}
+          isOpen={showCertificate}
+          onClose={() => setShowCertificate(false)}
+        />
+      )}
 
       <style>
         {`

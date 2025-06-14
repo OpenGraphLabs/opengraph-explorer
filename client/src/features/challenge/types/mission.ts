@@ -33,6 +33,9 @@ export const MISSION_CHALLENGE_MAPPING: Record<string, string> = {
 export interface UserMissionProgress {
   userId: string;
   missions: Mission[];
+  missionScores: MissionScoreDetail[];
+  totalScore: number;
+  maxPossibleScore: number;
   overallStatus: "not_started" | "in_progress" | "completed";
   completedAt?: Date;
   certificate?: {
@@ -41,6 +44,14 @@ export interface UserMissionProgress {
     issuedAt: Date;
     shareableUrl?: string;
   };
+}
+
+export interface MissionScoreDetail {
+  missionId: number;
+  missionName: string;
+  score: number;
+  maxScore: number;
+  completedAt: string;
 }
 
 export interface MissionCompletion {
