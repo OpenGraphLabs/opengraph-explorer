@@ -27,7 +27,6 @@ import { AnnotationSidebar } from "@/widgets/annotation-sidebar";
 import {
   AnnotationListPanel,
   InlineToolBar,
-  AnnotationStackViewer,
   SaveNotification,
 } from "@/features/annotation";
 import { WorkspaceStatusBar } from "@/features/workspace-controls";
@@ -66,7 +65,8 @@ export function AnnotationWorkspace() {
   // Workspace state - Dataset 이미지 사용 (annotation stack 포함)
   const { state, actions, annotationStack, saveStatus } = useWorkspace(
     datasetId || "",
-    datasetImages
+    datasetImages,
+    datasetImages.length // Pass total images as maxStackSize
   );
 
   // Auto-set default tool based on current phase
@@ -557,31 +557,21 @@ export function AnnotationWorkspace() {
       },
     ],
     filters: (
-      <Flex direction="column" gap="4">
-        <AnnotationSidebar
-          currentTool={state.currentTool}
-          selectedLabel={state.selectedLabel}
-          existingLabels={allAvailableLabels}
-          boundingBoxes={state.annotations.boundingBoxes || []}
-          zoom={state.zoom}
-          panOffset={state.panOffset}
-          onZoomChange={actions.setZoom}
-          onPanChange={actions.setPanOffset}
-          phaseConstraints={{
-            currentPhase,
-            isToolAllowed,
-            getDisallowedMessage,
-          }}
-        />
-
-        {/* Annotation Stack Viewer */}
-        <AnnotationStackViewer
-          stackState={annotationStack.state}
-          maxSize={annotationStack.maxSize}
-          onClearStack={annotationStack.actions.clearStack}
-          isSaving={saveStatus.state.isSaving}
-        />
-      </Flex>
+      <AnnotationSidebar
+        currentTool={state.currentTool}
+        selectedLabel={state.selectedLabel}
+        existingLabels={allAvailableLabels}
+        boundingBoxes={state.annotations.boundingBoxes || []}
+        zoom={state.zoom}
+        panOffset={state.panOffset}
+        onZoomChange={actions.setZoom}
+        onPanChange={actions.setPanOffset}
+        phaseConstraints={{
+          currentPhase,
+          isToolAllowed,
+          getDisallowedMessage,
+        }}
+      />
     ),
   };
 
@@ -868,11 +858,17 @@ export function AnnotationWorkspace() {
             )}
           </Box>
 
-          {/* Right Panel - Annotations List */}
+          {/* Right Panel - Annotations List with Stack */}
           <AnnotationListPanel
             annotations={state.annotations}
             onDeleteAnnotation={handleDeleteAnnotation}
             onClearAll={handleClearAll}
+            stackState={annotationStack.state}
+            maxStackSize={datasetImages.length} // Set max to total images
+            onClearStack={annotationStack.actions.clearStack}
+            isSaving={saveStatus.state.isSaving}
+            currentImageIndex={currentImageIndex}
+            totalImages={datasetImages.length}
           />
         </Flex>
 

@@ -19,9 +19,7 @@ export interface AnnotationStackState {
   hasItems: boolean;
 }
 
-const MAX_STACK_SIZE = 30;
-
-export function useAnnotationStack() {
+export function useAnnotationStack(maxSize: number = 30) {
   const [stack, setStack] = useState<AnnotationStackItem[]>([]);
 
   // 스택 상태 계산
@@ -29,10 +27,10 @@ export function useAnnotationStack() {
     () => ({
       items: stack,
       count: stack.length,
-      isFull: stack.length >= MAX_STACK_SIZE,
+      isFull: stack.length >= maxSize,
       hasItems: stack.length > 0,
     }),
-    [stack]
+    [stack, maxSize]
   );
 
   /**
@@ -40,7 +38,7 @@ export function useAnnotationStack() {
    */
   const addToStack = useCallback(
     (imageData: ImageData, type: "label" | "bbox", annotation: LabelAnnotation | BoundingBox) => {
-      if (stack.length >= MAX_STACK_SIZE) {
+      if (stack.length >= maxSize) {
         console.warn(
           "Annotation stack is full. Please save current annotations before adding more."
         );
@@ -58,7 +56,7 @@ export function useAnnotationStack() {
       setStack(prev => [...prev, stackItem]);
       return true;
     },
-    [stack.length]
+    [stack.length, maxSize]
   );
 
   /**
@@ -138,7 +136,7 @@ export function useAnnotationStack() {
         bbox: stack.filter(item => item.type === "bbox").length,
       },
       byImage: {} as Record<string, number>,
-      remaining: MAX_STACK_SIZE - stack.length,
+      remaining: maxSize - stack.length,
     };
 
     // 이미지별 통계
@@ -148,7 +146,7 @@ export function useAnnotationStack() {
     });
 
     return stats;
-  }, [stack]);
+  }, [stack, maxSize]);
 
   /**
    * 스택에서 특정 이미지와 annotation 타입으로 검색
@@ -168,7 +166,7 @@ export function useAnnotationStack() {
   return {
     // 상태
     stackState,
-    maxSize: MAX_STACK_SIZE,
+    maxSize: maxSize,
 
     // 액션
     addToStack,
