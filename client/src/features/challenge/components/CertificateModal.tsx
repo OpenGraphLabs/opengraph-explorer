@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useAuth } from "@/shared/hooks/useAuth";
 import { UserMissionProgress } from "../types/mission";
 import { 
   Trophy, 
@@ -22,14 +23,47 @@ interface CertificateModalProps {
   onClose: () => void;
 }
 
+// Certificate ID 생성 함수
+const generateCertificateId = async (walletAddress: string): Promise<string> => {
+  const prefix = "OG"; // OpenGraph prefix
+  const input = `opengraph-${walletAddress}-certificate`;
+  
+  // Web Crypto API를 사용하여 해시 생성
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  // 12자리로 제한하여 적절한 길이로 만들기
+  return `${prefix}${hashHex.slice(0, 10).toUpperCase()}`;
+};
+
 export const CertificateModal: React.FC<CertificateModalProps> = ({
   userProgress,
   isOpen,
   onClose
 }) => {
   const { theme } = useTheme();
+  const { walletAddress } = useAuth();
   const certificateRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [certificateId, setCertificateId] = useState<string>("");
+
+  // Certificate ID 생성
+  React.useEffect(() => {
+    if (walletAddress) {
+      generateCertificateId(walletAddress).then(setCertificateId);
+    }
+  }, [walletAddress]);
+
+  // 현재 날짜 사용
+  const currentDate = new Date();
+  const issuedDate = currentDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
   if (!isOpen || !userProgress.certificate) return null;
 
@@ -43,136 +77,130 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set high-resolution canvas
+      // Set high-resolution canvas - 더 컴팩트한 크기
       const scale = 2;
-      canvas.width = 1200 * scale;
-      canvas.height = 800 * scale;
+      canvas.width = 750 * scale;
+      canvas.height = 500 * scale;
       ctx.scale(scale, scale);
 
-      // Background gradient
-      const bgGradient = ctx.createLinearGradient(0, 0, 1200, 800);
+      // Background - match modal design
+      const bgGradient = ctx.createLinearGradient(0, 0, 750, 500);
       bgGradient.addColorStop(0, '#0f0f23');
       bgGradient.addColorStop(0.3, '#1a1a2e');
       bgGradient.addColorStop(0.7, '#16213e');
       bgGradient.addColorStop(1, '#0f3460');
       ctx.fillStyle = bgGradient;
-      ctx.fillRect(0, 0, 1200, 800);
+      ctx.fillRect(0, 0, 750, 500);
 
-      // Grid pattern overlay
-      ctx.strokeStyle = 'rgba(100, 255, 218, 0.05)';
+      // Grid pattern overlay (더 섬세하게)
+      ctx.strokeStyle = 'rgba(100, 255, 218, 0.06)';
       ctx.lineWidth = 1;
-      for (let i = 0; i < 1200; i += 40) {
+      for (let i = 0; i < 750; i += 25) {
         ctx.beginPath();
         ctx.moveTo(i, 0);
-        ctx.lineTo(i, 800);
+        ctx.lineTo(i, 500);
         ctx.stroke();
       }
-      for (let i = 0; i < 800; i += 40) {
+      for (let i = 0; i < 500; i += 25) {
         ctx.beginPath();
         ctx.moveTo(0, i);
-        ctx.lineTo(1200, i);
+        ctx.lineTo(750, i);
         ctx.stroke();
       }
 
-      // Header section
-      const headerGradient = ctx.createLinearGradient(0, 0, 1200, 200);
-      headerGradient.addColorStop(0, '#64ffda');
-      headerGradient.addColorStop(1, '#1de9b6');
-      ctx.fillStyle = headerGradient;
-      ctx.fillRect(0, 0, 1200, 200);
+      // 장식 요소들 (더 작고 효율적으로)
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.beginPath();
+      ctx.arc(650, 60, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(100, 255, 218, 0.25)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-      // OpenGraph logo area
-      ctx.fillStyle = '#0f0f23';
-      ctx.font = 'bold 42px "Inter", sans-serif';
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.04)';
+      ctx.beginPath();
+      ctx.arc(100, 420, 35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Trophy icon area (더 위쪽으로)
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.15)';
+      ctx.beginPath();
+      ctx.arc(375, 80, 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#64ffda';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Trophy symbol
+      ctx.fillStyle = '#64ffda';
+      ctx.font = 'bold 24px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('OPENGRAPH', 600, 60);
-      
-      ctx.font = '18px "Inter", sans-serif';
-      ctx.fillText('PHYSICAL AI DATA INFRASTRUCTURE', 600, 90);
+      ctx.fillText('🏆', 375, 88);
 
-      // Decorative elements
-      ctx.fillStyle = 'rgba(15, 15, 35, 0.3)';
-      ctx.beginPath();
-      ctx.arc(100, 100, 30, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(1100, 100, 25, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Certificate title
+      // Main title (더 위쪽으로)
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 48px "Inter", sans-serif';
+      ctx.font = 'bold 28px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('CERTIFICATE OF ACHIEVEMENT', 600, 280);
+      ctx.fillText('CERTIFICATE', 375, 130);
 
       // Subtitle
-      ctx.font = '24px "Inter", sans-serif';
+      ctx.font = '16px "Inter", sans-serif';
       ctx.fillStyle = '#64ffda';
-      ctx.fillText('Data Annotation Specialist', 600, 320);
+      ctx.fillText('Data Annotation Specialist', 375, 155);
 
-      // Main content
+      // Achievement text (더 컴팩트하게)
       ctx.fillStyle = '#ffffff';
-      ctx.font = '20px "Inter", sans-serif';
-      ctx.fillText('This is to certify that', 600, 380);
-
-      ctx.font = 'bold 28px "Inter", sans-serif';
-      ctx.fillText('ANNOTATION SPECIALIST', 600, 420);
-
-      ctx.font = '18px "Inter", sans-serif';
-      ctx.fillText('has successfully completed the comprehensive', 600, 460);
-      ctx.fillText('OpenGraph Physical AI Data Annotation Program', 600, 485);
-
-      // Achievements section
-      ctx.fillStyle = '#64ffda';
-      ctx.font = 'bold 16px "Inter", sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('✓ Mastered Sea Animal Classification (10 annotations)', 200, 550);
-      ctx.fillText('✓ Completed Urban Traffic Bounding Box Detection (3 annotations)', 200, 580);
-      ctx.fillText('✓ Demonstrated proficiency in AI dataset preparation', 200, 610);
-      ctx.fillText('✓ Contributed to Physical AI training data quality', 200, 640);
-
-      // Technology badges
-      ctx.fillStyle = 'rgba(100, 255, 218, 0.2)';
-      ctx.fillRect(850, 530, 300, 120);
-      ctx.strokeStyle = '#64ffda';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(850, 530, 300, 120);
-
-      ctx.fillStyle = '#64ffda';
-      ctx.font = 'bold 14px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('POWERED BY', 1000, 555);
-      ctx.font = 'bold 16px "Inter", sans-serif';
-      ctx.fillText('SUI BLOCKCHAIN', 1000, 580);
-      ctx.fillText('WALRUS STORAGE', 1000, 605);
-      ctx.fillText('DECENTRALIZED AI', 1000, 630);
-
-      // Footer
-      ctx.fillStyle = '#888888';
       ctx.font = '14px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`Certificate ID: ${userProgress.certificate.id}`, 600, 720);
-      ctx.fillText(`Issued: ${userProgress.certificate.issuedAt.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      })}`, 600, 745);
+      ctx.fillText('Successfully completed', 375, 190);
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.fillText('OpenGraph Physical AI Training', 375, 210);
 
-      // Signature line
+      // Completion stats
+      ctx.fillStyle = '#64ffda';
+      ctx.font = '13px "Inter", sans-serif';
+      const completedMissions = userProgress.missions.filter(m => m.status === "completed").length;
+      const totalMissions = userProgress.missions.length;
+      ctx.fillText(`✓ ${completedMissions}/${totalMissions} Missions Completed`, 375, 240);
+
+      // Tech badges section (더 작게)
+      ctx.fillStyle = 'rgba(100, 255, 218, 0.08)';
+      ctx.fillRect(200, 260, 350, 45);
       ctx.strokeStyle = '#64ffda';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(200, 260, 350, 45);
+
+      ctx.fillStyle = '#64ffda';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('POWERED BY SUI & WALRUS', 375, 280);
+      ctx.font = '10px "Inter", sans-serif';
+      ctx.fillText('Decentralized AI Infrastructure', 375, 295);
+
+      // Certificate ID and date (더 아래쪽으로)
+      ctx.fillStyle = '#888888';
+      ctx.font = '11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Certificate ID: ${certificateId}`, 375, 340);
+      ctx.fillText(`Issued: ${issuedDate}`, 375, 358);
+
+      // OpenGraph signature (더 아래쪽으로)
+      ctx.strokeStyle = '#64ffda';
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(450, 770);
-      ctx.lineTo(750, 770);
+      ctx.moveTo(275, 390);
+      ctx.lineTo(475, 390);
       ctx.stroke();
       
       ctx.fillStyle = '#64ffda';
-      ctx.font = '12px "Inter", sans-serif';
-      ctx.fillText('OpenGraph Foundation', 600, 785);
+      ctx.font = 'bold 10px "Inter", sans-serif';
+      ctx.fillText('OPENGRAPH', 375, 405);
 
       // Download the certificate
       const link = document.createElement('a');
-      link.download = `opengraph-certificate-${userProgress.certificate.id}.png`;
+      link.download = `opengraph-certificate-${certificateId}.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
     } catch (error) {
@@ -184,14 +212,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
   const shareOnTwitter = () => {
     const text = encodeURIComponent(
-      `🎯 Just earned my OpenGraph Data Annotation Specialist Certificate! 🏆\n\n` +
-      `🤖 Mastered AI dataset preparation for Physical AI systems\n` +
-      `🔗 Powered by Sui blockchain & Walrus decentralized storage\n` +
-      `🌐 Contributing to the future of real-world AI applications\n\n` +
-      `Ready to shape the next generation of Physical AI! 🚀\n\n` +
-      `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
+      `🏆 Earned my OpenGraph AI Data Certification! \n\n` +
+      `Just completed Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
+      `Ready to shape the future of real-world AI! 🚀\n\n` +
+      `#OpenGraph #PhysicalAI #Web3AI`
     );
-    const url = encodeURIComponent(userProgress.certificate.shareableUrl || 'https://opengraph.io/certificate');
+    const url = encodeURIComponent(userProgress.certificate.shareableUrl || 'https://opengraph.io');
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
   };
 
@@ -335,6 +361,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             </Box>
             <Box>
               <Text
+                as="p"
                 size="5"
                 style={{
                   fontWeight: 800,
@@ -346,6 +373,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 Congratulations!
               </Text>
               <Text
+                as="p"
                 size="3"
                 style={{
                   color: "#64ffda",
@@ -398,6 +426,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
         {/* Certificate Content */}
         <Box style={{ textAlign: "center", marginBottom: theme.spacing.semantic.layout.lg }}>
           <Text
+            as="p"
             size="4"
             style={{
               fontWeight: 800,
@@ -413,18 +442,18 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
           </Text>
           
           <Text
+            as="p"
             size="2"
             style={{
               color: theme.colors.text.secondary,
-              lineHeight: 1.7,
+              lineHeight: 1.6,
               marginBottom: theme.spacing.semantic.component.lg,
-              maxWidth: "500px",
+              maxWidth: "450px",
               margin: "0 auto",
             }}
           >
-            This certificate validates the successful completion of the OpenGraph Physical AI Data Annotation Program, 
-            demonstrating expertise in preparing high-quality training datasets for real-world AI systems powered by 
-            decentralized blockchain infrastructure.
+            Successfully completed OpenGraph's Physical AI Data Annotation Program. 
+            Certified specialist in preparing high-quality training datasets for real-world AI systems.
           </Text>
 
           {/* Achievements */}
@@ -439,14 +468,15 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
           >
             <Flex align="center" justify="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
               <Lightning size={18} style={{ color: "#64ffda" }} />
-              <Text
+              <Text 
+                as="p"
                 size="2"
                 style={{
                   fontWeight: 700,
                   color: theme.colors.text.primary,
                 }}
               >
-                Completed Specializations
+                Achievements
               </Text>
             </Flex>
             
@@ -454,7 +484,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               {userProgress.missions.map(mission => (
                 <Flex key={mission.id} align="center" gap="3" justify="center">
                   <CheckCircle size={18} style={{ color: theme.colors.status.success }} />
-                  <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
+                  <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 600 }}>
                     {mission.title}
                   </Text>
                   <Badge style={{
@@ -475,23 +505,19 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
           {/* Certificate Details */}
           <Flex justify="center" gap="6" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
             <Box style={{ textAlign: "center" }}>
-              <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              <Text as="p" size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
                 ISSUED DATE
               </Text>
-              <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
-                {userProgress.certificate.issuedAt.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+              <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 700 }}>
+                {issuedDate}
               </Text>
             </Box>
             <Box style={{ textAlign: "center" }}>
-              <Text size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
+              <Text as="p" size="1" style={{ color: theme.colors.text.tertiary, fontWeight: 600 }}>
                 CERTIFICATE ID
               </Text>
-              <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 700, fontFamily: "monospace" }}>
-                {userProgress.certificate.id}
+              <Text as="p" size="2" style={{ color: theme.colors.text.primary, fontWeight: 700, fontFamily: "monospace" }}>
+                {certificateId}
               </Text>
             </Box>
           </Flex>
