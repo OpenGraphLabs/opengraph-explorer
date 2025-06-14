@@ -26,6 +26,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libssl3 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -33,6 +34,10 @@ WORKDIR /app
 # Copy the binary from builder
 COPY --from=builder /app/target/release/opengraph-server /app/opengraph-server
 COPY --from=builder /app/migrations /app/migrations
+
+# Copy entrypoint script
+COPY docker/server/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Create a non-root user
 RUN useradd -r -s /bin/false opengraph
