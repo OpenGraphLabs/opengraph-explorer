@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://server:8080";
 
 export class AnnotatorApiError extends Error {
   constructor(message: string) {
