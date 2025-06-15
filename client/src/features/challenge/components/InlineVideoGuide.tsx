@@ -24,8 +24,8 @@ export const InlineVideoGuide: React.FC<InlineVideoGuideProps> = ({
   // Get YouTube embed URL based on mission type
   const getYouTubeEmbedUrl = (missionId: string) => {
     const videoMap: Record<string, string> = {
-      "mission-1": "3T1xoSGOY2M", // Label annotation guide
-      "mission-2": "BI0LyOaxuKU", // Bounding box guide (same video for now)
+      "1": "3T1xoSGOY2M", // Label annotation guide
+      "2": "BI0LyOaxuKU", // Bounding box guide (same video for now)
     };
     const videoId = videoMap[missionId] || "3T1xoSGOY2M";
 
