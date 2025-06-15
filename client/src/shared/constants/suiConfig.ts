@@ -20,7 +20,7 @@ export const SUI_MAX_PARAMS_PER_TX = 3000;
 export const SUI_PREDICT_COMPUTATION_BATCH_SIZE = 100;
 
 // 가스 비용
-export const GAS_BUDGET = 1_000_000_000; // 1000000000 = 1 SUI
+export const GAS_BUDGET = 500_000_000; // 500000000 = 0.5 SUI
 
 // SUI 주소 표시 길이 제한 (UI에서 주소를 표시할 때 사용)
 export const SUI_ADDRESS_DISPLAY_LENGTH = 16;
