@@ -2,7 +2,7 @@
 GET {{host}}/health
 
 ### Create Annotator
-POST {{host}}/annotators
+POST {{host}}/server/v1/annotators
 Content-Type: application/json
 
 {
@@ -10,16 +10,16 @@ Content-Type: application/json
 }
 
 ### List Annotators
-GET {{host}}/annotators?limit=10&offset=0
+GET {{host}}/server/v1/annotators?limit=10&offset=0
 
 ### Get Annotator by ID
-GET {{host}}/annotators/1
+GET {{host}}/server/v1/annotators/1
 
 ### Get Annotator by Sui Address
-GET {{host}}/annotators/sui/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
+GET {{host}}/server/v1/annotators/sui/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
 
 ### Create Mission - Animal Classification (Label Annotation)
-POST {{host}}/missions
+POST {{host}}/server/v1/missions
 Content-Type: application/json
 
 {
@@ -30,7 +30,7 @@ Content-Type: application/json
 }
 
 ### Create Mission - Urban Traffic Dataset (BBox Annotation)
-POST {{host}}/missions
+POST {{host}}/server/v1/missions
 Content-Type: application/json
 
 {
@@ -41,7 +41,7 @@ Content-Type: application/json
 }
 
 ### Create Mission (BBox Annotation)
-POST {{host}}/missions
+POST {{host}}/server/v1/missions
 Content-Type: application/json
 
 {
@@ -52,16 +52,16 @@ Content-Type: application/json
 }
 
 ### List All Missions
-GET {{host}}/missions
+GET {{host}}/server/v1/missions
 
 ### List Active Missions Only
-GET {{host}}/missions?status=active&limit=10
+GET {{host}}/server/v1/missions?status=active&limit=10
 
 ### Get Mission by ID
-GET {{host}}/missions/1
+GET {{host}}/server/v1/missions/1
 
 ### Update Mission Status
-PUT {{host}}/missions/1/status
+PUT {{host}}/server/v1/missions/1/status
 Content-Type: application/json
 
 {
@@ -69,7 +69,7 @@ Content-Type: application/json
 }
 
 ### Submit Mission Answers for Scoring (Label Annotation)
-POST {{host}}/scores/submit
+POST {{host}}/server/v1/scores/submit
 Content-Type: application/json
 
 {
@@ -113,7 +113,7 @@ Content-Type: application/json
 }
 
 ### Submit Mission Answers for Scoring (BBox Annotation)
-POST {{host}}/scores/submit
+POST {{host}}/server/v1/scores/submit
 Content-Type: application/json
 
 {
@@ -178,7 +178,7 @@ Content-Type: application/json
 }
 
 ### Submit Mixed Annotation (Labels + BBoxes)
-POST {{host}}/scores/submit
+POST {{host}}/server/v1/scores/submit
 Content-Type: application/json
 
 {
@@ -210,23 +210,23 @@ Content-Type: application/json
 }
 
 ### Get Score by ID
-GET {{host}}/scores/1
+GET {{host}}/server/v1/scores/1
 
 ### Get Top Scores (Leaderboard)
-GET {{host}}/scores/top?limit=10
+GET {{host}}/server/v1/scores/top?limit=10
 
 ### Get Scores by Mission
-GET {{host}}/missions/1/scores?limit=50&offset=0
+GET {{host}}/server/v1/missions/1/scores?limit=50&offset=0
 
 ### Get Scores by Annotator
-GET {{host}}/annotators/1/scores?limit=10&offset=0
+GET {{host}}/server/v1/annotators/1/scores?limit=10&offset=0
 
 ### Get Annotator Average Score
-GET {{host}}/annotators/1/average
+GET {{host}}/server/v1/annotators/1/average
 
 ### Example: Complete Workflow
 # 1. Create annotator
-POST {{host}}/annotators
+POST {{host}}/server/v1/annotators
 Content-Type: application/json
 
 {
@@ -234,7 +234,7 @@ Content-Type: application/json
 }
 
 ###  2. Create mission
-POST {{host}}/missions
+POST {{host}}/server/v1/missions
 Content-Type: application/json
 
 {
@@ -245,7 +245,7 @@ Content-Type: application/json
 }
 
 ### 3. Submit answers and get automatically scored
-POST {{host}}/scores/submit
+POST {{host}}/server/v1/scores/submit
 Content-Type: application/json
 
 {
@@ -301,7 +301,7 @@ Content-Type: application/json
 }
 
 ### Upload Sea Animal Data (Admin Only)
-POST {{host}}/ground-truth/bulk
+POST {{host}}/server/v1/ground-truth/bulk
 Content-Type: application/json
 
 {
@@ -461,7 +461,7 @@ Content-Type: application/json
 }
 
 ### Upload Ground Truth Data (Admin Only)
-POST {{host}}/ground-truth/bulk
+POST {{host}}/server/v1/ground-truth/bulk
 Content-Type: application/json
 
 {

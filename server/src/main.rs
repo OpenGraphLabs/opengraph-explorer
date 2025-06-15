@@ -45,10 +45,8 @@ async fn main() -> anyhow::Result<()> {
     let pool = create_db_pool(&config).await?;
     sqlx::migrate!("./migrations").run(&pool).await?;
 
-    let router = Router::new()
-        // Health check
-        .route("/health", get(health_check))
-        
+    // API routes with state
+    let api_routes = Router::new()
         // Annotator routes
         .route("/annotators", post(create_annotator))
         .route("/annotators", get(list_annotators))
@@ -74,10 +72,14 @@ async fn main() -> anyhow::Result<()> {
         .route("/ground-truth/missions/:mission_id", get(get_ground_truth_by_mission))
         .route("/ground-truth/missions/:mission_id/items/:item_id", get(get_ground_truth_by_item))
         
-        // middlewares
-        .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::permissive())
         .with_state(pool);
+    
+    // Main router with API prefix and middlewares
+    let router = Router::new()
+        .route("/health", get(health_check))
+        .nest("/server/v1", api_routes)
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::permissive());
     
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
     tracing::info!("🚀 OpenGraph Annotation Server running on http://{}", addr);
