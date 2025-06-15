@@ -85,14 +85,14 @@ export function AnnotationWorkspace() {
 
   // Auto-redirect to challenges page after successful submission
   useEffect(() => {
-    if (completeSubmission.isCompleted && !showCertificate) {
+    if (completeSubmission.isCompleted) {
       const timer = setTimeout(() => {
         navigate('/challenges');
       }, 3000); // 3초 후 자동 리디렉션
 
       return () => clearTimeout(timer);
     }
-  }, [completeSubmission.isCompleted, showCertificate, navigate]);
+  }, [completeSubmission.isCompleted, navigate]);
 
   // Auto-set default tool based on current phase
   useEffect(() => {
@@ -874,7 +874,7 @@ export function AnnotationWorkspace() {
                             : "Submit Annotations"}
               </Button>
 
-              {/* Show Certificate Button if eligible */}
+              {/* Show Certificate Button if eligible
               {certificateData.userProgress &&
                 certificateData.userProgress.certificate &&
                 certificateData.userProgress.missionScores &&
@@ -901,7 +901,7 @@ export function AnnotationWorkspace() {
                     <Trophy size={14} />
                     View Certificate
                   </Button>
-                )}
+                )} */}
 
               {/* <Button
                 style={{
