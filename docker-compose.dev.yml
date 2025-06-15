@@ -19,16 +19,27 @@ services:
       timeout: 5s
       retries: 5
 
-  # PostgreSQL Database Initialization
+#  # PostgreSQL Database Initialization
   migrate:
     build:
-      context: ./server
+      context: .
+      dockerfile: docker/migrate/Dockerfile
+    container_name: opengraph-migrate
     depends_on:
       postgres:
         condition: service_healthy
-    command: [ "cargo", "sqlx", "migrate", "run" ]
+    command: >
+      bash -c "
+        cargo sqlx database create &&
+        cargo sqlx migrate run &&
+        cargo sqlx prepare --check
+      "
     environment:
       DATABASE_URL: ${SERVER_DATABASE_URL}
+    volumes:
+      - ./server:/app
+    networks:
+      - opengraph-backend-network
 
   # Rust Backend Server for Development
   server:
@@ -38,8 +49,6 @@ services:
     container_name: opengraph-server
     ports:
       - "8080:8080"
-    volumes:
-      - ./server:/app/src
     environment:
       DATABASE_URL: ${SERVER_DATABASE_URL}
       PORT: ${SERVER_PORT}
@@ -47,6 +56,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - opengraph-backend-network
       - opengraph-frontend-network
@@ -68,26 +79,25 @@ services:
       - opengraph-frontend-network
     command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
-  # React Frontend Client for Development
+  # React Frontend Client
   client:
     build:
       context: .
       dockerfile: docker/client/Dockerfile.dev
     container_name: opengraph-client
     ports:
-      - "5173:5173"
+      - "80:80"
     volumes:
       - ./client:/app
       - /app/node_modules
-    environment:
-      - VITE_CONVERTER_BASE_URL=${CLIENT_VITE_CONVERTER_BASE_URL}
-      - VITE_SERVER_BASE_URL=${CLIENT_VITE_SERVER_BASE_URL}
     depends_on:
       - server
       - converter
+    environment:
+      - VITE_CONVERTER_BASE_URL=${CLIENT_VITE_CONVERTER_BASE_URL}
+      - VITE_SERVER_BASE_URL=${CLIENT_VITE_SERVER_BASE_URL}
     networks:
       - opengraph-frontend-network
-    command: yarn dev
 
 networks:
   opengraph-backend-network:

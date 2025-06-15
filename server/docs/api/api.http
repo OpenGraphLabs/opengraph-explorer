@@ -24,9 +24,9 @@ Content-Type: application/json
 
 {
   "name": "Sea Animal Classification",
-  "description": "Label annotation for sea animals - classify 10 different marine species",
+  "description": "Label annotation for sea animals - classify 15 different marine species",
   "mission_type": "label_annotation",
-  "total_items": 10
+  "total_items": 15
 }
 
 ### Create Mission - Urban Traffic Dataset (BBox Annotation)
