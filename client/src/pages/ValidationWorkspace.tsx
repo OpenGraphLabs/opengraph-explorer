@@ -866,6 +866,7 @@ export function ValidationWorkspace() {
                 }
                 selectedLabel={currentLabelGroup?.label || ""}
                 isDrawing={false}
+                currentPhase={state.currentPhase}
                 onZoomChange={actions.setZoom}
                 onPanChange={actions.setPanOffset}
                 onAddBoundingBox={() => {}}
