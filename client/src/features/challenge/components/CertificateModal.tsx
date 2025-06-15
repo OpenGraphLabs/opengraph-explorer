@@ -476,7 +476,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       `🏆 Earned OpenGraph AI Data Certification!\n\n` +
         `Score: ${userProgress.totalScore}/${userProgress.maxPossibleScore} • Completed ${missionScores.filter(ms => ms.score > 0).length}/${missions.length} missions\n\n` +
         `Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
-        `@OpenGraph_Labs #PhysicalAI #Web3AI`
+        `@OpenGraph_Labs #PhysicalAI #Web3AI\n\n`
     );
     const url = encodeURIComponent("https://explorer.opengraphlabs.xyz/challenges");
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");

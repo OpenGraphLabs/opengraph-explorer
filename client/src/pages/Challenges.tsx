@@ -1092,17 +1092,12 @@ export function Challenges() {
                   <Button
                     onClick={() => {
                       const text = encodeURIComponent(
-                        `🎯 Just earned my OpenGraph Data Annotation Specialist Certificate! 🏆\n\n` +
-                          `🤖 Mastered AI dataset preparation for Physical AI systems\n` +
-                          `🔗 Powered by Sui blockchain & Walrus decentralized storage\n` +
-                          `🌐 Contributing to the future of real-world AI applications\n\n` +
-                          `Ready to shape the next generation of Physical AI! 🚀\n\n` +
-                          `#OpenGraph #PhysicalAI #DataAnnotation #SuiBlockchain #WalrusStorage #Web3AI #MachineLearning #DecentralizedAI`
+                        `🏆 Earned OpenGraph AI Data Certification!\n\n` +
+                          `Score: ${certificateData.userProgress?.totalScore}/${certificateData.userProgress?.maxPossibleScore} • Completed ${certificateData.userProgress?.missionScores?.filter(ms => ms.score > 0).length}/${certificateData.userProgress?.missions?.length} missions\n\n` +
+                          `Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
+                          `@OpenGraph_Labs #PhysicalAI #Web3AI\n\n`
                       );
-                      const url = encodeURIComponent(
-                        certificateData.userProgress?.certificate?.shareableUrl ||
-                          "https://opengraph.io/certificate"
-                      );
+                      const url = encodeURIComponent("https://explorer.opengraphlabs.xyz/challenges");
                       window.open(
                         `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
                         "_blank"
@@ -1124,7 +1119,7 @@ export function Challenges() {
                     }}
                   >
                     <TwitterLogo size={16} />
-                    Share Achievement
+                    Share on Twitter
                   </Button>
                 </Flex>
               </Box>
