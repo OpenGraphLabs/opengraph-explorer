@@ -1,88 +1,99 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database for Development
-  postgres-dev:
+  postgres:
     image: postgres:15
-    container_name: opengraph-postgres-dev
+    container_name: opengraph-postgres
     environment:
-      POSTGRES_DB: opengraph_dev
-      POSTGRES_USER: opengraph_dev_user
-      POSTGRES_PASSWORD: opengraph_dev_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
-      - opengraph-dev-backend-network
+      - opengraph-backend-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opengraph_dev_user -d opengraph_dev"]
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # PostgreSQL Database Initialization
+  migrate:
+    build:
+      context: ./server
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: [ "cargo", "sqlx", "migrate", "run" ]
+    environment:
+      DATABASE_URL: ${SERVER_DATABASE_URL}
+
   # Rust Backend Server for Development
-  server-dev:
+  server:
     build:
       context: .
       dockerfile: docker/server/Dockerfile
-    container_name: opengraph-server-dev
+    container_name: opengraph-server
     ports:
       - "8080:8080"
     volumes:
       - ./server:/app/src
     environment:
-      DATABASE_URL: postgresql://opengraph_dev_user:opengraph_dev_password@postgres-dev:5432/opengraph_dev
-      PORT: 8080
-      RUST_LOG: debug
+      DATABASE_URL: ${SERVER_DATABASE_URL}
+      PORT: ${SERVER_PORT}
+      RUST_LOG: ${SERVER_RUST_LOG}
     depends_on:
-      postgres-dev:
+      postgres:
         condition: service_healthy
     networks:
-      - opengraph-dev-backend-network
-      - opengraph-dev-frontend-network
+      - opengraph-backend-network
+      - opengraph-frontend-network
 
   # Python ML Converter Service for Development
-  converter-dev:
+  converter:
     build:
       context: .
       dockerfile: docker/converter/Dockerfile
-    container_name: opengraph-converter-dev
+    container_name: opengraph-converter
     ports:
       - "3000:3000"
     volumes:
       - ./converter:/app
-    env_file:
-      - converter/.env.development
+    environment:
+      - PORT=${CONVERTER_PORT}
+      - MAX_UPLOAD_SIZE=${CONVERTER_MAX_UPLOAD_SIZE}
     networks:
-      - opengraph-dev-frontend-network
+      - opengraph-frontend-network
     command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
   # React Frontend Client for Development
-  client-dev:
+  client:
     build:
       context: .
-      dockerfile: docker/client/Dockerfile.dev
-    container_name: opengraph-client-dev
+      dockerfile: docker/client/Dockerfile
+    container_name: opengraph-client
     ports:
-      - "3000:3000"
+      - "5173:5173"
     volumes:
       - ./client:/app
       - /app/node_modules
-    env_file:
-      - ./client/.env.development
+    environment:
+      - VITE_CONVERTER_BASE_URL=${CLIENT_VITE_CONVERTER_BASE_URL}
+      - VITE_SERVER_BASE_URL=${CLIENT_VITE_SERVER_BASE_URL}
     depends_on:
-      - server-dev
-      - converter-dev
+      - server
+      - converter
     networks:
-      - opengraph-dev-frontend-network
+      - opengraph-frontend-network
     command: yarn dev
 
 networks:
-  opengraph-dev-backend-network:
+  opengraph-backend-network:
     driver: bridge
-  opengraph-dev-frontend-network:
+  opengraph-frontend-network:
     driver: bridge
 
 volumes:
-  postgres_dev_data: 
+  postgres_data:

@@ -1,5 +1,5 @@
 # Multi-stage build for Rust application
-FROM rust:1.87 as builder
+FROM rust:1.87 AS builder
 
 WORKDIR /app
 
