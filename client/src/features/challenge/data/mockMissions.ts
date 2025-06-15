@@ -1,5 +1,6 @@
 import { Mission, UserMissionProgress } from "../types/mission";
 import { missionService } from "../../../shared/api/missionService";
+import { updateMissionActivation } from "../utils/missionProgress";
 
 // 실제 API에서 Mission 데이터를 가져오는 함수들
 export const getMissions = async (): Promise<Mission[]> => {
@@ -38,10 +39,13 @@ export const calculateUserMissionProgress = (
   userId: string,
   missions: Mission[]
 ): UserMissionProgress => {
+  // 미션 순서와 활성화 상태를 올바르게 설정
+  const orderedMissions = updateMissionActivation(missions);
+  
   // 모든 미션이 완료되었는지 확인 (status가 "completed"인 미션들)
-  const completedMissions = missions.filter(mission => mission.status === "completed");
-  const activeMissions = missions.filter(mission => mission.status === "active");
-  const isAllCompleted = completedMissions.length === missions.length && missions.length > 0;
+  const completedMissions = orderedMissions.filter(mission => mission.status === "completed");
+  const activeMissions = orderedMissions.filter(mission => mission.status === "active");
+  const isAllCompleted = completedMissions.length === orderedMissions.length && orderedMissions.length > 0;
 
   const overallStatus = isAllCompleted
     ? "completed"
@@ -50,7 +54,7 @@ export const calculateUserMissionProgress = (
       : "not_started";
 
   // Calculate mission scores (100 points per mission)
-  const missionScores = missions.map(mission => ({
+  const missionScores = orderedMissions.map(mission => ({
     missionId: parseInt(mission.id),
     missionName: mission.name,
     score: mission.status === "completed" ? 100 : 0,
@@ -59,11 +63,11 @@ export const calculateUserMissionProgress = (
   }));
 
   const totalScore = completedMissions.length * 100;
-  const maxPossibleScore = missions.length * 100;
+  const maxPossibleScore = orderedMissions.length * 100;
 
   return {
     userId,
-    missions,
+    missions: orderedMissions, // 정렬된 미션 사용
     missionScores,
     totalScore,
     maxPossibleScore,

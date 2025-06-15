@@ -8,7 +8,7 @@ import {
   checkAllMissionsCompleted,
 } from "../data/mockMissions";
 import { annotatorService } from "../../../shared/api/annotatorService";
-import { syncMissionProgressWithWallet } from "../utils/missionProgress";
+import { syncMissionProgressWithWallet, updateMissionActivation } from "../utils/missionProgress";
 
 export const useMissions = () => {
   const [userProgress, setUserProgress] = useState<UserMissionProgress | null>(null);
@@ -39,9 +39,45 @@ export const useMissions = () => {
                   issuedAt: new Date(parsed.certificate.issuedAt),
                 }
               : undefined;
-            // Update with fresh mission data from server
-            parsed.missions = missions;
-            setUserProgress(parsed);
+            
+            // 서버에서 받은 최신 미션 데이터를 사용하여 진행 상황을 재계산
+            // 저장된 진행 상황(완료된 미션)을 유지하면서 최신 데이터로 업데이트
+            const updatedProgress = calculateUserMissionProgress(parsed.userId || userId, missions);
+            
+            // 이전에 완료된 미션들의 상태를 복원
+            if (parsed.missions && Array.isArray(parsed.missions)) {
+              const completedMissionIds = parsed.missions
+                .filter((m: any) => m.status === "completed")
+                .map((m: any) => m.id);
+              
+              updatedProgress.missions = updatedProgress.missions.map(mission => {
+                if (completedMissionIds.includes(mission.id)) {
+                  return { ...mission, status: "completed" as const };
+                }
+                return mission;
+              });
+              
+              // 완료된 미션이 있다면 미션 활성화 상태를 다시 계산
+              if (completedMissionIds.length > 0) {
+                updatedProgress.missions = updateMissionActivation(updatedProgress.missions);
+              }
+            }
+            
+            // 기존 인증서 정보 유지
+            if (parsed.certificate) {
+              updatedProgress.certificate = parsed.certificate;
+            }
+            
+            // 전체 상태 재계산
+            const completedCount = updatedProgress.missions.filter(m => m.status === "completed").length;
+            const totalCount = updatedProgress.missions.length;
+            updatedProgress.overallStatus = completedCount === totalCount && totalCount > 0 
+              ? "completed" 
+              : completedCount > 0 
+                ? "in_progress" 
+                : "not_started";
+            
+            setUserProgress(updatedProgress);
           } catch (err) {
             console.error("Failed to load saved mission progress:", err);
             // Create new progress if parsing fails
@@ -168,8 +204,15 @@ export const useMissions = () => {
     try {
       const missions = await getMissions();
       const userId = "user-1"; // TODO: Get from auth context
-      setUserProgress(calculateUserMissionProgress(userId, missions));
+      
+      // 로컬스토리지 완전 초기화
       localStorage.removeItem("opengraph-mission-progress");
+      
+      // 새로운 진행 상황 생성
+      const newProgress = calculateUserMissionProgress(userId, missions);
+      setUserProgress(newProgress);
+      
+      console.log("🔄 Mission progress has been reset");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset progress");
     } finally {

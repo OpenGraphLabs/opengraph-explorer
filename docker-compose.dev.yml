@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 5
 
-#  # PostgreSQL Database Initialization
+  # PostgreSQL Database Initialization
   migrate:
     build:
       context: .
@@ -61,6 +61,11 @@ services:
     networks:
       - opengraph-backend-network
       - opengraph-frontend-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Python ML Converter Service for Development
   converter:
@@ -71,13 +76,12 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./converter:/app
+      - ./converter/uploads:/app/uploads
     environment:
       - PORT=${CONVERTER_PORT}
       - MAX_UPLOAD_SIZE=${CONVERTER_MAX_UPLOAD_SIZE}
     networks:
       - opengraph-frontend-network
-    command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
   # React Frontend Client
   client:

@@ -7,19 +7,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # Allow external connections
-      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
-    command: >
-      postgres
-      -c config_file=/etc/postgresql/postgresql.conf
-      -c hba_file=/etc/postgresql/pg_hba.conf
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
     networks:
       - opengraph-backend-network
     healthcheck:
@@ -36,13 +27,24 @@ services:
   # PostgreSQL Database Initialization
   migrate:
     build:
-      context: ./server
+      context: .
+      dockerfile: docker/migrate/Dockerfile
+    container_name: opengraph-migrate
     depends_on:
       postgres:
         condition: service_healthy
-    command: [ "cargo", "sqlx", "migrate", "run" ]
+    command: >
+      bash -c "
+        cargo sqlx database create &&
+        cargo sqlx migrate run &&
+        cargo sqlx prepare --check
+      "
     environment:
       DATABASE_URL: ${SERVER_DATABASE_URL}
+    volumes:
+      - ./server:/app
+    networks:
+      - opengraph-backend-network
 
   # Rust Backend Server
   server:
@@ -59,6 +61,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - opengraph-backend-network
       - opengraph-frontend-network
