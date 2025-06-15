@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - opengraph-backend-network
+      - opengraph-network
     command: postgres -c listen_addresses='*'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
@@ -45,7 +45,7 @@ services:
     volumes:
       - ./server:/app
     networks:
-      - opengraph-backend-network
+      - opengraph-network
 
   # Rust Backend Server
   server:
@@ -65,8 +65,7 @@ services:
       migrate:
         condition: service_completed_successfully
     networks:
-      - opengraph-backend-network
-      - opengraph-frontend-network
+      - opengraph-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -92,7 +91,7 @@ services:
       - PORT=${CONVERTER_PORT}
       - MAX_UPLOAD_SIZE=${CONVERTER_MAX_UPLOAD_SIZE}
     networks:
-      - opengraph-frontend-network
+      - opengraph-network
     deploy:
       resources:
         limits:
@@ -121,7 +120,7 @@ services:
       - VITE_CONVERTER_BASE_URL=${CLIENT_VITE_CONVERTER_BASE_URL}
       - VITE_SERVER_BASE_URL=${CLIENT_VITE_SERVER_BASE_URL}
     networks:
-      - opengraph-frontend-network
+      - opengraph-network
     deploy:
       resources:
         limits:
@@ -130,9 +129,7 @@ services:
 
 # Network configuration for better security
 networks:
-  opengraph-backend-network:
-    driver: bridge
-  opengraph-frontend-network:
+  opengraph-network:
     driver: bridge
 
 # Persistent volumes
