@@ -72,7 +72,7 @@ services:
   client:
     build:
       context: .
-      dockerfile: docker/client/Dockerfile
+      dockerfile: docker/client/Dockerfile.dev
     container_name: opengraph-client
     ports:
       - "5173:5173"
