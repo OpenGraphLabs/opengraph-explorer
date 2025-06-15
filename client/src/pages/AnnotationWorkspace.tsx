@@ -699,7 +699,7 @@ export function AnnotationWorkspace() {
           >
             <Flex align="center" gap="3">
               <Button
-                onClick={() => navigate(`/challenges/${challengeId}`)}
+                onClick={() => navigate(`/challenges`)}
                 style={{
                   background: "transparent",
                   color: theme.colors.text.secondary,
@@ -802,6 +802,7 @@ export function AnnotationWorkspace() {
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
                         cursor: "help",
+                        width: "100px",
                       }}
                       title={`Current Phase: ${currentPhase}\n${canAnnotate ? `Available tools: ${isToolAllowed("label") ? "Labels" : ""}${isToolAllowed("bbox") ? (isToolAllowed("label") ? ", " : "") + "BBoxes" : ""}${isToolAllowed("segmentation") ? (isToolAllowed("label") || isToolAllowed("bbox") ? ", " : "") + "Segmentation" : ""}` : "Annotation is currently disabled"}`}
                     >
@@ -817,7 +818,8 @@ export function AnnotationWorkspace() {
                 size="1"
                 style={{
                   color: theme.colors.text.secondary,
-                  marginRight: theme.spacing.semantic.component.xs,
+                  marginLeft: `${theme.spacing.semantic.component.xs}`,
+                  width: "50px",
                 }}
               >
                 {currentImageIndex + 1} / {datasetImages.length}
@@ -901,7 +903,7 @@ export function AnnotationWorkspace() {
                   </Button>
                 )}
 
-              <Button
+              {/* <Button
                 style={{
                   background: "transparent",
                   color: theme.colors.text.secondary,
@@ -917,7 +919,7 @@ export function AnnotationWorkspace() {
               >
                 <Gear size={14} />
                 Settings
-              </Button>
+              </Button> */}
             </Flex>
           </Flex>
 
@@ -986,6 +988,7 @@ export function AnnotationWorkspace() {
                 currentTool={state.currentTool}
                 selectedLabel={state.selectedLabel}
                 isDrawing={state.isDrawing}
+                currentPhase={currentPhase}
                 onZoomChange={actions.setZoom}
                 onPanChange={actions.setPanOffset}
                 onAddBoundingBox={handleAddBoundingBox}

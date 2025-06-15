@@ -16,6 +16,7 @@ interface ImageViewerProps {
   currentTool: AnnotationType;
   selectedLabel: string;
   isDrawing: boolean;
+  currentPhase: string;
   onZoomChange: (zoom: number) => void;
   onPanChange: (offset: Point) => void;
   onAddBoundingBox: (bbox: Omit<BoundingBox, "id">) => void;
@@ -53,6 +54,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   currentTool,
   selectedLabel,
   isDrawing,
+  currentPhase,
   onZoomChange,
   onPanChange,
   onAddBoundingBox,
@@ -82,8 +84,33 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Mode system states
-  const [isPanMode, setIsPanMode] = useState(true); // Default to pan mode
+  // Mode system states - phase-dependent default mode
+  const getDefaultModeForPhase = (phase: string): boolean => {
+    switch (phase) {
+      case "label":
+        return true; // Always pan mode for label phase
+      case "bbox":
+        return false; // Default to drawing mode for bbox phase
+      case "segmentation":
+        return false; // Default to drawing mode for segmentation phase
+      default:
+        return true; // Default to pan mode
+    }
+  };
+
+  const [isPanMode, setIsPanMode] = useState(getDefaultModeForPhase(currentPhase));
+
+  // Reset mode when phase changes
+  useEffect(() => {
+    const newDefaultMode = getDefaultModeForPhase(currentPhase);
+    setIsPanMode(newDefaultMode);
+  }, [currentPhase]);
+
+  // Force pan mode for label phase
+  const actualIsPanMode = currentPhase === "label" ? true : isPanMode;
+
+  // Mode switcher should be visible only for non-label phases
+  const shouldShowModeSwitcher = currentPhase !== "label";
 
   // BBox editing states
   const [selectedBboxId, setSelectedBboxId] = useState<string | null>(null);
@@ -310,7 +337,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       const imagePoint = screenToImage(e.clientX, e.clientY);
 
       // In pan mode, only allow panning
-      if (isPanMode) {
+      if (actualIsPanMode) {
         setIsPanning(true);
         setLastPanPoint({ x: e.clientX, y: e.clientY });
         return;
@@ -389,7 +416,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       setDrawing,
       boundingBoxes,
       getHandleAtPoint,
-      isPanMode,
+      actualIsPanMode,
       onSelectAnnotation,
       isPointInBBox,
     ]
@@ -435,7 +462,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
 
         let cursor = "default";
 
-        if (isPanMode) {
+        if (actualIsPanMode) {
           cursor = "grab";
         } else if (currentTool === "bbox") {
           cursor = "crosshair";
@@ -941,107 +968,109 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         }}
       />
 
-      {/* Compact Icon-Based Mode Switcher */}
-      <Box
-        style={{
-          position: "absolute",
-          top: theme.spacing.semantic.component.sm,
-          right: theme.spacing.semantic.component.sm,
-          background: `${theme.colors.background.card}95`,
-          padding: `${theme.spacing.semantic.component.xs}`,
-          borderRadius: theme.borders.radius.md,
-          border: `1px solid ${theme.colors.border.primary}20`,
-          backdropFilter: "blur(8px)",
-          boxShadow: `0 2px 8px ${theme.colors.background.primary}20`,
-        }}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
-        <Flex align="center" gap="0">
-          <Box
-            style={{
-              display: "flex",
-              background: theme.colors.background.secondary,
-              borderRadius: theme.borders.radius.sm,
-              border: `1px solid ${theme.colors.border.primary}30`,
-              overflow: "hidden",
-            }}
-          >
-            <Button
-              onClick={() => setIsPanMode(true)}
+      {/* Compact Icon-Based Mode Switcher - Only show for non-label phases */}
+      {shouldShowModeSwitcher && (
+        <Box
+          style={{
+            position: "absolute",
+            top: theme.spacing.semantic.component.sm,
+            right: theme.spacing.semantic.component.sm,
+            background: `${theme.colors.background.card}95`,
+            padding: `${theme.spacing.semantic.component.xs}`,
+            borderRadius: theme.borders.radius.md,
+            border: `1px solid ${theme.colors.border.primary}20`,
+            backdropFilter: "blur(8px)",
+            boxShadow: `0 2px 8px ${theme.colors.background.primary}20`,
+          }}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <Flex align="center" gap="0">
+            <Box
               style={{
-                padding: `8px 12px`,
-                background: isPanMode ? theme.colors.interactive.primary : "transparent",
-                color: isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                borderRadius: 0,
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                background: theme.colors.background.secondary,
+                borderRadius: theme.borders.radius.sm,
+                border: `1px solid ${theme.colors.border.primary}30`,
+                overflow: "hidden",
               }}
             >
-              <Hand size={14} weight="bold" />
-            </Button>
-            <Box style={{ width: "1px", background: theme.colors.border.primary, opacity: 0.3 }} />
-            <Button
-              onClick={() => setIsPanMode(false)}
-              style={{
-                padding: `8px 12px`,
-                background: !isPanMode ? theme.colors.interactive.primary : "transparent",
-                color: !isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                borderRadius: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <PencilSimple size={14} weight="bold" />
-            </Button>
-          </Box>
-        </Flex>
+              <Button
+                onClick={() => setIsPanMode(true)}
+                style={{
+                  padding: `8px 12px`,
+                  background: isPanMode ? theme.colors.interactive.primary : "transparent",
+                  color: isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  borderRadius: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Hand size={14} weight="bold" />
+              </Button>
+              <Box style={{ width: "1px", background: theme.colors.border.primary, opacity: 0.3 }} />
+              <Button
+                onClick={() => setIsPanMode(false)}
+                style={{
+                  padding: `8px 12px`,
+                  background: !isPanMode ? theme.colors.interactive.primary : "transparent",
+                  color: !isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  borderRadius: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <PencilSimple size={14} weight="bold" />
+              </Button>
+            </Box>
+          </Flex>
 
-        {/* Subtle Tooltip */}
-        {showTooltip && (
-          <Box
-            style={{
-              position: "absolute",
-              top: "100%",
-              right: 0,
-              marginTop: "4px",
-              background: `${theme.colors.background.card}98`,
-              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-              borderRadius: theme.borders.radius.sm,
-              border: `1px solid ${theme.colors.border.primary}30`,
-              backdropFilter: "blur(8px)",
-              boxShadow: `0 4px 12px ${theme.colors.background.primary}30`,
-              whiteSpace: "nowrap",
-              zIndex: 1000,
-            }}
-          >
-            <Text
-              size="1"
+          {/* Subtle Tooltip */}
+          {showTooltip && (
+            <Box
               style={{
-                color: theme.colors.text.secondary,
-                fontSize: "9px",
-                fontWeight: 500,
+                position: "absolute",
+                top: "100%",
+                right: 0,
+                marginTop: "4px",
+                background: `${theme.colors.background.card}98`,
+                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                borderRadius: theme.borders.radius.sm,
+                border: `1px solid ${theme.colors.border.primary}30`,
+                backdropFilter: "blur(8px)",
+                boxShadow: `0 4px 12px ${theme.colors.background.primary}30`,
+                whiteSpace: "nowrap",
+                zIndex: 1000,
               }}
             >
-              {isPanMode
-                ? "Drag to navigate • Scroll to zoom"
-                : currentTool === "bbox"
-                  ? "Draw bounding boxes • Del to delete"
-                  : currentTool === "segmentation"
-                    ? "Click points • Double-click to finish"
-                    : "Select annotation tool in sidebar"}
-            </Text>
-          </Box>
-        )}
-      </Box>
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.secondary,
+                  fontSize: "9px",
+                  fontWeight: 500,
+                }}
+              >
+                {isPanMode
+                  ? "Drag to navigate • Scroll to zoom"
+                  : currentTool === "bbox"
+                    ? "Draw bounding boxes • Del to delete"
+                    : currentTool === "segmentation"
+                      ? "Click points • Double-click to finish"
+                      : "Select annotation tool in sidebar"}
+              </Text>
+            </Box>
+          )}
+        </Box>
+      )}
 
       {/* Floating Navigation Buttons */}
       {onPreviousImage && onNextImage && (
