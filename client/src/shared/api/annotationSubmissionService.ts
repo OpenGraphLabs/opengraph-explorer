@@ -13,7 +13,7 @@ import {
   type BatchAnnotationInput,
 } from "./sui/annotationSuiService";
 
-const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080/server/v1";
+const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080";
 
 // Types for annotation data
 export interface AnnotationData {
@@ -206,7 +206,7 @@ export function useAnnotationSubmission() {
     submissionRequest: MissionSubmissionRequest
   ): Promise<MissionScore> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/scores`, {
+      const response = await fetch(`${API_BASE_URL}/server/v1/scores`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

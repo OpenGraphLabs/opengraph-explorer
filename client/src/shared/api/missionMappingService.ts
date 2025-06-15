@@ -6,7 +6,7 @@
 
 import { useCurrentAccount } from "@mysten/dapp-kit";
 
-const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080/server/v1";
+const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080";
 
 // Mission mapping based on challenge types
 export const CHALLENGE_TO_MISSION_MAPPING: Record<string, number> = {
@@ -62,7 +62,7 @@ export function useMissionMapping() {
     try {
       // First, try to get existing annotator
       const getResponse = await fetch(
-        `${API_BASE_URL}/annotators/sui/${encodeURIComponent(account.address)}`,
+        `${API_BASE_URL}/server/v1/annotators/sui/${encodeURIComponent(account.address)}`,
         {
           method: "GET",
           headers: {
@@ -82,7 +82,7 @@ export function useMissionMapping() {
           sui_address: account.address,
         };
 
-        const createResponse = await fetch(`${API_BASE_URL}/annotators`, {
+        const createResponse = await fetch(`${API_BASE_URL}/server/v1/annotators`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

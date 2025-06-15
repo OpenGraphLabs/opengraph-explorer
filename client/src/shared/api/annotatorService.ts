@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080/server/v1";
+const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080";
 
 export class AnnotatorApiError extends Error {
   constructor(message: string) {
@@ -37,7 +37,7 @@ export const annotatorService = {
    */
   async getAnnotatorBySuiAddress(suiAddress: string): Promise<Annotator | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/annotators/sui/${suiAddress}`);
+      const response = await fetch(`${API_BASE_URL}/server/v1/annotators/sui/${suiAddress}`);
 
       if (response.status === 404) {
         return null; // Annotator not found
@@ -61,7 +61,7 @@ export const annotatorService = {
    */
   async createAnnotator(request: CreateAnnotatorRequest): Promise<Annotator> {
     try {
-      const response = await fetch(`${API_BASE_URL}/annotators`, {
+      const response = await fetch(`${API_BASE_URL}/server/v1/annotators`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export const annotatorService = {
    */
   async getAnnotatorScores(annotatorId: number): Promise<Score[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/annotators/${annotatorId}/scores`);
+      const response = await fetch(`${API_BASE_URL}/server/v1/annotators/${annotatorId}/scores`);
 
       if (!response.ok) {
         if (response.status === 404) {

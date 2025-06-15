@@ -7,7 +7,7 @@ import {
   MISSION_CHALLENGE_MAPPING,
 } from "../../features/challenge/types/mission";
 
-const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080/server/v1";
+const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8080";
 
 export class MissionApiError extends Error {
   constructor(message: string) {
@@ -43,7 +43,7 @@ export const missionService = {
       if (query?.limit) params.append("limit", query.limit.toString());
       if (query?.offset) params.append("offset", query.offset.toString());
 
-      const url = `${API_BASE_URL}/missions${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `${API_BASE_URL}/server/v1/missions${params.toString() ? `?${params.toString()}` : ""}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -65,7 +65,7 @@ export const missionService = {
    */
   async getMissionById(id: string): Promise<Mission> {
     try {
-      const response = await fetch(`${API_BASE_URL}/missions/${id}`);
+      const response = await fetch(`${API_BASE_URL}/server/v1/missions/${id}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -89,7 +89,7 @@ export const missionService = {
    */
   async createMission(request: CreateMissionRequest): Promise<Mission> {
     try {
-      const response = await fetch(`${API_BASE_URL}/missions`, {
+      const response = await fetch(`${API_BASE_URL}/server/v1/missions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +117,7 @@ export const missionService = {
    */
   async updateMissionStatus(id: string, request: UpdateMissionStatusRequest): Promise<Mission> {
     try {
-      const response = await fetch(`${API_BASE_URL}/missions/${id}/status`, {
+      const response = await fetch(`${API_BASE_URL}/server/v1/missions/${id}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
