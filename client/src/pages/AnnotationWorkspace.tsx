@@ -88,7 +88,7 @@ export function AnnotationWorkspace() {
     if (completeSubmission.isCompleted) {
       const timer = setTimeout(() => {
         navigate('/challenges');
-      }, 3000); // 3초 후 자동 리디렉션
+      }, 2000); // 2초 후 자동 리디렉션
 
       return () => clearTimeout(timer);
     }
@@ -873,53 +873,6 @@ export function AnnotationWorkspace() {
                             ? `Submit ${stackStats.total}`
                             : "Submit Annotations"}
               </Button>
-
-              {/* Show Certificate Button if eligible
-              {certificateData.userProgress &&
-                certificateData.userProgress.certificate &&
-                certificateData.userProgress.missionScores &&
-                certificateData.userProgress.missions &&
-                certificateData.userProgress.missionScores.length > 0 &&
-                certificateData.userProgress.missions.length > 0 && (
-                  <Button
-                    onClick={() => setShowCertificate(true)}
-                    style={{
-                      background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, #64ffda)`,
-                      color: "#0f0f23",
-                      border: "none",
-                      borderRadius: theme.borders.radius.md,
-                      padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                      fontWeight: 600,
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: theme.spacing.semantic.component.xs,
-                      boxShadow: "0 4px 12px rgba(100, 255, 218, 0.3)",
-                    }}
-                  >
-                    <Trophy size={14} />
-                    View Certificate
-                  </Button>
-                )} */}
-
-              {/* <Button
-                style={{
-                  background: "transparent",
-                  color: theme.colors.text.secondary,
-                  border: `1px solid ${theme.colors.border.primary}`,
-                  borderRadius: theme.borders.radius.md,
-                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: theme.spacing.semantic.component.xs,
-                  fontSize: "12px",
-                }}
-              >
-                <Gear size={14} />
-                Settings
-              </Button> */}
             </Flex>
           </Flex>
 
