@@ -1094,8 +1094,9 @@ export function Challenges() {
                       const text = encodeURIComponent(
                         `🏆 Earned OpenGraph AI Data Certification!\n\n` +
                           `Score: ${certificateData.userProgress?.totalScore}/${certificateData.userProgress?.maxPossibleScore} • Completed ${certificateData.userProgress?.missionScores?.filter(ms => ms.score > 0).length}/${certificateData.userProgress?.missions?.length} missions\n\n` +
-                          `Physical AI training on @SuiNetwork & @WalrusProtocol 🤖\n\n` +
-                          `@OpenGraph_Labs #PhysicalAI #Web3AI\n\n`
+                          `Physical AI training on @OpenGraph_Labs 🤖\n\n` +
+                          `@SuiNetwork & @WalrusProtocol #PhysicalAI #Web3AI\n\n` +
+                          `👉 Start your Physical AI journey: `
                       );
                       const url = encodeURIComponent("https://explorer.opengraphlabs.xyz/challenges");
                       window.open(
