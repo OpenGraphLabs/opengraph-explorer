@@ -89,6 +89,9 @@ services:
     build:
       context: .
       dockerfile: docker/client/Dockerfile.dev
+      args:
+        VITE_SERVER_BASE_URL: ${CLIENT_VITE_SERVER_BASE_URL}
+        VITE_CONVERTER_BASE_URL: ${CLIENT_VITE_CONVERTER_BASE_URL}
     container_name: opengraph-client
     ports:
       - "80:80"

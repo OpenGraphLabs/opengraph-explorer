@@ -2,12 +2,18 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+ARG VITE_SERVER_BASE_URL
+ARG VITE_CONVERTER_BASE_URL
+
 # 패키지 의존성 복사 및 설치
 COPY client/package.json client/yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # 소스 코드 복사
 COPY client/ ./
+
+ENV VITE_SERVER_BASE_URL=$VITE_SERVER_BASE_URL
+ENV VITE_CONVERTER_BASE_URL=$VITE_CONVERTER_BASE_URL
 
 # 애플리케이션 빌드
 RUN yarn build
