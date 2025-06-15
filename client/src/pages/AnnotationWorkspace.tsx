@@ -83,6 +83,17 @@ export function AnnotationWorkspace() {
   // Certificate modal state
   const [showCertificate, setShowCertificate] = useState(false);
 
+  // Auto-redirect to challenges page after successful submission
+  useEffect(() => {
+    if (completeSubmission.isCompleted && !showCertificate) {
+      const timer = setTimeout(() => {
+        navigate('/challenges');
+      }, 3000); // 3초 후 자동 리디렉션
+
+      return () => clearTimeout(timer);
+    }
+  }, [completeSubmission.isCompleted, showCertificate, navigate]);
+
   // Auto-set default tool based on current phase
   useEffect(() => {
     const getDefaultToolForPhase = (phase: string): AnnotationType => {
