@@ -891,6 +891,23 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedBboxId, onDeleteAnnotation]);
 
+  // Helper function to get instruction text based on current state
+  const getInstructionText = () => {
+    if (currentPhase === "bbox") {
+      const hasAnnotation = boundingBoxes.length > 0;
+      
+      if (!selectedLabel) {
+        return "In this prototype, select label from the dropdown → Draw only *ONE* box → Click the right arrow to go next";
+      } else if (!hasAnnotation) {
+        return "In this prototype, draw only *ONE* bounding box on the image → Click the right arrow to go next";
+      } else {
+        return "✓ Box completed! → Click the right arrow to go next";
+      }
+    }
+    // Only show instructions for bbox phase
+    return "";
+  };
+
   if (!imageUrl) {
     return (
       <Box
@@ -967,6 +984,38 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
           display: "block",
         }}
       />
+
+      {/* Step-by-step Instruction Overlay */}
+      {imageLoaded && getInstructionText() && (
+        <Box
+          style={{
+            position: "absolute",
+            top: "16px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: `${theme.colors.background.card}98`,
+            color: theme.colors.text.primary,
+            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+            borderRadius: theme.borders.radius.md,
+            border: `1px solid ${theme.colors.border.primary}30`,
+            boxShadow: `0 4px 16px ${theme.colors.background.primary}40`,
+            backdropFilter: "blur(12px)",
+            maxWidth: "90%",
+            textAlign: "center",
+          }}
+        >
+          <Text 
+            size="2" 
+            style={{ 
+              fontWeight: 600,
+              color: theme.colors.text.primary,
+              lineHeight: 1.4,
+            }}
+          >
+            {getInstructionText()}
+          </Text>
+        </Box>
+      )}
 
       {/* Compact Icon-Based Mode Switcher - Only show for non-label phases */}
       {shouldShowModeSwitcher && (
