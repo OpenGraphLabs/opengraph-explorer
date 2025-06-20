@@ -986,6 +986,235 @@ export function Challenges() {
 
   return (
     <SidebarLayout sidebar={sidebarConfig} topBar={topBar}>
+      {/* Campaign Results Section - Show for all users */}
+      {userProgress && (
+        <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
+          <Box
+            style={{
+              background: `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.secondary})`,
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.xl,
+              padding: theme.spacing.semantic.layout.xl,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {/* Background Pattern */}
+            <Box
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: "50%",
+                height: "100%",
+                background: `radial-gradient(ellipse at top right, ${theme.colors.interactive.primary}05, transparent 70%)`,
+                pointerEvents: "none",
+              }}
+            />
+
+            <Box style={{ position: "relative", zIndex: 1 }}>
+              {/* Header */}
+              <Flex
+                align="center"
+                gap="3"
+                style={{ marginBottom: theme.spacing.semantic.component.xl }}
+              >
+                <Box
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                    borderRadius: "50%",
+                    padding: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: `0 8px 24px ${theme.colors.interactive.primary}20`,
+                  }}
+                >
+                  <CheckCircle size={24} weight="fill" style={{ color: "#ffffff" }} />
+                </Box>
+                <Box>
+                  <Text
+                    as="p"
+                    size="4"
+                    style={{
+                      fontWeight: 800,
+                      color: theme.colors.text.primary,
+                      marginBottom: theme.spacing.semantic.component.xs,
+                    }}
+                  >
+                    Mission Campaign Completed
+                  </Text>
+                  <Text
+                    as="p"
+                    size="2"
+                    style={{
+                      color: theme.colors.text.secondary,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Thank you for being part of the world's first blockchain ML validation infrastructure
+                  </Text>
+                </Box>
+              </Flex>
+
+              {/* Campaign Results */}
+              <Box
+                style={{
+                  background: theme.colors.background.primary,
+                  border: `1px solid ${theme.colors.border.secondary}`,
+                  borderRadius: theme.borders.radius.lg,
+                  padding: theme.spacing.semantic.component.xl,
+                  marginBottom: theme.spacing.semantic.component.xl,
+                }}
+              >
+                <Text
+                  size="3"
+                  style={{
+                    fontWeight: 700,
+                    color: theme.colors.text.primary,
+                    textAlign: "center",
+                  }}
+                >
+                  🎯 Campaign Achievements (5 Days)
+                </Text>
+
+                <Grid 
+                  columns={{ initial: "1", sm: "3" }} 
+                  gap="4" 
+                  style={{ margin: `${theme.spacing.semantic.component.lg} 0` }}
+                >
+                  {/* Annotators */}
+                  <Box style={{ textAlign: "center" }}>
+                    <Text
+                      size="5"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.interactive.primary,
+                        marginBottom: theme.spacing.semantic.component.xs,
+                        display: "block",
+                      }}
+                    >
+                      85,123
+                    </Text>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Annotators
+                    </Text>
+                  </Box>
+
+                  {/* Labels */}
+                  <Box style={{ textAlign: "center" }}>
+                    <Text
+                      size="5"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.status.success,
+                        marginBottom: theme.spacing.semantic.component.xs,
+                        display: "block",
+                      }}
+                    >
+                      855,570
+                    </Text>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Labels
+                    </Text>
+                  </Box>
+
+                  {/* Bounding Boxes */}
+                  <Box style={{ textAlign: "center" }}>
+                    <Text
+                      size="5"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.interactive.accent,
+                        marginBottom: theme.spacing.semantic.component.xs,
+                        display: "block",
+                      }}
+                    >
+                      215,892
+                    </Text>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Bounding Boxes
+                    </Text>
+                  </Box>
+                </Grid>
+
+                <Box
+                  style={{
+                    background: `${theme.colors.status.info}10`,
+                    border: `1px solid ${theme.colors.status.info}30`,
+                    borderRadius: theme.borders.radius.md,
+                    padding: theme.spacing.semantic.component.md,
+                    textAlign: "center",
+                  }}
+                >
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.status.info,
+                      fontWeight: 600,
+                    }}
+                  >
+                    All data stored on Sui Network with Walrus decentralized storage
+                  </Text>
+                </Box>
+              </Box>
+
+              {/* OpenGraph Introduction */}
+              <Box>
+                <Text
+                  as="p"
+                  size="3"
+                  style={{
+                    fontWeight: 700,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.semantic.component.md,
+                  }}
+                >
+                  About OpenGraph
+                </Text>
+                <Text
+                  as="p"
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    lineHeight: 1.6,
+                    marginBottom: theme.spacing.semantic.component.lg,
+                  }}
+                >
+                  OpenGraph is building the first Machine Learning validation infrastructure on blockchain. 
+                  We enable standardized ML models to be deployed and validated entirely on-chain using Sui & Walrus, 
+                  creating a decentralized ecosystem for AI model training, validation, and inference.
+                </Text>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
       {/* Certificate Achievement Banner - Show when completed */}
       {certificateData.userProgress?.certificate &&
         certificateData.userProgress.missionScores &&
@@ -1124,235 +1353,6 @@ export function Challenges() {
           </Box>
         )}
 
-      {/* Campaign Results Section - Show for users who didn't complete missions */}
-      {userProgress && userProgress.overallStatus !== "completed" && (
-        <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
-          <Box
-            style={{
-              background: `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.secondary})`,
-              border: `1px solid ${theme.colors.border.primary}`,
-              borderRadius: theme.borders.radius.xl,
-              padding: theme.spacing.semantic.layout.xl,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Background Pattern */}
-            <Box
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: "50%",
-                height: "100%",
-                background: `radial-gradient(ellipse at top right, ${theme.colors.interactive.primary}05, transparent 70%)`,
-                pointerEvents: "none",
-              }}
-            />
-
-            <Box style={{ position: "relative", zIndex: 1 }}>
-              {/* Header */}
-              <Flex
-                align="center"
-                gap="3"
-                style={{ marginBottom: theme.spacing.semantic.component.xl }}
-              >
-                <Box
-                  style={{
-                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-                    borderRadius: "50%",
-                    padding: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: `0 8px 24px ${theme.colors.interactive.primary}20`,
-                  }}
-                >
-                  <CheckCircle size={24} weight="fill" style={{ color: "#ffffff" }} />
-                </Box>
-                <Box>
-                  <Text
-                    as="p"
-                    size="4"
-                    style={{
-                      fontWeight: 800,
-                      color: theme.colors.text.primary,
-                      marginBottom: theme.spacing.semantic.component.xs,
-                    }}
-                  >
-                    Mission Campaign Completed
-                  </Text>
-                  <Text
-                    as="p"
-                    size="2"
-                    style={{
-                      color: theme.colors.text.secondary,
-                      fontWeight: 500,
-                    }}
-                  >
-                    Thank you for being part of the world's first blockchain ML validation infrastructure
-                  </Text>
-                </Box>
-              </Flex>
-
-              {/* Campaign Results */}
-              <Box
-                style={{
-                  background: theme.colors.background.primary,
-                  border: `1px solid ${theme.colors.border.secondary}`,
-                  borderRadius: theme.borders.radius.lg,
-                  padding: theme.spacing.semantic.component.xl,
-                  marginBottom: theme.spacing.semantic.component.xl,
-                }}
-              >
-                <Text
-                  size="3"
-                  style={{
-                    fontWeight: 700,
-                    color: theme.colors.text.primary,
-                    textAlign: "center",
-                  }}
-                >
-                  🎯 Campaign Achievements (5 Days)
-                </Text>
-
-                <Grid 
-                  columns={{ initial: "1", sm: "3" }} 
-                  gap="4" 
-                  style={{ margin: `${theme.spacing.semantic.component.lg} 0` }}
-                >
-                  {/* Annotators */}
-                  <Box style={{ textAlign: "center" }}>
-                    <Text
-                      size="5"
-                      style={{
-                        fontWeight: 800,
-                        color: theme.colors.interactive.primary,
-                        marginBottom: theme.spacing.semantic.component.xs,
-                        display: "block",
-                      }}
-                    >
-                      84,310
-                    </Text>
-                    <Text
-                      size="2"
-                      style={{
-                        color: theme.colors.text.tertiary,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      Annotators
-                    </Text>
-                  </Box>
-
-                  {/* Labels */}
-                  <Box style={{ textAlign: "center" }}>
-                    <Text
-                      size="5"
-                      style={{
-                        fontWeight: 800,
-                        color: theme.colors.status.success,
-                        marginBottom: theme.spacing.semantic.component.xs,
-                        display: "block",
-                      }}
-                    >
-                      847,185
-                    </Text>
-                    <Text
-                      size="2"
-                      style={{
-                        color: theme.colors.text.tertiary,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      Labels
-                    </Text>
-                  </Box>
-
-                  {/* Bounding Boxes */}
-                  <Box style={{ textAlign: "center" }}>
-                    <Text
-                      size="5"
-                      style={{
-                        fontWeight: 800,
-                        color: theme.colors.interactive.accent,
-                        marginBottom: theme.spacing.semantic.component.xs,
-                        display: "block",
-                      }}
-                    >
-                      214,554
-                    </Text>
-                    <Text
-                      size="2"
-                      style={{
-                        color: theme.colors.text.tertiary,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      Bounding Boxes
-                    </Text>
-                  </Box>
-                </Grid>
-
-                <Box
-                  style={{
-                    background: `${theme.colors.status.info}10`,
-                    border: `1px solid ${theme.colors.status.info}30`,
-                    borderRadius: theme.borders.radius.md,
-                    padding: theme.spacing.semantic.component.md,
-                    textAlign: "center",
-                  }}
-                >
-                  <Text
-                    size="2"
-                    style={{
-                      color: theme.colors.status.info,
-                      fontWeight: 600,
-                    }}
-                  >
-                    All data stored on Sui Network with Walrus decentralized storage
-                  </Text>
-                </Box>
-              </Box>
-
-              {/* OpenGraph Introduction */}
-              <Box>
-                <Text
-                  as="p"
-                  size="3"
-                  style={{
-                    fontWeight: 700,
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.semantic.component.md,
-                  }}
-                >
-                  About OpenGraph
-                </Text>
-                <Text
-                  as="p"
-                  size="2"
-                  style={{
-                    color: theme.colors.text.secondary,
-                    lineHeight: 1.6,
-                    marginBottom: theme.spacing.semantic.component.lg,
-                  }}
-                >
-                  OpenGraph is building the first Machine Learning validation infrastructure on blockchain. 
-                  We enable standardized ML models to be deployed and validated entirely on-chain using Sui & Walrus, 
-                  creating a decentralized ecosystem for AI model training, validation, and inference.
-                </Text>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      )}
-
       {/* All Challenges Section - Commented out during mission period */}
       {/*<Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>*/}
       {/*  <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.lg }}>*/}
@@ -1442,14 +1442,7 @@ export function Challenges() {
       {/*  )}*/}
       {/*</Box>*/}
 
-      {/* Compact Mission Status - Only show for completed users */}
-      {userProgress && userProgress.overallStatus === "completed" && (
-        <CompactMissionStatus
-          userProgress={userProgress}
-          onMissionClick={handleMissionClick}
-          onViewCertificate={() => setShowCertificateModal(true)}
-        />
-      )}
+
 
       {/* Mission Success Animation */}
       {successMissionData && (
