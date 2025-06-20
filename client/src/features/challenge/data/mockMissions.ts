@@ -22,18 +22,6 @@ export const getMissionById = async (id: string): Promise<Mission | undefined> =
   }
 };
 
-export const getMissionsByType = async (
-  type: "label_annotation" | "bbox_annotation"
-): Promise<Mission[]> => {
-  try {
-    const missions = await missionService.getMissions();
-    return missions.filter(mission => mission.mission_type === type);
-  } catch (error) {
-    console.error(`Failed to fetch missions by type ${type}:`, error);
-    return [];
-  }
-};
-
 // UserMissionProgress는 별도의 API가 없으므로 클라이언트에서 계산
 export const calculateUserMissionProgress = (
   userId: string,

@@ -575,11 +575,7 @@ export function Challenges() {
     userProgress,
     loading: missionLoading,
     error: missionError,
-    currentAnnotator,
-    updateMission,
     getCurrentMission,
-    getNextMission,
-    canAccessMission,
     getMissionStatus,
     generateCertificate,
     syncProgressWithWallet,
@@ -1128,120 +1124,232 @@ export function Challenges() {
           </Box>
         )}
 
-      {/* Mission Cards Section - Show during mission period */}
+      {/* Campaign Results Section - Show for users who didn't complete missions */}
       {userProgress && userProgress.overallStatus !== "completed" && (
         <Box style={{ marginBottom: theme.spacing.semantic.layout.lg }}>
-          <Flex
-            align="center"
-            gap="2"
-            style={{ marginBottom: theme.spacing.semantic.component.lg }}
+          <Box
+            style={{
+              background: `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.secondary})`,
+              border: `1px solid ${theme.colors.border.primary}`,
+              borderRadius: theme.borders.radius.xl,
+              padding: theme.spacing.semantic.layout.xl,
+              position: "relative",
+              overflow: "hidden",
+            }}
           >
-            <Trophy size={20} style={{ color: theme.colors.interactive.accent }} />
-            <Text
-              size="3"
+            {/* Background Pattern */}
+            <Box
               style={{
-                fontWeight: 700,
-                color: theme.colors.text.primary,
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: "50%",
+                height: "100%",
+                background: `radial-gradient(ellipse at top right, ${theme.colors.interactive.primary}05, transparent 70%)`,
+                pointerEvents: "none",
               }}
-            >
-              Annotation Challenges
-            </Text>
-            {isConnected && (
-              <Badge
+            />
+
+            <Box style={{ position: "relative", zIndex: 1 }}>
+              {/* Header */}
+              <Flex
+                align="center"
+                gap="3"
+                style={{ marginBottom: theme.spacing.semantic.component.xl }}
+              >
+                <Box
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                    borderRadius: "50%",
+                    padding: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: `0 8px 24px ${theme.colors.interactive.primary}20`,
+                  }}
+                >
+                  <CheckCircle size={24} weight="fill" style={{ color: "#ffffff" }} />
+                </Box>
+                <Box>
+                  <Text
+                    as="p"
+                    size="4"
+                    style={{
+                      fontWeight: 800,
+                      color: theme.colors.text.primary,
+                      marginBottom: theme.spacing.semantic.component.xs,
+                    }}
+                  >
+                    Mission Campaign Completed
+                  </Text>
+                  <Text
+                    as="p"
+                    size="2"
+                    style={{
+                      color: theme.colors.text.secondary,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Thank you for being part of the world's first blockchain ML validation infrastructure
+                  </Text>
+                </Box>
+              </Flex>
+
+              {/* Campaign Results */}
+              <Box
                 style={{
-                  background: `${theme.colors.status.success}15`,
-                  color: theme.colors.status.success,
-                  border: `1px solid ${theme.colors.status.success}30`,
-                  padding: "2px 8px",
-                  borderRadius: theme.borders.radius.full,
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  marginLeft: theme.spacing.semantic.component.sm,
+                  background: theme.colors.background.primary,
+                  border: `1px solid ${theme.colors.border.secondary}`,
+                  borderRadius: theme.borders.radius.lg,
+                  padding: theme.spacing.semantic.component.xl,
+                  marginBottom: theme.spacing.semantic.component.xl,
                 }}
               >
-                🔗 Wallet Connected
-              </Badge>
-            )}
-          </Flex>
+                <Text
+                  size="3"
+                  style={{
+                    fontWeight: 700,
+                    color: theme.colors.text.primary,
+                    textAlign: "center",
+                  }}
+                >
+                  🎯 Campaign Achievements (5 Days)
+                </Text>
 
-          {/* Mission Cards with Inline Videos */}
-          <Flex direction="column" gap="6">
-            {userProgress?.missions.map((mission, index) => {
-              const challenge = filteredChallenges.find(c => c.id === mission.challengeId);
-              if (!challenge) return null;
-
-              const missionStatus = getMissionStatus(mission.id);
-              const isLocked = missionStatus === "locked";
-
-              return (
-                <Box key={mission.id}>
-                  {/* Desktop Layout: Side by side */}
-                  <Box className="desktop-mission-layout">
-                    <Flex gap="6" align="start" style={{ width: "100%" }}>
-                      {/* Mission Card */}
-                      <Box style={{ flex: 1, maxWidth: "400px" }}>
-                        <MissionCard
-                          mission={mission}
-                          challenge={challenge}
-                          isActive={currentMission?.id === mission.id}
-                          onClick={() => {
-                            if (isLocked) {
-                              alert("Complete the previous step first!");
-                              return;
-                            }
-                            // Navigate directly to challenge page
-                            navigate(`/challenges/${challenge.id}/annotate`);
-                          }}
-                        />
-                      </Box>
-
-                      {/* Inline Video Guide */}
-                      <Box style={{ flex: "0 0 auto" }}>
-                        <InlineVideoGuide
-                          mission={mission}
-                          width={450}
-                          height={320}
-                          autoplay={!isLocked}
-                          isLocked={isLocked}
-                        />
-                      </Box>
-                    </Flex>
+                <Grid 
+                  columns={{ initial: "1", sm: "3" }} 
+                  gap="4" 
+                  style={{ margin: `${theme.spacing.semantic.component.lg} 0` }}
+                >
+                  {/* Annotators */}
+                  <Box style={{ textAlign: "center" }}>
+                    <Text
+                      size="5"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.interactive.primary,
+                        marginBottom: theme.spacing.semantic.component.xs,
+                        display: "block",
+                      }}
+                    >
+                      84,310
+                    </Text>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Annotators
+                    </Text>
                   </Box>
 
-                  {/* Mobile Layout: Stacked */}
-                  <Box className="mobile-mission-layout">
-                    <Flex direction="column" gap="4">
-                      {/* Inline Video Guide */}
-                      <Box style={{ alignSelf: "center" }}>
-                        <InlineVideoGuide
-                          mission={mission}
-                          width={380}
-                          height={214}
-                          autoplay={!isLocked}
-                          isLocked={isLocked}
-                        />
-                      </Box>
-
-                      {/* Mission Card */}
-                      <MissionCard
-                        mission={mission}
-                        challenge={challenge}
-                        isActive={currentMission?.id === mission.id}
-                        onClick={() => {
-                          if (isLocked) {
-                            alert("Complete the previous step first!");
-                            return;
-                          }
-                          // Navigate directly to challenge page
-                          navigate(`/challenges/${challenge.id}/annotate`);
-                        }}
-                      />
-                    </Flex>
+                  {/* Labels */}
+                  <Box style={{ textAlign: "center" }}>
+                    <Text
+                      size="5"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.status.success,
+                        marginBottom: theme.spacing.semantic.component.xs,
+                        display: "block",
+                      }}
+                    >
+                      847,185
+                    </Text>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Labels
+                    </Text>
                   </Box>
+
+                  {/* Bounding Boxes */}
+                  <Box style={{ textAlign: "center" }}>
+                    <Text
+                      size="5"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.interactive.accent,
+                        marginBottom: theme.spacing.semantic.component.xs,
+                        display: "block",
+                      }}
+                    >
+                      214,554
+                    </Text>
+                    <Text
+                      size="2"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Bounding Boxes
+                    </Text>
+                  </Box>
+                </Grid>
+
+                <Box
+                  style={{
+                    background: `${theme.colors.status.info}10`,
+                    border: `1px solid ${theme.colors.status.info}30`,
+                    borderRadius: theme.borders.radius.md,
+                    padding: theme.spacing.semantic.component.md,
+                    textAlign: "center",
+                  }}
+                >
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.status.info,
+                      fontWeight: 600,
+                    }}
+                  >
+                    All data stored on Sui Network with Walrus decentralized storage
+                  </Text>
                 </Box>
-              );
-            })}
-          </Flex>
+              </Box>
+
+              {/* OpenGraph Introduction */}
+              <Box>
+                <Text
+                  as="p"
+                  size="3"
+                  style={{
+                    fontWeight: 700,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.semantic.component.md,
+                  }}
+                >
+                  About OpenGraph
+                </Text>
+                <Text
+                  as="p"
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    lineHeight: 1.6,
+                    marginBottom: theme.spacing.semantic.component.lg,
+                  }}
+                >
+                  OpenGraph is building the first Machine Learning validation infrastructure on blockchain. 
+                  We enable standardized ML models to be deployed and validated entirely on-chain using Sui & Walrus, 
+                  creating a decentralized ecosystem for AI model training, validation, and inference.
+                </Text>
+              </Box>
+            </Box>
+          </Box>
         </Box>
       )}
 
@@ -1334,8 +1442,8 @@ export function Challenges() {
       {/*  )}*/}
       {/*</Box>*/}
 
-      {/* Compact Mission Status - Fixed at bottom right */}
-      {userProgress && (
+      {/* Compact Mission Status - Only show for completed users */}
+      {userProgress && userProgress.overallStatus === "completed" && (
         <CompactMissionStatus
           userProgress={userProgress}
           onMissionClick={handleMissionClick}
