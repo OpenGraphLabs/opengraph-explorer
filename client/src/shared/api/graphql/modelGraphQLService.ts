@@ -13,7 +13,7 @@ export interface ModelObject {
   task_type: string;
   graphs: GraphObject[];
   partial_denses: PartialDenseObject[];
-  scale: string | number;
+  scale: number;
   // UI에 필요한 추가 필드
   creator: string;
   downloads: number;
@@ -185,7 +185,6 @@ export class ModelGraphQLService {
   private transformModelNodes(nodes: any[]): ModelObject[] {
     return nodes.map(node => {
       const jsonData = node?.asMoveObject?.contents?.json;
-      console.log("JSON 데이터:", jsonData);
 
       const createdDate = new Date(node.createdAt || Date.now());
 

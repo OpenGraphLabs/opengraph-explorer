@@ -331,9 +331,9 @@ export function useWalrusService() {
 
       return result;
     } catch (error) {
-      console.error("다중 미디어 업로드 오류:", error);
+      console.error("Failed to upload multiple media:", error);
       throw new Error(
-        `다중 미디어 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`
+        `Failed to upload multiple media: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   };
