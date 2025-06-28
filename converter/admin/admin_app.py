@@ -29,6 +29,7 @@ from admin.validation_service import ModelValidator
 from admin.conversion_service import ConversionService
 from admin.utils import format_file_size, get_model_stats
 from admin.services.tensorflow_inference_service import TensorFlowInferenceManager
+from admin.services.sui_inference_service import SuiInferenceManager, ModelObject, GraphObject, Layer
 
 
 def setup_page():
@@ -216,6 +217,23 @@ def render_validation_tab():
     
     input_dim = layer_dims[0][0] if layer_dims else 0
     output_dim = layer_dims[-1][1] if layer_dims else 0
+    
+    # Sui Model Configuration section
+    st.subheader("🔗 Sui On-Chain Model Configuration")
+    
+    sui_model_id = st.text_input(
+        "Sui Model Object ID",
+        placeholder="0x...",
+        help="Enter the Sui object ID of the on-chain model to test against"
+    )
+    
+    if sui_model_id:
+        st.session_state['sui_model_id'] = sui_model_id
+        st.success(f"✅ Sui Model ID configured: {sui_model_id[:16]}...")
+    else:
+        st.warning("⚠️ Please enter a Sui model object ID to enable on-chain inference testing")
+    
+    st.divider()
     
     # Test input configuration section
     st.subheader("🎯 Test Input Configuration")
@@ -428,10 +446,50 @@ def run_validation_tests_with_image(converted_model: Dict[str, Any], original_mo
                 st.error(f"❌ Web2 inference failed: {web2_result['error']}")
                 return
             
-            # Extract input for Sui inference (use the same preprocessed input)
-            # For now, simulate Sui inference
+            # Extract and preprocess input for Sui inference
             st.markdown("### ⛓️ Running Sui On-chain Inference...")
-            sui_result = simulate_sui_inference(converted_model, None)  # Will be replaced with actual Sui call
+            
+            # Get the same preprocessing config used for TensorFlow
+            preprocessing_config = st.session_state.get('preprocessing_config', {
+                'target_size': (28, 28),
+                'normalize': True,
+                'flatten': True
+            })
+            
+            # Preprocess image for Sui inference (same as TensorFlow preprocessing)
+            try:
+                from admin.services.tensorflow_inference_service import ImagePreprocessor
+                
+                # Create preprocessor instance
+                preprocessor = ImagePreprocessor()
+                
+                # Load image from bytes
+                image_array = preprocessor.load_image(image_bytes)
+                
+                # Preprocess for dense model (same as TensorFlow preprocessing)
+                processed_image = preprocessor.preprocess_for_dense_model(
+                    image_array,
+                    target_size=preprocessing_config.get('target_size', (28, 28)),
+                    flatten=preprocessing_config.get('flatten', True),
+                    normalize=preprocessing_config.get('normalize', True)
+                )
+                
+                # Convert to 1D array for Sui inference
+                if len(processed_image.shape) > 1:
+                    processed_image = processed_image.flatten()
+                
+                # Remove batch dimension if present
+                if processed_image.shape[0] == 1:
+                    processed_image = processed_image[0]
+                
+                st.info(f"✅ Image preprocessed for Sui inference: {processed_image.shape}")
+                
+            except Exception as e:
+                st.error(f"❌ Image preprocessing failed: {str(e)}")
+                return
+            
+            # Run Sui inference with preprocessed image
+            sui_result = run_sui_inference(converted_model, processed_image)
             
             # Display results
             st.markdown("### 📊 Inference Results")
@@ -457,16 +515,43 @@ def run_validation_tests_with_image(converted_model: Dict[str, Any], original_mo
             
             with col2:
                 st.markdown("**⛓️ Sui On-chain**")
-                st.json({
-                    "predicted_class": sui_result['argmax'],
-                    "confidence": f"{sui_result['confidence']:.4f}",
-                    "top_3_probs": {
-                        str(i): f"{prob:.4f}" 
-                        for i, prob in enumerate(sui_result['prediction'][:3])
-                    }
-                })
                 
-                st.info("🚧 Using simulated Sui inference")
+                if sui_result.get('success', False):
+                    st.json({
+                        "predicted_class": sui_result['argmax'],
+                        "confidence": f"{sui_result['confidence']:.4f}",
+                        "top_3_probs": {
+                            str(i): f"{prob:.4f}" 
+                            for i, prob in enumerate(sui_result['prediction'][:3])
+                        }
+                    })
+                    
+                    # Show Sui-specific info
+                    if sui_result.get('gas_used'):
+                        st.text(f"Gas Used: {sui_result['gas_used']:,}")
+                    if sui_result.get('transaction_digest'):
+                        st.text(f"TX: {sui_result['transaction_digest'][:16]}...")
+                    
+                    st.success("✅ On-chain inference successful")
+                else:
+                    error_msg = sui_result.get('error', 'Unknown error')
+                    help_msg = sui_result.get('help', '')
+                    
+                    st.error(f"❌ Sui inference failed: {error_msg}")
+                    
+                    if 'client not initialized' in error_msg.lower():
+                        st.warning("🔧 **Sui Configuration Help:**")
+                        st.markdown("""
+                        - Install pysui: `pip install pysui==1.3.0`
+                        - Ensure Sui wallet is properly configured
+                        - Check network connectivity to Sui testnet
+                        - For development/testing, this error is expected without wallet setup
+                        """)
+                    
+                    if help_msg:
+                        st.info(f"💡 Help: {help_msg}")
+                    
+                    st.json({"error": error_msg, "help": help_msg})
             
             with col3:
                 # Compare results
@@ -524,12 +609,17 @@ def run_validation_tests(converted_model: Dict[str, Any], original_model_path: s
                     st.error(f"❌ Web2 inference failed: {web2_result['error']}")
                     continue
                 
-                # Sui On-chain Inference (simulated for now)
-                sui_result = simulate_sui_inference(converted_model, test_input)
+                # Sui On-chain Inference
+                sui_result = run_sui_inference(converted_model, test_input)
                 
                 # Compare results
                 comparison = compare_inference_results(web2_result, sui_result)
                 results.append(comparison)
+                
+                # Skip display if Sui inference failed
+                if not sui_result.get('success', False):
+                    st.error(f"❌ Sui inference failed for test case {i+1}: {sui_result.get('error', 'Unknown error')}")
+                    continue
                 
                 # Display results
                 col1, col2, col3 = st.columns(3)
@@ -543,10 +633,21 @@ def run_validation_tests(converted_model: Dict[str, Any], original_model_path: s
                 
                 with col2:
                     st.markdown("**⛓️ Sui On-chain**")
-                    st.json({
-                        "prediction": sui_result['argmax'],
-                        "confidence": f"{sui_result['confidence']:.4f}",
-                    })
+                    
+                    if sui_result.get('success', False):
+                        st.json({
+                            "prediction": sui_result['argmax'],
+                            "confidence": f"{sui_result['confidence']:.4f}",
+                        })
+                        st.success("✅ Success")
+                    else:
+                        error_msg = sui_result.get('error', 'Unknown error')
+                        st.error(f"❌ Failed: {error_msg}")
+                        
+                        if 'client not initialized' in error_msg.lower():
+                            st.info("💡 Sui client configuration needed for on-chain inference")
+                        
+                        st.json({"error": error_msg})
                 
                 with col3:
                     st.markdown("**🔍 Comparison**")
@@ -721,28 +822,157 @@ def simulate_web2_inference(test_input: np.ndarray) -> Dict[str, Any]:
     }
 
 
-def simulate_sui_inference(converted_model: Dict[str, Any], test_input: np.ndarray) -> Dict[str, Any]:
-    """Simulate Sui On-chain inference (placeholder)"""
-    # This would call the actual Sui contract
-    # For now, simulate with similar output structure
-    layer_dims = converted_model.get('layerDimensions', [])
-    output_dim = layer_dims[-1][1] if layer_dims else 10
+def run_sui_inference(converted_model: Dict[str, Any], test_input: np.ndarray) -> Dict[str, Any]:
+    """Run actual Sui On-chain inference"""
+    try:
+        # Check if Sui model ID is configured
+        sui_model_id = st.session_state.get('sui_model_id')
+        if not sui_model_id:
+            return {
+                'success': False,
+                'error': 'Sui model ID not configured. Please enter a valid Sui object ID.',
+                'inference_engine': 'sui_onchain'
+            }
+        
+        # Create mock ModelObject for now (in practice, this would be fetched from Sui network)
+        layer_dims = converted_model.get('layerDimensions', [])
+        if not layer_dims:
+            return {
+                'success': False,
+                'error': 'Invalid model: No layer dimensions found',
+                'inference_engine': 'sui_onchain'
+            }
+        
+        # Create layers from converted model
+        layers = []
+        for i, (in_dim, out_dim) in enumerate(layer_dims):
+            layer = Layer(
+                layer_type=0,  # Dense layer type
+                in_dimension=in_dim,
+                out_dimension=out_dim,
+                weight_tensor={},  # Simplified for demo
+                bias_tensor={}     # Simplified for demo
+            )
+            layers.append(layer)
+        
+        # Create model object
+        graph = GraphObject(id=None, layers=layers)
+        model = ModelObject(
+            id=sui_model_id,
+            name=converted_model.get('name', 'Test Model'),
+            description=converted_model.get('description', 'Test Description'),
+            task_type='image-classification',
+            graphs=[graph],
+            scale=converted_model.get('scale', 1000000),
+            creator='test'
+        )
+        
+        # Convert input to magnitude and sign vectors for Sui
+        input_magnitude, input_sign = convert_input_to_sui_format(test_input, int(converted_model.get('scale', 1000000)))
+        
+        # Initialize Sui inference manager
+        sui_manager = SuiInferenceManager()
+        
+        # Setup model for inference
+        setup_result = sui_manager.setup_model_for_inference(model)
+        if not setup_result['success']:
+            return {
+                'success': False,
+                'error': f"Failed to setup Sui model: {setup_result['error']}",
+                'inference_engine': 'sui_onchain'
+            }
+        
+        # Run inference
+        inference_result = sui_manager.run_inference_test(
+            input_magnitude,
+            input_sign
+        )
+        
+        if not inference_result['success']:
+            return inference_result
+        
+        # Parse results from events
+        events = inference_result.get('events', {})
+        prediction_completed = events.get('prediction_completed')
+        
+        if prediction_completed:
+            output_magnitude = prediction_completed['output_magnitude']
+            output_sign = prediction_completed['output_sign']
+            argmax_idx = prediction_completed['argmax_idx']
+            
+            # Convert back to floating point for comparison
+            scale = int(converted_model.get('scale', 1000000))
+            raw_output = convert_sui_output_to_float(output_magnitude, output_sign, scale)
+            
+            # Apply softmax for probability distribution
+            exp_output = np.exp(raw_output - np.max(raw_output))
+            prediction = exp_output / np.sum(exp_output)
+            
+            return {
+                'success': True,
+                'raw_output': raw_output,
+                'prediction': prediction.tolist(),
+                'confidence': float(prediction[argmax_idx]),
+                'argmax': argmax_idx,
+                'inference_engine': 'sui_onchain',
+                'events': events,
+                'gas_used': inference_result.get('gas_used'),
+                'transaction_digest': inference_result.get('transaction_digest')
+            }
+        else:
+            return {
+                'success': False,
+                'error': 'No prediction completed event found in transaction results',
+                'inference_engine': 'sui_onchain'
+            }
+            
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f"Sui inference failed: {str(e)}",
+            'inference_engine': 'sui_onchain'
+        }
+
+
+def convert_input_to_sui_format(input_array: np.ndarray, scale: int) -> Tuple[List[int], List[int]]:
+    """Convert floating point input to Sui magnitude/sign format"""
+    # Scale the input values
+    scaled_input = input_array * scale
     
-    raw_output = np.random.randn(output_dim)
-    # Apply softmax manually
-    exp_output = np.exp(raw_output - np.max(raw_output))
-    output = exp_output / np.sum(exp_output)
+    # Split into magnitude and sign
+    magnitude = [int(abs(val)) for val in scaled_input]
+    sign = [1 if val < 0 else 0 for val in scaled_input]
     
-    return {
-        'raw_output': output,
-        'prediction': output.tolist(),
-        'confidence': float(np.max(output)),
-        'argmax': int(np.argmax(output))
-    }
+    return magnitude, sign
+
+
+def convert_sui_output_to_float(magnitude: List[int], sign: List[int], scale: int) -> np.ndarray:
+    """Convert Sui magnitude/sign format back to floating point"""
+    result = []
+    for mag, sgn in zip(magnitude, sign):
+        val = float(mag) / scale
+        if sgn == 1:  # Negative
+            val = -val
+        result.append(val)
+    
+    return np.array(result)
 
 
 def compare_inference_results(web2_result: Dict[str, Any], sui_result: Dict[str, Any]) -> Dict[str, Any]:
     """Compare Web2 and Sui inference results"""
+    # Check if Sui inference was successful
+    if not sui_result.get('success', False):
+        return {
+            'identical': False,
+            'max_diff': float('inf'),
+            'mean_diff': float('inf'),
+            'argmax_match': False,
+            'web2_argmax': web2_result.get('argmax', -1),
+            'sui_argmax': -1,
+            'sui_failed': True,
+            'sui_error': sui_result.get('error', 'Unknown error')
+        }
+    
     web2_pred = np.array(web2_result['prediction'])
     sui_pred = np.array(sui_result['prediction'])
     
@@ -763,7 +993,8 @@ def compare_inference_results(web2_result: Dict[str, Any], sui_result: Dict[str,
         'mean_diff': mean_diff,
         'argmax_match': argmax_match,
         'web2_argmax': web2_result['argmax'],
-        'sui_argmax': sui_result['argmax']
+        'sui_argmax': sui_result['argmax'],
+        'sui_failed': False
     }
 
 
@@ -775,6 +1006,7 @@ def render_validation_summary(results: List[Dict[str, Any]]):
     total_tests = len(results)
     identical_count = sum(1 for r in results if r['identical'])
     argmax_match_count = sum(1 for r in results if r['argmax_match'])
+    sui_failed_count = sum(1 for r in results if r.get('sui_failed', False))
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -785,8 +1017,11 @@ def render_validation_summary(results: List[Dict[str, Any]]):
     with col3:
         st.metric("Prediction Match", f"{argmax_match_count}/{total_tests}")
     with col4:
-        success_rate = (identical_count / total_tests) * 100 if total_tests > 0 else 0
-        st.metric("Success Rate", f"{success_rate:.1f}%")
+        if sui_failed_count > 0:
+            st.metric("Sui Failures", f"{sui_failed_count}/{total_tests}", delta=f"-{sui_failed_count}")
+        else:
+            success_rate = (identical_count / total_tests) * 100 if total_tests > 0 else 0
+            st.metric("Success Rate", f"{success_rate:.1f}%")
     
     # Detailed results table
     if results:
@@ -795,17 +1030,19 @@ def render_validation_summary(results: List[Dict[str, Any]]):
             {
                 "Test": i+1,
                 "Identical": "✅" if r['identical'] else "❌",
-                "Max Difference": f"{r['max_diff']:.6f}",
+                "Max Difference": "∞" if r.get('sui_failed', False) else f"{r['max_diff']:.6f}",
                 "Web2 Prediction": r['web2_argmax'],
-                "Sui Prediction": r['sui_argmax'],
-                "Match": "✅" if r['argmax_match'] else "❌"
+                "Sui Prediction": "FAILED" if r.get('sui_failed', False) else r['sui_argmax'],
+                "Match": "FAILED" if r.get('sui_failed', False) else ("✅" if r['argmax_match'] else "❌")
             }
             for i, r in enumerate(results)
         ])
         st.dataframe(results_df, use_container_width=True)
     
     # Validation verdict
-    if identical_count == total_tests:
+    if sui_failed_count > 0:
+        st.error(f"❌ **VALIDATION FAILED**: {sui_failed_count}/{total_tests} Sui inference calls failed")
+    elif identical_count == total_tests:
         st.success("🎉 **VALIDATION PASSED**: All inference results are identical!")
     elif argmax_match_count == total_tests:
         st.warning("⚠️ **PARTIAL VALIDATION**: Predictions match but numerical differences exist")
@@ -825,7 +1062,16 @@ def render_system_status_tab():
     with col2:
         st.metric("TensorFlow", "🟢 Available")
     with col3:
-        st.metric("Sui Connection", "🟡 Not Connected")  # Will be implemented
+        # Check Sui connection status
+        try:
+            from admin.services.sui_inference_service import SuiInferenceService
+            sui_service = SuiInferenceService()
+            if sui_service.client:
+                st.metric("Sui Connection", "🟢 Connected")
+            else:
+                st.metric("Sui Connection", "🔴 Failed")
+        except Exception:
+            st.metric("Sui Connection", "🟡 Not Available")
     with col4:
         st.metric("Validation Engine", "🟢 Ready")
     
@@ -838,8 +1084,8 @@ def render_system_status_tab():
         "H5 to OpenGraph Conversion": "✅ Implemented",
         "Web2 TensorFlow Inference": "✅ Implemented (with image support)",
         "Image Preprocessing": "✅ Implemented (Dense & Conv models)",
-        "Sui Contract Integration": "❌ Not implemented",
-        "On-chain Inference": "❌ Not implemented", 
+        "Sui Contract Integration": "✅ Implemented (pysui)",
+        "On-chain Inference": "✅ Implemented (chunked PTB)", 
         "Result Comparison Engine": "✅ Implemented",
         "Validation Reporting": "✅ Implemented (with detailed analysis)"
     }

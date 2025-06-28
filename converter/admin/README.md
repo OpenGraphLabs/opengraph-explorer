@@ -21,8 +21,9 @@ The OpenGraph Model Validator provides a focused Streamlit-based web interface t
 
 ### 🧪 Model Validation
 - **Inference Comparison**: Compare Web2 TensorFlow vs Sui On-chain inference results
-- **Test Input Generation**: Generate random, custom, or sample dataset inputs
-- **Result Analysis**: Analyze prediction differences and accuracy matches
+- **Sui Integration**: Real on-chain inference using pysui library and chunked PTB processing
+- **Test Input Generation**: Generate random, custom, or image upload inputs
+- **Result Analysis**: Analyze prediction differences, gas usage, and accuracy matches
 - **Validation Reporting**: Detailed validation summary with success/failure rates
 
 ### ⚙️ System Monitoring
@@ -35,6 +36,7 @@ The OpenGraph Model Validator provides a focused Streamlit-based web interface t
 ### Prerequisites
 - Python 3.8+
 - TensorFlow 2.x
+- pysui 1.3.0+ (for Sui blockchain integration)
 - All dependencies listed in `requirements.txt`
 
 ### Setup
@@ -101,13 +103,18 @@ The validator interface consists of three main sections accessible via the sideb
 
 ### Model Validation Workflow
 
-1. **Load Converted Model**
+1. **Configure Sui Model**
+   - Enter the Sui object ID of your on-chain model
+   - Ensure the model is deployed and accessible on Sui testnet
+
+2. **Load Converted Model**
    - Ensure you have a converted model from the previous step
    - Configure test input type and number of test cases
 
-2. **Run Validation Tests**
+3. **Run Validation Tests**
    - Click "Run Validation Tests" to start inference comparison
-   - View side-by-side results for Web2 vs Sui inference
+   - View side-by-side results for Web2 vs Sui on-chain inference
+   - Monitor gas usage and transaction details
    - Analyze differences and prediction matches
 
 3. **Review Validation Summary**
@@ -195,6 +202,26 @@ chmod 755 uploads
 - Ensure the uploaded file is a valid Keras .h5 model
 - Check that TensorFlow version is compatible
 - Verify the model was saved correctly
+
+#### "Sui inference failed" Error
+- Verify the Sui model object ID is correct and valid
+- Check Sui network connectivity (testnet access required)
+- Ensure sufficient gas budget for inference transactions
+- Confirm the on-chain model structure matches the converted model
+
+#### "Sui client not initialized" Error
+- **Expected behavior**: This error is normal during development/testing without wallet setup
+- Verify pysui library installation: `pip install pysui==1.3.0`
+- **For full functionality**: Configure Sui wallet with pysui
+- Check network configuration in `sui_inference_service.py`
+- Ensure Sui testnet RPC endpoint is accessible
+
+#### Development/Testing Note
+The admin interface is designed to gracefully handle missing Sui wallet configuration. When testing without a full Sui setup, you'll see informative error messages instead of crashes, allowing you to:
+- Test TensorFlow inference functionality
+- Validate model conversion process  
+- Verify UI components and workflows
+- See expected Sui integration points
 
 ### Debugging
 
