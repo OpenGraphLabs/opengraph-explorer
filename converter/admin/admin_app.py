@@ -1,16 +1,17 @@
 """
 OpenGraph Model Converter Admin Dashboard
 
-This Streamlit application provides a user interface for validating and testing
-ML model conversions to OpenGraph schema format.
+This Streamlit application provides a user interface for validating ML model conversions
+and comparing Web2 TensorFlow models with their Sui On-chain twins.
 """
 
 import os
 import sys
 import tempfile
 import traceback
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 import json
+import numpy as np
 
 import streamlit as st
 import pandas as pd
@@ -27,13 +28,14 @@ from services.model_service import parse_model_file
 from admin.validation_service import ModelValidator
 from admin.conversion_service import ConversionService
 from admin.utils import format_file_size, get_model_stats
+from admin.services.tensorflow_inference_service import TensorFlowInferenceManager
 
 
 def setup_page():
     """Configure Streamlit page settings"""
     st.set_page_config(
-        page_title="OpenGraph Model Converter Admin",
-        page_icon="🧠",
+        page_title="OpenGraph Model Validator",
+        page_icon="🔄",
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -41,8 +43,8 @@ def setup_page():
 
 def render_header():
     """Render the application header"""
-    st.title("🧠 OpenGraph Model Converter Admin")
-    st.markdown("### Validate and test ML model conversions to OpenGraph schema")
+    st.title("🔄 OpenGraph Model Validator")
+    st.markdown("### Validate ML model conversions and compare Web2 ↔ Sui On-chain inference results")
     st.divider()
 
 
@@ -52,62 +54,59 @@ def render_sidebar():
         st.header("Navigation")
         tab = st.radio(
             "Select Function",
-            ["Model Upload & Validation", "Conversion History", "System Status"]
+            ["Model Conversion", "Model Validation", "System Status"]
         )
         
         st.divider()
         
-        st.header("About")
+        st.header("Validation Process")
         st.markdown("""
-        **OpenGraph Converter Admin** helps you:
-        - Upload and validate .h5 model files
-        - Test conversion to OpenGraph schema
-        - View conversion statistics
-        - Monitor system health
+        **Step 1**: Upload .h5 model → Convert to OpenGraph schema
+        
+        **Step 2**: Test Web2 inference vs Sui On-chain inference
+        
+        **Step 3**: Validate identical behavior
         """)
         
         st.divider()
         
-        st.header("Supported Formats")
+        st.header("Supported Models")
         st.markdown("""
-        - **Input**: .h5 (Keras/TensorFlow)
-        - **Output**: OpenGraph Schema JSON
+        - **Input**: Keras/TensorFlow .h5
+        - **Architecture**: Dense layers only
+        - **Activation**: ReLU (hidden), None (output)
         """)
         
     return tab
 
 
-def render_upload_validation_tab():
-    """Render the main upload and validation interface"""
-    st.header("Model Upload & Validation")
+def render_conversion_tab():
+    """Render the model conversion interface"""
+    st.header("🔄 Model Conversion")
+    st.markdown("Upload your .h5 model file and convert it to OpenGraph schema for Sui blockchain.")
     
-    # File upload section
+    # File upload
     uploaded_file = st.file_uploader(
         "Upload .h5 Model File",
         type=['h5'],
-        help="Upload a Keras/TensorFlow .h5 model file for validation"
+        help="Upload a Keras/TensorFlow .h5 model file"
     )
     
     if uploaded_file is not None:
-        # Display file info
-        col1, col2, col3 = st.columns(3)
+        # Display basic file info
+        col1, col2 = st.columns(2)
         with col1:
             st.metric("File Name", uploaded_file.name)
         with col2:
             st.metric("File Size", format_file_size(uploaded_file.size))
-        with col3:
-            st.metric("File Type", uploaded_file.type)
         
-        st.divider()
-        
-        # Process the uploaded file
-        if st.button("🔄 Convert & Validate Model", type="primary"):
-            process_uploaded_model(uploaded_file)
+        if st.button("🔄 Convert Model", type="primary"):
+            process_model_conversion(uploaded_file)
 
 
-def process_uploaded_model(uploaded_file):
-    """Process the uploaded model file and run validation"""
-    with st.spinner("Processing model file..."):
+def process_model_conversion(uploaded_file):
+    """Process model conversion with simplified output"""
+    with st.spinner("Converting model..."):
         try:
             # Save uploaded file temporarily
             with tempfile.NamedTemporaryFile(delete=False, suffix='.h5') as tmp_file:
@@ -118,526 +117,757 @@ def process_uploaded_model(uploaded_file):
             validator = ModelValidator()
             conversion_service = ConversionService()
             
-            # Step 1: Basic file validation
-            st.subheader("📋 Step 1: Basic File Validation")
-            with st.expander("File Validation Results", expanded=True):
-                file_validation = validator.validate_file(tmp_file_path)
-                render_validation_results(file_validation)
+            # Step 1: Validate and convert
+            file_validation = validator.validate_file(tmp_file_path)
             
             if not file_validation.get('is_valid', False):
-                st.error("File validation failed. Cannot proceed with conversion.")
+                st.error("❌ Invalid model file")
+                for error in file_validation.get('errors', []):
+                    st.error(f"• {error}")
                 return
             
-            # Step 2: Model conversion
-            st.subheader("🔄 Step 2: Model Conversion")
-            with st.expander("Conversion Results", expanded=True):
-                conversion_result = conversion_service.convert_model(tmp_file_path)
-                render_conversion_results(conversion_result)
+            conversion_result = conversion_service.convert_model(tmp_file_path)
             
             if not conversion_result.get('success', False):
-                st.error("Model conversion failed.")
+                st.error("❌ Conversion failed")
+                st.error(conversion_result.get('error', 'Unknown error'))
                 return
             
-            # Step 3: Schema validation
-            st.subheader("✅ Step 3: Schema Validation")
-            with st.expander("Schema Validation Results", expanded=True):
-                schema_validation = validator.validate_converted_schema(
-                    conversion_result.get('converted_data', {})
-                )
-                render_schema_validation_results(schema_validation)
+            # Success - show results
+            st.success("✅ Model converted successfully!")
             
-            # Step 4: Model analysis and JSON schema
-            st.subheader("📊 Step 4: Model Analysis & Schema")
+            # Show conversion summary
+            converted_data = conversion_result.get('converted_data', {})
+            render_conversion_summary(converted_data)
             
-            # Create tabs for different views
-            analysis_tab, json_tab = st.tabs(["📈 Model Analysis", "📄 JSON Schema"])
+            # Store conversion result in session state for validation
+            st.session_state['converted_model'] = converted_data
+            st.session_state['original_model_path'] = tmp_file_path
             
-            with analysis_tab:
-                render_model_analysis(conversion_result.get('converted_data', {}))
-            
-            with json_tab:
-                render_json_schema_view(conversion_result.get('converted_data', {}))
-            
-            # Clean up temporary file
-            os.unlink(tmp_file_path)
+            st.info("💡 **Next Step**: Go to 'Model Validation' tab to test inference comparison")
             
         except Exception as e:
-            st.error(f"An error occurred during processing: {str(e)}")
+            st.error(f"Conversion error: {str(e)}")
             st.code(traceback.format_exc(), language="python")
 
 
-def render_validation_results(validation_result: Dict[str, Any]):
-    """Render file validation results"""
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if validation_result.get('is_valid', False):
-            st.success("✅ File validation passed")
-        else:
-            st.error("❌ File validation failed")
-    
-    with col2:
-        st.info(f"File size: {validation_result.get('file_size', 'Unknown')}")
-    
-    if 'model_info' in validation_result:
-        model_info = validation_result['model_info']
-        
-        st.markdown("**Model Information:**")
-        info_df = pd.DataFrame([
-            {"Property": "Model Type", "Value": model_info.get('type', 'Unknown')},
-            {"Property": "Input Shape", "Value": str(model_info.get('input_shape', 'Unknown'))},
-            {"Property": "Output Shape", "Value": str(model_info.get('output_shape', 'Unknown'))},
-            {"Property": "Total Parameters", "Value": f"{model_info.get('total_params', 0):,}"},
-            {"Property": "Trainable Parameters", "Value": f"{model_info.get('trainable_params', 0):,}"},
-        ])
-        st.dataframe(info_df, use_container_width=True)
-    
-    if 'errors' in validation_result and validation_result['errors']:
-        st.warning("Validation Warnings/Errors:")
-        for error in validation_result['errors']:
-            st.warning(f"• {error}")
-
-
-def render_conversion_results(conversion_result: Dict[str, Any]):
-    """Render model conversion results"""
-    if conversion_result.get('success', False):
-        st.success("✅ Model conversion successful")
-        
-        # Show conversion metrics
-        metrics = conversion_result.get('metrics', {})
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric("Conversion Time", f"{metrics.get('conversion_time', 0):.2f}s")
-        with col2:
-            st.metric("Layers Converted", metrics.get('layers_converted', 0))
-        with col3:
-            st.metric("Parameters Converted", f"{metrics.get('parameters_converted', 0):,}")
-        with col4:
-            st.metric("Schema Version", metrics.get('schema_version', 'Unknown'))
-        
-        # Show converted data preview
-        if 'converted_data' in conversion_result:
-            st.markdown("**Converted Schema Preview:**")
-            preview_data = conversion_result['converted_data']
-            
-            # Show basic structure
-            structure_info = {
-                "Model Name": preview_data.get('name', 'Unknown'),
-                "Description": preview_data.get('description', 'No description'),
-                "Task Type": preview_data.get('task_type', 'Unknown'),
-                "Scale": preview_data.get('scale', 'Unknown'),
-                "Number of Layers": len(preview_data.get('layerDimensions', []))
-            }
-            
-            st.json(structure_info, expanded=False)
-    else:
-        st.error("❌ Model conversion failed")
-        
-        if 'error' in conversion_result:
-            st.error(f"Error: {conversion_result['error']}")
-        
-        if 'traceback' in conversion_result:
-            st.code(conversion_result['traceback'], language="python")
-
-
-def render_schema_validation_results(validation_result: Dict[str, Any]):
-    """Render schema validation results"""
-    if validation_result.get('is_valid', False):
-        st.success("✅ Schema validation passed")
-        
-        # Show validation metrics
-        metrics = validation_result.get('metrics', {})
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric("Fields Validated", metrics.get('fields_validated', 0))
-        with col2:
-            st.metric("Required Fields", metrics.get('required_fields_present', 0))
-        with col3:
-            st.metric("Data Integrity", f"{metrics.get('integrity_score', 0):.1%}")
-        
-    else:
-        st.error("❌ Schema validation failed")
-        
-        if 'errors' in validation_result:
-            st.error("Validation Errors:")
-            for error in validation_result['errors']:
-                st.error(f"• {error}")
-        
-        if 'warnings' in validation_result:
-            st.warning("Validation Warnings:")
-            for warning in validation_result['warnings']:
-                st.warning(f"• {warning}")
-
-
-def render_model_analysis(converted_data: Dict[str, Any]):
-    """Render model analysis and visualization"""
-    if not converted_data:
-        st.warning("No converted data available for analysis")
-        return
-    
-    # Model structure visualization
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("**Layer Dimensions**")
-        layer_dims = converted_data.get('layerDimensions', [])
-        if layer_dims:
-            layer_df = pd.DataFrame([
-                {"Layer": i, "Input Dim": dim[0], "Output Dim": dim[1]}
-                for i, dim in enumerate(layer_dims)
-            ])
-            st.dataframe(layer_df, use_container_width=True)
-            
-            # Create layer dimension visualization
-            fig = px.bar(
-                layer_df, 
-                x='Layer', 
-                y=['Input Dim', 'Output Dim'],
-                title="Layer Dimensions",
-                barmode='group'
-            )
-            st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        st.markdown("**Parameter Distribution**")
-        weights_mags = converted_data.get('weightsMagnitudes', [])
-        if weights_mags:
-            param_counts = [len(layer_weights) for layer_weights in weights_mags]
-            layer_names = [f"Layer {i}" for i in range(len(param_counts))]
-            
-            fig = px.pie(
-                values=param_counts,
-                names=layer_names,
-                title="Parameters per Layer"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-
-def render_json_schema_view(converted_data: Dict[str, Any]):
-    """Render JSON schema view with various options"""
-    if not converted_data:
-        st.warning("No converted data available to display")
-        return
-    
-    st.markdown("### 🔍 OpenGraph JSON Schema")
-    st.markdown("This is the complete JSON schema that will be used in the OpenGraph blockchain contract.")
-    
-    # Create columns for different views
-    col1, col2 = st.columns([2, 1])
-    
-    with col2:
-        st.markdown("**Actions:**")
-        
-        # Format JSON for display
-        formatted_json = json.dumps(converted_data, indent=2, ensure_ascii=False)
-        
-        # Download button
-        st.download_button(
-            label="📥 Download JSON",
-            data=formatted_json,
-            file_name="opengraph_model_schema.json",
-            mime="application/json"
-        )
-        
-        # Copy to clipboard info
-        st.info("💡 **Tip**: You can copy the JSON from the code block below")
-        
-        # Schema overview
-        st.markdown("**Schema Overview:**")
-        overview_data = {
-            "Fields": len(converted_data.keys()),
-            "Layers": len(converted_data.get('layerDimensions', [])),
-            "Total Weights": sum(len(w) for w in converted_data.get('weightsMagnitudes', [])),
-            "Total Biases": sum(len(b) for b in converted_data.get('biasesMagnitudes', [])),
-            "Scale Factor": converted_data.get('scale', 'N/A')
-        }
-        
-        for key, value in overview_data.items():
-            st.metric(key, value)
-    
-    with col1:
-        st.markdown("**Complete JSON Schema:**")
-        
-        # Show formatted JSON
-        st.code(formatted_json, language="json")
-        
-        # Add expandable sections for detailed field explanations
-        with st.expander("📚 Field Descriptions", expanded=False):
-            render_schema_field_descriptions()
-        
-        # Add layer-by-layer breakdown
-        with st.expander("🏗️ Layer-by-Layer Breakdown", expanded=False):
-            render_schema_structure_breakdown(converted_data)
-        
-        # Add value conversion examples
-        with st.expander("🔄 Value Conversion Examples", expanded=False):
-            render_value_conversion_examples(converted_data)
-
-
-def render_schema_field_descriptions():
-    """Render detailed descriptions of schema fields"""
-    st.markdown("""
-    ### OpenGraph Schema Field Descriptions
-    
-    **`layerDimensions`**: Array of [input_dimension, output_dimension] pairs for each layer
-    - Example: `[[784, 128], [128, 10]]` means first layer has 784 inputs → 128 outputs, second layer has 128 inputs → 10 outputs
-    
-    **`weightsMagnitudes`**: 2D array containing the magnitude (absolute value) of weights for each layer
-    - Each inner array contains flattened weight magnitudes for one layer
-    - Values are scaled by the scale factor (multiplied by 10^scale)
-    
-    **`weightsSigns`**: 2D array containing the sign bits of weights for each layer
-    - `0` = positive weight, `1` = negative weight
-    - Same structure as weightsMagnitudes but with binary values
-    
-    **`biasesMagnitudes`**: 2D array containing the magnitude (absolute value) of biases for each layer
-    - Each inner array contains bias magnitudes for one layer's output neurons
-    - Values are scaled by the scale factor
-    
-    **`biasesSigns`**: 2D array containing the sign bits of biases for each layer
-    - `0` = positive bias, `1` = negative bias
-    - Same structure as biasesMagnitudes but with binary values
-    
-    **`scale`**: Integer representing the fixed-point scale factor
-    - All weight and bias values are multiplied by 10^scale before conversion to integers
-    - Example: scale=2 means values are multiplied by 100
-    
-    ### Usage in Sui Blockchain
-    
-    This JSON schema is designed to be directly used with the OpenGraph Sui Move contract's `new_model` function:
-    
-    ```move
-    entry public fun new_model(
-        name: String,
-        description: String,
-        task_type: String,
-        layer_dimensions: vector<vector<u64>>,
-        weights_magnitudes: vector<vector<u64>>,
-        weights_signs: vector<vector<u64>>,
-        biases_magnitudes: vector<vector<u64>>,
-        biases_signs: vector<vector<u64>>,
-        scale: u64,
-        // ... other parameters
-    )
-    ```
-    """)
-
-
-def render_schema_structure_breakdown(converted_data: Dict[str, Any]):
-    """Render a detailed breakdown of the schema structure"""
-    st.markdown("### 🏗️ Schema Structure Breakdown")
+def render_conversion_summary(converted_data: Dict[str, Any]):
+    """Render a concise summary of the conversion result"""
+    col1, col2, col3, col4 = st.columns(4)
     
     layer_dims = converted_data.get('layerDimensions', [])
     weights_mags = converted_data.get('weightsMagnitudes', [])
-    weights_signs = converted_data.get('weightsSigns', [])
-    biases_mags = converted_data.get('biasesMagnitudes', [])
-    biases_signs = converted_data.get('biasesSigns', [])
     
-    if not layer_dims:
-        st.warning("No layer dimensions found in schema")
+    with col1:
+        st.metric("Layers", len(layer_dims))
+    with col2:
+        total_weights = sum(len(w) for w in weights_mags)
+        st.metric("Parameters", f"{total_weights:,}")
+    with col3:
+        st.metric("Scale Factor", converted_data.get('scale', 'N/A'))
+    with col4:
+        st.metric("Task Type", converted_data.get('task_type', 'Classification'))
+    
+    # Show model architecture
+    if layer_dims:
+        st.markdown("**Model Architecture:**")
+        arch_info = []
+        for i, (input_dim, output_dim) in enumerate(layer_dims):
+            layer_type = "Output" if i == len(layer_dims) - 1 else "Hidden"
+            arch_info.append(f"Layer {i}: {input_dim} → {output_dim} ({layer_type})")
+        
+        for info in arch_info:
+            st.text(info)
+    
+    # JSON Schema section (simplified)
+    with st.expander("📄 OpenGraph JSON Schema", expanded=False):
+        formatted_json = json.dumps(converted_data, indent=2)
+        
+        st.markdown("**JSON Schema for Sui Contract:**")
+        st.code(formatted_json, language="json", line_numbers=False)
+        
+        st.info("💡 **Usage**: Copy the JSON above and use it with the Sui `new_model` function")
+
+
+def render_validation_tab():
+    """Render the model validation interface"""
+    st.header("🧪 Model Validation")
+    st.markdown("Compare Web2 TensorFlow inference with Sui On-chain inference to ensure identical behavior.")
+    
+    # Check if we have a converted model
+    if 'converted_model' not in st.session_state:
+        st.warning("⚠️ No converted model available. Please convert a model first in the 'Model Conversion' tab.")
         return
     
-    # Create expandable sections for each layer
-    for i, (input_dim, output_dim) in enumerate(layer_dims):
-        with st.expander(f"🔍 Layer {i} Details", expanded=i == 0):
+    converted_model = st.session_state['converted_model']
+    original_model_path = st.session_state.get('original_model_path')
+    
+    if not original_model_path:
+        st.error("❌ Original model path not found. Please reconvert the model.")
+        return
+    
+    st.success(f"✅ Using converted model: {converted_model.get('name', 'Unknown')}")
+    
+    # Model information
+    layer_dims = converted_model.get('layerDimensions', [])
+    if not layer_dims:
+        st.error("Invalid model: No layer dimensions found")
+        return
+    
+    input_dim = layer_dims[0][0] if layer_dims else 0
+    output_dim = layer_dims[-1][1] if layer_dims else 0
+    
+    # Test input configuration section
+    st.subheader("🎯 Test Input Configuration")
+    
+    # Get actual model info for better display
+    model_input_info = "Unknown"
+    recommended_size = "28x28"
+    try:
+        tf_manager = TensorFlowInferenceManager()
+        setup_result = tf_manager.setup_model_for_inference(original_model_path)
+        if setup_result['success']:
+            model_info = setup_result['model_info']
+            input_shape = model_info.get('input_shape', [])
+            if isinstance(input_shape, (list, tuple)) and len(input_shape) >= 2:
+                actual_input_dim = input_shape[-1]
+                if actual_input_dim:
+                    model_input_info = f"{actual_input_dim} features"
+                    sqrt_dim = int(np.sqrt(actual_input_dim))
+                    if sqrt_dim * sqrt_dim == actual_input_dim:
+                        recommended_size = f"{sqrt_dim}x{sqrt_dim}"
+    except Exception:
+        pass
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info(f"**Schema Input Dimension**: {input_dim}")
+        st.info(f"**Schema Output Dimension**: {output_dim}")
+        if model_input_info != "Unknown":
+            st.success(f"**Actual Model Input**: {model_input_info}")
+            st.success(f"**Recommended Image Size**: {recommended_size}")
+    
+    with col2:
+        # Test input options
+        input_type = st.selectbox(
+            "Test Input Type",
+            ["Image Upload", "Random Input", "Custom Input"]
+        )
+        
+        num_tests = st.slider("Number of Test Cases", 1, 5, 1)
+    
+    # Input configuration based on type
+    test_inputs = []
+    uploaded_image = None
+    
+    if input_type == "Image Upload":
+        st.markdown("**Upload Test Image:**")
+        uploaded_image = st.file_uploader(
+            "Choose an image file",
+            type=['png', 'jpg', 'jpeg', 'bmp', 'gif'],
+            help="Upload an image to test inference"
+        )
+        
+        if uploaded_image is not None:
+            # Display uploaded image
+            col1, col2 = st.columns([1, 2])
+            with col1:
+                st.image(uploaded_image, caption="Uploaded Image", width=200)
+            with col2:
+                st.write(f"**Filename**: {uploaded_image.name}")
+                st.write(f"**Size**: {format_file_size(uploaded_image.size)}")
+                st.write(f"**Type**: {uploaded_image.type}")
+            
+            # Preprocessing options
+            with st.expander("🔧 Image Preprocessing Options", expanded=False):
+                # Try to get model info to suggest better defaults
+                default_size = 28
+                try:
+                    # Initialize TensorFlow manager to get model info
+                    if 'original_model_path' in st.session_state:
+                        tf_manager = TensorFlowInferenceManager()
+                        setup_result = tf_manager.setup_model_for_inference(st.session_state['original_model_path'])
+                        if setup_result['success']:
+                            model_info = setup_result['model_info']
+                            input_shape = model_info.get('input_shape', [])
+                            
+                            # Try to determine the correct size
+                            if isinstance(input_shape, (list, tuple)) and len(input_shape) >= 2:
+                                input_dim = input_shape[-1]
+                                if input_dim == 784:
+                                    default_size = 28
+                                elif input_dim == 196:
+                                    default_size = 14
+                                elif input_dim == 1024:
+                                    default_size = 32
+                                elif input_dim == 400:
+                                    default_size = 20
+                                else:
+                                    sqrt_dim = int(np.sqrt(input_dim)) if input_dim and input_dim > 0 else 28
+                                    if sqrt_dim * sqrt_dim == input_dim:
+                                        default_size = sqrt_dim
+                            
+                            st.info(f"💡 **Model expects {input_dim} features** → Recommended size: {default_size}x{default_size}")
+                except Exception:
+                    pass  # Use default if failed
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    target_height = st.number_input("Target Height", value=default_size, min_value=1, max_value=512)
+                    normalize = st.checkbox("Normalize (0-1)", value=True)
+                with col2:
+                    target_width = st.number_input("Target Width", value=default_size, min_value=1, max_value=512)
+                    flatten = st.checkbox("Flatten for Dense Model", value=True)
+                
+                st.session_state['preprocessing_config'] = {
+                    'target_size': (target_height, target_width),
+                    'normalize': normalize,
+                    'flatten': flatten
+                }
+    else:
+        # Generate test inputs for non-image types
+        test_inputs = generate_test_inputs(input_type, input_dim, num_tests)
+    
+    # Run validation section
+    st.divider()
+    
+    if st.button("🚀 Run Validation Tests", type="primary"):
+        if input_type == "Image Upload" and uploaded_image is not None:
+            run_validation_tests_with_image(converted_model, original_model_path, uploaded_image)
+        elif input_type != "Image Upload":
+            run_validation_tests(converted_model, original_model_path, test_inputs)
+        else:
+            st.error("Please upload an image or select a different input type.")
+
+
+def generate_test_inputs(input_type: str, input_dim: int, num_tests: int) -> List[np.ndarray]:
+    """Generate test inputs based on the selected type"""
+    test_inputs = []
+    
+    if input_type == "Random Input":
+        for _ in range(num_tests):
+            # Generate random input normalized between -1 and 1
+            test_input = np.random.uniform(-1, 1, size=input_dim)
+            test_inputs.append(test_input)
+    
+    elif input_type == "Custom Input":
+        st.markdown("**Custom Input Configuration:**")
+        # For now, use zeros as placeholder
+        for i in range(num_tests):
+            test_input = np.zeros(input_dim)
+            test_inputs.append(test_input)
+        
+        st.info("💡 Custom input configuration will be implemented in future updates")
+    
+    elif input_type == "Sample Dataset":
+        # Use common test patterns
+        for i in range(num_tests):
+            if i % 3 == 0:
+                test_input = np.ones(input_dim) * 0.5  # Positive values
+            elif i % 3 == 1:
+                test_input = np.ones(input_dim) * -0.5  # Negative values
+            else:
+                test_input = np.random.normal(0, 0.3, input_dim)  # Normal distribution
+            test_inputs.append(test_input)
+    
+    return test_inputs
+
+
+def run_validation_tests_with_image(converted_model: Dict[str, Any], original_model_path: str, uploaded_image):
+    """Run validation tests using uploaded image"""
+    
+    with st.spinner("Running validation tests with uploaded image..."):
+        try:
+            # Initialize TensorFlow inference manager
+            tf_manager = TensorFlowInferenceManager()
+            
+            # Setup the original model for inference
+            setup_result = tf_manager.setup_model_for_inference(original_model_path)
+            
+            if not setup_result['success']:
+                st.error(f"❌ Failed to load TensorFlow model: {setup_result['error']}")
+                return
+            
+            st.success("✅ TensorFlow model loaded successfully")
+            
+            # Display model information
+            model_info = setup_result['model_info']
+            st.markdown("#### 📋 Model Information")
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.metric("Input Dimension", input_dim)
-                st.metric("Output Dimension", output_dim)
-                st.metric("Expected Weights", input_dim * output_dim)
-                st.metric("Expected Biases", output_dim)
+                st.text(f"Model Type: {model_info.get('model_type', 'Unknown')}")
+                st.text(f"Total Params: {model_info.get('total_params', 'Unknown'):,}")
+            with col2:
+                st.text(f"Input Shape: {model_info.get('input_shape', 'Unknown')}")
+                st.text(f"Output Shape: {model_info.get('output_shape', 'Unknown')}")
+            with col3:
+                st.text(f"Layers: {model_info.get('num_layers', 'Unknown')}")
+            
+            # Get preprocessing config from session state, or use model defaults
+            preprocessing_config = st.session_state.get('preprocessing_config', {})
+            
+            # If no custom config provided, use model's default preprocessing
+            if not preprocessing_config:
+                preprocessing_config = tf_manager.service._get_default_preprocessing_config()
+                st.info(f"🔧 Using automatic preprocessing: {preprocessing_config}")
+            else:
+                st.info(f"🔧 Using custom preprocessing: {preprocessing_config}")
+            
+            # Read uploaded image
+            image_bytes = uploaded_image.getvalue()
+            
+            # Run Web2 TensorFlow inference
+            st.markdown("### 🔄 Running Web2 TensorFlow Inference...")
+            web2_result = tf_manager.run_inference_test(
+                image_input=image_bytes,
+                preprocessing_config=preprocessing_config
+            )
+            
+            if not web2_result['success']:
+                st.error(f"❌ Web2 inference failed: {web2_result['error']}")
+                return
+            
+            # Extract input for Sui inference (use the same preprocessed input)
+            # For now, simulate Sui inference
+            st.markdown("### ⛓️ Running Sui On-chain Inference...")
+            sui_result = simulate_sui_inference(converted_model, None)  # Will be replaced with actual Sui call
+            
+            # Display results
+            st.markdown("### 📊 Inference Results")
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.markdown("**🐍 Web2 TensorFlow**")
+                st.json({
+                    "predicted_class": web2_result['argmax'],
+                    "confidence": f"{web2_result['confidence']:.4f}",
+                    "top_3_probs": {
+                        str(i): f"{prob:.4f}" 
+                        for i, prob in enumerate(web2_result['prediction'][:3])
+                    }
+                })
+                
+                # Show model info
+                model_info = web2_result.get('model_info', {})
+                st.markdown("**Model Info:**")
+                st.text(f"Type: {model_info.get('model_type', 'Unknown')}")
+                st.text(f"Input Shape: {web2_result.get('input_info', {}).get('input_shape', 'Unknown')}")
             
             with col2:
-                if i < len(weights_mags):
-                    actual_weights = len(weights_mags[i])
-                    st.metric("Actual Weights", actual_weights)
-                    weight_match = "✅" if actual_weights == input_dim * output_dim else "❌"
-                    st.markdown(f"**Weight Count Match**: {weight_match}")
+                st.markdown("**⛓️ Sui On-chain**")
+                st.json({
+                    "predicted_class": sui_result['argmax'],
+                    "confidence": f"{sui_result['confidence']:.4f}",
+                    "top_3_probs": {
+                        str(i): f"{prob:.4f}" 
+                        for i, prob in enumerate(sui_result['prediction'][:3])
+                    }
+                })
                 
-                if i < len(biases_mags):
-                    actual_biases = len(biases_mags[i])
-                    st.metric("Actual Biases", actual_biases)
-                    bias_match = "✅" if actual_biases == output_dim else "❌"
-                    st.markdown(f"**Bias Count Match**: {bias_match}")
+                st.info("🚧 Using simulated Sui inference")
             
             with col3:
-                if i < len(weights_mags) and weights_mags[i]:
-                    # Show weight statistics
-                    weights = weights_mags[i]
-                    st.markdown("**Weight Statistics:**")
-                    st.write(f"Min: {min(weights)}")
-                    st.write(f"Max: {max(weights)}")
-                    st.write(f"Avg: {sum(weights)/len(weights):.2f}")
+                # Compare results
+                comparison = compare_inference_results(web2_result, sui_result)
+                
+                st.markdown("**🔍 Comparison**")
+                if comparison['identical']:
+                    st.success("✅ Identical")
+                else:
+                    st.error("❌ Different")
+                
+                st.metric("Max Difference", f"{comparison['max_diff']:.6f}")
+                st.metric("Prediction Match", "Yes" if comparison['argmax_match'] else "No")
+                
+                # Additional metrics
+                if comparison['argmax_match']:
+                    st.success("🎯 Predictions Match!")
+                else:
+                    st.error(f"🎯 Different Predictions: TF={comparison['web2_argmax']}, Sui={comparison['sui_argmax']}")
+            
+            # Show detailed analysis
+            render_detailed_inference_analysis(web2_result, sui_result, comparison)
+            
+        except Exception as e:
+            st.error(f"❌ Validation test failed: {str(e)}")
+            st.code(traceback.format_exc(), language="python")
+
+
+def run_validation_tests(converted_model: Dict[str, Any], original_model_path: str, test_inputs: List[np.ndarray]):
+    """Run validation tests comparing Web2 and Sui inference"""
+    
+    with st.spinner("Running validation tests..."):
+        try:
+            # Initialize TensorFlow inference manager
+            tf_manager = TensorFlowInferenceManager()
+            
+            # Setup the original model for inference
+            setup_result = tf_manager.setup_model_for_inference(original_model_path)
+            
+            if not setup_result['success']:
+                st.error(f"❌ Failed to load TensorFlow model: {setup_result['error']}")
+                return
+            
+            st.success("✅ TensorFlow model loaded successfully")
+            
+            results = []
+            
+            for i, test_input in enumerate(test_inputs):
+                st.markdown(f"### Test Case {i+1}")
+                
+                # Web2 TensorFlow Inference
+                web2_result = tf_manager.run_inference_test(numpy_input=test_input)
+                
+                if not web2_result['success']:
+                    st.error(f"❌ Web2 inference failed: {web2_result['error']}")
+                    continue
+                
+                # Sui On-chain Inference (simulated for now)
+                sui_result = simulate_sui_inference(converted_model, test_input)
+                
+                # Compare results
+                comparison = compare_inference_results(web2_result, sui_result)
+                results.append(comparison)
+                
+                # Display results
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.markdown("**🐍 Web2 TensorFlow**")
+                    st.json({
+                        "prediction": web2_result['argmax'],
+                        "confidence": f"{web2_result['confidence']:.4f}",
+                    })
+                
+                with col2:
+                    st.markdown("**⛓️ Sui On-chain**")
+                    st.json({
+                        "prediction": sui_result['argmax'],
+                        "confidence": f"{sui_result['confidence']:.4f}",
+                    })
+                
+                with col3:
+                    st.markdown("**🔍 Comparison**")
+                    if comparison['identical']:
+                        st.success("✅ Identical")
+                    else:
+                        st.error("❌ Different")
                     
-                    # Count positive/negative weights
-                    if i < len(weights_signs):
-                        signs = weights_signs[i]
-                        positive_count = signs.count(0)
-                        negative_count = signs.count(1)
-                        st.write(f"Positive: {positive_count}")
-                        st.write(f"Negative: {negative_count}")
+                    st.metric("Difference", f"{comparison['max_diff']:.6f}")
+                    st.metric("Match", "Yes" if comparison['argmax_match'] else "No")
             
-            # Show sample data (first few weights and biases)
-            if i < len(weights_mags) and weights_mags[i]:
-                st.markdown("**Sample Weight Data (first 10):**")
-                sample_weights = []
-                for j in range(min(10, len(weights_mags[i]))):
-                    mag = weights_mags[i][j]
-                    sign = weights_signs[i][j] if i < len(weights_signs) and j < len(weights_signs[i]) else 0
-                    actual_value = -mag if sign == 1 else mag
-                    sample_weights.append(f"{actual_value}")
+            # Overall validation summary
+            if results:
+                render_validation_summary(results)
                 
-                st.code(", ".join(sample_weights))
-            
-            if i < len(biases_mags) and biases_mags[i]:
-                st.markdown("**Sample Bias Data:**")
-                sample_biases = []
-                for j in range(min(len(biases_mags[i]), 10)):
-                    mag = biases_mags[i][j]
-                    sign = biases_signs[i][j] if i < len(biases_signs) and j < len(biases_signs[i]) else 0
-                    actual_value = -mag if sign == 1 else mag
-                    sample_biases.append(f"{actual_value}")
-                
-                st.code(", ".join(sample_biases))
+        except Exception as e:
+            st.error(f"❌ Validation test failed: {str(e)}")
+            st.code(traceback.format_exc(), language="python")
 
 
-def render_value_conversion_examples(converted_data: Dict[str, Any]):
-    """Render examples of how values are converted from float to fixed-point"""
-    st.markdown("### 🔄 Fixed-Point Conversion Examples")
-    st.markdown("This shows how floating-point weights/biases are converted to magnitude + sign representation.")
+def render_detailed_inference_analysis(web2_result: Dict[str, Any], sui_result: Dict[str, Any], comparison: Dict[str, Any]):
+    """Render detailed analysis of inference results"""
+    st.divider()
+    st.subheader("🔍 Detailed Analysis")
     
-    scale = converted_data.get('scale', 2)
-    st.info(f"**Scale Factor**: {scale} (values are multiplied by 10^{scale} = {10**scale})")
+    # Create tabs for different analysis views
+    analysis_tab, probability_tab, technical_tab = st.tabs(["📈 Prediction Analysis", "📊 Probability Distribution", "🔧 Technical Details"])
     
-    # Create example conversions
-    example_floats = [0.5, -0.3, 1.25, -2.1, 0.0, 0.001, -0.999]
-    
-    conversion_examples = []
-    for float_val in example_floats:
-        # Apply the same conversion logic as in the converter
-        sign_bit = 1 if float_val < 0 else 0
-        magnitude = int(round(abs(float_val) * (10 ** scale)))
+    with analysis_tab:
+        col1, col2 = st.columns(2)
         
-        conversion_examples.append({
-            "Original Float": float_val,
-            "Sign (0=+, 1=-)": sign_bit,
-            "Magnitude": magnitude,
-            "Reconstructed": f"{'-' if sign_bit == 1 else ''}{magnitude / (10**scale)}"
-        })
-    
-    # Display as a table
-    df = pd.DataFrame(conversion_examples)
-    st.dataframe(df, use_container_width=True)
-    
-    st.markdown("### 📊 Real Data Sample")
-    st.markdown("Here are some actual converted values from your model:")
-    
-    # Show real data samples from the converted model
-    weights_mags = converted_data.get('weightsMagnitudes', [])
-    weights_signs = converted_data.get('weightsSigns', [])
-    
-    if weights_mags and weights_signs and len(weights_mags) > 0:
-        layer_0_weights_mag = weights_mags[0]
-        layer_0_weights_sign = weights_signs[0]
+        with col1:
+            st.markdown("**🎯 Prediction Summary**")
+            
+            # Prediction comparison
+            web2_pred = web2_result.get('argmax', 0)
+            sui_pred = sui_result.get('argmax', 0)
+            
+            prediction_data = {
+                "Engine": ["Web2 TensorFlow", "Sui On-chain"],
+                "Predicted Class": [web2_pred, sui_pred],
+                "Confidence": [
+                    f"{web2_result.get('confidence', 0):.4f}",
+                    f"{sui_result.get('confidence', 0):.4f}"
+                ]
+            }
+            
+            st.dataframe(pd.DataFrame(prediction_data), use_container_width=True)
+            
+            # Verdict
+            if comparison['identical']:
+                st.success("🎉 **PERFECT MATCH**: Results are numerically identical!")
+            elif comparison['argmax_match']:
+                st.warning("⚠️ **PREDICTION MATCH**: Same prediction, minor numerical differences")
+            else:
+                st.error("❌ **PREDICTION MISMATCH**: Different predictions detected")
         
-        if len(layer_0_weights_mag) > 0:
-            st.markdown(f"**Layer 0 - First 10 Weight Values:**")
+        with col2:
+            st.markdown("**📊 Confidence Analysis**")
             
-            real_examples = []
-            for i in range(min(10, len(layer_0_weights_mag))):
-                mag = layer_0_weights_mag[i]
-                sign = layer_0_weights_sign[i] if i < len(layer_0_weights_sign) else 0
-                reconstructed = (-mag if sign == 1 else mag) / (10 ** scale)
-                
-                real_examples.append({
-                    "Index": i,
-                    "Sign": sign,
-                    "Magnitude": mag,
-                    "Reconstructed Float": f"{reconstructed:.6f}"
-                })
+            # Confidence difference
+            conf_diff = abs(web2_result.get('confidence', 0) - sui_result.get('confidence', 0))
+            st.metric("Confidence Difference", f"{conf_diff:.6f}")
+            st.metric("Max Probability Difference", f"{comparison['max_diff']:.6f}")
+            st.metric("Mean Probability Difference", f"{comparison.get('mean_diff', 0):.6f}")
+    
+    with probability_tab:
+        # Probability distribution comparison
+        web2_probs = web2_result.get('prediction', [])
+        sui_probs = sui_result.get('prediction', [])
+        
+        if web2_probs and sui_probs:
+            # Create comparison chart
+            prob_df = pd.DataFrame({
+                'Class': range(len(web2_probs)),
+                'Web2 TensorFlow': web2_probs,
+                'Sui On-chain': sui_probs
+            })
             
-            real_df = pd.DataFrame(real_examples)
-            st.dataframe(real_df, use_container_width=True)
+            fig = px.bar(
+                prob_df.melt(id_vars=['Class'], var_name='Engine', value_name='Probability'),
+                x='Class',
+                y='Probability',
+                color='Engine',
+                title="Probability Distribution Comparison",
+                barmode='group'
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Top predictions table
+            st.markdown("**🏆 Top 5 Predictions**")
+            
+            web2_sorted = sorted(enumerate(web2_probs), key=lambda x: x[1], reverse=True)[:5]
+            sui_sorted = sorted(enumerate(sui_probs), key=lambda x: x[1], reverse=True)[:5]
+            
+            top_pred_data = []
+            for i in range(5):
+                if i < len(web2_sorted) and i < len(sui_sorted):
+                    web2_class, web2_prob = web2_sorted[i]
+                    sui_class, sui_prob = sui_sorted[i]
+                    
+                    top_pred_data.append({
+                        "Rank": i + 1,
+                        "Web2 Class": web2_class,
+                        "Web2 Prob": f"{web2_prob:.4f}",
+                        "Sui Class": sui_class,
+                        "Sui Prob": f"{sui_prob:.4f}",
+                        "Match": "✅" if web2_class == sui_class else "❌"
+                    })
+            
+            if top_pred_data:
+                st.dataframe(pd.DataFrame(top_pred_data), use_container_width=True)
     
-    # Add usage instructions
-    st.markdown("""
-    ### 💡 How to Use This Data
+    with technical_tab:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**🐍 Web2 TensorFlow Details**")
+            web2_info = {
+                "Model Type": web2_result.get('model_info', {}).get('model_type', 'Unknown'),
+                "Input Shape": str(web2_result.get('input_info', {}).get('shape', 'Unknown')),
+                "Input Type": web2_result.get('input_type', 'Unknown'),
+                "Total Parameters": web2_result.get('model_info', {}).get('total_params', 'Unknown'),
+                "Number of Classes": web2_result.get('num_classes', len(web2_result.get('prediction', [])))
+            }
+            
+            for key, value in web2_info.items():
+                st.text(f"{key}: {value}")
+        
+        with col2:
+            st.markdown("**⛓️ Sui On-chain Details**")
+            sui_info = {
+                "Implementation": "Simulated (Move Contract Pending)",
+                "Inference Type": "On-chain",
+                "Fixed Point Scale": "TBD",
+                "Layer Count": "TBD",
+                "Gas Usage": "TBD"
+            }
+            
+            for key, value in sui_info.items():
+                st.text(f"{key}: {value}")
+        
+        # Raw data comparison (collapsed by default)
+        with st.expander("🔍 Raw Inference Data", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**Web2 Raw Output:**")
+                st.code(str(web2_result.get('raw_output', [])), language="python")
+            
+            with col2:
+                st.markdown("**Sui Raw Output:**")
+                st.code(str(sui_result.get('raw_output', [])), language="python")
+
+
+def simulate_web2_inference(test_input: np.ndarray) -> Dict[str, Any]:
+    """Simulate Web2 TensorFlow inference (placeholder)"""
+    # This would use the actual TensorFlow model
+    # For now, simulate with random output
+    output_dim = 10  # Assume 10 classes for demo
+    raw_output = np.random.randn(output_dim)
+    # Apply softmax manually
+    exp_output = np.exp(raw_output - np.max(raw_output))
+    output = exp_output / np.sum(exp_output)
     
-    **For Sui Move Contract:**
-    ```move
-    // Use the magnitude and sign arrays directly
-    let weights_mags = vector[10, 30, 125, 210, 0, 1, 99];
-    let weights_signs = vector[0, 1, 0, 1, 0, 0, 1];
-    ```
-    
-    **For Reconstruction:**
-    ```javascript
-    // JavaScript example
-    function reconstructFloat(magnitude, sign, scale) {
-        const value = magnitude / Math.pow(10, scale);
-        return sign === 1 ? -value : value;
+    return {
+        'raw_output': output,
+        'prediction': output.tolist(),
+        'confidence': float(np.max(output)),
+        'argmax': int(np.argmax(output))
     }
-    ```
-    
-    **For Python:**
-    ```python
-    def reconstruct_float(magnitude, sign, scale):
-        value = magnitude / (10 ** scale)
-        return -value if sign == 1 else value
-    ```
-    """)
 
 
-def render_conversion_history_tab():
-    """Render conversion history tab"""
-    st.header("Conversion History")
-    st.info("This feature will show historical conversion records and statistics.")
+def simulate_sui_inference(converted_model: Dict[str, Any], test_input: np.ndarray) -> Dict[str, Any]:
+    """Simulate Sui On-chain inference (placeholder)"""
+    # This would call the actual Sui contract
+    # For now, simulate with similar output structure
+    layer_dims = converted_model.get('layerDimensions', [])
+    output_dim = layer_dims[-1][1] if layer_dims else 10
     
-    # Placeholder for future implementation
-    sample_data = pd.DataFrame({
-        'Timestamp': ['2024-01-15 10:30:00', '2024-01-15 11:45:00', '2024-01-15 14:20:00'],
-        'Model Name': ['mnist_classifier.h5', 'cifar10_model.h5', 'custom_net.h5'],
-        'Status': ['Success', 'Failed', 'Success'],
-        'Conversion Time': ['2.3s', 'N/A', '4.1s'],
-        'Parameters': ['7,850', 'N/A', '12,450']
-    })
+    raw_output = np.random.randn(output_dim)
+    # Apply softmax manually
+    exp_output = np.exp(raw_output - np.max(raw_output))
+    output = exp_output / np.sum(exp_output)
     
-    st.dataframe(sample_data, use_container_width=True)
+    return {
+        'raw_output': output,
+        'prediction': output.tolist(),
+        'confidence': float(np.max(output)),
+        'argmax': int(np.argmax(output))
+    }
+
+
+def compare_inference_results(web2_result: Dict[str, Any], sui_result: Dict[str, Any]) -> Dict[str, Any]:
+    """Compare Web2 and Sui inference results"""
+    web2_pred = np.array(web2_result['prediction'])
+    sui_pred = np.array(sui_result['prediction'])
+    
+    # Calculate differences
+    diff = np.abs(web2_pred - sui_pred)
+    max_diff = float(np.max(diff))
+    mean_diff = float(np.mean(diff))
+    
+    # Check if argmax matches
+    argmax_match = web2_result['argmax'] == sui_result['argmax']
+    
+    # Consider identical if differences are very small (accounting for floating point precision)
+    identical = max_diff < 1e-6 and argmax_match
+    
+    return {
+        'identical': identical,
+        'max_diff': max_diff,
+        'mean_diff': mean_diff,
+        'argmax_match': argmax_match,
+        'web2_argmax': web2_result['argmax'],
+        'sui_argmax': sui_result['argmax']
+    }
+
+
+def render_validation_summary(results: List[Dict[str, Any]]):
+    """Render overall validation summary"""
+    st.divider()
+    st.subheader("📊 Validation Summary")
+    
+    total_tests = len(results)
+    identical_count = sum(1 for r in results if r['identical'])
+    argmax_match_count = sum(1 for r in results if r['argmax_match'])
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total Tests", total_tests)
+    with col2:
+        st.metric("Identical Results", f"{identical_count}/{total_tests}")
+    with col3:
+        st.metric("Prediction Match", f"{argmax_match_count}/{total_tests}")
+    with col4:
+        success_rate = (identical_count / total_tests) * 100 if total_tests > 0 else 0
+        st.metric("Success Rate", f"{success_rate:.1f}%")
+    
+    # Detailed results table
+    if results:
+        st.markdown("**Detailed Results:**")
+        results_df = pd.DataFrame([
+            {
+                "Test": i+1,
+                "Identical": "✅" if r['identical'] else "❌",
+                "Max Difference": f"{r['max_diff']:.6f}",
+                "Web2 Prediction": r['web2_argmax'],
+                "Sui Prediction": r['sui_argmax'],
+                "Match": "✅" if r['argmax_match'] else "❌"
+            }
+            for i, r in enumerate(results)
+        ])
+        st.dataframe(results_df, use_container_width=True)
+    
+    # Validation verdict
+    if identical_count == total_tests:
+        st.success("🎉 **VALIDATION PASSED**: All inference results are identical!")
+    elif argmax_match_count == total_tests:
+        st.warning("⚠️ **PARTIAL VALIDATION**: Predictions match but numerical differences exist")
+    else:
+        st.error("❌ **VALIDATION FAILED**: Inference results differ significantly")
 
 
 def render_system_status_tab():
     """Render system status tab"""
-    st.header("System Status")
+    st.header("⚙️ System Status")
     
     # System health metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("System Status", "🟢 Healthy")
-    with col2:
-        st.metric("API Status", "🟢 Online")
-    with col3:
         st.metric("Conversion Service", "🟢 Ready")
+    with col2:
+        st.metric("TensorFlow", "🟢 Available")
+    with col3:
+        st.metric("Sui Connection", "🟡 Not Connected")  # Will be implemented
     with col4:
-        st.metric("Storage", "🟡 85% Used")
+        st.metric("Validation Engine", "🟢 Ready")
+    
+    st.divider()
+    
+    # Implementation status
+    st.subheader("🚧 Implementation Status")
+    
+    features_status = {
+        "H5 to OpenGraph Conversion": "✅ Implemented",
+        "Web2 TensorFlow Inference": "✅ Implemented (with image support)",
+        "Image Preprocessing": "✅ Implemented (Dense & Conv models)",
+        "Sui Contract Integration": "❌ Not implemented",
+        "On-chain Inference": "❌ Not implemented", 
+        "Result Comparison Engine": "✅ Implemented",
+        "Validation Reporting": "✅ Implemented (with detailed analysis)"
+    }
+    
+    for feature, status in features_status.items():
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.text(feature)
+        with col2:
+            st.text(status)
     
     st.divider()
     
     # Environment info
-    st.subheader("Environment Information")
+    st.subheader("🔧 Environment")
     env_info = {
-        "TensorFlow Version": "2.19.0",
-        "Keras Version": "3.9.2",
-        "Python Version": "3.9+",
-        "Streamlit Version": "1.30.0",
-        "OpenGraph Schema Version": "1.0.0"
+        "Python": "3.9+",
+        "TensorFlow": "2.19.0",
+        "Streamlit": "1.30.0",
+        "OpenGraph Schema": "1.0.0"
     }
     
-    env_df = pd.DataFrame(list(env_info.items()), columns=['Component', 'Version'])
-    st.dataframe(env_df, use_container_width=True)
+    for component, version in env_info.items():
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            st.text(component)
+        with col2:
+            st.text(version)
 
 
 def main():
@@ -647,10 +877,10 @@ def main():
     
     selected_tab = render_sidebar()
     
-    if selected_tab == "Model Upload & Validation":
-        render_upload_validation_tab()
-    elif selected_tab == "Conversion History":
-        render_conversion_history_tab()
+    if selected_tab == "Model Conversion":
+        render_conversion_tab()
+    elif selected_tab == "Model Validation":
+        render_validation_tab()
     elif selected_tab == "System Status":
         render_system_status_tab()
 

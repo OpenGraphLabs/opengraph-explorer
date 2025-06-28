@@ -30,7 +30,7 @@ Markdown==3.8
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
 mdurl==0.1.2
-ml_dtypes==0.5.1
+ml_dtypes>=0.5.1
 namex==0.0.8
 narwhals==1.44.0
 numpy==1.26.4
@@ -41,6 +41,7 @@ packaging==25.0
 pandas==2.3.0
 pillow==11.2.1
 plotly==6.1.2
+opencv-python==4.8.1.78
 protobuf==5.29.4
 pyarrow==20.0.0
 pyasn1==0.6.1
@@ -68,9 +69,8 @@ tenacity==9.1.2
 tensorboard==2.19.0
 tensorboard-data-server==0.7.2
 tensorflow==2.19.0
-tensorflow-estimator==2.15.0
+tensorflow-estimator>=2.15.0
 tensorflow-io-gcs-filesystem==0.37.1
-tensorflow-macos==2.15.0
 termcolor==3.0.1
 toml==0.10.2
 tornado==6.5.1

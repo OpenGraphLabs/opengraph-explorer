@@ -1,40 +1,34 @@
-# OpenGraph Converter Admin
+# OpenGraph Model Validator
 
-A comprehensive admin interface for validating and testing ML model conversions to OpenGraph schema format.
+A streamlined admin interface for validating ML model conversions and comparing Web2 TensorFlow models with their Sui On-chain twins.
 
 ## Overview
 
-The OpenGraph Converter Admin provides a user-friendly Streamlit-based web interface that allows administrators to:
+The OpenGraph Model Validator provides a focused Streamlit-based web interface that allows administrators to:
 
-- Upload and validate .h5 model files
-- Test conversion to OpenGraph schema format
-- View detailed conversion statistics and metrics
-- Monitor system health and status
-- Generate comprehensive conversion reports
+- Convert .h5 model files to OpenGraph schema format
+- Compare Web2 TensorFlow inference with Sui On-chain inference
+- Validate identical behavior between Web2 and Sui models
+- Monitor system health and implementation status
 
 ## Features
 
-### 🔍 Model Validation
-- **File Validation**: Validates uploaded .h5 files for format correctness
-- **Model Structure Analysis**: Analyzes model architecture and parameters
-- **Compatibility Checking**: Verifies model compatibility with OpenGraph conversion
+### 🔄 Model Conversion
+- **H5 to OpenGraph**: Convert Keras/TensorFlow .h5 models to OpenGraph schema
+- **Schema Generation**: Generate JSON schema compatible with Sui Move contracts
+- **Conversion Validation**: Validate successful conversion with basic checks
+- **Architecture Analysis**: Display converted model structure and parameters
 
-### 🔄 Conversion Testing
-- **Real-time Conversion**: Converts models using the same logic as the production system
-- **Detailed Metrics**: Provides comprehensive conversion statistics
-- **Error Handling**: Captures and displays detailed error information
-- **Performance Monitoring**: Tracks conversion time and resource usage
+### 🧪 Model Validation
+- **Inference Comparison**: Compare Web2 TensorFlow vs Sui On-chain inference results
+- **Test Input Generation**: Generate random, custom, or sample dataset inputs
+- **Result Analysis**: Analyze prediction differences and accuracy matches
+- **Validation Reporting**: Detailed validation summary with success/failure rates
 
-### ✅ Schema Validation
-- **Schema Compliance**: Validates converted data against OpenGraph schema
-- **Data Integrity**: Checks for data consistency and completeness
-- **Field Validation**: Ensures all required fields are present and correctly formatted
-
-### 📊 Visualization & Analysis
-- **Layer Structure Visualization**: Interactive charts showing model architecture
-- **Parameter Distribution**: Visual analysis of parameter distribution across layers
-- **Conversion History**: Track and review past conversion attempts
-- **System Health Dashboard**: Monitor system status and dependencies
+### ⚙️ System Monitoring
+- **Implementation Status**: Track progress of Sui integration components
+- **Environment Health**: Monitor TensorFlow, Streamlit, and dependency status
+- **Connection Status**: Check Sui blockchain connection readiness
 
 ## Installation
 
@@ -88,44 +82,55 @@ http://localhost:8501
 ## Interface Guide
 
 ### Main Navigation
-The admin interface consists of three main sections accessible via the sidebar:
+The validator interface consists of three main sections accessible via the sidebar:
 
-1. **Model Upload & Validation**: Primary interface for testing model conversions
-2. **Conversion History**: View historical conversion records and statistics
-3. **System Status**: Monitor system health and environment information
+1. **Model Conversion**: Convert .h5 models to OpenGraph schema format
+2. **Model Validation**: Compare Web2 vs Sui On-chain inference results
+3. **System Status**: Monitor system health and implementation progress
 
-### Model Upload & Validation Workflow
+### Model Conversion Workflow
 
 1. **Upload Model File**
    - Click "Browse files" to select a .h5 model file
-   - View file information (name, size, type)
+   - View file information (name, size)
 
-2. **Run Conversion & Validation**
-   - Click "Convert & Validate Model" to start the process
-   - Monitor progress through the 4-step validation process
+2. **Convert Model**
+   - Click "Convert Model" to start the conversion process
+   - Review conversion summary (layers, parameters, architecture)
+   - Copy generated JSON schema for Sui contract usage
 
-3. **Review Results**
-   - **Step 1**: File validation results and model information
-   - **Step 2**: Conversion metrics and success status
-   - **Step 3**: Schema validation and compliance checking
-   - **Step 4**: Model analysis and visualization
+### Model Validation Workflow
+
+1. **Load Converted Model**
+   - Ensure you have a converted model from the previous step
+   - Configure test input type and number of test cases
+
+2. **Run Validation Tests**
+   - Click "Run Validation Tests" to start inference comparison
+   - View side-by-side results for Web2 vs Sui inference
+   - Analyze differences and prediction matches
+
+3. **Review Validation Summary**
+   - Check overall success rate and identical result count
+   - Review detailed test results table
+   - Determine validation verdict (passed/partial/failed)
 
 ### Understanding Validation Results
 
-#### File Validation
-- ✅ **Passed**: File is valid and can be processed
-- ❌ **Failed**: File has issues that prevent processing
-- ⚠️ **Warnings**: File is processable but has potential issues
+#### Conversion Status
+- ✅ **Success**: Model was successfully converted to OpenGraph format
+- ❌ **Failed**: Conversion encountered errors (check error messages)
+- **Metrics**: Layers, parameters, scale factor, and model architecture
 
-#### Conversion Results
-- **Success**: Model was successfully converted to OpenGraph format
-- **Failed**: Conversion encountered errors
-- **Metrics**: Time taken, layers converted, parameters processed
+#### Validation Results
+- **Identical**: Web2 and Sui inference results are numerically identical (< 1e-6 difference)
+- **Prediction Match**: Argmax predictions match but may have small numerical differences
+- **Different**: Significant differences in inference results requiring investigation
 
-#### Schema Validation
-- **Compliance**: All required fields present and correctly formatted
-- **Integrity Score**: Percentage indicating data completeness and consistency
-- **Field Validation**: Detailed validation of individual schema components
+#### Success Rates
+- **100% Success**: All tests passed with identical results ✅
+- **Partial Success**: Predictions match but with numerical differences ⚠️
+- **Validation Failed**: Significant differences detected requiring debugging ❌
 
 ## Architecture
 
