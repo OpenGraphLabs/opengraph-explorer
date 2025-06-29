@@ -6,15 +6,20 @@ with chunked processing and result analysis.
 """
 
 import logging
+import os
 from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
+from dotenv import load_dotenv
 
 from pysui.sui.sui_txn.sync_transaction import SuiTransaction
-from pysui.sui.sui_types.scalars import ObjectID, SuiU64, SuiU8, SuiString, SuiBoolean
+from pysui.sui.sui_types.scalars import ObjectID, SuiU64
 from pysui.sui.sui_types.collections import SuiArray
 from pysui.sui.sui_config import SuiConfig
 from pysui.sui.sui_clients.sync_client import SuiClient
 import ast
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -31,7 +36,7 @@ class SuiNetworkConfig:
 @dataclass
 class SuiContractConfig:
     """Sui contract configuration."""
-    package_id: str = "0x7bf2c91415b64b6e3b7e7d314726002b3aae3a393695d31b2e0c0a39aa56b076"
+    package_id: str = "0xb2297c10ac54cee83eef6d3bb0f9f44a013d545cd8eb6f71de2362dc98855b34"
     module_name: str = "model"
 
 
@@ -79,13 +84,22 @@ class SuiInferenceService:
         self.contract_config = contract_config or SuiContractConfig()
         
         # Sui client configuration
-        self.sui_config = SuiConfig.default_config()
-        self.client: Optional[SuiClient] = None
+        sui_private_key = os.getenv('SUI_PRIVATE_KEY')
+        
+        if not sui_private_key:
+            raise ValueError("SUI_PRIVATE_KEY environment variable is required")
+        
+        self.sui_config = SuiConfig.user_config(
+            rpc_url='https://rpc-testnet.suiscan.xyz:443',
+            prv_keys=[sui_private_key],
+        )
+        print("xxxxx sui config xxxxx")
+        print(self.sui_config.__dict__)
         
         # Constants from TypeScript
         self.MAX_PARAMS_PER_TX = 3000
         self.PREDICT_COMPUTATION_BATCH_SIZE = 100
-        self.GAS_BUDGET = 500_000_000  # 0.5 SUI
+        self.GAS_BUDGET = 1_000_000_000  # 1 SUI
         
         self._setup_client()
     
@@ -93,10 +107,11 @@ class SuiInferenceService:
         """Setup Sui client with network configuration."""
         try:
             # For now, use default config and client initialization
+            print("@@@@ sui setup_client @@@@")
             # TODO: Investigate proper way to set custom RPC URL in pysui
             logger.info(f"Initializing Sui client for {self.network_config.network_type}")
             logger.info(f"Target RPC URL: {self.network_config.rpc_url}")
-            
+
             # Try creating client with default config
             self.client = SuiClient(self.sui_config)
             
@@ -111,7 +126,7 @@ class SuiInferenceService:
             # Don't raise - we'll handle the None client gracefully in inference calls
             self.client = None
     
-    def predict_model_with_chunked_ptb(
+    def predict_model_with_layer_ptb(
         self,
         model: ModelObject,
         input_magnitude: List[int],
@@ -140,7 +155,11 @@ class SuiInferenceService:
         
         if not model.graphs or not model.graphs[0].layers:
             raise ValueError("Model graph or layers not found")
-        
+
+        print("xxxxxxxxx")
+        print("starting on-chain inference...")
+        print("package_id:", self.contract_config.package_id)
+        print("model id:", model.id)
         layers = model.graphs[0].layers
         
         try:
@@ -149,124 +168,74 @@ class SuiInferenceService:
             
             # Create transaction
             txn = SuiTransaction(client=self.client)
+
+            layer_result_magnitudes = None
+            layer_result_signs = None
+
+            # execute first layer with input vectors
+            for dimension_idx in range(layers[0].out_dimension):
+                # return: (accumulated magnitude, accumulated sign, output dimension index, is last dimension)
+                partial_result = txn.move_call(
+                    target=f"{self.contract_config.package_id}::{self.contract_config.module_name}::predict_layer_partial",
+                    arguments=[
+                        ObjectID(model.id),  # model object
+                        SuiU64(0),           # layer index
+                        SuiU64(dimension_idx),  # output node index
+
+                        # input magnitudes/signs for first layer
+                        SuiArray([SuiU64(val) for val in input_magnitude]),
+                        SuiArray([SuiU64(val) for val in input_sign]),
+
+                        layer_result_magnitudes if layer_result_magnitudes is not None else SuiArray([]),
+                        layer_result_signs if layer_result_signs is not None else SuiArray([]),
+                    ],
+                )
+
+                layer_result_magnitudes = partial_result[0]
+                layer_result_signs = partial_result[1]
             
-            result_magnitudes = None
-            result_signs = None
-            
-            # Process all layers sequentially
-            for layer_idx, layer in enumerate(layers):
+            # Process the rest layers sequentially
+            for layer_idx, layer in enumerate(layers[1:], start=1):
                 logger.info(f"Processing layer {layer_idx}...")
-                
+
                 input_dimension = layer.in_dimension
                 output_dimension = layer.out_dimension
-                
                 logger.info(f"Input dimension: {input_dimension}, Output dimension: {output_dimension}")
-                
-                # Initialize new result vectors for this layer
-                layer_result_magnitudes = None
-                layer_result_signs = None
+
+                current_layer_result_magnitudes = None
+                current_layer_result_signs = None
                 
                 # Process each output node
                 for output_dim_idx in range(output_dimension):
-                    # Initialize variables for current output dimension computation
-                    current_magnitude = None
-                    current_sign = None
-                    
-                    # Process input dimensions in chunks
-                    chunk_start_idx = 0
-                    while chunk_start_idx < input_dimension:
-                        # Prepare arguments for the move call
-                        args = [
+                    # return: (accumulated magnitude, accumulated sign, output dimension index, is last dimension)
+                    partial_result = txn.move_call(
+                        target=f"{self.contract_config.package_id}::{self.contract_config.module_name}::predict_layer_partial",
+                        arguments=[
                             ObjectID(model.id),  # model object
                             SuiU64(layer_idx),   # layer index
                             SuiU64(output_dim_idx),  # output node index
-                        ]
-                        
-                        # Input vectors (use previous layer result or initial input)
-                        if layer_idx == 0:
-                            args.extend([
-                                SuiArray([SuiU64(val) for val in input_magnitude]),
-                                SuiArray([SuiU64(val) for val in input_sign])
-                            ])
-                        else:
-                            # This would require handling of previous transaction results
-                            # For now, we'll implement a simplified version
-                            args.extend([
-                                SuiArray([SuiU64(val) for val in input_magnitude]),
-                                SuiArray([SuiU64(val) for val in input_sign])
-                            ])
-                        
-                        # Add chunk parameters
-                        args.extend([
-                            SuiU64(chunk_start_idx),  # chunk start index
-                            SuiU64(self.PREDICT_COMPUTATION_BATCH_SIZE),  # chunk size
-                        ])
-                        
-                        # Add accumulated values
-                        if chunk_start_idx == 0:
-                            args.extend([
-                                SuiU64(0),  # current magnitude
-                                SuiU64(0),  # current sign
-                            ])
-                        else:
-                            # Use accumulated values from previous chunk
-                            args.extend([
-                                current_magnitude or SuiU64(0),
-                                current_sign or SuiU64(0),
-                            ])
-                        
-                        # Add result vectors
-                        if layer_result_magnitudes is None:
-                            args.extend([
-                                SuiArray([]),  # empty result magnitudes
-                                SuiArray([]),  # empty result signs
-                            ])
-                        else:
-                            args.extend([
-                                layer_result_magnitudes,
-                                layer_result_signs,
-                            ])
-                        
-                        # Call the on-chain function
-                        target = f"{self.contract_config.package_id}::{self.contract_config.module_name}::predict_layer_partial_chunked"
-                        
-                        result = txn.move_call(
-                            target=target,
-                            arguments=args,
-                        )
-                        
-                        # Update result references (simplified for this implementation)
-                        layer_result_magnitudes = result  # In practice, this would be result[0]
-                        layer_result_signs = result       # In practice, this would be result[1]
-                        current_magnitude = result        # In practice, this would be result[2]
-                        current_sign = result             # In practice, this would be result[3]
-                        
-                        # Update chunk start index
-                        chunk_start_idx += self.PREDICT_COMPUTATION_BATCH_SIZE
-                        
-                        # Log progress
-                        chunk_end_idx = min(chunk_start_idx, input_dimension)
-                        logger.info(
-                            f"Output node {output_dim_idx}/{output_dimension - 1}, "
-                            f"Input chunk {chunk_start_idx - self.PREDICT_COMPUTATION_BATCH_SIZE}-{chunk_end_idx - 1}/"
-                            f"{input_dimension - 1} processed"
-                        )
-                    
-                    logger.info(f"Output node {output_dim_idx} processing completed")
+
+                            layer_result_magnitudes,
+                            layer_result_signs,
+
+                            current_layer_result_magnitudes if current_layer_result_magnitudes is not None else SuiArray([]),
+                            current_layer_result_signs if current_layer_result_signs is not None else SuiArray([]),
+                        ],
+                    )
+
+                    print("@@@@ layer ptb result @@@@@")
+                    print(partial_result)
+
+                    # Update current layer results
+                    current_layer_result_magnitudes = partial_result[0]
+                    current_layer_result_signs = partial_result[1]
                 
                 # Update results for next layer
-                result_magnitudes = layer_result_magnitudes
-                result_signs = layer_result_signs
-                
-                logger.info(f"Layer {layer_idx} processing completed")
-            
+                layer_result_magnitudes = current_layer_result_magnitudes
+                layer_result_signs = current_layer_result_signs
+
             # Execute transaction
-            logger.info("Executing transaction...")
-            
-            # Set gas budget
-            txn.set_gas_budget(self.GAS_BUDGET)
-            
-            # Execute the transaction
+            print("Executing transaction...")
             execution_result = txn.execute(gas_budget=self.GAS_BUDGET)
             
             if execution_result.is_ok():
@@ -519,7 +488,7 @@ class SuiInferenceManager:
             # Run inference
             logger.info("Starting on-chain inference test...")
             
-            results = self.service.predict_model_with_chunked_ptb(
+            results = self.service.predict_model_with_layer_ptb(
                 self.current_model,
                 input_magnitude,
                 input_sign

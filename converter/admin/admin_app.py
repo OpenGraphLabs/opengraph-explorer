@@ -866,9 +866,16 @@ def run_sui_inference(converted_model: Dict[str, Any], test_input: np.ndarray) -
             scale=converted_model.get('scale', 1000000),
             creator='test'
         )
-        
+        print("@@@@ test input @@@@ ")
+        print(test_input)
+
+        scale = int(converted_model.get('scale', 2))
         # Convert input to magnitude and sign vectors for Sui
-        input_magnitude, input_sign = convert_input_to_sui_format(test_input, int(converted_model.get('scale', 1000000)))
+        input_magnitude, input_sign = convert_input_to_sui_format(test_input, scale)
+        print("@@@@ converted input magnitude @@@@ ")
+        print(input_magnitude)
+        print("@@@@ converted input sign @@@@ ")
+        print(input_sign)
         
         # Initialize Sui inference manager
         sui_manager = SuiInferenceManager()
@@ -934,10 +941,10 @@ def run_sui_inference(converted_model: Dict[str, Any], test_input: np.ndarray) -
         }
 
 
-def convert_input_to_sui_format(input_array: np.ndarray, scale: int) -> Tuple[List[int], List[int]]:
+def convert_input_to_sui_format(input_array: np.ndarray, scale: int = 2) -> Tuple[List[int], List[int]]:
     """Convert floating point input to Sui magnitude/sign format"""
     # Scale the input values
-    scaled_input = input_array * scale
+    scaled_input = input_array * (10 ** scale)
     
     # Split into magnitude and sign
     magnitude = [int(abs(val)) for val in scaled_input]
