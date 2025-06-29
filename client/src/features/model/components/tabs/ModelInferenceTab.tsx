@@ -49,8 +49,6 @@ export function ModelInferenceTab({ model }: ModelInferenceTabProps) {
     return model.graphs[0].layers.length;
   };
 
-  console.log("model: \n", model);
-
   // Use inference hook
   const {
     currentLayerIndex,

@@ -507,7 +507,6 @@ export class DatasetGraphQLService {
     return nodes.map(node => {
       // JSON 데이터 추출
       const jsonData = node?.asMoveObject?.contents?.json;
-      console.log("JSON 데이터:", jsonData);
 
       // 동적 필드 데이터 및 페이지네이션 정보 추출
       const dynamicFieldsResponse = node?.asMoveObject?.dynamicFields;
@@ -594,9 +593,7 @@ export class DatasetGraphQLService {
    */
   private transformDatasetNodes(nodes: any[]): DatasetObject[] {
     return nodes.map(node => {
-      // JSON 데이터 추출
       const jsonData = node?.asMoveObject?.contents?.json;
-      console.log("JSON 데이터:", jsonData);
 
       // 동적 필드 데이터 추출
       const dynamicFields = node?.asMoveObject?.dynamicFields?.nodes || [];

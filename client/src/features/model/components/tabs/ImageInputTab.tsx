@@ -22,7 +22,6 @@ export function ImageInputTab({
 
   // 이미지를 벡터로 변환
   const imageToVector = async (dataUrl: string, dimension: number): Promise<number[]> => {
-    console.log("Converting image to vector, data URL length:", dataUrl.length);
     try {
       const vector = await canvasToVector(dataUrl, dimension);
       console.log("Vector conversion successful, length:", vector.length);
@@ -127,7 +126,6 @@ export function ImageInputTab({
                 return;
               }
 
-              console.log("Vector generated successfully, updating state");
               // Store vector for display
               setImageData({ dataUrl, vector });
 

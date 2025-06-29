@@ -272,7 +272,6 @@ export function useModelInferenceState(model: ModelObject, totalLayers: number) 
         const layers: Layer[] = model.graphs[0].layers;
         // 각 레이어의 출력 차원을 추출
         const dimensions = layers.map((layer: Layer) => Number(layer.out_dimension));
-        console.log("Layer dimensions from model:", dimensions);
         if (dimensions.length === totalLayers && dimensions.every((dim: number) => dim > 0)) {
           return dimensions;
         }
