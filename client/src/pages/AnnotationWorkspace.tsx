@@ -251,7 +251,7 @@ export function AnnotationWorkspace() {
         },
       }));
 
-      // TODO(Jerry): Submit complete annotations with server API
+      // TODO(Jerry): Submit complete annotations with server_archived API
 
       // Clear annotation stack after successful submission
       annotationStack.actions.clearStack();

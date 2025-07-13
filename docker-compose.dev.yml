@@ -20,29 +20,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # PostgreSQL Database Initialization
-  migrate:
-    build:
-      context: .
-      dockerfile: docker/migrate/Dockerfile
-    container_name: opengraph-migrate
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: >
-      bash -c "
-        cargo sqlx database create &&
-        cargo sqlx migrate run &&
-        cargo sqlx prepare --check
-      "
-    environment:
-      DATABASE_URL: ${SERVER_DATABASE_URL}
-    volumes:
-      - ./server:/app
-    networks:
-      - opengraph-backend-network
-
-  # Rust Backend Server for Development
+  # Python Backend Server for Development
   server:
     build:
       context: .
@@ -51,14 +29,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: ${SERVER_DATABASE_URL}
       PORT: ${SERVER_PORT}
-      RUST_LOG: ${SERVER_RUST_LOG}
     depends_on:
       postgres:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - opengraph-backend-network
       - opengraph-frontend-network

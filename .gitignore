@@ -93,7 +93,7 @@ converter/.env.*
 *.log
 
 # Test Model Files
-# *.h5
+*.h5
 
 # Docker
 .docker/
