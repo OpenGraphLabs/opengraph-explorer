@@ -9,6 +9,7 @@ sqlalchemy==2.0.23
 asyncpg==0.29.0
 alembic==1.13.1
 psycopg2-binary==2.9.9
+greenlet==3.0.1
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0

@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     database_host: str = "localhost"
     database_port: int = 5432
     database_name: str = "opengraph"
-    database_user: str = "postgres"
-    database_password: str = "password"
+    database_user: str = "opengraph_user"
+    database_password: str = "opengraph_pw"
     
     @validator("database_url", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: dict) -> str:
@@ -33,11 +33,11 @@ class Settings(BaseSettings):
             return v
         return PostgresDsn.build(
             scheme="postgresql+asyncpg",
-            user=values.get("database_user"),
-            password=values.get("database_password"),
-            host=values.get("database_host"),
-            port=str(values.get("database_port")),
-            path=f"/{values.get('database_name') or ''}"
+            username=values.get("database_user", "opengraph_user"),
+            password=values.get("database_password", "opengraph_pw"),
+            host=values.get("database_host", "localhost"),
+            port=values.get("database_port", 5432),
+            path=values.get("database_name", "opengraph")
         )
     
     # Authentication

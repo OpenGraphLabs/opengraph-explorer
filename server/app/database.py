@@ -5,7 +5,7 @@ SQLAlchemy를 사용한 비동기 데이터베이스 연결과 세션 관리
 """
 
 from typing import AsyncGenerator
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -83,7 +83,7 @@ async def test_db_connection() -> bool:
     """
     try:
         async with async_engine.begin() as conn:
-            await conn.execute("SELECT 1")
+            await conn.execute(text("SELECT 1"))
         return True
     except Exception as e:
         print(f"Database connection failed: {e}")
