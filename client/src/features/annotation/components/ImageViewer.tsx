@@ -16,7 +16,6 @@ interface ImageViewerProps {
   currentTool: AnnotationType;
   selectedLabel: string;
   isDrawing: boolean;
-  currentPhase: string;
   onZoomChange: (zoom: number) => void;
   onPanChange: (offset: Point) => void;
   onAddBoundingBox: (bbox: Omit<BoundingBox, "id">) => void;
@@ -54,7 +53,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   currentTool,
   selectedLabel,
   isDrawing,
-  currentPhase,
   onZoomChange,
   onPanChange,
   onAddBoundingBox,
@@ -84,33 +82,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Mode system states - phase-dependent default mode
-  const getDefaultModeForPhase = (phase: string): boolean => {
-    switch (phase) {
-      case "label":
-        return true; // Always pan mode for label phase
-      case "bbox":
-        return false; // Default to drawing mode for bbox phase
-      case "segmentation":
-        return false; // Default to drawing mode for segmentation phase
-      default:
-        return true; // Default to pan mode
-    }
-  };
-
-  const [isPanMode, setIsPanMode] = useState(getDefaultModeForPhase(currentPhase));
-
-  // Reset mode when phase changes
-  useEffect(() => {
-    const newDefaultMode = getDefaultModeForPhase(currentPhase);
-    setIsPanMode(newDefaultMode);
-  }, [currentPhase]);
-
-  // Force pan mode for label phase
-  const actualIsPanMode = currentPhase === "label" ? true : isPanMode;
-
-  // Mode switcher should be visible only for non-label phases
-  const shouldShowModeSwitcher = currentPhase !== "label";
+  const [isPanMode, setIsPanMode] = useState(false);
 
   // BBox editing states
   const [selectedBboxId, setSelectedBboxId] = useState<string | null>(null);
@@ -337,7 +309,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       const imagePoint = screenToImage(e.clientX, e.clientY);
 
       // In pan mode, only allow panning
-      if (actualIsPanMode) {
+      if (isPanMode) {
         setIsPanning(true);
         setLastPanPoint({ x: e.clientX, y: e.clientY });
         return;
@@ -416,7 +388,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       setDrawing,
       boundingBoxes,
       getHandleAtPoint,
-      actualIsPanMode,
+      isPanMode,
       onSelectAnnotation,
       isPointInBBox,
     ]
@@ -462,7 +434,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
 
         let cursor = "default";
 
-        if (actualIsPanMode) {
+        if (isPanMode) {
           cursor = "grab";
         } else if (currentTool === "bbox") {
           cursor = "crosshair";
@@ -893,19 +865,15 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
 
   // Helper function to get instruction text based on current state
   const getInstructionText = () => {
-    if (currentPhase === "bbox") {
-      const hasAnnotation = boundingBoxes.length > 0;
-      
-      if (!selectedLabel) {
-        return "In this prototype, select label from the dropdown → Draw only *ONE* box → Click the right arrow to go next";
-      } else if (!hasAnnotation) {
-        return "In this prototype, draw only *ONE* bounding box on the image → Click the right arrow to go next";
-      } else {
-        return "✓ Box completed! → Click the right arrow to go next";
-      }
+    const hasAnnotation = boundingBoxes.length > 0;
+
+    if (!selectedLabel) {
+      return "In this prototype, select label from the dropdown → Draw only *ONE* box → Click the right arrow to go next";
+    } else if (!hasAnnotation) {
+      return "In this prototype, draw only *ONE* bounding box on the image → Click the right arrow to go next";
+    } else {
+      return "✓ Box completed! → Click the right arrow to go next";
     }
-    // Only show instructions for bbox phase
-    return "";
   };
 
   if (!imageUrl) {
@@ -1004,9 +972,9 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
             textAlign: "center",
           }}
         >
-          <Text 
-            size="2" 
-            style={{ 
+          <Text
+            size="2"
+            style={{
               fontWeight: 600,
               color: theme.colors.text.primary,
               lineHeight: 1.4,
@@ -1018,108 +986,106 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       )}
 
       {/* Compact Icon-Based Mode Switcher - Only show for non-label phases */}
-      {shouldShowModeSwitcher && (
-        <Box
-          style={{
-            position: "absolute",
-            top: theme.spacing.semantic.component.sm,
-            right: theme.spacing.semantic.component.sm,
-            background: `${theme.colors.background.card}95`,
-            padding: `${theme.spacing.semantic.component.xs}`,
-            borderRadius: theme.borders.radius.md,
-            border: `1px solid ${theme.colors.border.primary}20`,
-            backdropFilter: "blur(8px)",
-            boxShadow: `0 2px 8px ${theme.colors.background.primary}20`,
-          }}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-        >
-          <Flex align="center" gap="0">
-            <Box
+      <Box
+        style={{
+          position: "absolute",
+          top: theme.spacing.semantic.component.sm,
+          right: theme.spacing.semantic.component.sm,
+          background: `${theme.colors.background.card}95`,
+          padding: `${theme.spacing.semantic.component.xs}`,
+          borderRadius: theme.borders.radius.md,
+          border: `1px solid ${theme.colors.border.primary}20`,
+          backdropFilter: "blur(8px)",
+          boxShadow: `0 2px 8px ${theme.colors.background.primary}20`,
+        }}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        <Flex align="center" gap="0">
+          <Box
+            style={{
+              display: "flex",
+              background: theme.colors.background.secondary,
+              borderRadius: theme.borders.radius.sm,
+              border: `1px solid ${theme.colors.border.primary}30`,
+              overflow: "hidden",
+            }}
+          >
+            <Button
+              onClick={() => setIsPanMode(true)}
               style={{
+                padding: `8px 12px`,
+                background: isPanMode ? theme.colors.interactive.primary : "transparent",
+                color: isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                borderRadius: 0,
                 display: "flex",
-                background: theme.colors.background.secondary,
-                borderRadius: theme.borders.radius.sm,
-                border: `1px solid ${theme.colors.border.primary}30`,
-                overflow: "hidden",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Button
-                onClick={() => setIsPanMode(true)}
-                style={{
-                  padding: `8px 12px`,
-                  background: isPanMode ? theme.colors.interactive.primary : "transparent",
-                  color: isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                  borderRadius: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Hand size={14} weight="bold" />
-              </Button>
-              <Box style={{ width: "1px", background: theme.colors.border.primary, opacity: 0.3 }} />
-              <Button
-                onClick={() => setIsPanMode(false)}
-                style={{
-                  padding: `8px 12px`,
-                  background: !isPanMode ? theme.colors.interactive.primary : "transparent",
-                  color: !isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                  borderRadius: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <PencilSimple size={14} weight="bold" />
-              </Button>
-            </Box>
-          </Flex>
-
-          {/* Subtle Tooltip */}
-          {showTooltip && (
-            <Box
+              <Hand size={14} weight="bold" />
+            </Button>
+            <Box style={{ width: "1px", background: theme.colors.border.primary, opacity: 0.3 }} />
+            <Button
+              onClick={() => setIsPanMode(false)}
               style={{
-                position: "absolute",
-                top: "100%",
-                right: 0,
-                marginTop: "4px",
-                background: `${theme.colors.background.card}98`,
-                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                borderRadius: theme.borders.radius.sm,
-                border: `1px solid ${theme.colors.border.primary}30`,
-                backdropFilter: "blur(8px)",
-                boxShadow: `0 4px 12px ${theme.colors.background.primary}30`,
-                whiteSpace: "nowrap",
-                zIndex: 1000,
+                padding: `8px 12px`,
+                background: !isPanMode ? theme.colors.interactive.primary : "transparent",
+                color: !isPanMode ? theme.colors.text.inverse : theme.colors.text.secondary,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                borderRadius: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.secondary,
-                  fontSize: "9px",
-                  fontWeight: 500,
-                }}
-              >
-                {isPanMode
-                  ? "Drag to navigate • Scroll to zoom"
-                  : currentTool === "bbox"
-                    ? "Draw bounding boxes • Del to delete"
-                    : currentTool === "segmentation"
-                      ? "Click points • Double-click to finish"
-                      : "Select annotation tool in sidebar"}
-              </Text>
-            </Box>
-          )}
-        </Box>
-      )}
+              <PencilSimple size={14} weight="bold" />
+            </Button>
+          </Box>
+        </Flex>
+
+        {/* Subtle Tooltip */}
+        {showTooltip && (
+          <Box
+            style={{
+              position: "absolute",
+              top: "100%",
+              right: 0,
+              marginTop: "4px",
+              background: `${theme.colors.background.card}98`,
+              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+              borderRadius: theme.borders.radius.sm,
+              border: `1px solid ${theme.colors.border.primary}30`,
+              backdropFilter: "blur(8px)",
+              boxShadow: `0 4px 12px ${theme.colors.background.primary}30`,
+              whiteSpace: "nowrap",
+              zIndex: 1000,
+            }}
+          >
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                fontSize: "9px",
+                fontWeight: 500,
+              }}
+            >
+              {isPanMode
+                ? "Drag to navigate • Scroll to zoom"
+                : currentTool === "bbox"
+                  ? "Draw bounding boxes • Del to delete"
+                  : currentTool === "segmentation"
+                    ? "Click points • Double-click to finish"
+                    : "Select annotation tool in sidebar"}
+            </Text>
+          </Box>
+        )}
+      </Box>
 
       {/* Floating Navigation Buttons */}
       {onPreviousImage && onNextImage && (

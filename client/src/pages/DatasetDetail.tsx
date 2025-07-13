@@ -5,7 +5,6 @@ import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircle, Users, Database, Hash } from "phosphor-react";
 import {
   useDatasetDetail,
-  useBlobData,
   DatasetImageGallery,
   DatasetPagination,
   getAnnotationColor,
@@ -44,7 +43,12 @@ export function DatasetDetail() {
     setConfirmationStatus,
   } = useDatasetDetail(id);
 
-  const { getImageUrl, isItemLoading, isAnyBlobLoading } = useBlobData(dataset);
+  // TODO(Jerry): Implement actual logic to retrieve image URL
+  const getImageUrl = (item: any) => {
+    return "image_url_placeholder"; // Placeholder, implement actual image URL retrieval logic
+  };
+  const isItemLoading = (item: any) => false;
+  const isAnyBlobLoading = () => false; // Placeholder, implement actual loading check
 
   const handleConfirmSelectedAnnotations = async () => {
     if (selectedPendingLabels.size === 0) {

@@ -6,7 +6,6 @@ import { SidebarLayout } from "@/widgets/layout/AppLayout";
 import {
   ArrowLeft,
   FloppyDisk,
-  Gear,
   Palette,
   Image,
   Target,
@@ -19,23 +18,12 @@ import {
 import { useWorkspace } from "@/features/annotation/hooks/useWorkspace";
 import { ImageViewer } from "@/features/annotation/components/ImageViewer";
 import { AnnotationType } from "@/features/annotation/types/workspace";
-import { useChallenge } from "@/features/challenge";
-import { useChallengeDataset } from "@/features/challenge/hooks/useChallengeDataset";
-import { usePhaseConstraints } from "@/features/annotation";
 
 // Import new modular components
 import { AnnotationSidebar } from "@/widgets/annotation-sidebar";
-import { AnnotationListPanel, InlineToolBar, SaveNotification } from "@/features/annotation";
+import { AnnotationListPanel, InlineToolBar } from "@/features/annotation";
 import { WorkspaceStatusBar } from "@/features/workspace-controls";
 import { useAnnotationTools, useImageNavigation } from "@/features/annotation";
-
-// Import new complete submission hook and notification
-import { useCompleteAnnotationSubmission } from "@/features/annotation/hooks/useCompleteAnnotationSubmission";
-import { SubmissionNotification } from "@/features/annotation/components/SubmissionNotification";
-
-// Import certificate components
-import { useCertificateData } from "@/features/challenge/hooks/useCertificateData";
-import { CertificateModal } from "@/features/challenge/components/CertificateModal";
 
 export function AnnotationWorkspace() {
   const { challengeId } = useParams<{ challengeId: string }>();
@@ -46,26 +34,12 @@ export function AnnotationWorkspace() {
     id: string;
   } | null>(null);
 
-  // Challenge data
-  const {
-    challenge,
-    loading: challengeLoading,
-    error: challengeError,
-  } = useChallenge(challengeId || "");
-
-  // Dataset integration - 실제 Dataset 이미지 사용
-  const {
-    images: datasetImages,
-    loading: datasetLoading,
-    error: datasetError,
-    progress: datasetProgress,
-    isDatasetValidForChallenge,
-    datasetId,
-  } = useChallengeDataset(challenge);
-
-  // Phase constraints
-  const currentPhase = challenge?.currentPhase || "label";
-  const { isToolAllowed, getDisallowedMessage, canAnnotate } = usePhaseConstraints(currentPhase);
+  const datasetImages = [];
+  const datasetLoading = false;
+  const datasetError = null;
+  const datasetProgress = { loaded: 0, total: 0, percentage: 0 };
+  const isDatasetValidForChallenge = true;
+  const datasetId = "dataset-123"; // Example dataset ID
 
   // Workspace state - Dataset 이미지 사용 (annotation stack 포함)
   const { state, actions, annotationStack, saveStatus } = useWorkspace(
@@ -75,79 +49,32 @@ export function AnnotationWorkspace() {
   );
 
   // Complete annotation submission hook
-  const completeSubmission = useCompleteAnnotationSubmission();
-
-  // Certificate data hook
-  const certificateData = useCertificateData();
-
-  // Certificate modal state
-  const [showCertificate, setShowCertificate] = useState(false);
+  const completeSubmission = {
+    isCompleted: false,
+    isSubmitting: false,
+    hasError: false,
+    finalScore: 0,
+    status: {
+      phase: "initial", // initial, blockchain, scoring
+      message: "",
+    },
+  };
 
   // Auto-redirect to challenges page after successful submission
   useEffect(() => {
     if (completeSubmission.isCompleted) {
       const timer = setTimeout(() => {
-        navigate('/challenges');
+        navigate("/datasets");
       }, 2000); // 2초 후 자동 리디렉션
 
       return () => clearTimeout(timer);
     }
   }, [completeSubmission.isCompleted, navigate]);
 
-  // Auto-set default tool based on current phase
-  useEffect(() => {
-    const getDefaultToolForPhase = (phase: string): AnnotationType => {
-      switch (phase) {
-        case "label":
-          return "label";
-        case "bbox":
-          return "bbox";
-        case "segmentation":
-          return "segmentation";
-        default:
-          return "label";
-      }
-    };
-
-    const defaultTool = getDefaultToolForPhase(currentPhase);
-
-    // Only change tool if current tool is not allowed in the new phase
-    if (!isToolAllowed(state.currentTool)) {
-      actions.setCurrentTool(defaultTool);
-    }
-  }, [currentPhase, isToolAllowed, state.currentTool, actions]);
-
-  // Auto-select first predefined label when switching to an image with predefined labels
-  useEffect(() => {
-    if (challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage) {
-      const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
-      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
-
-      if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
-        // Auto-select first predefined label if no label is currently selected
-        if (!state.selectedLabel) {
-          actions.setSelectedLabel(predefinedLabelsForImage[0]);
-        }
-      }
-    }
-  }, [challenge, state.currentImage, state.selectedLabel, datasetImages, actions]);
-
-  // Enhanced tool configuration with phase constraints
-  // challenge-2의 각 이미지별 미리 정의된 label 가져오기
-  const getPredefinedLabels = (): string[] => {
-    if (challenge?.id === "challenge-2" && challenge.predefinedLabels && state.currentImage) {
-      const currentIndex = datasetImages.findIndex(img => img.id === state.currentImage?.id);
-      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
-      return predefinedLabelsForImage || [];
-    }
-    return [];
-  };
-
   const existingLabels = Array.from(
     new Set(state.annotations.labels?.map(label => label.label) || [])
   );
-  const predefinedLabels = getPredefinedLabels();
-  const allAvailableLabels = Array.from(new Set([...existingLabels, ...predefinedLabels]));
+  const allAvailableLabels = Array.from(new Set([...existingLabels]));
 
   const toolConfig = {
     currentTool: state.currentTool,
@@ -161,13 +88,9 @@ export function AnnotationWorkspace() {
   // Custom tool change handler with phase constraints
   const handleToolChange = useCallback(
     (tool: AnnotationType) => {
-      if (!isToolAllowed(tool)) {
-        // Show constraint message instead of changing tool
-        return;
-      }
       actions.setCurrentTool(tool);
     },
-    [isToolAllowed, actions]
+    [actions]
   );
 
   // Optimized function to clear all annotations
@@ -192,17 +115,12 @@ export function AnnotationWorkspace() {
   // Custom label add handler with phase constraints
   const handleAddLabel = useCallback(
     (label: string) => {
-      if (!isToolAllowed("label")) {
-        // Don't add label if not allowed in current phase
-        return;
-      }
-
       // Clear existing annotations before adding new one (1 annotation per image)
       clearAllAnnotations();
 
       actions.addLabel(label);
     },
-    [isToolAllowed, actions, clearAllAnnotations]
+    [actions, clearAllAnnotations]
   );
 
   // Image change handler moved to top level
@@ -246,16 +164,8 @@ export function AnnotationWorkspace() {
       (state.annotations.boundingBoxes?.length || 0) +
       (state.annotations.polygons?.length || 0);
 
-    // Only auto-advance for label phase - bbox and segmentation phases require manual navigation
-    const shouldAutoAdvance = currentPhase === "label";
-
     // If we just added an annotation (went from 0 to 1) and can go to next image, auto-advance immediately
-    if (
-      totalCurrentAnnotations === 1 &&
-      previousAnnotationCount === 0 &&
-      canGoNext &&
-      shouldAutoAdvance
-    ) {
+    if (totalCurrentAnnotations === 1 && previousAnnotationCount === 0 && canGoNext) {
       // Use requestAnimationFrame for immediate but smooth transition
       requestAnimationFrame(() => {
         handleNext();
@@ -263,7 +173,7 @@ export function AnnotationWorkspace() {
     }
 
     setPreviousAnnotationCount(totalCurrentAnnotations);
-  }, [state.annotations, canGoNext, handleNext, previousAnnotationCount, currentPhase]);
+  }, [state.annotations, canGoNext, handleNext, previousAnnotationCount]);
 
   // Handle annotation selection
   const handleSelectAnnotation = useCallback((type: AnnotationType, id: string) => {
@@ -290,24 +200,20 @@ export function AnnotationWorkspace() {
   // BBox and polygon handlers moved to top level
   const handleAddBoundingBox = useCallback(
     bbox => {
-      if (isToolAllowed("bbox")) {
-        // Clear existing annotations before adding new one (1 annotation per image)
-        clearAllAnnotations();
-        actions.addBoundingBox(bbox);
-      }
+      // Clear existing annotations before adding new one (1 annotation per image)
+      clearAllAnnotations();
+      actions.addBoundingBox(bbox);
     },
-    [isToolAllowed, clearAllAnnotations, actions]
+    [clearAllAnnotations, actions]
   );
 
   const handleAddPolygon = useCallback(
     polygon => {
-      if (isToolAllowed("segmentation")) {
-        // Clear existing annotations before adding new one (1 annotation per image)
-        clearAllAnnotations();
-        actions.addPolygon(polygon);
-      }
+      // Clear existing annotations before adding new one (1 annotation per image)
+      clearAllAnnotations();
+      actions.addPolygon(polygon);
     },
-    [isToolAllowed, clearAllAnnotations, actions]
+    [clearAllAnnotations, actions]
   );
 
   const totalAnnotations =
@@ -345,19 +251,10 @@ export function AnnotationWorkspace() {
         },
       }));
 
-      // Submit complete annotations
-      await completeSubmission.submitCompleteAnnotations(
-        challengeId,
-        datasetId,
-        annotationData,
-        datasetImages.length
-      );
+      // TODO(Jerry): Submit complete annotations with server API
 
       // Clear annotation stack after successful submission
       annotationStack.actions.clearStack();
-
-      // Refresh certificate data after successful submission
-      certificateData.refetch();
     } catch (error) {
       console.error("Failed to submit complete annotations:", error);
     }
@@ -370,11 +267,10 @@ export function AnnotationWorkspace() {
     actions,
     datasetImages,
     completeSubmission,
-    certificateData,
   ]);
 
   // Loading state - Dataset 로딩 포함
-  if (challengeLoading || datasetLoading) {
+  if (datasetLoading) {
     return (
       <Box
         style={{
@@ -427,17 +323,6 @@ export function AnnotationWorkspace() {
           </Box>
 
           <Box style={{ textAlign: "center" }}>
-            <Text
-              size="4"
-              style={{
-                fontWeight: 600,
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.semantic.component.xs,
-              }}
-            >
-              {challengeLoading ? "Loading Challenge..." : "Loading Dataset Images..."}
-            </Text>
-
             {datasetLoading && datasetProgress.total > 0 && (
               <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
                 <Text
@@ -476,7 +361,7 @@ export function AnnotationWorkspace() {
   }
 
   // Error state - Dataset 오류 포함
-  if (challengeError || datasetError || !isDatasetValidForChallenge) {
+  if (datasetError || !isDatasetValidForChallenge) {
     return (
       <Box
         style={{
@@ -504,16 +389,6 @@ export function AnnotationWorkspace() {
           <Warning size={48} style={{ color: theme.colors.status.error }} />
           <Box style={{ textAlign: "center" }}>
             <Text
-              size="4"
-              style={{
-                fontWeight: 600,
-                color: theme.colors.text.primary,
-                marginBottom: theme.spacing.semantic.component.xs,
-              }}
-            >
-              {challengeError ? "Challenge Not Found" : "Dataset Loading Error"}
-            </Text>
-            <Text
               size="2"
               style={{
                 color: theme.colors.text.secondary,
@@ -521,12 +396,10 @@ export function AnnotationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.md,
               }}
             >
-              {challengeError ||
-                datasetError ||
-                "Dataset is not compatible with annotation challenges"}
+              {datasetError || "Dataset is not compatible with annotation challenges"}
             </Text>
             <Button
-              onClick={() => navigate("/challenges")}
+              onClick={() => navigate("/datasets")}
               style={{
                 background: theme.colors.interactive.primary,
                 color: theme.colors.text.inverse,
@@ -538,7 +411,7 @@ export function AnnotationWorkspace() {
                 cursor: "pointer",
               }}
             >
-              Back to Challenges
+              Back to Datasets
             </Button>
           </Box>
         </Flex>
@@ -626,9 +499,9 @@ export function AnnotationWorkspace() {
       icon: <Palette size={16} style={{ color: theme.colors.text.inverse }} />,
       title: "Annotation Tools",
       actionButton: {
-        text: "Back to Challenge",
+        text: "Back to Datasets",
         icon: <ArrowLeft size={14} weight="bold" />,
-        href: `/challenges`,
+        href: `/datasets`,
       },
     },
     stats: [
@@ -664,11 +537,6 @@ export function AnnotationWorkspace() {
         panOffset={state.panOffset}
         onZoomChange={actions.setZoom}
         onPanChange={actions.setPanOffset}
-        phaseConstraints={{
-          currentPhase,
-          isToolAllowed,
-          getDisallowedMessage,
-        }}
       />
     ),
   };
@@ -699,7 +567,7 @@ export function AnnotationWorkspace() {
           >
             <Flex align="center" gap="3">
               <Button
-                onClick={() => navigate(`/challenges`)}
+                onClick={() => navigate(`/datasets`)}
                 style={{
                   background: "transparent",
                   color: theme.colors.text.secondary,
@@ -719,96 +587,8 @@ export function AnnotationWorkspace() {
 
               <Box>
                 <Flex align="center" gap="2">
-                  <Text
-                    size="2"
-                    style={{
-                      fontWeight: 600,
-                      color: theme.colors.text.secondary,
-                    }}
-                  >
-                    {challenge?.description || "Loading..."}
-                  </Text>
-
                   {/* Dataset 연동 상태 표시 */}
                   {datasetStatusIndicator}
-
-                  {/* Predefined Labels Indicator */}
-                  {challenge?.id === "challenge-2" &&
-                    challenge.predefinedLabels &&
-                    state.currentImage &&
-                    (() => {
-                      const currentIndex = datasetImages.findIndex(
-                        img => img.id === state.currentImage?.id
-                      );
-                      const predefinedLabelsForImage = challenge.predefinedLabels[currentIndex];
-
-                      if (predefinedLabelsForImage && predefinedLabelsForImage.length > 0) {
-                        return (
-                          <Box
-                            style={{
-                              padding: "2px 8px",
-                              background: `${theme.colors.interactive.primary}15`,
-                              color: theme.colors.interactive.primary,
-                              border: `1px solid ${theme.colors.interactive.primary}30`,
-                              borderRadius: theme.borders.radius.full,
-                              fontSize: "10px",
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px",
-                              cursor: "help",
-                            }}
-                            title={`Predefined Labels Available (${predefinedLabelsForImage.length}):\n${predefinedLabelsForImage.join(", ")}`}
-                          >
-                            {predefinedLabelsForImage.length} Labels Ready
-                          </Box>
-                        );
-                      }
-                      return null;
-                    })()}
-
-                  {/* Compact Phase Indicator */}
-                  {challenge && (
-                    <Box
-                      style={{
-                        padding: "2px 8px",
-                        background:
-                          currentPhase === "label"
-                            ? `${theme.colors.status.info}15`
-                            : currentPhase === "bbox"
-                              ? `${theme.colors.status.warning}15`
-                              : currentPhase === "segmentation"
-                                ? `${theme.colors.status.success}15`
-                                : `${theme.colors.interactive.accent}15`,
-                        color:
-                          currentPhase === "label"
-                            ? theme.colors.status.info
-                            : currentPhase === "bbox"
-                              ? theme.colors.status.warning
-                              : currentPhase === "segmentation"
-                                ? theme.colors.status.success
-                                : theme.colors.interactive.accent,
-                        border: `1px solid ${
-                          currentPhase === "label"
-                            ? theme.colors.status.info
-                            : currentPhase === "bbox"
-                              ? theme.colors.status.warning
-                              : currentPhase === "segmentation"
-                                ? theme.colors.status.success
-                                : theme.colors.interactive.accent
-                        }30`,
-                        borderRadius: theme.borders.radius.full,
-                        fontSize: "10px",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        cursor: "help",
-                        width: "100px",
-                      }}
-                      title={`Current Phase: ${currentPhase}\n${canAnnotate ? `Available tools: ${isToolAllowed("label") ? "Labels" : ""}${isToolAllowed("bbox") ? (isToolAllowed("label") ? ", " : "") + "BBoxes" : ""}${isToolAllowed("segmentation") ? (isToolAllowed("label") || isToolAllowed("bbox") ? ", " : "") + "Segmentation" : ""}` : "Annotation is currently disabled"}`}
-                    >
-                      {currentPhase} Phase
-                    </Box>
-                  )}
                 </Flex>
               </Box>
             </Flex>
@@ -902,12 +682,9 @@ export function AnnotationWorkspace() {
           selectedLabel={state.selectedLabel}
           existingLabels={allAvailableLabels}
           boundingBoxes={state.annotations.boundingBoxes || []}
-          currentPhase={currentPhase}
           onToolChange={handleToolChange}
           onAddLabel={handleAddLabel}
           onSelectLabel={actions.setSelectedLabel}
-          isToolAllowed={isToolAllowed}
-          getDisallowedMessage={getDisallowedMessage}
         />
 
         {/* Main Content */}
@@ -941,7 +718,6 @@ export function AnnotationWorkspace() {
                 currentTool={state.currentTool}
                 selectedLabel={state.selectedLabel}
                 isDrawing={state.isDrawing}
-                currentPhase={currentPhase}
                 onZoomChange={actions.setZoom}
                 onPanChange={actions.setPanOffset}
                 onAddBoundingBox={handleAddBoundingBox}
@@ -984,66 +760,8 @@ export function AnnotationWorkspace() {
           zoom={state.zoom}
           unsavedChanges={state.unsavedChanges}
           constraintMessage={getToolConstraintMessage}
-          currentPhase={currentPhase}
-          phaseConstraintMessage={
-            certificateData.userProgress?.certificate &&
-            certificateData.userProgress.missionScores &&
-            certificateData.userProgress.missions &&
-            certificateData.userProgress.overallStatus === "completed"
-              ? `🏆 Certificate Available! Total Score: ${certificateData.userProgress.totalScore}/${certificateData.userProgress.maxPossibleScore} points (${Math.round((certificateData.userProgress.totalScore / certificateData.userProgress.maxPossibleScore) * 100)}%) - Click View Certificate button!`
-              : completeSubmission.isSubmitting
-                ? `${
-                    completeSubmission.status.phase === "validating"
-                      ? completeSubmission.status.message
-                      : completeSubmission.status.phase === "preparing"
-                        ? completeSubmission.status.message
-                        : completeSubmission.status.phase === "blockchain"
-                          ? `${completeSubmission.status.message}${
-                              completeSubmission.status.progress
-                                ? ` (${completeSubmission.status.progress}%)`
-                                : ""
-                            }`
-                          : completeSubmission.status.phase === "scoring"
-                            ? completeSubmission.status.message
-                            : "Processing submission..."
-                  }`
-                : completeSubmission.hasError
-                  ? `Submission error: ${completeSubmission.errorMessage}`
-                  : completeSubmission.isCompleted
-                    ? `Submission completed! Score: ${completeSubmission.finalScore || 0} | Transaction: ${completeSubmission.transactionHash?.slice(0, 8)}...`
-                    : !allImagesCompleted
-                      ? `Complete all images to enable submission (${completedImagesCount}/${totalImages} completed)`
-                      : !isToolAllowed(state.currentTool)
-                        ? getDisallowedMessage(state.currentTool)
-                        : annotationStack.state.isFull
-                          ? `Annotation stack is full (${annotationStack.maxSize}/${annotationStack.maxSize}). Submit annotations to continue.`
-                          : saveStatus.state.error
-                            ? `Save error: ${saveStatus.state.error}`
-                            : undefined
-          }
         />
       </Box>
-
-      {/* Enhanced Submission Notification */}
-      <SubmissionNotification
-        status={completeSubmission.status}
-        onDismiss={completeSubmission.resetStatus}
-        onRetry={handleCompleteSubmission}
-      />
-
-      {/* Certificate Modal */}
-      {certificateData.userProgress &&
-        certificateData.userProgress.certificate &&
-        certificateData.userProgress.missionScores &&
-        certificateData.userProgress.missions &&
-        certificateData.userProgress.missionScores.length > 0 &&
-        certificateData.userProgress.missions.length > 0 && (
-          <CertificateModal
-            userProgress={certificateData.userProgress}
-            isOpen={showCertificate}
-            onClose={() => setShowCertificate(false)}
-          />
-        )}
 
       <style>
         {`

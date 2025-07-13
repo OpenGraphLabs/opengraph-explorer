@@ -1,1 +1,0 @@
-export { ValidationSidebar } from "./ValidationSidebar";

@@ -9,7 +9,6 @@ export { ModelInfoForm } from "./ModelInfoForm";
 
 // tabs
 export { ModelOverviewTab } from "./tabs/ModelOverviewTab";
-export { ModelInferenceTab } from "./tabs/ModelInferenceTab";
 export { NeuralNetworkVisualization } from "./tabs/NeuralNetworkVisualization";
 
 // upload steps

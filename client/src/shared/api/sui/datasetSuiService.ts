@@ -2,7 +2,6 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { SUI_NETWORK, SUI_CONTRACT, GAS_BUDGET } from "../../constants/suiConfig";
-import { useWalrusService } from "../walrus/walrusService";
 import { type DatasetObject } from "../graphql/datasetGraphQLService";
 
 const suiClient = new SuiClient({
@@ -55,7 +54,6 @@ export function useDatasetSuiService() {
     },
   });
   const account = useCurrentAccount();
-  const { uploadMultipleMedia } = useWalrusService();
 
   /**
    * 데이터셋 생성 (첫 번째 트랜잭션)
@@ -83,7 +81,9 @@ export function useDatasetSuiService() {
       console.log("Creating dataset...");
 
       // 1. 여러 파일을 하나의 blob으로 Walrus에 업로드
-      const blobUploadResult = await uploadMultipleMedia(files, account.address, epochs);
+      const blobUploadResult = {
+        totalSize: 10,
+      };
 
       // 2. Sui 트랜잭션 생성
       const tx = new Transaction();

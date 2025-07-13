@@ -16,9 +16,6 @@ https://vote.sui.io/
 Twitter :
 https://x.com/opengraph_labs
 
-Challenges Demo : 
-https://explorer.opengraphlabs.xyz/challenges
-
 
 
 ## 🌟 Vision

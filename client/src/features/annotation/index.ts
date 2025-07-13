@@ -9,7 +9,6 @@ export * from "./types/annotation";
 // Hooks
 export * from "./hooks/useWorkspace";
 export * from "./hooks/useAnnotationTools";
-export * from "./hooks/usePhaseConstraints";
 export * from "./hooks/useImageNavigation";
 
 // Components
@@ -23,7 +22,6 @@ export * from "./components/AnnotationStackViewer";
 export * from "./components/SaveNotification";
 
 // Utils
-export * from "./utils/phaseConstraints";
 export * from "./utils/labelColors";
 
 // Data
@@ -32,7 +30,6 @@ export * from "./data/mockImages";
 // Features
 export { useAnnotationTools } from "./hooks/useAnnotationTools";
 export { useImageNavigation } from "./hooks/useImageNavigation";
-export { usePhaseConstraints } from "./hooks/usePhaseConstraints";
 
 // Components
 export { AnnotationListPanel } from "./components/AnnotationListPanel";

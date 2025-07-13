@@ -11,12 +11,7 @@ import {
 } from "phosphor-react";
 import { useTheme } from "@/shared/ui/design-system";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
-import {
-  DatasetSelector,
-  useBlobDataManager,
-  useAnnotationState,
-  ImageViewer,
-} from "@/features/annotation";
+import { DatasetSelector, useAnnotationState } from "@/features/annotation";
 import { Spinner } from "@/shared/ui/design-system/components";
 
 export function Annotator() {
@@ -28,9 +23,6 @@ export function Annotator() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDataset, setSelectedDataset] = useState<DatasetObject | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
-
-  // Blob data management
-  const blobManager = useBlobDataManager(selectedDataset);
 
   // Annotation state management
   const annotationManager = useAnnotationState();
@@ -47,13 +39,6 @@ export function Annotator() {
       annotationManager.clearPendingAnnotations();
     }
   }, [selectedDataset]);
-
-  // Set image loading when current image changes
-  useEffect(() => {
-    if (selectedDataset && getCurrentImage()) {
-      blobManager.setImageLoading(true);
-    }
-  }, [currentImageIndex, selectedDataset?.id]);
 
   // Global keyboard navigation
   useEffect(() => {
@@ -674,7 +659,6 @@ export function Annotator() {
                     value={annotationManager.currentInput}
                     onChange={e => annotationManager.updateCurrentInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    disabled={blobManager.isCurrentImageBlobLoading(getCurrentImage())}
                     style={{
                       width: "100%",
                       resize: "none",
@@ -688,12 +672,6 @@ export function Annotator() {
                       color: theme.colors.text.primary,
                       outline: "none",
                       fontFamily: "inherit",
-                    }}
-                    onFocus={e => {
-                      if (!blobManager.isCurrentImageBlobLoading(getCurrentImage())) {
-                        e.target.style.borderColor = theme.colors.interactive.primary;
-                        e.target.style.boxShadow = `0 0 0 2px ${theme.colors.interactive.primary}20`;
-                      }
                     }}
                     onBlur={e => {
                       e.target.style.borderColor = theme.colors.border.primary;

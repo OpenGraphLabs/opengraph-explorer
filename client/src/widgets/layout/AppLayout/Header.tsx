@@ -31,7 +31,7 @@ export function Header() {
       >
         {/* Logo and Navigation */}
         <Flex align="center" gap="6">
-          <Link to="/challenges" style={{ textDecoration: "none" }}>
+          <Link to="/" style={{ textDecoration: "none" }}>
             <Flex align="center" gap="2">
               <img
                 src={logoImage}
@@ -73,13 +73,6 @@ export function Header() {
               disabled={!isConnected && requiresWallet("/datasets")}
             >
               Datasets
-            </NavLink>
-            <NavLink
-              to="/challenges"
-              current={location.pathname.startsWith("/challenges")}
-              disabled={false}
-            >
-              Challenges
             </NavLink>
             <NavLink
               to="/annotator"
@@ -231,14 +224,6 @@ export function Header() {
               disabled={!isConnected && requiresWallet("/datasets")}
             >
               Datasets
-            </MobileNavLink>
-            <MobileNavLink
-              to="/challenges"
-              current={location.pathname.startsWith("/challenges")}
-              onClick={() => setIsMobileMenuOpen(false)}
-              disabled={false}
-            >
-              Challenges
             </MobileNavLink>
             <MobileNavLink
               to="/models/upload"

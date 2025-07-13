@@ -1,7 +1,6 @@
 import { Box, Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { AnnotationType } from "@/features/annotation";
-import { ChallengePhase } from "@/features/challenge";
 
 interface WorkspaceStatusBarProps {
   currentTool: AnnotationType;
@@ -14,7 +13,6 @@ interface WorkspaceStatusBarProps {
   zoom: number;
   unsavedChanges: boolean;
   constraintMessage?: string | null;
-  currentPhase?: ChallengePhase;
   phaseConstraintMessage?: string;
 }
 
@@ -25,7 +23,6 @@ export function WorkspaceStatusBar({
   zoom,
   unsavedChanges,
   constraintMessage,
-  currentPhase,
   phaseConstraintMessage,
 }: WorkspaceStatusBarProps) {
   const { theme } = useTheme();
@@ -64,60 +61,6 @@ export function WorkspaceStatusBar({
     >
       <Flex justify="between" align="center">
         <Flex align="center" gap="4">
-          {/* Current Phase & Tool Status */}
-          <Flex align="center" gap="3">
-            {currentPhase && (
-              <Flex align="center" gap="2">
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Phase:
-                </Text>
-                <Badge
-                  style={{
-                    background:
-                      currentPhase === "label"
-                        ? `${theme.colors.status.info}15`
-                        : currentPhase === "bbox"
-                          ? `${theme.colors.status.warning}15`
-                          : currentPhase === "segmentation"
-                            ? `${theme.colors.status.success}15`
-                            : `${theme.colors.interactive.accent}15`,
-                    color:
-                      currentPhase === "label"
-                        ? theme.colors.status.info
-                        : currentPhase === "bbox"
-                          ? theme.colors.status.warning
-                          : currentPhase === "segmentation"
-                            ? theme.colors.status.success
-                            : theme.colors.interactive.accent,
-                    border: `1px solid ${
-                      currentPhase === "label"
-                        ? theme.colors.status.info
-                        : currentPhase === "bbox"
-                          ? theme.colors.status.warning
-                          : currentPhase === "segmentation"
-                            ? theme.colors.status.success
-                            : theme.colors.interactive.accent
-                    }30`,
-                    padding: "2px 6px",
-                    borderRadius: theme.borders.radius.full,
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {currentPhase}
-                </Badge>
-              </Flex>
-            )}
-
-            <Flex align="center" gap="2">
-              <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                Tool:
-              </Text>
-              <Badge style={getToolBadgeStyle(currentTool)}>{currentTool}</Badge>
-            </Flex>
-          </Flex>
-
           {/* Selected Label Status */}
           {selectedLabel && (
             <Flex align="center" gap="2">

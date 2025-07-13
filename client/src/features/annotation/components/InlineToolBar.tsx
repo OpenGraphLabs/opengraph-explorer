@@ -3,7 +3,6 @@ import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/compon
 import { useTheme } from "@/shared/ui/design-system";
 import { Tag, Target, Circle, Check, PaperPlaneRight } from "phosphor-react";
 import { AnnotationType } from "@/features/annotation/types/workspace";
-import { ChallengePhase } from "@/features/challenge";
 import { LabelSelector } from "./LabelSelector";
 
 interface InlineToolBarProps {
@@ -18,12 +17,9 @@ interface InlineToolBarProps {
     width: number;
     height: number;
   }>;
-  currentPhase: ChallengePhase;
   onToolChange: (tool: AnnotationType) => void;
   onAddLabel: (label: string) => void;
   onSelectLabel: (label: string) => void;
-  isToolAllowed: (tool: AnnotationType) => boolean;
-  getDisallowedMessage: (tool: AnnotationType) => string;
 }
 
 export function InlineToolBar({
@@ -34,8 +30,6 @@ export function InlineToolBar({
   onToolChange,
   onAddLabel,
   onSelectLabel,
-  isToolAllowed,
-  getDisallowedMessage,
 }: InlineToolBarProps) {
   const { theme } = useTheme();
   const [newLabelInput, setNewLabelInput] = useState("");
@@ -361,14 +355,13 @@ export function InlineToolBar({
               (tool.type === "label" && existingLabels.length > 0) ||
               (tool.type === "bbox" && boundingBoxes.length > 0) ||
               (tool.type === "segmentation" && false); // TODO: track segmentation completion
-            const isDisabled = !isToolAllowed(tool.type);
 
             return (
               <React.Fragment key={tool.type}>
                 <Flex
                   align="center"
                   gap="1"
-                  onClick={() => !isDisabled && onToolChange(tool.type)}
+                  onClick={() => onToolChange(tool.type)}
                   style={{
                     padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
                     borderRadius: theme.borders.radius.md,
@@ -377,17 +370,13 @@ export function InlineToolBar({
                       : isCompleted
                         ? `${tool.color}15`
                         : "transparent",
-                    color: isActive
-                      ? theme.colors.text.inverse
-                      : isDisabled
-                        ? theme.colors.text.tertiary
-                        : tool.color,
-                    border: `1px solid ${isActive ? tool.color : isDisabled ? theme.colors.border.secondary : `${tool.color}40`}`,
-                    cursor: isDisabled ? "not-allowed" : "pointer",
-                    opacity: isDisabled ? 0.6 : 1,
+                    color: isActive ? theme.colors.text.inverse : tool.color,
+                    border: `1px solid ${isActive ? tool.color : `${tool.color}40`}`,
+                    cursor: "pointer",
+                    opacity: 1,
                     transition: "all 0.2s ease",
                   }}
-                  title={isDisabled ? getDisallowedMessage(tool.type) : undefined}
+                  title={undefined}
                 >
                   {tool.icon}
                   <Text size="2" style={{ fontWeight: 600, color: "inherit" }}>

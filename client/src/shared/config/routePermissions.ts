@@ -3,8 +3,6 @@ import { RouteConfig } from "../types/auth";
 export const ROUTE_PERMISSIONS: RouteConfig[] = [
   // Public routes - no wallet required
   { path: "/", permission: "public" },
-  { path: "/challenges", permission: "public" },
-  { path: "/challenges/:id", permission: "public" },
   { path: "/models", permission: "public" },
   { path: "/datasets", permission: "public" },
 
@@ -13,16 +11,6 @@ export const ROUTE_PERMISSIONS: RouteConfig[] = [
   { path: "/models/:id", permission: "wallet-required", redirectTo: "/" },
   { path: "/datasets/upload", permission: "wallet-required", redirectTo: "/" },
   { path: "/datasets/:id", permission: "wallet-required", redirectTo: "/" },
-  {
-    path: "/challenges/:challengeId/annotate",
-    permission: "wallet-required",
-    redirectTo: "/challenges",
-  },
-  {
-    path: "/challenges/:challengeId/validate",
-    permission: "wallet-required",
-    redirectTo: "/challenges",
-  },
   { path: "/annotator", permission: "wallet-required", redirectTo: "/" },
   { path: "/profile", permission: "wallet-required", redirectTo: "/" },
 ];
