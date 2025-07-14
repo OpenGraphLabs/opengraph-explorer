@@ -7,7 +7,7 @@ Business logic for category-related operations
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.class_ import Category
+from ..models.category import Category
 from ..schemas.category import CategoryCreate, CategoryUpdate, CategoryRead
 
 

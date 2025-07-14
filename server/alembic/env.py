@@ -23,7 +23,7 @@ from app.models.user import User
 from app.models.dataset import Dataset
 from app.models.image import Image
 from app.models.dictionary import Dictionary
-from app.models.class_ import Category
+from app.models.category import Category
 from app.models.dictionary_category import DictionaryCategory
 from app.models.annotation import Annotation
 

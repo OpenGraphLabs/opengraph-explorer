@@ -5,6 +5,7 @@
 """
 
 from typing import Optional, List
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.image import Image
@@ -20,13 +21,59 @@ class ImageService:
     async def create_image(self, image_data: ImageCreate) -> ImageRead:
         """
         새로운 이미지를 생성합니다.
+        
+        Args:
+            image_data: Schema containing image creation data
+            
+        Returns:
+            ImageRead: Created image information
         """
-        # TODO: 구현 필요
-        pass
+        db_image = Image(
+            file_name=image_data.file_name,
+            image_url=image_data.image_url,
+            width=image_data.width,
+            height=image_data.height,
+            dataset_id=image_data.dataset_id
+        )
+        
+        self.db.add(db_image)
+        await self.db.commit()
+        await self.db.refresh(db_image)
+        
+        return ImageRead.model_validate(db_image)
     
     async def get_image_by_id(self, image_id: int) -> Optional[ImageRead]:
         """
         ID로 이미지를 조회합니다.
+        
+        Args:
+            image_id: Image ID
+            
+        Returns:
+            Optional[ImageRead]: Image information or None if not found
         """
-        # TODO: 구현 필요
-        pass 
+        result = await self.db.execute(
+            select(Image).where(Image.id == image_id)
+        )
+        image = result.scalar_one_or_none()
+        
+        if image:
+            return ImageRead.model_validate(image)
+        return None
+    
+    async def get_images_by_dataset_id(self, dataset_id: int) -> List[ImageRead]:
+        """
+        특정 데이터셋에 포함된 이미지 목록을 조회합니다.
+        
+        Args:
+            dataset_id: Dataset ID
+            
+        Returns:
+            List[ImageRead]: List of images in the dataset
+        """
+        result = await self.db.execute(
+            select(Image).where(Image.dataset_id == dataset_id)
+        )
+        images = result.scalars().all()
+        
+        return [ImageRead.model_validate(image) for image in images] 

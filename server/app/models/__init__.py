@@ -8,7 +8,7 @@ from .user import User
 from .dataset import Dataset
 from .image import Image
 from .dictionary import Dictionary
-from .class_ import Category
+from .category import Category
 from .dictionary_category import DictionaryCategory
 from .annotation import Annotation
 

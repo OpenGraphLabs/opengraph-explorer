@@ -8,7 +8,7 @@ from .user_service import UserService
 from .dataset_service import DatasetService
 from .image_service import ImageService
 from .dictionary_service import DictionaryService
-from .class_service import CategoryService
+from .category_service import CategoryService
 from .dictionary_category_service import DictionaryCategoryService
 from .annotation_service import AnnotationService
 

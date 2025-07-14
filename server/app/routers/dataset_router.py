@@ -32,7 +32,7 @@ async def create_dataset(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    새로운 데이터셋을 생성합니다.
+    Create a new dataset.
     """
     # TODO: DatasetService 구현
     pass
