@@ -82,3 +82,4 @@ server/utils/sam/*.json
 server/utils/sam/test/**
 server/utils/sam/results/**
 server/utils/sam/data/**
+server/utils/sam/rotating_view.mp4
