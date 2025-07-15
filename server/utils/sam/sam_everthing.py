@@ -457,6 +457,8 @@ def demo_sam_everything():
     """
     # Initialize SAM Everything
     sam_everything = SAMEverything()
+
+    grid_size = 128
     
     # Load and set image
     image_path = "000000000139.jpg"
@@ -467,14 +469,14 @@ def demo_sam_everything():
         
         # Segment everything
         print("Segmenting everything...")
-        masks = sam_everything.segment_everything(grid_size=64, min_mask_area=500)
+        masks = sam_everything.segment_everything(grid_size=grid_size, min_mask_area=500)
         
         print(f"Found {len(masks)} masks (after duplicate removal)")
         # Visualize results
         sam_everything.visualize_masks(masks)
         # Save in different formats
-        sam_everything.save_masks_coco_format(masks, "sam_coco_format.json", 
-                                            "000000000139.jpg", image_id=1)
+        sam_everything.save_masks_coco_format(masks, f"sam_coco_format_{grid_size}.json", 
+                                            f"000000000139_{grid_size}.jpg", image_id=1)
         
     else:
         print(f"Image not found: {image_path}")
