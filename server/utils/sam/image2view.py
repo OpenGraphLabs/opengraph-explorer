@@ -84,37 +84,63 @@ class Image2ViewGenerator:
     
     def load_model(self):
         """
-        최신 Novel View Synthesis 모델 로딩
+        모델 로딩 개선 - 더 안정적인 로딩
         """
         try:
             print(f"Loading advanced view synthesis model on {self.device}...")
             
-            # 여러 모델을 시도해보고 가장 좋은 것 사용
+            # 시도할 모델들 (우선순위 순)
             model_options = [
-                # Zero-1-to-3 기반 모델들
-                "lambdalabs/sd-image-variations-diffusers",
-                # MVDream 또는 다른 multi-view 모델
-                "ashawkey/mvdream-sd2.1-diffusers",
-                # 대안 모델
-                "runwayml/stable-diffusion-v1-5"
+                {
+                    "id": "lambdalabs/sd-image-variations-diffusers",
+                    "type": "image_variation",
+                    "description": "Image variation model"
+                },
+                {
+                    "id": "runwayml/stable-diffusion-v1-5", 
+                    "type": "text2img",
+                    "description": "Standard Stable Diffusion"
+                },
+                {
+                    "id": "stabilityai/stable-diffusion-2-1",
+                    "type": "text2img", 
+                    "description": "Stable Diffusion 2.1"
+                }
             ]
             
             self.model = None
-            for model_id in model_options:
+            self.model_type = None
+            
+            for model_info in model_options:
                 try:
-                    print(f"Trying model: {model_id}")
+                    print(f"Trying {model_info['description']}: {model_info['id']}")
+                    
+                    # 안전한 로딩 옵션
+                    load_kwargs = {
+                        "torch_dtype": torch.float16 if self.device == "cuda" else torch.float32,
+                        "safety_checker": None,
+                        "requires_safety_checker": False,
+                    }
+                    
+                    # 선택적 파라미터 (에러 발생시 제외)
+                    try:
+                        load_kwargs["use_safetensors"] = True
+                        if self.device == "cuda":
+                            load_kwargs["variant"] = "fp16"
+                    except:
+                        pass
+                    
                     self.model = DiffusionPipeline.from_pretrained(
-                        model_id,
-                        torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
-                        safety_checker=None,
-                        requires_safety_checker=False,
-                        use_safetensors=True,
-                        variant="fp16" if self.device == "cuda" else None
+                        model_info['id'],
+                        **load_kwargs
                     )
-                    print(f"Successfully loaded: {model_id}")
+                    
+                    self.model_type = model_info['type']
+                    print(f"✓ Successfully loaded: {model_info['description']}")
                     break
+                    
                 except Exception as e:
-                    print(f"Failed to load {model_id}: {e}")
+                    print(f"✗ Failed to load {model_info['id']}: {str(e)[:100]}...")
                     continue
                     
             if self.model is None:
@@ -122,23 +148,31 @@ class Image2ViewGenerator:
                 
             self.model = self.model.to(self.device)
             
-            # 메모리 최적화
+            # 메모리 최적화 (안전하게)
             if self.device == "cuda":
                 try:
-                    self.model.enable_memory_efficient_attention()
+                    if hasattr(self.model, 'enable_memory_efficient_attention'):
+                        self.model.enable_memory_efficient_attention()
                 except:
-                    pass
+                    print("Memory efficient attention not available")
+                    
                 try:
-                    self.model.enable_xformers_memory_efficient_attention()
+                    if hasattr(self.model, 'enable_xformers_memory_efficient_attention'):
+                        self.model.enable_xformers_memory_efficient_attention()
                 except:
-                    pass
-                self.model.enable_model_cpu_offload()
+                    print("Xformers not available")
+                    
+                try:
+                    if hasattr(self.model, 'enable_model_cpu_offload'):
+                        self.model.enable_model_cpu_offload()
+                except:
+                    print("CPU offload not available")
                 
             self.is_loaded = True
-            print("Model loaded and optimized successfully!")
+            print(f"✅ Model loaded and optimized! Type: {self.model_type}")
             
         except Exception as e:
-            print(f"Error loading model: {e}")
+            print(f"❌ Error loading model: {e}")
             raise
     
     def generate_multi_view_poses(self, num_views: int = 8) -> List[Tuple[float, float, float]]:
@@ -240,7 +274,7 @@ class Image2ViewGenerator:
         strength: float = 0.8
     ) -> List[str]:
         """
-        고품질 Novel View 생성
+        고품질 Novel View 생성 - 모델 타입에 따른 올바른 API 호출
         """
         if not self.is_loaded:
             self.load_model()
@@ -261,6 +295,10 @@ class Image2ViewGenerator:
         
         generated_paths = [original_path]  # 원본 포함
         
+        # 모델 타입 확인
+        model_name = str(type(self.model)).lower()
+        print(f"Model type: {model_name}")
+        
         print(f"Generating {num_views} novel views...")
         
         for i, (azimuth, elevation, distance) in enumerate(camera_poses):
@@ -271,19 +309,34 @@ class Image2ViewGenerator:
             print(f"Prompt: {prompt}")
             
             try:
-                # 고품질 이미지 생성
-                with torch.autocast(self.device):
-                    if hasattr(self.model, 'image_encoder') or 'image-variations' in str(type(self.model)):
-                        # Image variation 모델
+                # 모델 타입에 따른 올바른 API 호출
+                with torch.autocast(self.device, enabled=self.device=="cuda"):
+                    
+                    # lambdalabs/sd-image-variations-diffusers 모델인 경우
+                    if "lambdalabs" in model_name or "image" in model_name and "variation" in model_name:
+                        print("Using image variation pipeline")
                         generated_image = self.model(
+                            image=input_image,
+                            guidance_scale=guidance_scale,
+                            num_inference_steps=num_inference_steps
+                        ).images[0]
+                        
+                    # MVDream 모델인 경우
+                    elif "mvdream" in model_name:
+                        print("Using MVDream pipeline")
+                        # MVDream 특별 처리
+                        generated_image = self.model(
+                            prompt=prompt,
                             image=input_image,
                             guidance_scale=guidance_scale,
                             num_inference_steps=num_inference_steps,
                             height=512,
                             width=512
                         ).images[0]
+                        
+                    # 일반적인 Stable Diffusion 모델인 경우
                     else:
-                        # Text-to-image로 이미지 재생성
+                        print("Using standard text-to-image pipeline")
                         generated_image = self.model(
                             prompt=prompt,
                             guidance_scale=guidance_scale,
@@ -301,7 +354,29 @@ class Image2ViewGenerator:
                 
             except Exception as e:
                 print(f"✗ Error generating view {i+1}: {e}")
-                continue
+                
+                # 대안 방법 시도
+                try:
+                    print("Trying alternative generation method...")
+                    
+                    # 가장 기본적인 text-to-image 호출
+                    with torch.autocast(self.device, enabled=self.device=="cuda"):
+                        generated_image = self.model(
+                            prompt=prompt,
+                            num_inference_steps=20,  # 더 빠르게
+                            guidance_scale=7.0,
+                            height=512,
+                            width=512
+                        ).images[0]
+                    
+                    output_path = os.path.join(output_dir, f"view_{i+1:02d}_az{azimuth:.0f}_el{elevation:.0f}.png")
+                    generated_image.save(output_path, quality=95)
+                    generated_paths.append(output_path)
+                    print(f"✓ Saved with alternative method: {output_path}")
+                    
+                except Exception as e2:
+                    print(f"✗ Alternative method also failed: {e2}")
+                    continue
                 
         return generated_paths
     
