@@ -557,6 +557,48 @@ class SAMEverything:
         containment_ratio = intersection_area / child_area
         return containment_ratio >= containment_threshold
 
+    def _split_disconnected_masks(self, masks: List[dict]) -> List[dict]:
+        """
+        Split masks that contain disconnected components into separate masks
+        """
+        from scipy import ndimage
+        from skimage.measure import label, regionprops
+        
+        split_masks = []
+        
+        for mask_dict in masks:
+            mask = mask_dict['segmentation']
+            
+            # Find connected components
+            labeled_mask = label(mask)
+            regions = regionprops(labeled_mask)
+            
+            if len(regions) <= 1:
+                # Single connected component
+                split_masks.append(mask_dict)
+            else:
+                # Multiple connected components - split them
+                for i, region in enumerate(regions):
+                    if region.area < 100:  # Skip very small components
+                        continue
+                        
+                    # Create new mask for this component
+                    component_mask = (labeled_mask == region.label)
+                    
+                    new_mask_dict = {
+                        'segmentation': component_mask,
+                        'area': int(region.area),
+                        'score': mask_dict['score'] * 0.9,  # Slightly lower score
+                        'point': [int(region.centroid[1]), int(region.centroid[0])],
+                        'bbox': [region.bbox[1], region.bbox[0], region.bbox[3], region.bbox[2]],
+                        'grid_size': mask_dict['grid_size'],
+                        'original_id': f"{mask_dict.get('original_id', '')}_split_{i}"
+                    }
+                    
+                    split_masks.append(new_mask_dict)
+        
+        return split_masks
+
     def save_masks_coco_format_with_relations(self, masks: List[dict], output_path: str, 
                                             image_filename: str, image_id: int = 1):
         """
