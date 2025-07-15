@@ -71,3 +71,9 @@ server/.env.*
 
 # Test Model Files
 # *.h5
+client/src/hooks/useEnhancedModelInference.ts
+client/src/hooks/useEnhancedModelUpload.ts
+client/src/services/enhancedModelSuiService.ts
+client/src/services/modelSuiService copy.ts
+server/utils/enhanced_h5_converter.py
+server/docs/txt
