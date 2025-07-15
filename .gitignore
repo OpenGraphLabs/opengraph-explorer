@@ -81,3 +81,4 @@ server/utils/sam/sam_vit_h_4b8939.pth
 server/utils/sam/*.json
 server/utils/sam/test/**
 server/utils/sam/results/**
+server/utils/sam/data/**
