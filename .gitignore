@@ -79,4 +79,5 @@ server/utils/enhanced_h5_converter.py
 server/docs/txt
 server/utils/sam/sam_vit_h_4b8939.pth
 server/utils/sam/*.json
+server/utils/sam/test/**
 

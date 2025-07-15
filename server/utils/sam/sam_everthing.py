@@ -9,32 +9,152 @@ import json
 from pycocotools import mask as maskUtils
 from datetime import datetime
 import argparse
+import requests
+from tqdm import tqdm
+import hashlib
 
 class SAMEverything:
-    def __init__(self, checkpoint_path: str = None):
+    # SAM 모델 다운로드 URL들
+    SAM_MODEL_URLS = {
+        "vit_h": "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth",
+        "vit_l": "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth",
+        "vit_b": "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
+    }
+    
+    # 모델 파일 체크섬 (파일 무결성 확인용)
+    SAM_MODEL_CHECKSUMS = {
+        "sam_vit_h_4b8939.pth": "a7bf3b02f3ebf1267aba913ff637d9a2d5c33d3173bb679e46d9f338c26f262e",
+        "sam_vit_l_0b3195.pth": "3adcc4315b642a4d2101128f611684e8734c41232a17c648ed1693702a49a622", 
+        "sam_vit_b_01ec64.pth": "ec2df62732614e57411cdcf32a23ffdf28910380d03139ee0f4fcbe91eb8c912"
+    }
+    
+    def __init__(self, checkpoint_path: str = None, model_type: str = "vit_h"):
         """
-        Initialize SAM Everything with vit_h model
+        Initialize SAM Everything with specified model
         
         Args:
             checkpoint_path: Path to SAM checkpoint file
+            model_type: Type of SAM model ("vit_h", "vit_l", "vit_b") - default: "vit_h"
         """
-        # Default checkpoint path based on existing project structure
+        print(f"Initializing SAM Everything with model: {model_type} (default: vit_h)")
+        
+        # Default checkpoint path based on model type
         if checkpoint_path is None:
-            checkpoint_path = "sam_vit_h_4b8939.pth"
+            if model_type == "vit_h":
+                checkpoint_path = "sam_vit_h_4b8939.pth"
+            elif model_type == "vit_l":
+                checkpoint_path = "sam_vit_l_0b3195.pth"
+            elif model_type == "vit_b":
+                checkpoint_path = "sam_vit_b_01ec64.pth"
+            else:
+                raise ValueError(f"Unsupported model type: {model_type}")
         
         self.checkpoint_path = checkpoint_path
+        self.model_type = model_type
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        # Load SAM model with vit_h
-        print(f"Loading SAM vit_h model from: {checkpoint_path}")
-        self.sam = sam_model_registry["vit_h"](checkpoint=checkpoint_path)
+        # 모델 파일이 없으면 자동 다운로드
+        if not os.path.exists(checkpoint_path):
+            print(f"Model file not found: {checkpoint_path}")
+            self._download_model(model_type, checkpoint_path)
+        
+        # 파일 무결성 확인
+        if not self._verify_file_integrity(checkpoint_path):
+            print("File integrity check failed. Re-downloading...")
+            self._download_model(model_type, checkpoint_path)
+        
+        # Load SAM model
+        print(f"Loading SAM {model_type} model from: {checkpoint_path}")
+        self.sam = sam_model_registry[model_type](checkpoint=checkpoint_path)
         self.sam.to(self.device)
         
         self.predictor = SamPredictor(self.sam)
         self.current_image = None
         
-        print(f"SAM vit_h model loaded successfully on {self.device}")
+        print(f"SAM {model_type} model loaded successfully on {self.device}")
     
+    def _download_model(self, model_type: str, checkpoint_path: str):
+        """
+        Download SAM model file
+        
+        Args:
+            model_type: Type of SAM model
+            checkpoint_path: Path to save the model file
+        """
+        if model_type not in self.SAM_MODEL_URLS:
+            raise ValueError(f"Unsupported model type: {model_type}")
+        
+        url = self.SAM_MODEL_URLS[model_type]
+        print(f"Downloading SAM {model_type} model from: {url}")
+        
+        try:
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+            
+            # 파일 크기 확인
+            total_size = int(response.headers.get('content-length', 0))
+            
+            # 다운로드 진행률 표시
+            with open(checkpoint_path, 'wb') as f, tqdm(
+                desc=f"Downloading {checkpoint_path}",
+                total=total_size,
+                unit='B',
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as pbar:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        pbar.update(len(chunk))
+            
+            print(f"Successfully downloaded: {checkpoint_path}")
+            
+        except Exception as e:
+            print(f"Error downloading model: {e}")
+            if os.path.exists(checkpoint_path):
+                os.remove(checkpoint_path)
+            raise
+    
+    def _verify_file_integrity(self, checkpoint_path: str) -> bool:
+        """
+        Verify file integrity using SHA256 checksum
+        
+        Args:
+            checkpoint_path: Path to the model file
+            
+        Returns:
+            True if file is valid, False otherwise
+        """
+        filename = os.path.basename(checkpoint_path)
+        
+        # 체크섬이 정의되지 않은 파일은 검증 생략
+        if filename not in self.SAM_MODEL_CHECKSUMS:
+            return True
+        
+        expected_checksum = self.SAM_MODEL_CHECKSUMS[filename]
+        
+        try:
+            # 파일의 SHA256 체크섬 계산
+            sha256_hash = hashlib.sha256()
+            with open(checkpoint_path, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(chunk)
+            
+            actual_checksum = sha256_hash.hexdigest()
+            
+            if actual_checksum == expected_checksum:
+                print(f"File integrity verified: {checkpoint_path}")
+                return True
+            else:
+                print(f"File integrity check failed for {checkpoint_path}")
+                print(f"Expected: {expected_checksum}")
+                print(f"Actual: {actual_checksum}")
+                return False
+                
+        except Exception as e:
+            print(f"Error verifying file integrity: {e}")
+            return False
+
     def set_image(self, image: np.ndarray):
         """
         Set the image for segmentation
@@ -452,16 +572,20 @@ class SAMEverything:
 
 
 # Example usage function
-def demo_sam_everything(input_path: str, grid_size: int = 64):
+def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = "vit_h"):
     """
-    Demo function showing how to use SAM Everything with vit_h
+    Demo function showing how to use SAM Everything
     
     Args:
         input_path: Path to input image
         grid_size: Grid size for segmentation (default: 64)
+        model_type: SAM model type ("vit_h", "vit_l", "vit_b") - default: "vit_h"
     """
-    # Initialize SAM Everything
-    sam_everything = SAMEverything()
+    print(f"Starting SAM Everything demo with model: {model_type}")
+    print("Available models: vit_h (2.4GB, best quality), vit_l (1.2GB, good), vit_b (375MB, fast)")
+    
+    # Initialize SAM Everything with automatic download
+    sam_everything = SAMEverything(model_type=model_type)
     
     # Load and set image
     image_path = input_path
@@ -477,8 +601,8 @@ def demo_sam_everything(input_path: str, grid_size: int = 64):
         channels = image.shape[2] # 채널 (일반적으로 3 for RGB)
 
         print(f"Image shape: {image.shape}")
-        
         print(f"Width: {width}, Height: {height}, Channels: {channels}")
+        
         sam_everything.set_image(image)
         
         # Segment everything
@@ -489,7 +613,7 @@ def demo_sam_everything(input_path: str, grid_size: int = 64):
         # Visualize results
         sam_everything.visualize_masks(masks)
         # Save in different formats
-        sam_everything.save_masks_coco_format(masks, f"{image_name}_{grid_size}.json", 
+        sam_everything.save_masks_coco_format(masks, f"{image_name}_{model_type}_{grid_size}.json", 
                                             image_name, image_id=1)
         
     else:
@@ -500,7 +624,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='SAM Everything - Segment Anything Model for everything')
     parser.add_argument('--input', type=str, required=True, help='Path to input image')
     parser.add_argument('--grid_size', type=int, default=64, help='Grid size for segmentation (default: 64)')
+    parser.add_argument('--model_type', type=str, default='vit_h', choices=['vit_h', 'vit_l', 'vit_b'], 
+                        help='SAM model type - vit_h: 2.4GB best quality (default), vit_l: 1.2GB good, vit_b: 375MB fast')
     
     args = parser.parse_args()
     
-    demo_sam_everything(args.input, args.grid_size)
+    print("=" * 50)
+    print("SAM Everything - Segment Anything Model")
+    print("=" * 50)
+    print(f"Using model: {args.model_type} (default: vit_h)")
+    print(f"Input image: {args.input}")
+    print(f"Grid size: {args.grid_size}")
+    print("=" * 50)
+    
+    demo_sam_everything(args.input, args.grid_size, args.model_type)
