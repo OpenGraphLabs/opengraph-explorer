@@ -410,6 +410,267 @@ class SAMEverything:
         solidity = area / hull_area
         return solidity
     
+    def segment_everything_multi_scale(self, 
+                                     grid_sizes: List[int] = [32, 16, 8],
+                                     min_mask_area: int = 500,
+                                     max_mask_area: int = None,
+                                     max_complexity_ratio: float = 4.0,
+                                     min_solidity: float = 0.4,
+                                     iou_threshold: float = 0.7) -> List[dict]:
+        """
+        Segment everything with multiple grid sizes and establish parent-child relationships
+        
+        Args:
+            grid_sizes: List of grid sizes to process (e.g., [32, 16, 8])
+            min_mask_area: Minimum area threshold for masks
+            max_mask_area: Maximum area threshold for masks (None for no limit)
+            max_complexity_ratio: Maximum perimeter/area ratio to filter complex shapes
+            min_solidity: Minimum solidity to filter irregular shapes
+            iou_threshold: IoU threshold for duplicate removal
+            
+        Returns:
+            List of mask dictionaries with parent-child relationships
+        """
+        if self.current_image is None:
+            raise ValueError("No image set. Call set_image() first.")
+        
+        # Set default max_mask_area
+        if max_mask_area is None:
+            h, w = self.current_image.shape[:2]
+            max_mask_area = (h * w) // 4
+        
+        all_masks_by_grid = {}
+        
+        # Process each grid size
+        for grid_size in sorted(grid_sizes, reverse=True):  # 큰 grid부터 처리 (큰 덩어리부터)
+            print(f"Processing grid_size: {grid_size}")
+            
+            masks = self.segment_everything(
+                grid_size=grid_size,
+                min_mask_area=min_mask_area,
+                max_mask_area=max_mask_area,
+                max_complexity_ratio=max_complexity_ratio,
+                min_solidity=min_solidity
+            )
+            
+            # Add grid_size info to each mask
+            for idx, mask in enumerate(masks):
+                mask['grid_size'] = grid_size
+                mask['original_id'] = f"grid{grid_size}_{idx}"
+            
+            all_masks_by_grid[grid_size] = masks
+            print(f"Grid {grid_size}: Found {len(masks)} masks")
+        
+        # Combine all masks
+        all_masks = []
+        for grid_size in sorted(grid_sizes, reverse=True):
+            all_masks.extend(all_masks_by_grid[grid_size])
+        
+        print(f"Total masks before duplicate removal: {len(all_masks)}")
+        
+        # Remove duplicates across all grid sizes
+        unique_masks = self._remove_duplicate_masks_advanced(all_masks, iou_threshold)
+        print(f"Total masks after duplicate removal: {len(unique_masks)}")
+        
+        # Establish parent-child relationships
+        masks_with_relations = self._establish_parent_child_relationships(unique_masks)
+        print(f"Established parent-child relationships for {len(masks_with_relations)} masks")
+        
+        return masks_with_relations
+
+    def _remove_duplicate_masks_advanced(self, masks: List[dict], iou_threshold: float = 0.7) -> List[dict]:
+        """
+        Remove duplicate masks across different grid sizes based on IoU
+        Priority: larger grid_size (coarser segmentation) is kept
+        """
+        if len(masks) <= 1:
+            return masks
+        
+        # Sort by grid_size (descending) then by score (descending)
+        masks.sort(key=lambda x: (x['grid_size'], x['score']), reverse=True)
+        
+        keep_masks = []
+        for i, mask1 in enumerate(masks):
+            keep = True
+            for mask2 in keep_masks:
+                iou = self._calculate_iou(mask1['segmentation'], mask2['segmentation'])
+                if iou > iou_threshold:
+                    # If IoU is high, keep the one with larger grid_size (coarser)
+                    # or higher score if same grid_size
+                    keep = False
+                    break
+            if keep:
+                keep_masks.append(mask1)
+        
+        return keep_masks
+
+    def _establish_parent_child_relationships(self, masks: List[dict]) -> List[dict]:
+        """
+        Establish parent-child relationships based on spatial containment
+        """
+        # Sort masks by area (descending) - larger masks first
+        sorted_masks = sorted(masks, key=lambda x: x['area'], reverse=True)
+        
+        # Initialize relationship fields
+        for i, mask in enumerate(sorted_masks):
+            mask['id'] = i + 1
+            mask['parent_id'] = None
+            mask['child_ids'] = []
+        
+        # Find parent-child relationships
+        for i, potential_child in enumerate(sorted_masks):
+            child_mask = potential_child['segmentation']
+            
+            for j, potential_parent in enumerate(sorted_masks[:i]):  # Only check larger masks
+                parent_mask = potential_parent['segmentation']
+                
+                # Check if child is contained within parent
+                if self._is_mask_contained(child_mask, parent_mask):
+                    potential_child['parent_id'] = potential_parent['id']
+                    potential_parent['child_ids'].append(potential_child['id'])
+                    break  # Only assign one parent (the first/largest suitable one)
+        
+        return sorted_masks
+
+    def _is_mask_contained(self, child_mask: np.ndarray, parent_mask: np.ndarray, 
+                          containment_threshold: float = 0.8) -> bool:
+        """
+        Check if child_mask is spatially contained within parent_mask
+        
+        Args:
+            child_mask: Smaller mask to check
+            parent_mask: Larger mask to check containment
+            containment_threshold: Minimum ratio of child area that must be within parent
+            
+        Returns:
+            True if child is contained within parent
+        """
+        # Calculate intersection
+        intersection = np.logical_and(child_mask, parent_mask)
+        intersection_area = np.sum(intersection)
+        child_area = np.sum(child_mask)
+        
+        if child_area == 0:
+            return False
+        
+        # Check if most of the child is contained within the parent
+        containment_ratio = intersection_area / child_area
+        return containment_ratio >= containment_threshold
+
+    def save_masks_coco_format_with_relations(self, masks: List[dict], output_path: str, 
+                                            image_filename: str, image_id: int = 1):
+        """
+        Save masks with parent-child relationships in extended COCO format
+        """
+        if self.current_image is None:
+            raise ValueError("No image set. Call set_image() first.")
+        
+        h, w = self.current_image.shape[:2]
+        
+        # Extended COCO format with relationships
+        coco_format = {
+            "info": {
+                "description": "SAM Multi-Scale Segmentation with Parent-Child Relations",
+                "url": "https://github.com/facebookresearch/segment-anything",
+                "version": "2.0",
+                "year": 2024,
+                "contributor": "SAM Everything with Relations",
+                "date_created": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            "licenses": [
+                {
+                    "id": 1,
+                    "name": "Apache License 2.0",
+                    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ],
+            "categories": [
+                {
+                    "id": 1,
+                    "name": "object",
+                    "supercategory": "thing"
+                }
+            ],
+            "images": [
+                {
+                    "id": image_id,
+                    "width": w,
+                    "height": h,
+                    "file_name": image_filename,
+                    "license": 1,
+                    "flickr_url": "",
+                    "coco_url": "",
+                    "date_captured": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+            ],
+            "annotations": [],
+            "relationships": {
+                "description": "Parent-child relationships between segmentation masks",
+                "parent_child_pairs": []
+            }
+        }
+        
+        # Convert masks to COCO annotations with relationships
+        for mask_dict in masks:
+            mask = mask_dict['segmentation']
+            
+            # Convert mask to COCO RLE format
+            mask_uint8 = mask.astype(np.uint8)
+            rle = maskUtils.encode(np.asfortranarray(mask_uint8))
+            
+            # Convert bytes to string for JSON serialization
+            if isinstance(rle['counts'], bytes):
+                rle['counts'] = rle['counts'].decode('utf-8')
+            
+            # Calculate area and bounding box
+            area = int(maskUtils.area(rle))
+            bbox = maskUtils.toBbox(rle).tolist()
+            
+            # Create extended COCO annotation
+            annotation = {
+                "id": mask_dict['id'],
+                "image_id": image_id,
+                "category_id": 1,
+                "segmentation": rle,
+                "area": area,
+                "bbox": bbox,
+                "iscrowd": 0,
+                "score": mask_dict['score'],
+                # Extended fields
+                "grid_size": mask_dict['grid_size'],
+                "parent_id": mask_dict['parent_id'],
+                "child_ids": mask_dict['child_ids'],
+                "complexity_ratio": mask_dict.get('complexity_ratio', 0),
+                "solidity": mask_dict.get('solidity', 0),
+                "original_id": mask_dict.get('original_id', '')
+            }
+            
+            coco_format["annotations"].append(annotation)
+            
+            # Add parent-child relationships
+            if mask_dict['parent_id'] is not None:
+                coco_format["relationships"]["parent_child_pairs"].append({
+                    "parent_id": mask_dict['parent_id'],
+                    "child_id": mask_dict['id']
+                })
+        
+        # Save extended COCO format JSON
+        with open(output_path, 'w') as f:
+            json.dump(coco_format, f, indent=2)
+        
+        # Print statistics
+        total_masks = len(masks)
+        parent_masks = len([m for m in masks if m['child_ids']])
+        child_masks = len([m for m in masks if m['parent_id'] is not None])
+        root_masks = len([m for m in masks if m['parent_id'] is None])
+        
+        print(f"Saved {total_masks} masks with relationships to {output_path}")
+        print(f"Statistics:")
+        print(f"  - Root masks (no parent): {root_masks}")
+        print(f"  - Parent masks (have children): {parent_masks}")
+        print(f"  - Child masks (have parent): {child_masks}")
+        print(f"  - Total relationships: {len(coco_format['relationships']['parent_child_pairs'])}")
+
     def visualize_masks(self, masks: List[dict], alpha: float = 0.5):
         """
         Visualize masks on the current image
@@ -661,6 +922,169 @@ class SAMEverything:
         
         return polygons
 
+    def visualize_masks_with_relations(self, masks: List[dict], alpha: float = 0.5, 
+                                     show_relations: bool = True):
+        """
+        Visualize masks with parent-child relationships
+        """
+        if self.current_image is None:
+            raise ValueError("No image set. Call set_image() first.")
+        
+        fig, axes = plt.subplots(1, 2, figsize=(20, 10))
+        
+        # Left: All masks
+        axes[0].imshow(self.current_image)
+        colors = plt.cm.tab20(np.linspace(0, 1, len(masks)))
+        
+        for i, mask_dict in enumerate(masks):
+            mask = mask_dict['segmentation']
+            color = colors[i][:3]  # RGB only
+            
+            colored_mask = np.zeros((*mask.shape, 3))
+            colored_mask[mask] = color
+            axes[0].imshow(colored_mask, alpha=alpha)
+            
+            # Add text annotation
+            bbox = mask_dict['bbox']
+            center_x = (bbox[0] + bbox[2]) / 2
+            center_y = (bbox[1] + bbox[3]) / 2
+            axes[0].text(center_x, center_y, str(mask_dict['id']), 
+                        color='white', fontsize=8, ha='center', va='center',
+                        bbox=dict(boxstyle="round,pad=0.1", facecolor='black', alpha=0.7))
+        
+        axes[0].set_title(f'All Masks ({len(masks)} total)')
+        axes[0].axis('off')
+        
+        # Right: Parent-child relationships
+        if show_relations:
+            axes[1].imshow(self.current_image)
+            
+            # Color code by hierarchy level
+            root_masks = [m for m in masks if m['parent_id'] is None]
+            for i, root_mask in enumerate(root_masks):
+                self._draw_hierarchy(axes[1], root_mask, masks, level=0, max_level=3, alpha=alpha)
+            
+            axes[1].set_title('Parent-Child Relationships (Color by Level)')
+            axes[1].axis('off')
+        
+        plt.tight_layout()
+        plt.show()
+
+    def _draw_hierarchy(self, ax, mask_dict: dict, all_masks: List[dict], 
+                       level: int, max_level: int, alpha: float):
+        """
+        Recursively draw mask hierarchy with different colors for each level
+        """
+        if level > max_level:
+            return
+        
+        # Color based on hierarchy level
+        level_colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange']
+        color = level_colors[level % len(level_colors)]
+        
+        mask = mask_dict['segmentation']
+        colored_mask = np.zeros((*mask.shape, 3))
+        
+        if color == 'red':
+            colored_mask[mask] = [1, 0, 0]
+        elif color == 'green':
+            colored_mask[mask] = [0, 1, 0]
+        elif color == 'blue':
+            colored_mask[mask] = [0, 0, 1]
+        elif color == 'yellow':
+            colored_mask[mask] = [1, 1, 0]
+        elif color == 'purple':
+            colored_mask[mask] = [1, 0, 1]
+        else:  # orange
+            colored_mask[mask] = [1, 0.5, 0]
+        
+        ax.imshow(colored_mask, alpha=alpha)
+        
+        # Add text annotation
+        bbox = mask_dict['bbox']
+        center_x = (bbox[0] + bbox[2]) / 2
+        center_y = (bbox[1] + bbox[3]) / 2
+        ax.text(center_x, center_y, f"{mask_dict['id']}(L{level})", 
+               color='white', fontsize=8, ha='center', va='center',
+               bbox=dict(boxstyle="round,pad=0.1", facecolor='black', alpha=0.7))
+        
+        # Draw children
+        for child_id in mask_dict['child_ids']:
+            child_mask = next((m for m in all_masks if m['id'] == child_id), None)
+            if child_mask:
+                self._draw_hierarchy(ax, child_mask, all_masks, level+1, max_level, alpha)
+
+
+# Example usage function
+def demo_sam_everything_with_relations(input_path: str, 
+                                     grid_sizes: List[int] = [32, 16, 8], 
+                                     model_type: str = "vit_h"):
+    """
+    Demo function for multi-scale SAM with parent-child relationships
+    
+    Args:
+        input_path: Path to input image
+        grid_sizes: List of grid sizes for multi-scale processing
+        model_type: SAM model type ("vit_h", "vit_l", "vit_b")
+    """
+    print(f"Starting SAM Everything with Relations demo")
+    print(f"Model: {model_type}, Grid sizes: {grid_sizes}")
+    
+    # Initialize SAM Everything
+    sam_everything = SAMEverything(model_type=model_type)
+    
+    # Load and set image
+    image_path = input_path
+    image_name = os.path.basename(image_path)
+
+    if os.path.exists(image_path):
+        image = cv2.imread(image_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        
+        height, width = image.shape[:2]
+        print(f"Image: {image_name}, Size: {width}x{height}")
+        
+        sam_everything.set_image(image)
+        
+        # Multi-scale segmentation with relationships
+        print(f"Processing multi-scale segmentation...")
+        masks_with_relations = sam_everything.segment_everything_multi_scale(
+            grid_sizes=grid_sizes,
+            min_mask_area=500,
+            max_mask_area=width*height//8,
+            max_complexity_ratio=4.0,
+            min_solidity=0.4,
+            iou_threshold=0.7
+        )
+        
+        print(f"Final result: {len(masks_with_relations)} masks with relationships")
+        
+        # Print hierarchy statistics
+        grid_stats = {}
+        for mask in masks_with_relations:
+            grid_size = mask['grid_size']
+            if grid_size not in grid_stats:
+                grid_stats[grid_size] = 0
+            grid_stats[grid_size] += 1
+        
+        print("Masks by grid size:")
+        for grid_size in sorted(grid_stats.keys(), reverse=True):
+            print(f"  Grid {grid_size}: {grid_stats[grid_size]} masks")
+        
+        # Visualize results
+        sam_everything.visualize_masks_with_relations(masks_with_relations)
+        
+        # Save results with relationships
+        output_filename = f"{image_name}_relations_{'-'.join(map(str, grid_sizes))}.json"
+        sam_everything.save_masks_coco_format_with_relations(
+            masks_with_relations, output_filename, image_name, image_id=1
+        )
+        
+        print(f"Results saved to: {output_filename}")
+        
+    else:
+        print(f"Image not found: {image_path}")
+
 
 # Example usage function
 def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = "vit_h"):
@@ -729,20 +1153,28 @@ def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = 
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='SAM Everything - Segment Anything Model for everything')
+    parser = argparse.ArgumentParser(description='SAM Everything with Relations - Multi-scale segmentation with parent-child relationships')
     parser.add_argument('--input', type=str, required=True, help='Path to input image')
-    parser.add_argument('--grid_size', type=int, default=64, help='Grid size for segmentation (default: 64)')
+    parser.add_argument('--grid_sizes', type=int, nargs='+', default=[32, 16, 8], 
+                        help='Grid sizes for multi-scale processing (default: 32 16 8)')
     parser.add_argument('--model_type', type=str, default='vit_h', choices=['vit_h', 'vit_l', 'vit_b'], 
-                        help='SAM model type - vit_h: 2.4GB best quality (default), vit_l: 1.2GB good, vit_b: 375MB fast')
+                        help='SAM model type (default: vit_h)')
+    parser.add_argument('--relations', action='store_true', default=True,
+                        help='Enable parent-child relationship processing (default: True)')
     
     args = parser.parse_args()
     
-    print("=" * 50)
-    print("SAM Everything - Segment Anything Model")
-    print("=" * 50)
-    print(f"Using model: {args.model_type} (default: vit_h)")
-    print(f"Input image: {args.input}")
-    print(f"Grid size: {args.grid_size}")
-    print("=" * 50)
+    print("=" * 60)
+    print("SAM Everything with Parent-Child Relations")
+    print("=" * 60)
+    print(f"Model: {args.model_type}")
+    print(f"Input: {args.input}")
+    print(f"Grid sizes: {args.grid_sizes}")
+    print(f"Relations: {args.relations}")
+    print("=" * 60)
     
-    demo_sam_everything(args.input, args.grid_size, args.model_type)
+    if args.relations:
+        demo_sam_everything_with_relations(args.input, args.grid_sizes, args.model_type)
+    else:
+        # Fallback to original demo
+        demo_sam_everything(args.input, args.grid_sizes[0], args.model_type)
