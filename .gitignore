@@ -78,3 +78,4 @@ client/src/services/modelSuiService copy.ts
 server/utils/enhanced_h5_converter.py
 server/docs/txt
 server/utils/sam/sam_vit_h_4b8939.pth
+server/utils/sam/sam_everything_results.json
