@@ -28,13 +28,14 @@ class SAMEverything:
         "sam_vit_b_01ec64.pth": "ec2df62732614e57411cdcf32a23ffdf28910380d03139ee0f4fcbe91eb8c912"
     }
     
-    def __init__(self, checkpoint_path: str = None, model_type: str = "vit_h"):
+    def __init__(self, checkpoint_path: str = None, model_type: str = "vit_h", gpu_id: int = None):
         """
         Initialize SAM Everything with specified model
         
         Args:
             checkpoint_path: Path to SAM checkpoint file
             model_type: Type of SAM model ("vit_h", "vit_l", "vit_b") - default: "vit_h"
+            gpu_id: GPU device ID to use (None for auto, -1 for CPU, 0, 1, 2, etc. for specific GPU)
         """
         print(f"Initializing SAM Everything with model: {model_type} (default: vit_h)")
         
@@ -51,7 +52,9 @@ class SAMEverything:
         
         self.checkpoint_path = checkpoint_path
         self.model_type = model_type
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # GPU 설정
+        self.device = self._setup_device(gpu_id)
         
         # 모델 파일이 없으면 자동 다운로드
         if not os.path.exists(checkpoint_path):
@@ -73,6 +76,47 @@ class SAMEverything:
         
         print(f"SAM {model_type} model loaded successfully on {self.device}")
     
+    def _setup_device(self, gpu_id: int = None) -> torch.device:
+        """
+        Setup device (GPU/CPU) based on gpu_id parameter
+        
+        Args:
+            gpu_id: GPU device ID (None for auto, -1 for CPU, 0, 1, 2, etc. for specific GPU)
+            
+        Returns:
+            torch.device: Selected device
+        """
+        if gpu_id is None:
+            # Auto selection: use first available GPU, fallback to CPU
+            if torch.cuda.is_available():
+                device = torch.device("cuda:0")
+                print(f"Auto-selected GPU 0: {torch.cuda.get_device_name(0)}")
+            else:
+                device = torch.device("cpu")
+                print("No GPU available, using CPU")
+        elif gpu_id == -1:
+            # Force CPU
+            device = torch.device("cpu")
+            print("Forced to use CPU")
+        else:
+            # Use specific GPU
+            if not torch.cuda.is_available():
+                print(f"GPU {gpu_id} requested but CUDA not available, falling back to CPU")
+                device = torch.device("cpu")
+            elif gpu_id >= torch.cuda.device_count():
+                print(f"GPU {gpu_id} not available (only {torch.cuda.device_count()} GPUs), using GPU 0")
+                device = torch.device("cuda:0")
+            else:
+                device = torch.device(f"cuda:{gpu_id}")
+                print(f"Using GPU {gpu_id}: {torch.cuda.get_device_name(gpu_id)}")
+        
+        # Print GPU information if using CUDA
+        if device.type == "cuda":
+            print(f"GPU Memory: {torch.cuda.get_device_properties(device).total_memory / 1024**3:.1f} GB")
+            print(f"Available GPU Memory: {torch.cuda.memory_allocated(device) / 1024**3:.1f} GB allocated")
+        
+        return device
+
     def _download_model(self, model_type: str, checkpoint_path: str):
         """
         Download SAM model file
@@ -1074,7 +1118,8 @@ class SAMEverything:
 # Example usage function
 def demo_sam_everything_with_relations(input_path: str, 
                                      grid_sizes: List[int] = [32, 16, 8], 
-                                     model_type: str = "vit_h"):
+                                     model_type: str = "vit_h",
+                                     gpu_id: int = None):
     """
     Demo function for multi-scale SAM with parent-child relationships
     
@@ -1082,12 +1127,13 @@ def demo_sam_everything_with_relations(input_path: str,
         input_path: Path to input image
         grid_sizes: List of grid sizes for multi-scale processing
         model_type: SAM model type ("vit_h", "vit_l", "vit_b")
+        gpu_id: GPU device ID to use
     """
     print(f"Starting SAM Everything with Relations demo")
     print(f"Model: {model_type}, Grid sizes: {grid_sizes}")
     
     # Initialize SAM Everything
-    sam_everything = SAMEverything(model_type=model_type)
+    sam_everything = SAMEverything(model_type=model_type, gpu_id=gpu_id)
     
     # Load and set image
     image_path = input_path
@@ -1143,7 +1189,7 @@ def demo_sam_everything_with_relations(input_path: str,
 
 
 # Example usage function
-def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = "vit_h"):
+def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = "vit_h", gpu_id: int = None):
     """
     Demo function showing how to use SAM Everything
     
@@ -1151,12 +1197,13 @@ def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = 
         input_path: Path to input image
         grid_size: Grid size for segmentation (default: 64)
         model_type: SAM model type ("vit_h", "vit_l", "vit_b") - default: "vit_h"
+        gpu_id: GPU device ID to use
     """
     print(f"Starting SAM Everything demo with model: {model_type}")
     print("Available models: vit_h (2.4GB, best quality), vit_l (1.2GB, good), vit_b (375MB, fast)")
     
     # Initialize SAM Everything with automatic download
-    sam_everything = SAMEverything(model_type=model_type)
+    sam_everything = SAMEverything(model_type=model_type, gpu_id=gpu_id)
     
     # Load and set image
     image_path = input_path
@@ -1210,7 +1257,8 @@ def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = 
 
 def process_folder_with_relations(input_folder: str, output_folder: str,
                                 grid_sizes: List[int] = [32, 16, 8], 
-                                model_type: str = "vit_h"):
+                                model_type: str = "vit_h",
+                                gpu_id: int = None):
     """
     Process all images in a folder with multi-scale SAM and parent-child relationships
     
@@ -1219,6 +1267,7 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
         output_folder: Path to output folder for JSON files
         grid_sizes: List of grid sizes for multi-scale processing
         model_type: SAM model type ("vit_h", "vit_l", "vit_b")
+        gpu_id: GPU device ID to use
     """
     print(f"Starting folder processing with SAM Everything")
     print(f"Input folder: {input_folder}")
@@ -1230,7 +1279,7 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
     
     # Initialize SAM Everything (only once for all images)
     print("Initializing SAM model...")
-    sam_everything = SAMEverything(model_type=model_type)
+    sam_everything = SAMEverything(model_type=model_type, gpu_id=gpu_id)
     
     # Supported image extensions
     image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
@@ -1315,7 +1364,8 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
 
 
 def process_folder_simple(input_folder: str, output_folder: str,
-                         grid_size: int = 64, model_type: str = "vit_h"):
+                         grid_size: int = 64, model_type: str = "vit_h",
+                         gpu_id: int = None):
     """
     Process all images in a folder with simple SAM segmentation
     
@@ -1324,6 +1374,7 @@ def process_folder_simple(input_folder: str, output_folder: str,
         output_folder: Path to output folder for JSON files
         grid_size: Grid size for segmentation
         model_type: SAM model type ("vit_h", "vit_l", "vit_b")
+        gpu_id: GPU device ID to use
     """
     print(f"Starting folder processing with SAM Everything (Simple)")
     print(f"Input folder: {input_folder}")
@@ -1335,7 +1386,7 @@ def process_folder_simple(input_folder: str, output_folder: str,
     
     # Initialize SAM Everything (only once for all images)
     print("Initializing SAM model...")
-    sam_everything = SAMEverything(model_type=model_type)
+    sam_everything = SAMEverything(model_type=model_type, gpu_id=gpu_id)
     
     # Supported image extensions
     image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
@@ -1416,6 +1467,8 @@ if __name__ == "__main__":
                         help='Enable parent-child relationship processing (default: True)')
     parser.add_argument('--simple', action='store_true', default=False,
                         help='Use simple segmentation instead of multi-scale with relations')
+    parser.add_argument('--gpu', type=int, default=None, 
+                        help='GPU device ID to use (None for auto, -1 for CPU, 0, 1, 2, etc. for specific GPU)')
     
     args = parser.parse_args()
     
@@ -1428,23 +1481,43 @@ if __name__ == "__main__":
     print(f"Grid sizes: {args.grid_sizes}")
     print(f"Relations: {args.relations}")
     print(f"Simple mode: {args.simple}")
+    print(f"GPU ID: {args.gpu}")
     print("=" * 60)
+    
+    # Debug: Check current working directory and input path
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Input path exists: {os.path.exists(args.input)}")
+    print(f"Input path is file: {os.path.isfile(args.input)}")
+    print(f"Input path is directory: {os.path.isdir(args.input)}")
+    
+    if os.path.isdir(args.input):
+        print(f"Contents of input directory:")
+        try:
+            files = os.listdir(args.input)
+            print(f"  Total files: {len(files)}")
+            for i, file in enumerate(files[:10]):  # Show first 10 files
+                print(f"    {i+1}: {file}")
+            if len(files) > 10:
+                print(f"    ... and {len(files) - 10} more files")
+        except Exception as e:
+            print(f"  Error listing directory: {e}")
     
     # Check if input is a file or folder
     if os.path.isfile(args.input):
         # Single file processing
         print("Processing single file...")
         if args.relations and not args.simple:
-            demo_sam_everything_with_relations(args.input, args.grid_sizes, args.model_type)
+            demo_sam_everything_with_relations(args.input, args.grid_sizes, args.model_type, args.gpu)
         else:
-            demo_sam_everything(args.input, args.grid_sizes[0], args.model_type)
+            demo_sam_everything(args.input, args.grid_sizes[0], args.model_type, args.gpu)
     elif os.path.isdir(args.input):
         # Folder processing
         print("Processing folder...")
         if args.relations and not args.simple:
-            process_folder_with_relations(args.input, args.output, args.grid_sizes, args.model_type)
+            process_folder_with_relations(args.input, args.output, args.grid_sizes, args.model_type, args.gpu)
         else:
-            process_folder_simple(args.input, args.output, args.grid_sizes[0], args.model_type)
+            process_folder_simple(args.input, args.output, args.grid_sizes[0], args.model_type, args.gpu)
     else:
         print(f"Error: Input path '{args.input}' is neither a file nor a directory")
+        print(f"Please check if the path exists and you have permission to access it.")
         exit(1)
