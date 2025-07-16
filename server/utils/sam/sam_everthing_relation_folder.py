@@ -1208,15 +1208,214 @@ def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = 
         print(f"Image not found: {image_path}")
 
 
+def process_folder_with_relations(input_folder: str, output_folder: str,
+                                grid_sizes: List[int] = [32, 16, 8], 
+                                model_type: str = "vit_h"):
+    """
+    Process all images in a folder with multi-scale SAM and parent-child relationships
+    
+    Args:
+        input_folder: Path to input folder containing images
+        output_folder: Path to output folder for JSON files
+        grid_sizes: List of grid sizes for multi-scale processing
+        model_type: SAM model type ("vit_h", "vit_l", "vit_b")
+    """
+    print(f"Starting folder processing with SAM Everything")
+    print(f"Input folder: {input_folder}")
+    print(f"Output folder: {output_folder}")
+    print(f"Model: {model_type}, Grid sizes: {grid_sizes}")
+    
+    # Create output folder if it doesn't exist
+    os.makedirs(output_folder, exist_ok=True)
+    
+    # Initialize SAM Everything (only once for all images)
+    print("Initializing SAM model...")
+    sam_everything = SAMEverything(model_type=model_type)
+    
+    # Supported image extensions
+    image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
+    
+    # Get all image files in the input folder
+    image_files = []
+    for filename in os.listdir(input_folder):
+        file_ext = os.path.splitext(filename)[1].lower()
+        if file_ext in image_extensions:
+            image_files.append(filename)
+    
+    if not image_files:
+        print(f"No image files found in {input_folder}")
+        return
+    
+    print(f"Found {len(image_files)} image files to process")
+    
+    # Process each image
+    for i, image_filename in enumerate(image_files, 1):
+        image_path = os.path.join(input_folder, image_filename)
+        
+        print(f"\n[{i}/{len(image_files)}] Processing: {image_filename}")
+        
+        try:
+            # Load image
+            image = cv2.imread(image_path)
+            if image is None:
+                print(f"  Failed to load image: {image_path}")
+                continue
+                
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            height, width = image.shape[:2]
+            print(f"  Image size: {width}x{height}")
+            
+            # Set image for SAM
+            sam_everything.set_image(image)
+            
+            # Multi-scale segmentation with relationships
+            print(f"  Processing multi-scale segmentation...")
+            masks_with_relations = sam_everything.segment_everything_multi_scale(
+                grid_sizes=grid_sizes,
+                min_mask_area=500,
+                max_mask_area=width*height//8,
+                max_complexity_ratio=4.0,
+                min_solidity=0.4,
+                iou_threshold=0.7
+            )
+            
+            print(f"  Found {len(masks_with_relations)} masks with relationships")
+            
+            # Generate output filename
+            base_name = os.path.splitext(image_filename)[0]
+            output_filename = f"{base_name}_relations_{'-'.join(map(str, grid_sizes))}.json"
+            output_path = os.path.join(output_folder, output_filename)
+            
+            # Save results
+            sam_everything.save_masks_coco_format_with_relations(
+                masks_with_relations, output_path, image_filename, image_id=i, grid_sizes=grid_sizes
+            )
+            
+            print(f"  Results saved to: {output_filename}")
+            
+            # Print statistics
+            grid_stats = {}
+            for mask in masks_with_relations:
+                grid_size = mask['grid_size']
+                if grid_size not in grid_stats:
+                    grid_stats[grid_size] = 0
+                grid_stats[grid_size] += 1
+            
+            print("  Masks by grid size:")
+            for grid_size in sorted(grid_stats.keys(), reverse=True):
+                print(f"    Grid {grid_size}: {grid_stats[grid_size]} masks")
+            
+        except Exception as e:
+            print(f"  Error processing {image_filename}: {e}")
+            continue
+    
+    print(f"\nFolder processing completed!")
+    print(f"Processed {len(image_files)} images")
+    print(f"Results saved to: {output_folder}")
+
+
+def process_folder_simple(input_folder: str, output_folder: str,
+                         grid_size: int = 64, model_type: str = "vit_h"):
+    """
+    Process all images in a folder with simple SAM segmentation
+    
+    Args:
+        input_folder: Path to input folder containing images
+        output_folder: Path to output folder for JSON files
+        grid_size: Grid size for segmentation
+        model_type: SAM model type ("vit_h", "vit_l", "vit_b")
+    """
+    print(f"Starting folder processing with SAM Everything (Simple)")
+    print(f"Input folder: {input_folder}")
+    print(f"Output folder: {output_folder}")
+    print(f"Model: {model_type}, Grid size: {grid_size}")
+    
+    # Create output folder if it doesn't exist
+    os.makedirs(output_folder, exist_ok=True)
+    
+    # Initialize SAM Everything (only once for all images)
+    print("Initializing SAM model...")
+    sam_everything = SAMEverything(model_type=model_type)
+    
+    # Supported image extensions
+    image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
+    
+    # Get all image files in the input folder
+    image_files = []
+    for filename in os.listdir(input_folder):
+        file_ext = os.path.splitext(filename)[1].lower()
+        if file_ext in image_extensions:
+            image_files.append(filename)
+    
+    if not image_files:
+        print(f"No image files found in {input_folder}")
+        return
+    
+    print(f"Found {len(image_files)} image files to process")
+    
+    # Process each image
+    for i, image_filename in enumerate(image_files, 1):
+        image_path = os.path.join(input_folder, image_filename)
+        
+        print(f"\n[{i}/{len(image_files)}] Processing: {image_filename}")
+        
+        try:
+            # Load image
+            image = cv2.imread(image_path)
+            if image is None:
+                print(f"  Failed to load image: {image_path}")
+                continue
+                
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            height, width = image.shape[:2]
+            print(f"  Image size: {width}x{height}")
+            
+            # Set image for SAM
+            sam_everything.set_image(image)
+            
+            # Segment everything
+            print(f"  Segmenting everything with grid_size={grid_size}...")
+            masks = sam_everything.segment_everything(
+                grid_size=grid_size, 
+                min_mask_area=500,
+                max_mask_area=width*height//8,
+                max_complexity_ratio=4.0,
+                min_solidity=0.4
+            )
+            
+            print(f"  Found {len(masks)} masks")
+            
+            # Generate output filename
+            base_name = os.path.splitext(image_filename)[0]
+            output_filename = f"{base_name}_{model_type}_{grid_size}.json"
+            output_path = os.path.join(output_folder, output_filename)
+            
+            # Save results
+            sam_everything.save_masks_coco_format(masks, output_path, image_filename, image_id=i)
+            
+            print(f"  Results saved to: {output_filename}")
+            
+        except Exception as e:
+            print(f"  Error processing {image_filename}: {e}")
+            continue
+    
+    print(f"\nFolder processing completed!")
+    print(f"Processed {len(image_files)} images")
+    print(f"Results saved to: {output_folder}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='SAM Everything with Relations - Multi-scale segmentation with parent-child relationships')
-    parser.add_argument('--input', type=str, required=True, help='Path to input image')
+    parser.add_argument('--input', type=str, required=True, help='Path to input image or folder')
+    parser.add_argument('--output', type=str, default='./test', help='Path to output folder (default: ./test)')
     parser.add_argument('--grid_sizes', type=int, nargs='+', default=[32, 16, 8], 
                         help='Grid sizes for multi-scale processing (default: 32 16 8)')
     parser.add_argument('--model_type', type=str, default='vit_h', choices=['vit_h', 'vit_l', 'vit_b'], 
                         help='SAM model type (default: vit_h)')
     parser.add_argument('--relations', action='store_true', default=True,
                         help='Enable parent-child relationship processing (default: True)')
+    parser.add_argument('--simple', action='store_true', default=False,
+                        help='Use simple segmentation instead of multi-scale with relations')
     
     args = parser.parse_args()
     
@@ -1225,12 +1424,27 @@ if __name__ == "__main__":
     print("=" * 60)
     print(f"Model: {args.model_type}")
     print(f"Input: {args.input}")
+    print(f"Output: {args.output}")
     print(f"Grid sizes: {args.grid_sizes}")
     print(f"Relations: {args.relations}")
+    print(f"Simple mode: {args.simple}")
     print("=" * 60)
     
-    if args.relations:
-        demo_sam_everything_with_relations(args.input, args.grid_sizes, args.model_type)
+    # Check if input is a file or folder
+    if os.path.isfile(args.input):
+        # Single file processing
+        print("Processing single file...")
+        if args.relations and not args.simple:
+            demo_sam_everything_with_relations(args.input, args.grid_sizes, args.model_type)
+        else:
+            demo_sam_everything(args.input, args.grid_sizes[0], args.model_type)
+    elif os.path.isdir(args.input):
+        # Folder processing
+        print("Processing folder...")
+        if args.relations and not args.simple:
+            process_folder_with_relations(args.input, args.output, args.grid_sizes, args.model_type)
+        else:
+            process_folder_simple(args.input, args.output, args.grid_sizes[0], args.model_type)
     else:
-        # Fallback to original demo
-        demo_sam_everything(args.input, args.grid_sizes[0], args.model_type)
+        print(f"Error: Input path '{args.input}' is neither a file nor a directory")
+        exit(1)
