@@ -17,5 +17,18 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: opengraph-api
+    ports:
+      - "3001:3000"
+    environment:
+      - DATABASE_URL=postgres://opengraph_user:opengraph_pw@postgres:5432/opengraph
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data: 

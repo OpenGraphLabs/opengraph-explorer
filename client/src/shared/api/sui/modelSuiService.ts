@@ -40,11 +40,21 @@ export function useUploadModelToSui() {
     }
 
     try {
+      const version = await suiClient.getChainIdentifier();
+      console.log('✅ RPC 정상:', version);
+    } catch (err) {
+      console.error('❌ RPC 연결 실패:', err);
+    }
+
+    try {
       const tx = new Transaction();
 
       tx.setGasBudget(GAS_BUDGET);
 
       console.log("CREATE MODEL!");
+      console.log(params);
+      console.log("scale", BigInt(model.scale))
+
       // 1. create model
       const modelObject = tx.moveCall({
         target: `${SUI_CONTRACT.PACKAGE_ID}::${SUI_CONTRACT.MODULE_NAME}::create_model`,
@@ -179,6 +189,10 @@ export function useUploadModelToSui() {
         });
       }
 
+      console.log("SUI_NETWORK.TYPE", SUI_NETWORK.TYPE);
+      console.log("SUI_NETWORK.URL", SUI_NETWORK.URL);
+      console.log("SUI_CONTRACT.PACKAGE_ID", SUI_CONTRACT.PACKAGE_ID);
+
       return await signAndExecuteTransaction(
         {
           transaction: tx,
@@ -250,6 +264,12 @@ export function useModelInference() {
     if (layerDimensions.length !== layerCount) {
       throw new Error("Layer dimensions array length must match layer count.");
     }
+
+    console.log("modelId", modelId);
+    console.log("layerCount", layerCount);
+    console.log("layerDimensions", layerDimensions);
+    console.log("inputMagnitude", inputMagnitude);
+    console.log("inputSign", inputSign);
 
     try {
       const tx = new Transaction();

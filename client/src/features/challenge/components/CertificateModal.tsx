@@ -167,7 +167,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       if (!ctx) return;
 
       // Set high-resolution canvas - 좌우 공백 줄이고 컴팩트한 크기
-      const scale = 2;
+      const scale = 8;
       canvas.width = 650 * scale;
       canvas.height = 500 * scale;
       ctx.scale(scale, scale);
@@ -317,7 +317,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       if (!ctx) return;
 
       // Set high-resolution canvas - 좌우 공백 줄이고 컴팩트한 크기
-      const scale = 2;
+      const scale = 8;
       canvas.width = 650 * scale;
       canvas.height = 500 * scale;
       ctx.scale(scale, scale);

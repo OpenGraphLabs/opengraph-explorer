@@ -1,5 +1,5 @@
 {
-  "network": "testnet",
+  "network": "devnet",
   "owner": "0x3ed5d70cdbc085b561df5d1eb1c270e37fcbbc1d134f4e7373c51a61bdb119c2",
   "site_name": "OpenGraph Explorer",
   "metadata": {

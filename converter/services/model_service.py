@@ -17,7 +17,7 @@ def parse_model_file(file_path: str) -> dict:
         model = load_model(file_path)
         
         # read_h5 유틸리티를 사용하여 모델을 스키마로 변환
-        model_schema = convert_model_to_schema(model)
+        model_schema = convert_model_to_schema(model, scale=8)
         
         # 모델 스키마를 딕셔너리로 변환하여 반환
         return model_schema.dict()
