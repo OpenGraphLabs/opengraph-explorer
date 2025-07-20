@@ -13,6 +13,6 @@
   },
   "epochs": 30,
   "path": "./client/dist",
-  "gas_budget": 100000000,
+  "gas_budget": 300000000,
   "write_retry_limit": 15
 }

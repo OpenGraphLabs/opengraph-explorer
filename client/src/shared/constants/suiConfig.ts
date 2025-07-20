@@ -11,7 +11,7 @@ export const SUI_NETWORK = {
 
 // 컨트랙트 정보
 export const SUI_CONTRACT = {
-  PACKAGE_ID: "0xd76b179226b42dac8dce81ae8302e95fad4cbb82f06a1ecc31d2e84bbd18b50a", // "0xd76b179226b42dac8dce81ae8302e95fad4cbb82f06a1ecc31d2e84bbd18b50a", //"0xb2297c10ac54cee83eef6d3bb0f9f44a013d545cd8eb6f71de2362dc98855b34",
+  PACKAGE_ID: "0xf5c229df211883b8f067e73d8d2ac1b1c3a74c2a2b174fb7b8e130ecf171d995", //"0xb2297c10ac54cee83eef6d3bb0f9f44a013d545cd8eb6f71de2362dc98855b34",
   MODULE_NAME: "model",
 };
 
@@ -20,7 +20,7 @@ export const SUI_MAX_PARAMS_PER_TX = 3000;
 export const SUI_PREDICT_COMPUTATION_BATCH_SIZE = 100;
 
 // 가스 비용
-export const GAS_BUDGET = 1_000_000_000; // 1000000000 = 1 SUI
+export const GAS_BUDGET = 3_000_000_000; // 1000000000 = 1 SUI
 
 // SUI 주소 표시 길이 제한 (UI에서 주소를 표시할 때 사용)
 export const SUI_ADDRESS_DISPLAY_LENGTH = 16;
