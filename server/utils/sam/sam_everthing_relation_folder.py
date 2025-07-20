@@ -491,7 +491,7 @@ class SAMEverything:
             
             masks = self.segment_everything(
                 grid_size=grid_size,
-                min_mask_area=min_mask_area,
+                min_mask_area=min_mask_area*grid_size,
                 max_mask_area=max_mask_area,
                 max_complexity_ratio=max_complexity_ratio,
                 min_solidity=min_solidity
@@ -1116,7 +1116,7 @@ class SAMEverything:
 
 
 # Example usage function
-def demo_sam_everything_with_relations(input_path: str, 
+def single_sam_everything_with_relations(input_path: str, 
                                      grid_sizes: List[int] = [32, 16, 8], 
                                      model_type: str = "vit_h",
                                      gpu_id: int = None):
@@ -1152,10 +1152,10 @@ def demo_sam_everything_with_relations(input_path: str,
         print(f"Processing multi-scale segmentation...")
         masks_with_relations = sam_everything.segment_everything_multi_scale(
             grid_sizes=grid_sizes,
-            min_mask_area=500,
-            max_mask_area=width*height//8,
-            max_complexity_ratio=4.0,
-            min_solidity=0.4,
+            min_mask_area=2,
+            max_mask_area=width*height//1.5,
+            max_complexity_ratio=5.0,
+            min_solidity=0.2,
             iou_threshold=0.7
         )
         
@@ -1227,10 +1227,10 @@ def demo_sam_everything(input_path: str, grid_size: int = 64, model_type: str = 
         print(f"Segmenting everything with grid_size={grid_size}...")
         masks = sam_everything.segment_everything(
             grid_size=grid_size, 
-            min_mask_area=500,
-            max_mask_area=width*height//8,  # 이미지 크기의 1/8 이하
-            max_complexity_ratio=4.0,      # 원형에 비해 4배 이하의 복잡도
-            min_solidity=0.4               # 40% 이상의 견고함
+            min_mask_area=grid_size*10,
+            max_mask_area=width*height,  # 이미지 크기의 1/8 이하
+            max_complexity_ratio=5.0,      # 원형에 비해 4배 이하의 복잡도
+            min_solidity=0.1               # 40% 이상의 견고함
         )
         
         print(f"Found {len(masks)} masks (after filtering)")
@@ -1329,9 +1329,9 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             print(f"  Processing multi-scale segmentation...")
             masks_with_relations = sam_everything.segment_everything_multi_scale(
                 grid_sizes=grid_sizes,
-                min_mask_area=500,
-                max_mask_area=width*height//8,
-                max_complexity_ratio=4.0,
+                min_mask_area=2,
+                max_mask_area=width*height//1.5,
+                max_complexity_ratio=5.0,
                 min_solidity=0.4,
                 iou_threshold=0.7
             )
@@ -1553,16 +1553,14 @@ if __name__ == "__main__":
         # Single file processing
         print("Processing single file...")
         if args.relations and not args.simple:
-            demo_sam_everything_with_relations(args.input, args.grid_sizes, args.model_type, args.gpu)
-        else:
-            demo_sam_everything(args.input, args.grid_sizes[0], args.model_type, args.gpu)
+            single_sam_everything_with_relations(args.input, args.grid_sizes, args.model_type, args.gpu)
+
     elif os.path.isdir(args.input):
         # Folder processing
         print("Processing folder...")
         if args.relations and not args.simple:
             process_folder_with_relations(args.input, args.output, args.grid_sizes, args.model_type, args.gpu)
-        else:
-            process_folder_simple(args.input, args.output, args.grid_sizes[0], args.model_type, args.gpu)
+
     else:
         print(f"Error: Input path '{args.input}' is neither a file nor a directory")
         print(f"Please check if the path exists and you have permission to access it.")
