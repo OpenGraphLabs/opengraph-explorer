@@ -1261,6 +1261,7 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
                                 gpu_id: int = None):
     """
     Process all images in a folder with multi-scale SAM and parent-child relationships
+    Supports recursive processing of subdirectories
     
     Args:
         input_folder: Path to input folder containing images
@@ -1274,8 +1275,14 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
     print(f"Output folder: {output_folder}")
     print(f"Model: {model_type}, Grid sizes: {grid_sizes}")
     
-    # Create output folder if it doesn't exist
-    os.makedirs(output_folder, exist_ok=True)
+    # Get the last folder name from input_folder
+    input_folder_name = os.path.basename(input_folder)
+    
+    # Create output folder with input folder name
+    final_output_folder = os.path.join(output_folder, input_folder_name)
+    os.makedirs(final_output_folder, exist_ok=True)
+    
+    print(f"Final output folder: {final_output_folder}")
     
     # Initialize SAM Everything (only once for all images)
     print("Initializing SAM model...")
@@ -1284,12 +1291,15 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
     # Supported image extensions
     image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
     
-    # Get all image files in the input folder
+    # Get all image files recursively using os.walk
     image_files = []
-    for filename in os.listdir(input_folder):
-        file_ext = os.path.splitext(filename)[1].lower()
-        if file_ext in image_extensions:
-            image_files.append(filename)
+    for root, dirs, files in os.walk(input_folder):
+        for filename in files:
+            file_ext = os.path.splitext(filename)[1].lower()
+            if file_ext in image_extensions:
+                # Get relative path from input_folder
+                rel_path = os.path.relpath(root, input_folder)
+                image_files.append((os.path.join(root, filename), rel_path, filename))
     
     if not image_files:
         print(f"No image files found in {input_folder}")
@@ -1298,10 +1308,8 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
     print(f"Found {len(image_files)} image files to process")
     
     # Process each image
-    for i, image_filename in enumerate(image_files, 1):
-        image_path = os.path.join(input_folder, image_filename)
-        
-        print(f"\n[{i}/{len(image_files)}] Processing: {image_filename}")
+    for i, (image_path, rel_path, image_filename) in enumerate(image_files, 1):
+        print(f"\n[{i}/{len(image_files)}] Processing: {image_path}")
         
         try:
             # Load image
@@ -1330,17 +1338,32 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             
             print(f"  Found {len(masks_with_relations)} masks with relationships")
             
+            # Create output directory structure matching input
+            if rel_path == '.':
+                # Image is in the root folder
+                output_subdir = final_output_folder
+            else:
+                # Image is in a subfolder
+                output_subdir = os.path.join(final_output_folder, rel_path)
+                os.makedirs(output_subdir, exist_ok=True)
+            
             # Generate output filename
             base_name = os.path.splitext(image_filename)[0]
             output_filename = f"{base_name}_relations_{'-'.join(map(str, grid_sizes))}.json"
-            output_path = os.path.join(output_folder, output_filename)
+            output_path = os.path.join(output_subdir, output_filename)
+            
+            # Create relative path for file_name in COCO format
+            if rel_path == '.':
+                coco_file_name = image_filename
+            else:
+                coco_file_name = os.path.join(rel_path, image_filename)
             
             # Save results
             sam_everything.save_masks_coco_format_with_relations(
-                masks_with_relations, output_path, image_filename, image_id=i, grid_sizes=grid_sizes
+                masks_with_relations, output_path, coco_file_name, image_id=i, grid_sizes=grid_sizes
             )
             
-            print(f"  Results saved to: {output_filename}")
+            print(f"  Results saved to: {output_path}")
             
             # Print statistics
             grid_stats = {}
@@ -1355,12 +1378,12 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
                 print(f"    Grid {grid_size}: {grid_stats[grid_size]} masks")
             
         except Exception as e:
-            print(f"  Error processing {image_filename}: {e}")
+            print(f"  Error processing {image_path}: {e}")
             continue
     
     print(f"\nFolder processing completed!")
     print(f"Processed {len(image_files)} images")
-    print(f"Results saved to: {output_folder}")
+    print(f"Results saved to: {final_output_folder}")
 
 
 def process_folder_simple(input_folder: str, output_folder: str,
@@ -1368,6 +1391,7 @@ def process_folder_simple(input_folder: str, output_folder: str,
                          gpu_id: int = None):
     """
     Process all images in a folder with simple SAM segmentation
+    Supports recursive processing of subdirectories
     
     Args:
         input_folder: Path to input folder containing images
@@ -1381,8 +1405,14 @@ def process_folder_simple(input_folder: str, output_folder: str,
     print(f"Output folder: {output_folder}")
     print(f"Model: {model_type}, Grid size: {grid_size}")
     
-    # Create output folder if it doesn't exist
-    os.makedirs(output_folder, exist_ok=True)
+    # Get the last folder name from input_folder
+    input_folder_name = os.path.basename(input_folder)
+    
+    # Create output folder with input folder name
+    final_output_folder = os.path.join(output_folder, input_folder_name)
+    os.makedirs(final_output_folder, exist_ok=True)
+    
+    print(f"Final output folder: {final_output_folder}")
     
     # Initialize SAM Everything (only once for all images)
     print("Initializing SAM model...")
@@ -1391,12 +1421,15 @@ def process_folder_simple(input_folder: str, output_folder: str,
     # Supported image extensions
     image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
     
-    # Get all image files in the input folder
+    # Get all image files recursively using os.walk
     image_files = []
-    for filename in os.listdir(input_folder):
-        file_ext = os.path.splitext(filename)[1].lower()
-        if file_ext in image_extensions:
-            image_files.append(filename)
+    for root, dirs, files in os.walk(input_folder):
+        for filename in files:
+            file_ext = os.path.splitext(filename)[1].lower()
+            if file_ext in image_extensions:
+                # Get relative path from input_folder
+                rel_path = os.path.relpath(root, input_folder)
+                image_files.append((os.path.join(root, filename), rel_path, filename))
     
     if not image_files:
         print(f"No image files found in {input_folder}")
@@ -1405,10 +1438,8 @@ def process_folder_simple(input_folder: str, output_folder: str,
     print(f"Found {len(image_files)} image files to process")
     
     # Process each image
-    for i, image_filename in enumerate(image_files, 1):
-        image_path = os.path.join(input_folder, image_filename)
-        
-        print(f"\n[{i}/{len(image_files)}] Processing: {image_filename}")
+    for i, (image_path, rel_path, image_filename) in enumerate(image_files, 1):
+        print(f"\n[{i}/{len(image_files)}] Processing: {image_path}")
         
         try:
             # Load image
@@ -1436,23 +1467,38 @@ def process_folder_simple(input_folder: str, output_folder: str,
             
             print(f"  Found {len(masks)} masks")
             
+            # Create output directory structure matching input
+            if rel_path == '.':
+                # Image is in the root folder
+                output_subdir = final_output_folder
+            else:
+                # Image is in a subfolder
+                output_subdir = os.path.join(final_output_folder, rel_path)
+                os.makedirs(output_subdir, exist_ok=True)
+            
             # Generate output filename
             base_name = os.path.splitext(image_filename)[0]
             output_filename = f"{base_name}_{model_type}_{grid_size}.json"
-            output_path = os.path.join(output_folder, output_filename)
+            output_path = os.path.join(output_subdir, output_filename)
+            
+            # Create relative path for file_name in COCO format
+            if rel_path == '.':
+                coco_file_name = image_filename
+            else:
+                coco_file_name = os.path.join(rel_path, image_filename)
             
             # Save results
-            sam_everything.save_masks_coco_format(masks, output_path, image_filename, image_id=i)
+            sam_everything.save_masks_coco_format(masks, output_path, coco_file_name, image_id=i)
             
-            print(f"  Results saved to: {output_filename}")
+            print(f"  Results saved to: {output_path}")
             
         except Exception as e:
-            print(f"  Error processing {image_filename}: {e}")
+            print(f"  Error processing {image_path}: {e}")
             continue
     
     print(f"\nFolder processing completed!")
     print(f"Processed {len(image_files)} images")
-    print(f"Results saved to: {output_folder}")
+    print(f"Results saved to: {final_output_folder}")
 
 
 if __name__ == "__main__":
