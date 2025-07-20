@@ -8,7 +8,7 @@ Content-Type: application/json
 X-Opengraph-User-Id: 1
 
 {
-  "name": "car"
+  "name": "train"
 }
 
 ### category - Update

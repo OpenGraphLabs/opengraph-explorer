@@ -1,0 +1,18 @@
+### dictionary - List all categories of specific dictionary
+GET {{http-host}}/api/v1/dictionary-categories/1?page=1&limit=10
+X-Opengraph-User-Id: 1
+
+### dictionary - Create
+POST {{http-host}}/api/v1/dictionary-categories/
+Content-Type: application/json
+X-Opengraph-User-Id: 1
+
+{
+  "dictionary_id": 1,
+  "category_id": 6
+}
+
+### dictionary - Delete
+DELETE {{http-host}}/api/v1/dictionary-categories/1/1
+Content-Type: application/json
+X-Opengraph-User-Id: 1

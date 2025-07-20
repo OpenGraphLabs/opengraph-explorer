@@ -4,22 +4,22 @@
 데이터셋 관련 비즈니스 로직을 처리합니다.
 """
 
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..models.dataset import Dataset
 from ..schemas.dataset import (
-    DatasetCreate, 
-    DatasetUpdate, 
+    DatasetCreate,
+    DatasetUpdate,
     DatasetRead,
     DatasetWithStats,
     DatasetListItem,
     DatasetFilter,
-    DatasetPagination,
     DatasetListResponse
 )
+from ..schemas.common import Pagination
 
 
 class DatasetService:
@@ -178,7 +178,7 @@ class DatasetService:
     
     async def get_datasets_list(
         self,
-        pagination: DatasetPagination,
+        pagination: Pagination,
         filter_params: Optional[DatasetFilter] = None,
         created_by: Optional[int] = None
     ) -> DatasetListResponse:

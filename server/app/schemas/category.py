@@ -5,7 +5,7 @@ API request/response schemas for category-related operations
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -32,4 +32,12 @@ class CategoryRead(CategoryBase):
 
 
 class CategoryInDB(CategoryRead):
-    pass 
+    pass
+
+class CategoryListResponse(BaseModel):
+    """Category list response schema"""
+    items: List[CategoryRead] = Field(..., description="Category list")
+    total: int = Field(..., description="Total count")
+    page: int = Field(..., description="Current page")
+    limit: int = Field(..., description="Page size")
+    pages: int = Field(..., description="Total pages")

@@ -4,7 +4,8 @@
 딕셔너리 관련 비즈니스 로직을 처리합니다.
 """
 
-from typing import Optional, List
+from typing import Optional
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.dictionary import Dictionary
@@ -19,14 +20,41 @@ class DictionaryService:
     
     async def create_dictionary(self, dictionary_data: DictionaryCreate) -> DictionaryRead:
         """
-        새로운 딕셔너리를 생성합니다.
+        Create a new dictionary.
+
+        Args:
+            dictionary_data: Schema containing the new dictionary.
+
+        Returns:
+            DictionaryRead: Created dictionary information.
         """
-        # TODO: 구현 필요
-        pass
+        db_dictionary = Dictionary(
+            name=dictionary_data.name,
+            description=dictionary_data.description,
+        )
+
+        self.db.add(db_dictionary)
+        await self.db.commit()
+        await self.db.refresh(db_dictionary)
+
+        return DictionaryRead.model_validate(db_dictionary)
     
     async def get_dictionary_by_id(self, dictionary_id: int) -> Optional[DictionaryRead]:
         """
-        ID로 딕셔너리를 조회합니다.
+        Get a dictionary by its id.
+
+        Args:
+            dictionary_id: ID of the dictionary.
+
+        Returns:
+            Optional[DictionaryRead]: Dictionary information or None if not found
         """
-        # TODO: 구현 필요
-        pass 
+        result = await self.db.execute(
+            select(Dictionary).where(Dictionary.id == dictionary_id)
+        )
+        dictionary = result.scalar_one_or_none()
+
+        if dictionary is None:
+            return None
+
+        return DictionaryRead.model_validate(dictionary)

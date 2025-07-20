@@ -70,14 +70,6 @@ class DatasetFilter(BaseModel):
     created_by: Optional[int] = Field(None, description="Creator filter")
     created_after: Optional[datetime] = Field(None, description="Created after timestamp")
     created_before: Optional[datetime] = Field(None, description="Created before timestamp")
-    
-    
-class DatasetPagination(BaseModel):
-    """Dataset pagination schema"""
-    page: int = Field(1, ge=1, description="Page number")
-    limit: int = Field(10, ge=1, le=100, description="Page size")
-    order_by: Optional[str] = Field(None, description="Sort criteria")
-    order: Optional[str] = Field(None, description="Sort order (asc, desc)")
 
 
 class DatasetListResponse(BaseModel):

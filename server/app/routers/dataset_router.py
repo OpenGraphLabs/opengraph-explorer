@@ -10,13 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_user, get_current_active_user
+from ..schemas.common import Pagination
 from ..schemas.dataset import (
-    DatasetCreate, 
-    DatasetUpdate, 
-    DatasetRead, 
+    DatasetCreate,
+    DatasetUpdate,
+    DatasetRead,
     DatasetListResponse,
     DatasetFilter,
-    DatasetPagination
 )
 from ..services import DatasetService
 
@@ -68,7 +68,7 @@ async def get_datasets(
     """
     dataset_service = DatasetService(db)
     return await dataset_service.get_datasets_list(
-        pagination=DatasetPagination(page=page, limit=limit),
+        pagination=Pagination(page=page, limit=limit),
     )
 
 
