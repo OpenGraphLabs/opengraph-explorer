@@ -76,8 +76,8 @@ class DatasetPagination(BaseModel):
     """Dataset pagination schema"""
     page: int = Field(1, ge=1, description="Page number")
     limit: int = Field(10, ge=1, le=100, description="Page size")
-    order_by: str = Field("created_at", description="Sort criteria")
-    order: str = Field("desc", description="Sort order (asc, desc)")
+    order_by: Optional[str] = Field(None, description="Sort criteria")
+    order: Optional[str] = Field(None, description="Sort order (asc, desc)")
 
 
 class DatasetListResponse(BaseModel):

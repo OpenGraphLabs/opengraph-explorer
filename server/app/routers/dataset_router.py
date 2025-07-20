@@ -5,7 +5,7 @@
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
@@ -18,6 +18,7 @@ from ..schemas.dataset import (
     DatasetFilter,
     DatasetPagination
 )
+from ..services import DatasetService
 
 router = APIRouter(
     prefix="/datasets",
@@ -28,27 +29,47 @@ router = APIRouter(
 @router.post("/", response_model=DatasetRead, status_code=status.HTTP_201_CREATED)
 async def create_dataset(
     dataset_data: DatasetCreate,
-    current_user = Depends(get_current_active_user),
+    request: Request,
+    # current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Create a new dataset.
     """
-    # TODO: DatasetService 구현
-    pass
+    dataset_service = DatasetService(db)
+
+    try:
+        # Get user_id from middleware
+        user_id = getattr(request.state, 'user_id', None)
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                detail="X-Opengraph-User-Id header is required"
+            )
+        
+        return await dataset_service.create_dataset(dataset_data, int(user_id))
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Invalid user ID format"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @router.get("/", response_model=DatasetListResponse)
 async def get_datasets(
-    skip: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    데이터셋 목록을 가져옵니다.
+    List all datasets.
     """
-    # TODO: DatasetService 구현
-    pass
+    dataset_service = DatasetService(db)
+    return await dataset_service.get_datasets_list(
+        pagination=DatasetPagination(page=page, limit=limit),
+    )
 
 
 @router.get("/{dataset_id}", response_model=DatasetRead)
@@ -57,10 +78,18 @@ async def get_dataset(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    특정 데이터셋을 가져옵니다.
+    Get a dataset by id.
     """
-    # TODO: DatasetService 구현
-    pass
+    dataset_service = DatasetService(db)
+    dataset = await dataset_service.get_dataset_by_id(dataset_id)
+
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found"
+        )
+
+    return dataset
 
 
 @router.put("/{dataset_id}", response_model=DatasetRead)

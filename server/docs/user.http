@@ -1,0 +1,20 @@
+### user - Read All
+GET {{http-host}}/api/v1/users?page=1&size=10
+X-Opengraph-User-Id: 1
+Content-Type: application/json
+
+### user - Read
+GET {{http-host}}/api/v1/users/1
+X-Opengraph-User-Id: 1
+
+### user - Create
+POST {{http-host}}/api/v1/users
+Content-Type: application/json
+
+{
+  "email": "jerry@opengraph.xyz",
+  "google_id": "test_google_id",
+  "display_name": "Jerry",
+  "profile_image_url": "test_profile_image_url",
+  "sui_address": "0xtestsui"
+}

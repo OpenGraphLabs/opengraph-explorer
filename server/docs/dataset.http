@@ -1,0 +1,23 @@
+### dataset - Read All
+GET {{http-host}}/api/v1/datasets?page=1&limit=10
+X-Opengraph-User-Id: 1
+Content-Type: application/json
+
+### dataset - Read
+GET {{http-host}}/api/v1/datasets/2
+X-Opengraph-User-Id: 1
+
+### dataset - Search By Name
+GET {{http-host}}/api/v1/datasets/search?name=진&size=10
+X-Opengraph-User-Id: 1
+
+### dataset - Create
+POST {{http-host}}/api/v1/datasets
+Content-Type: application/json
+X-Opengraph-User-Id: 1
+
+{
+  "name": "COCO Dataset",
+  "description": "COCO image dataset, total 100 items",
+  "tags": ["image", "coco", "computer-vision"]
+}

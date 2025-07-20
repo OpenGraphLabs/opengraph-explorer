@@ -69,6 +69,18 @@ if not settings.debug:
 
 
 @app.middleware("http")
+async def extract_user_id_header(request: Request, call_next):
+    """
+    Extract X-Opengraph-User-Id header and store in request.state
+    """
+    user_id = request.headers.get("X-Opengraph-User-Id")
+    request.state.user_id = user_id
+    
+    response = await call_next(request)
+    return response
+
+
+@app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)

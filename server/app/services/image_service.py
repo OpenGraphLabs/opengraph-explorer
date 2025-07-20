@@ -20,7 +20,7 @@ class ImageService:
     
     async def create_image(self, image_data: ImageCreate) -> ImageRead:
         """
-        새로운 이미지를 생성합니다.
+        Create a new image.
         
         Args:
             image_data: Schema containing image creation data
@@ -44,7 +44,7 @@ class ImageService:
     
     async def get_image_by_id(self, image_id: int) -> Optional[ImageRead]:
         """
-        ID로 이미지를 조회합니다.
+        Get specific image by ID.
         
         Args:
             image_id: Image ID
