@@ -230,7 +230,7 @@ export function Profile() {
                     fontWeight: 600,
                   }}
                 >
-                  Sui Testnet
+                  Sui Devnet
                 </Badge>
               </Flex>
 

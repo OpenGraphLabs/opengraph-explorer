@@ -25,7 +25,7 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
+        <SuiClientProvider networks={networkConfig} defaultNetwork="devnet">
           <WalletProvider autoConnect>
             <ThemeProvider defaultMode="light">
               <RadixTheme

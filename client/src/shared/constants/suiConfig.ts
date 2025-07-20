@@ -4,14 +4,14 @@
 
 // 네트워크 설정
 export const SUI_NETWORK = {
-  TYPE: "testnet", // 'testnet', 'mainnet', 'devnet'
-  URL: "https://fullnode.testnet.sui.io", // "https://fullnode.testnet.sui.io",
-  GRAPHQL_URL: "https://sui-testnet.mystenlabs.com/graphql",
+  TYPE: "devnet", // 'testnet', 'mainnet', 'devnet'
+  URL: "https://fullnode.devnet.sui.io", // "https://fullnode.testnet.sui.io",
+  GRAPHQL_URL: "https://sui-devnet.mystenlabs.com/graphql",
 };
 
 // 컨트랙트 정보
 export const SUI_CONTRACT = {
-  PACKAGE_ID: "0xb2297c10ac54cee83eef6d3bb0f9f44a013d545cd8eb6f71de2362dc98855b34", // "0xd76b179226b42dac8dce81ae8302e95fad4cbb82f06a1ecc31d2e84bbd18b50a", //"0xb2297c10ac54cee83eef6d3bb0f9f44a013d545cd8eb6f71de2362dc98855b34",
+  PACKAGE_ID: "0xd76b179226b42dac8dce81ae8302e95fad4cbb82f06a1ecc31d2e84bbd18b50a", // "0xd76b179226b42dac8dce81ae8302e95fad4cbb82f06a1ecc31d2e84bbd18b50a", //"0xb2297c10ac54cee83eef6d3bb0f9f44a013d545cd8eb6f71de2362dc98855b34",
   MODULE_NAME: "model",
 };
 
