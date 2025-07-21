@@ -17,7 +17,7 @@ def main():
     y_test = np.load(os.path.join(data_dir, "y_test.npy"))
 
     # Randomly select 3 indices
-    selected_indices = random.sample(range(len(X_test)), 3)
+    selected_indices = random.sample(range(len(X_test)), 10)
 
     # Create data structure for JSON
     test_data = {

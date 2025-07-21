@@ -3,6 +3,8 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { fromHEX } from '@mysten/bcs';
 import contractConfig from '../../config/contract.json';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Network and contract configuration
 const SUI_NETWORK = {
@@ -16,7 +18,7 @@ const SUI_CONTRACT = {
 };
 
 // Model parameters
-const MODEL_ID = "0x625124372982e2c2fb5da4c59b3938e02c38f83de2568fa6d1d7210334de8f2a";
+const MODEL_ID = "0xeb1e66e14c92cb1e1bca8f1fb016c959bbaaef284b3643a1c65ab02e5abe36fd";
 const LAYER_COUNT = 3;
 const LAYER_DIMENSIONS = [32, 16, 10]; // Example dimensions
 
@@ -26,6 +28,17 @@ interface PredictionResult {
   magnitudes: number[];
   signs: number[];
   argmaxIdx?: number;
+}
+
+interface TestSample {
+  index: number;
+  input_values: string[];
+  true_label: number;
+  visualization: string[];
+}
+
+interface TestSamples {
+  test_samples: TestSample[];
 }
 
 class ModelInference {
@@ -153,8 +166,8 @@ class ModelInference {
       const layerEvents = this.parseLayerPartialComputedEvents(events);
       const predictionEvent = this.parsePredictionCompletedEvent(events);
 
-      console.log("Layer events:", layerEvents);
-      console.log("Prediction event:", predictionEvent);
+      // console.log("Layer events:", layerEvents);
+      // console.log("Prediction event:", predictionEvent);
 
       if (!predictionEvent) {
         throw new Error("No prediction completion event found");
@@ -180,70 +193,60 @@ async function main() {
     const privateKey = contractConfig.account.private_key;
     const inference = new ModelInference(privateKey);
 
-    // Example input (normalized between 0 and 1)
-    // const inputSize = 784; // For MNIST
-    // const inputValues = new Array(inputSize).fill(0.5);
-    // const inputMagnitude = inputValues.map(v => Math.floor(v * 1000000)); // Scale to 6 decimal places
-    // const inputSign = inputValues.map(() => 0); // All positive
+    // Read test samples
+    const testSamplesPath = path.join(__dirname, '../data/mnist_14_14/test_samples/test_samples.json');
+    const testSamplesData = fs.readFileSync(testSamplesPath, 'utf-8');
+    const testSamples: TestSamples = JSON.parse(testSamplesData);
 
-    const inputMagnitude = [
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70, 70, 70, 70, 70,
-        69, 69, 69, 69, 70, 70
-    ]
-    const inputSign = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0
-    ]
+    let correctCount = 0;
+    const totalCount = testSamples.test_samples.length;
 
-    // Run prediction
-    const result = await inference.predict(
-      MODEL_ID,
-      LAYER_COUNT,
-      LAYER_DIMENSIONS,
-      inputMagnitude,
-      inputSign
-    );
+    // Process each test sample
+    for (const sample of testSamples.test_samples) {
+      // console.log(`\nProcessing sample ${sample.index} (true label: ${sample.true_label})`);
+      // console.log("Visualization:");
+      // console.log(sample.visualization.join('\n'));
 
-    console.log("Prediction result:");
-    console.log("- Magnitudes:", result.magnitudes);
-    console.log("- Signs:", result.signs);
-    console.log("- Predicted class:", result.argmaxIdx);
+      // Convert input values to magnitude by removing decimal point
+      const inputMagnitude = sample.input_values.map(v => {
+        // Remove decimal point and convert to integer
+        // e.g., "0.55882353" -> 55882353
+        return parseInt(v.replace("0.", "").padEnd(8, "0"));
+      });
+      const inputSign = new Array(inputMagnitude.length).fill(0); // All positive
+
+      // Run prediction
+      const result = await inference.predict(
+        MODEL_ID,
+        LAYER_COUNT,
+        LAYER_DIMENSIONS,
+        inputMagnitude,
+        inputSign
+      );
+
+      console.log("\nPrediction result:");
+      // console.log("- Magnitudes:", result.magnitudes);
+      // console.log("- Signs:", result.signs);
+      console.log("- Predicted class:", result.argmaxIdx);
+      console.log("- True label:", sample.true_label);
+      console.log("- Types:", {
+        predicted: typeof result.argmaxIdx,
+        true_label: typeof sample.true_label,
+        predicted_value: result.argmaxIdx,
+        true_label_value: sample.true_label
+      });
+      const isCorrect = Number(result.argmaxIdx) === sample.true_label;
+      console.log("- Correct?:", isCorrect);
+      
+      if (isCorrect) {
+        correctCount++;
+      }
+    }
+
+    // Print final accuracy statistics
+    console.log("\n=== Final Results ===");
+    console.log(`Correct predictions: ${correctCount}/${totalCount}`);
+    console.log(`Accuracy: ${((correctCount / totalCount) * 100).toFixed(2)}%`);
 
   } catch (error) {
     console.error("Error in main:", error);
