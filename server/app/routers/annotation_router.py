@@ -4,12 +4,14 @@
 어노테이션 관련 API 엔드포인트들을 정의합니다.
 """
 
-from fastapi import APIRouter, Depends, status
+from typing import List
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
-from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead
+from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationUserCreate
+from ..services import AnnotationService
 
 router = APIRouter(
     prefix="/annotations",
@@ -18,16 +20,23 @@ router = APIRouter(
 
 
 @router.post("/", response_model=AnnotationRead, status_code=status.HTTP_201_CREATED)
-async def create_annotation(
-    annotation_data: AnnotationCreate,
-    current_user = Depends(get_current_active_user),
+async def create_user_annotation(
+    annotation_data: AnnotationUserCreate,
+    # current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    새로운 어노테이션을 생성합니다.
+    Create a new annotation
     """
-    # TODO: AnnotationService 구현
-    pass
+    annotation_service = AnnotationService(db)
+    
+    annotation_create_data = AnnotationCreate(
+        **annotation_data.model_dump(),
+        source_type="USER",
+        status="PENDING"
+    )
+    
+    return await annotation_service.create_annotation(annotation_create_data)
 
 
 @router.get("/{annotation_id}", response_model=AnnotationRead)
@@ -36,7 +45,30 @@ async def get_annotation(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    특정 어노테이션을 가져옵니다.
+    Get a annotation by id
     """
-    # TODO: AnnotationService 구현
-    pass 
+    annotation_service = AnnotationService(db)
+    annotation = await annotation_service.get_annotation_by_id(annotation_id)
+
+    if not annotation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Annotation not found",
+        )
+
+    return annotation
+
+
+@router.get("/image/{image_id}", response_model=List[AnnotationRead])
+async def get_annotations_by_image(
+    image_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all annotations for a specific image with client-friendly mask information
+    """
+    annotation_service = AnnotationService(db)
+    annotations = await annotation_service.get_annotations_by_image_id(image_id)
+    
+    return annotations
+

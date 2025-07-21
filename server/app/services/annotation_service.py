@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.annotation import Annotation
 from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead
+from ..utils.segmentation import get_mask_info_for_client
 
 
 class AnnotationService:
@@ -17,6 +18,31 @@ class AnnotationService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
+    
+    def _create_annotation_read_with_mask_info(self, annotation: Annotation) -> AnnotationRead:
+        """
+        Annotation 모델을 AnnotationRead로 변환하면서 mask_info 추가
+        
+        Args:
+            annotation: Database annotation model
+            
+        Returns:
+            AnnotationRead: Annotation with client-friendly mask information
+        """
+        # 기본 AnnotationRead 생성
+        annotation_read = AnnotationRead.model_validate(annotation)
+        
+        # 클라이언트용 마스크 정보 생성
+        mask_info = get_mask_info_for_client(
+            segmentation_counts=annotation.segmentation_counts,
+            segmentation_size=annotation.segmentation_size,
+            bbox=annotation.bbox
+        )
+        
+        # mask_info 추가
+        annotation_read.mask_info = mask_info
+        
+        return annotation_read
     
     async def create_annotation(self, annotation_data: AnnotationCreate) -> AnnotationRead:
         """
@@ -51,7 +77,7 @@ class AnnotationService:
         await self.db.commit()
         await self.db.refresh(db_annotation)
         
-        return AnnotationRead.model_validate(db_annotation)
+        return self._create_annotation_read_with_mask_info(db_annotation)
     
     async def get_annotation_by_id(self, annotation_id: int) -> Optional[AnnotationRead]:
         """
@@ -69,7 +95,7 @@ class AnnotationService:
         annotation = result.scalar_one_or_none()
         
         if annotation:
-            return AnnotationRead.model_validate(annotation)
+            return self._create_annotation_read_with_mask_info(annotation)
         return None
     
     async def get_annotations_by_image_id(self, image_id: int) -> List[AnnotationRead]:
@@ -87,7 +113,7 @@ class AnnotationService:
         )
         annotations = result.scalars().all()
         
-        return [AnnotationRead.model_validate(annotation) for annotation in annotations]
+        return [self._create_annotation_read_with_mask_info(annotation) for annotation in annotations]
     
     async def get_annotations_by_source_type(self, source_type: str, image_id: Optional[int] = None) -> List[AnnotationRead]:
         """
@@ -108,7 +134,7 @@ class AnnotationService:
         result = await self.db.execute(query)
         annotations = result.scalars().all()
         
-        return [AnnotationRead.model_validate(annotation) for annotation in annotations]
+        return [self._create_annotation_read_with_mask_info(annotation) for annotation in annotations]
     
     async def get_annotations_by_user(self, user_id: int) -> List[AnnotationRead]:
         """
@@ -125,7 +151,7 @@ class AnnotationService:
         )
         annotations = result.scalars().all()
         
-        return [AnnotationRead.model_validate(annotation) for annotation in annotations]
+        return [self._create_annotation_read_with_mask_info(annotation) for annotation in annotations]
     
     async def update_annotation(self, annotation_id: int, annotation_data: AnnotationUpdate) -> Optional[AnnotationRead]:
         """
@@ -155,7 +181,7 @@ class AnnotationService:
         await self.db.commit()
         await self.db.refresh(annotation)
         
-        return AnnotationRead.model_validate(annotation)
+        return self._create_annotation_read_with_mask_info(annotation)
     
     async def delete_annotation(self, annotation_id: int) -> bool:
         """
