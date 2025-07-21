@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { Box, Flex, Heading, Text, Grid, Button, ImageCard } from "@/shared/ui/design-system/components";
+import { Box, Flex, Heading, Text, Grid, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { 
   MagnifyingGlassIcon, 
   GridIcon, 
   ChevronLeftIcon,
   ChevronRightIcon,
-  Crosshair1Icon
+  Crosshair1Icon,
+  EyeOpenIcon,
+  EyeNoneIcon
 } from "@radix-ui/react-icons";
 import { useImages } from "@/shared/hooks/useApiQuery";
+import { ImageWithSegmentation } from "@/features/annotation/components";
 
 interface ImageItem {
   id: number;
@@ -33,6 +36,7 @@ export function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(24);
+  const [showGlobalMasks, setShowGlobalMasks] = useState(true);
 
   const { 
     data: imagesResponse, 
@@ -209,17 +213,39 @@ export function Home() {
               </Box>
             </Box>
 
-            {/* Simple Stats */}
+            {/* Simple Stats and Controls */}
             {!isLoading && (
-              <Text
-                style={{
-                  fontSize: theme.typography.bodySmall.fontSize,
-                  color: theme.colors.text.secondary,
-                  textAlign: 'center',
-                }}
-              >
-                {totalImages.toLocaleString()} images available
-              </Text>
+              <Flex direction="column" align="center" gap="3">
+                <Text
+                  style={{
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    color: theme.colors.text.secondary,
+                    textAlign: 'center',
+                  }}
+                >
+                  {totalImages.toLocaleString()} images available
+                </Text>
+                
+                {/* Global Mask Toggle */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowGlobalMasks(!showGlobalMasks)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.semantic.component.sm,
+                    padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
+                  }}
+                >
+                  {showGlobalMasks ? (
+                    <EyeNoneIcon width="14" height="14" />
+                  ) : (
+                    <EyeOpenIcon width="14" height="14" />
+                  )}
+                  {showGlobalMasks ? 'Hide Segmentation Masks' : 'Show Segmentation Masks'}
+                </Button>
+              </Flex>
             )}
           </Flex>
         </Box>
@@ -271,19 +297,19 @@ export function Home() {
           <>
             <Grid 
               columns={{ 
-                initial: "2", 
-                sm: "3", 
-                md: "4", 
-                lg: "5", 
-                xl: "6"
+                initial: "1", 
+                sm: "2", 
+                md: "3", 
+                lg: "4", 
+                xl: "5"
               }} 
-              gap="3"
+              gap="4"
               style={{
                 marginBottom: theme.spacing.semantic.layout.lg,
               }}
             >
               {images.map((image) => (
-                <ImageCard
+                <ImageWithSegmentation
                   key={image.id}
                   id={image.id}
                   fileName={image.file_name}
@@ -293,6 +319,7 @@ export function Home() {
                   datasetId={image.dataset_id}
                   createdAt={image.created_at}
                   onClick={() => handleImageClick(image)}
+                  autoLoadAnnotations={showGlobalMasks}
                 />
               ))}
             </Grid>
