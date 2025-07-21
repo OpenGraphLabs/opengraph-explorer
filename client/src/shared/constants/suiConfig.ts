@@ -1,18 +1,20 @@
+import contractConfig from '../../../../config/contract.json';
+
 /**
  * Sui 블록체인 관련 상수 정의
  */
 
 // 네트워크 설정
 export const SUI_NETWORK = {
-  TYPE: "devnet", // 'testnet', 'mainnet', 'devnet'
-  URL: "https://fullnode.devnet.sui.io", // "https://fullnode.testnet.sui.io",
-  GRAPHQL_URL: "https://sui-devnet.mystenlabs.com/graphql",
+  TYPE: contractConfig.network,
+  URL: `https://fullnode.${contractConfig.network}.sui.io`,
+  GRAPHQL_URL: `https://sui-${contractConfig.network}.mystenlabs.com/graphql`,
 };
 
 // 컨트랙트 정보
 export const SUI_CONTRACT = {
-  PACKAGE_ID: "0xf5c229df211883b8f067e73d8d2ac1b1c3a74c2a2b174fb7b8e130ecf171d995", //"0xb2297c10ac54cee83eef6d3bb0f9f44a013d545cd8eb6f71de2362dc98855b34",
-  MODULE_NAME: "model",
+  PACKAGE_ID: contractConfig.contract.package_id,
+  MODULE_NAME: contractConfig.contract.module_name,
 };
 
 export const SUI_MAX_PARAMS_PER_TX = 3000;

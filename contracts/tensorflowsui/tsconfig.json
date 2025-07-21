@@ -8,11 +8,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": "..",
+    "rootDir": "../..",
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "typeRoots": ["./types", "./node_modules/@types"]
+    "moduleResolution": "node"
   },
-  "include": ["./experiment/**/*.ts", "../config/**/*.json"],
+  "include": ["./sources/**/*.ts", "../../config/**/*.json"],
   "exclude": ["node_modules", "dist"]
 } 

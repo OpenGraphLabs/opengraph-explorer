@@ -2,16 +2,17 @@ import { SuiClient, SuiTransactionBlockResponse } from '@mysten/sui.js/client';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { fromHEX } from '@mysten/bcs';
+import contractConfig from '../../../../config/contract.json';
 
 // Network and contract configuration
 const SUI_NETWORK = {
-  TYPE: "testnet",
-  URL: "https://fullnode.testnet.sui.io",
+  TYPE: contractConfig.network,
+  URL: `https://fullnode.${contractConfig.network}.sui.io`,
 };
 
 const SUI_CONTRACT = {
-  PACKAGE_ID: "0xf5c229df211883b8f067e73d8d2ac1b1c3a74c2a2b174fb7b8e130ecf171d995",
-  MODULE_NAME: "model",
+  PACKAGE_ID: contractConfig.contract.package_id,
+  MODULE_NAME: contractConfig.contract.module_name,
 };
 
 const GAS_BUDGET = 3_000_000_000; // 1 SUI

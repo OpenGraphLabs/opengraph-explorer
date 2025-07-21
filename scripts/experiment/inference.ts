@@ -2,22 +2,23 @@ import { SuiClient, SuiTransactionBlockResponse } from '@mysten/sui.js/client';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { fromHEX } from '@mysten/bcs';
+import contractConfig from '../../config/contract.json';
 
 // Network and contract configuration
 const SUI_NETWORK = {
-  TYPE: "testnet",
-  URL: "https://fullnode.testnet.sui.io",
+  TYPE: contractConfig.network,
+  URL: `https://fullnode.${contractConfig.network}.sui.io`,
 };
 
 const SUI_CONTRACT = {
-  PACKAGE_ID: "0xf5c229df211883b8f067e73d8d2ac1b1c3a74c2a2b174fb7b8e130ecf171d995",
-  MODULE_NAME: "model",
+  PACKAGE_ID: contractConfig.contract.package_id,
+  MODULE_NAME: contractConfig.contract.module_name,
 };
 
 // Model parameters
-const MODEL_ID = "0x42e9af4b10d27486cebeae450e9fdfd99d30f65147529253a1419d1fe99d670f";
-const LAYER_COUNT = 4;
-const LAYER_DIMENSIONS = [16, 8, 4, 2]; // Example dimensions
+const MODEL_ID = "0x625124372982e2c2fb5da4c59b3938e02c38f83de2568fa6d1d7210334de8f2a";
+const LAYER_COUNT = 3;
+const LAYER_DIMENSIONS = [192, 32, 16, 10]; // Example dimensions
 
 const GAS_BUDGET = 3_000_000_000; // 1 SUI
 
@@ -34,7 +35,6 @@ class ModelInference {
   constructor(privateKey?: string) {
     this.client = new SuiClient({ url: SUI_NETWORK.URL });
     if (privateKey) {
-    //   this.signer = Ed25519Keypair.fromSecretKey(Buffer.from(privateKey, 'hex'));
       this.signer = Ed25519Keypair.fromSecretKey(fromHEX(privateKey));
       console.log("Signer address:", this.signer.toSuiAddress());
     } else {
@@ -176,12 +176,10 @@ class ModelInference {
 // Example usage
 async function main() {
   try {
-    // Initialize inference with your private key
-    const privateKey = ""; //process.env.SUI_PRIVATE_KEY;
+    // Initialize inference with private key from config
+    const privateKey = contractConfig.account.private_key;
     const inference = new ModelInference(privateKey);
 
-    
-    
     // Example input (normalized between 0 and 1)
     // const inputSize = 784; // For MNIST
     // const inputValues = new Array(inputSize).fill(0.5);
@@ -211,7 +209,6 @@ async function main() {
         69, 69, 69, 69, 70, 70
     ]
     const inputSign = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
