@@ -16,9 +16,6 @@
 import type { Configuration } from '../configuration';
 import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
-// URLSearchParams not necessarily used
-// @ts-ignore
-import { URL, URLSearchParams } from 'url';
 // Some imports not used depending on template conditions
 // @ts-ignore
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
@@ -28,6 +25,8 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 import type { HTTPValidationError } from '../models';
 // @ts-ignore
 import type { ImageCreate } from '../models';
+// @ts-ignore
+import type { ImageListResponse } from '../models';
 // @ts-ignore
 import type { ImageRead } from '../models';
 /**
@@ -106,6 +105,46 @@ export const ImagesApiAxiosParamCreator = function (configuration?: Configuratio
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * List all images.
+         * @summary Get Images
+         * @param {number} [page] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getImagesApiV1ImagesGet: async (page?: number, limit?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/images/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -142,6 +181,20 @@ export const ImagesApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['ImagesApi.getImageApiV1ImagesImageIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * List all images.
+         * @summary Get Images
+         * @param {number} [page] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getImagesApiV1ImagesGet(page?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ImageListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getImagesApiV1ImagesGet(page, limit, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ImagesApi.getImagesApiV1ImagesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -172,6 +225,16 @@ export const ImagesApiFactory = function (configuration?: Configuration, basePat
         getImageApiV1ImagesImageIdGet(requestParameters: ImagesApiGetImageApiV1ImagesImageIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<ImageRead> {
             return localVarFp.getImageApiV1ImagesImageIdGet(requestParameters.imageId, options).then((request) => request(axios, basePath));
         },
+        /**
+         * List all images.
+         * @summary Get Images
+         * @param {ImagesApiGetImagesApiV1ImagesGetRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getImagesApiV1ImagesGet(requestParameters: ImagesApiGetImagesApiV1ImagesGetRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<ImageListResponse> {
+            return localVarFp.getImagesApiV1ImagesGet(requestParameters.page, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -200,6 +263,16 @@ export interface ImagesApiInterface {
      * @memberof ImagesApiInterface
      */
     getImageApiV1ImagesImageIdGet(requestParameters: ImagesApiGetImageApiV1ImagesImageIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<ImageRead>;
+
+    /**
+     * List all images.
+     * @summary Get Images
+     * @param {ImagesApiGetImagesApiV1ImagesGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ImagesApiInterface
+     */
+    getImagesApiV1ImagesGet(requestParameters?: ImagesApiGetImagesApiV1ImagesGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<ImageListResponse>;
 
 }
 
@@ -232,6 +305,27 @@ export interface ImagesApiGetImageApiV1ImagesImageIdGetRequest {
 }
 
 /**
+ * Request parameters for getImagesApiV1ImagesGet operation in ImagesApi.
+ * @export
+ * @interface ImagesApiGetImagesApiV1ImagesGetRequest
+ */
+export interface ImagesApiGetImagesApiV1ImagesGetRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof ImagesApiGetImagesApiV1ImagesGet
+     */
+    readonly page?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ImagesApiGetImagesApiV1ImagesGet
+     */
+    readonly limit?: number
+}
+
+/**
  * ImagesApi - object-oriented interface
  * @export
  * @class ImagesApi
@@ -260,6 +354,18 @@ export class ImagesApi extends BaseAPI implements ImagesApiInterface {
      */
     public getImageApiV1ImagesImageIdGet(requestParameters: ImagesApiGetImageApiV1ImagesImageIdGetRequest, options?: RawAxiosRequestConfig) {
         return ImagesApiFp(this.configuration).getImageApiV1ImagesImageIdGet(requestParameters.imageId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List all images.
+     * @summary Get Images
+     * @param {ImagesApiGetImagesApiV1ImagesGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ImagesApi
+     */
+    public getImagesApiV1ImagesGet(requestParameters: ImagesApiGetImagesApiV1ImagesGetRequest = {}, options?: RawAxiosRequestConfig) {
+        return ImagesApiFp(this.configuration).getImagesApiV1ImagesGet(requestParameters.page, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

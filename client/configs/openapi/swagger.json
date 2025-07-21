@@ -777,14 +777,14 @@
         "description": "Add a new image to specific dataset.",
         "operationId": "add_image_api_v1_images__post",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ImageCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -793,6 +793,61 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ImageRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "images"
+        ],
+        "summary": "Get Images",
+        "description": "List all images.",
+        "operationId": "get_images_api_v1_images__get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageListResponse"
                 }
               }
             }
@@ -2288,6 +2343,48 @@
         ],
         "title": "ImageCreate",
         "description": "Image creation schema"
+      },
+      "ImageListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ImageRead"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Image list"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "description": "Current page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Page size"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages",
+            "description": "Total pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "pages"
+        ],
+        "title": "ImageListResponse",
+        "description": "Image list response schema "
       },
       "ImageRead": {
         "properties": {

@@ -24,3 +24,7 @@ X-Opengraph-User-Id: 1
     ],
     "is_crowd": false
 }
+
+### annotation - List annotations by image id
+GET {{http-host}}/api/v1/annotations/image/3
+X-Opengraph-User-Id: 1

@@ -4,12 +4,14 @@
 이미지 관련 API 엔드포인트들을 정의합니다.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
-from ..schemas.image import ImageCreate, ImageUpdate, ImageRead
+from ..schemas.common import Pagination
+from ..schemas.image import ImageCreate, ImageUpdate, ImageRead, ImageListResponse
 from ..services import ImageService
 
 router = APIRouter(
@@ -48,6 +50,21 @@ async def add_image(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+
+
+@router.get("/", response_model=ImageListResponse)
+async def get_images(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List all images.
+    """
+    image_service = ImageService(db)
+    return await image_service.get_images_list(
+        pagination=Pagination(page=page, limit=limit)
+    )
 
 
 @router.get("/{image_id}", response_model=ImageRead)

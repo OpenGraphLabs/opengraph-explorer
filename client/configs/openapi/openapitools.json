@@ -12,7 +12,8 @@
   "npmName": "opengraph-api-client",
   "npmVersion": "1.0.0",
   "snapshot": false,
-  "withNodeImports": true,
+  "withNodeImports": false,
+  "platform": "browser",
   "apiPackage": "apis",
   "modelPackage": "models"
 } 

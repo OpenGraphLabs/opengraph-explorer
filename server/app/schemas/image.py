@@ -5,7 +5,7 @@ API request/response schemas for image-related operations
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -41,4 +41,13 @@ class ImageRead(ImageBase):
 
 class ImageInDB(ImageRead):
     """Database image schema"""
-    pass 
+    pass
+
+
+class ImageListResponse(BaseModel):
+    """ Image list response schema """
+    items: List[ImageRead] = Field(..., description="Image list")
+    total: int = Field(..., description="Total count")
+    page: int = Field(..., description="Current page")
+    limit: int = Field(..., description="Page size")
+    pages: int = Field(..., description="Total pages")

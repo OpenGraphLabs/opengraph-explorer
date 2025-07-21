@@ -52,6 +52,7 @@ class DictionaryCategoryService:
 
         Args:
             dictionary_id: ID of the dictionary.
+            pagination: Pagination
 
         Returns:
             List[DictionaryCategoryRead]: List of dictionaries category associations

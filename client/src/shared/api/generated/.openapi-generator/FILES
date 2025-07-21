@@ -36,6 +36,7 @@ docs/DictionaryCreate.md
 docs/DictionaryRead.md
 docs/HTTPValidationError.md
 docs/ImageCreate.md
+docs/ImageListResponse.md
 docs/ImageRead.md
 docs/ImagesApi.md
 docs/UserCreate.md
@@ -64,6 +65,7 @@ models/dictionary-create.ts
 models/dictionary-read.ts
 models/httpvalidation-error.ts
 models/image-create.ts
+models/image-list-response.ts
 models/image-read.ts
 models/index.ts
 models/user-create.ts

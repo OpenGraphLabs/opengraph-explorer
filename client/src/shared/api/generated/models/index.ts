@@ -15,6 +15,7 @@ export * from './dictionary-create';
 export * from './dictionary-read';
 export * from './httpvalidation-error';
 export * from './image-create';
+export * from './image-list-response';
 export * from './image-read';
 export * from './user-create';
 export * from './user-profile';

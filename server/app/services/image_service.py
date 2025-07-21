@@ -5,11 +5,12 @@
 """
 
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.image import Image
-from ..schemas.image import ImageCreate, ImageUpdate, ImageRead
+from ..schemas.common import Pagination
+from ..schemas.image import ImageCreate, ImageUpdate, ImageRead, ImageListResponse
 
 
 class ImageService:
@@ -76,4 +77,42 @@ class ImageService:
         )
         images = result.scalars().all()
         
-        return [ImageRead.model_validate(image) for image in images] 
+        return [ImageRead.model_validate(image) for image in images]
+
+    async def get_images_list(
+        self,
+        pagination: Pagination,
+    ) -> ImageListResponse:
+        """
+        Get all images list.
+
+        Args:
+            pagination: Pagination
+
+        Returns:
+            ImageListResponse: List of images with pagination information
+        """
+        # Count total items
+        count_query = select(func.count(Image.id))
+
+        total_result = await self.db.execute(count_query)
+        total = total_result.scalar() or 0
+
+        # Apply pagination
+        query = select(Image).order_by(Image.created_at.desc())
+
+        offset = (pagination.page - 1) * pagination.limit
+        query = query.offset(offset).limit(pagination.limit)
+
+        result = await self.db.execute(query)
+        images = result.scalars().all()
+
+        pages = (total + pagination.limit - 1) // pagination.limit
+
+        return ImageListResponse(
+            items=[ImageRead.model_validate(image) for image in images],
+            total=total,
+            page=pagination.page,
+            limit=pagination.limit,
+            pages=pages
+        )

@@ -72,6 +72,7 @@ Class | Method | HTTP request | Description
 *DictionaryCategoriesApi* | [**getDictionaryCategoriesApiV1DictionaryCategoriesDictionaryIdGet**](docs/DictionaryCategoriesApi.md#getdictionarycategoriesapiv1dictionarycategoriesdictionaryidget) | **GET** /api/v1/dictionary-categories/{dictionary_id} | Get Dictionary Categories
 *ImagesApi* | [**addImageApiV1ImagesPost**](docs/ImagesApi.md#addimageapiv1imagespost) | **POST** /api/v1/images/ | Add Image
 *ImagesApi* | [**getImageApiV1ImagesImageIdGet**](docs/ImagesApi.md#getimageapiv1imagesimageidget) | **GET** /api/v1/images/{image_id} | Get Image
+*ImagesApi* | [**getImagesApiV1ImagesGet**](docs/ImagesApi.md#getimagesapiv1imagesget) | **GET** /api/v1/images/ | Get Images
 *UsersApi* | [**createUserApiV1UsersPost**](docs/UsersApi.md#createuserapiv1userspost) | **POST** /api/v1/users/ | Create User
 *UsersApi* | [**deleteCurrentUserApiV1UsersMeDelete**](docs/UsersApi.md#deletecurrentuserapiv1usersmedelete) | **DELETE** /api/v1/users/me | Delete Current User
 *UsersApi* | [**deleteUserApiV1UsersUserIdDelete**](docs/UsersApi.md#deleteuserapiv1usersuseriddelete) | **DELETE** /api/v1/users/{user_id} | Delete User
@@ -105,6 +106,7 @@ Class | Method | HTTP request | Description
  - [DictionaryRead](docs/DictionaryRead.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [ImageCreate](docs/ImageCreate.md)
+ - [ImageListResponse](docs/ImageListResponse.md)
  - [ImageRead](docs/ImageRead.md)
  - [UserCreate](docs/UserCreate.md)
  - [UserProfile](docs/UserProfile.md)

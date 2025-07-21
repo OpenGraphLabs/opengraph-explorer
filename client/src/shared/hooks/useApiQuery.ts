@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
 import { useApiClient, UseApiClientOptions } from './useApiClient';
-import type { DatasetCreate, DatasetUpdate, UserCreate, UserUpdate, AnnotationUserCreate } from '../api';
+import type { DatasetCreate, DatasetUpdate, UserCreate, UserUpdate, AnnotationUserCreate, ImageCreate } from '../api';
 
 // Query Keys
 export const queryKeys = {
@@ -28,6 +28,13 @@ export const queryKeys = {
     detail: (id: number) => [...queryKeys.annotations.details(), id] as const,
     byImage: (imageId: number) => [...queryKeys.annotations.all, 'byImage', imageId] as const,
   },
+  images: {
+    all: ['images'] as const,
+    lists: () => [...queryKeys.images.all, 'list'] as const,
+    list: (filters: any) => [...queryKeys.images.lists(), { filters }] as const,
+    details: () => [...queryKeys.images.all, 'detail'] as const,
+    detail: (id: number) => [...queryKeys.images.details(), id] as const,
+  },
 } as const;
 
 // Dataset Hooks
@@ -36,7 +43,6 @@ export function useDatasets(
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
-
   return useQuery({
     queryKey: queryKeys.datasets.list(filters),
     queryFn: () => datasets.getDatasets(filters),
@@ -278,6 +284,60 @@ export function useBulkCreateAnnotations(
     mutationFn: (data: AnnotationUserCreate[]) => annotations.bulkCreateAnnotations(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.annotations.lists() });
+    },
+    ...options
+  });
+} 
+
+// Image Hooks
+export function useImages(
+  filters: { page?: number; limit?: number } = {},
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { images } = useApiClient(options?.apiClientOptions);
+  return useQuery({
+    queryKey: queryKeys.images.list(filters),
+    queryFn: () => images.getImages(filters),
+    ...options
+  });
+}
+
+export function useImageById(
+  imageId: number,
+  options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { images } = useApiClient(options?.apiClientOptions);
+  return useQuery({
+    queryKey: queryKeys.images.detail(imageId),
+    queryFn: () => images.getImageById(imageId),
+    enabled: !!imageId,
+    ...options
+  });
+}
+
+export function useCreateImage(
+  options?: UseMutationOptions<any, Error, ImageCreate> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { images } = useApiClient(options?.apiClientOptions);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ImageCreate) => images.createImage(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.images.lists() });
+    },
+    ...options
+  });
+}
+
+export function useDeleteImage(
+  options?: UseMutationOptions<any, Error, number> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { images } = useApiClient(options?.apiClientOptions);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (imageId: number) => images.deleteImage(imageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.images.lists() });
     },
     ...options
   });

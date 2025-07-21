@@ -1,490 +1,414 @@
-import { Link } from "react-router-dom";
-import { Box, Flex, Heading, Text, Grid, Button } from "@/shared/ui/design-system/components";
+import React, { useState } from "react";
+import { Box, Flex, Heading, Text, Grid, Button, ImageCard } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import {
-  RocketIcon,
-  GitHubLogoIcon,
-  Share1Icon,
-  CodeIcon,
-  LayersIcon,
-  Pencil1Icon,
+import { 
+  MagnifyingGlassIcon, 
+  GridIcon, 
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Crosshair1Icon
 } from "@radix-ui/react-icons";
+import { useImages } from "@/shared/hooks/useApiQuery";
+
+interface ImageItem {
+  id: number;
+  file_name: string;
+  image_url: string;
+  width: number;
+  height: number;
+  dataset_id: number;
+  created_at: string;
+}
+
+interface ImageListResponse {
+  items: ImageItem[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
 
 export function Home() {
   const { theme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(24);
+
+  const { 
+    data: imagesResponse, 
+    isLoading, 
+    error 
+  } = useImages(
+    { page: currentPage, limit },
+    { 
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
+
+  const images = imagesResponse?.items || [];
+  const totalPages = imagesResponse?.pages || 0;
+  const totalImages = imagesResponse?.total || 0;
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      // TODO: Implement search functionality
+      console.log('Search for:', searchQuery);
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleImageClick = (image: ImageItem) => {
+    // TODO: Open image detail modal or navigate to detail page
+    console.log('Clicked image:', image);
+  };
+
+  if (error) {
+    return (
+      <Box
+        style={{
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex direction="column" align="center" gap="4">
+          <Crosshair1Icon 
+            width="48" 
+            height="48" 
+            style={{ color: theme.colors.status.error }}
+          />
+          <Heading size="4" style={{ color: theme.colors.text.primary }}>
+            Unable to Load Images
+          </Heading>
+          <Text style={{ color: theme.colors.text.secondary, textAlign: 'center' }}>
+            There was an error loading the image gallery. Please try refreshing the page.
+          </Text>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: theme.spacing.semantic.component.md,
+            }}
+          >
+            Refresh Page
+          </Button>
+        </Flex>
+      </Box>
+    );
+  }
 
   return (
     <Box
       style={{
-        maxWidth: "1400px",
-        margin: "0 auto",
-        padding: `0 ${theme.spacing.base[4]}`,
+        minHeight: '100vh',
+        background: theme.colors.background.primary,
       }}
     >
-      {/* Compact Hero Section */}
-      <Box py="6" mb="4">
-        <Flex direction="column" align="center" gap="3" mb="4">
-          <Heading
-            size="7"
-            align="center"
-            style={{
-              fontWeight: theme.typography.h1.fontWeight,
-              background: theme.gradients.primary,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              maxWidth: "900px",
-              lineHeight: "1.2",
-            }}
-          >
-            Verifiable ML Infrastructure
-          </Heading>
+      {/* Simple Header - Google Style */}
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          borderBottom: `1px solid ${theme.colors.border.subtle}`,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        <Box
+          style={{
+            maxWidth: '1600px',
+            margin: '0 auto',
+            padding: `${theme.spacing.semantic.layout.sm} ${theme.spacing.semantic.container.sm}`,
+          }}
+        >
+          <Flex direction="column" align="center" gap="4">
+            {/* OpenGraph Title */}
+            <Heading
+              style={{
+                fontSize: theme.typography.h2.fontSize,
+                fontWeight: theme.typography.h2.fontWeight,
+                color: theme.colors.text.primary,
+                letterSpacing: theme.typography.h2.letterSpacing,
+                marginBottom: theme.spacing.semantic.component.sm,
+              }}
+            >
+              OpenGraph
+            </Heading>
 
-          <Text
-            size="3"
-            align="center"
-            style={{
-              maxWidth: "700px",
-              color: theme.colors.text.secondary,
-              lineHeight: "1.4",
-            }}
-          >
-            Onchain machine learning with complete transparency. Build, verify, and deploy ML models
-            on Sui & Walrus.
-          </Text>
-
-          <Flex gap="3" mt="3">
-            <Link to="/models">
+            {/* Simple Search Bar */}
+            <Box style={{ width: '100%', maxWidth: '580px' }}>
               <Box
                 style={{
-                  display: "inline-block",
-                  transition: "all 0.2s ease",
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: theme.colors.background.card,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.full,
+                  transition: theme.animations.transitions.all,
+                  boxShadow: theme.shadows.base.sm,
+                  padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
                 }}
-                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.background = theme.colors.interactive.accent;
-                    button.style.boxShadow = `0 4px 12px ${theme.colors.interactive.accent}35`;
-                    button.style.transform = "translateY(-1px)";
-                  }
+                onFocusCapture={(e) => {
+                  e.currentTarget.style.boxShadow = theme.shadows.semantic.interactive.focus;
                 }}
-                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.background = theme.colors.interactive.primary;
-                    button.style.boxShadow = `0 2px 8px ${theme.colors.interactive.primary}25`;
-                    button.style.transform = "translateY(0)";
-                  }
+                onBlurCapture={(e) => {
+                  e.currentTarget.style.boxShadow = theme.shadows.base.sm;
                 }}
               >
-                <Button
-                  variant="primary"
-                  size="md"
+                <MagnifyingGlassIcon 
+                  width="20" 
+                  height="20" 
+                  style={{ 
+                    color: theme.colors.text.tertiary,
+                    marginRight: theme.spacing.semantic.component.md,
+                  }} 
+                />
+                
+                <input
+                  type="text"
+                  placeholder="Search images..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
                   style={{
-                    fontSize: theme.typography.bodySmall.fontSize,
-                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
-                    height: "40px",
-                    background: theme.colors.interactive.primary,
-                    color: theme.colors.text.inverse,
-                    border: "none",
-                    borderRadius: theme.borders.radius.sm,
-                    boxShadow: `0 2px 8px ${theme.colors.interactive.primary}25`,
-                    transition: "all 0.2s ease",
-                    fontWeight: 600,
+                    flex: 1,
+                    border: 'none',
+                    outline: 'none',
+                    background: 'transparent',
+                    fontSize: theme.typography.body.fontSize,
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI Variable, Segoe UI, system-ui, Roboto, Helvetica Neue, Arial, sans-serif',
+                    color: theme.colors.text.primary,
                   }}
-                >
-                  Explore Models
-                </Button>
+                />
+
+                {searchQuery && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setSearchQuery('')}
+                    style={{
+                      padding: `${theme.spacing[1]} ${theme.spacing[2]}`,
+                      fontSize: theme.typography.caption.fontSize,
+                      borderRadius: theme.borders.radius.sm,
+                      marginLeft: theme.spacing.semantic.component.sm,
+                    }}
+                  >
+                    Clear
+                  </Button>
+                )}
               </Box>
-            </Link>
-            <Link to="/upload">
-              <Box
+            </Box>
+
+            {/* Simple Stats */}
+            {!isLoading && (
+              <Text
                 style={{
-                  display: "inline-block",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.borderColor = theme.colors.interactive.primary;
-                    button.style.background = `${theme.colors.interactive.primary}08`;
-                    button.style.transform = "translateY(-1px)";
-                  }
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.borderColor = theme.colors.border.primary;
-                    button.style.background = theme.colors.background.card;
-                    button.style.transform = "translateY(0)";
-                  }
+                  fontSize: theme.typography.bodySmall.fontSize,
+                  color: theme.colors.text.secondary,
+                  textAlign: 'center',
                 }}
               >
+                {totalImages.toLocaleString()} images available
+              </Text>
+            )}
+          </Flex>
+        </Box>
+      </Box>
+
+      {/* Main Content */}
+      <Box
+        style={{
+          maxWidth: '1600px',
+          margin: '0 auto',
+          padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.sm}`,
+        }}
+      >
+        {/* Loading State */}
+        {isLoading && (
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            gap="4"
+            style={{
+              minHeight: '300px',
+              padding: theme.spacing.semantic.layout.lg,
+            }}
+          >
+            <Box
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: `3px solid ${theme.colors.border.primary}`,
+                borderTopColor: theme.colors.interactive.primary,
+                animation: 'spin 1s linear infinite',
+              }}
+            />
+            <Text
+              style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.secondary,
+              }}
+            >
+              Loading images...
+            </Text>
+          </Flex>
+        )}
+
+        {/* Images Grid */}
+        {!isLoading && images.length > 0 && (
+          <>
+            <Grid 
+              columns={{ 
+                initial: "2", 
+                sm: "3", 
+                md: "4", 
+                lg: "5", 
+                xl: "6"
+              }} 
+              gap="3"
+              style={{
+                marginBottom: theme.spacing.semantic.layout.lg,
+              }}
+            >
+              {images.map((image) => (
+                <ImageCard
+                  key={image.id}
+                  id={image.id}
+                  fileName={image.file_name}
+                  imageUrl={image.image_url}
+                  width={image.width}
+                  height={image.height}
+                  datasetId={image.dataset_id}
+                  createdAt={image.created_at}
+                  onClick={() => handleImageClick(image)}
+                />
+              ))}
+            </Grid>
+
+            {/* Simple Pagination */}
+            {totalPages > 1 && (
+              <Flex justify="center" align="center" gap="2">
                 <Button
                   variant="secondary"
                   size="md"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
                   style={{
-                    fontSize: theme.typography.bodySmall.fontSize,
-                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
-                    height: "40px",
-                    background: theme.colors.background.card,
-                    color: theme.colors.text.primary,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.sm,
-                    transition: "all 0.2s ease",
-                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.semantic.component.sm,
                   }}
                 >
-                  Upload Model
+                  <ChevronLeftIcon width="16" height="16" />
+                  Previous
                 </Button>
-              </Box>
-            </Link>
-          </Flex>
-        </Flex>
-
-        {/* Compact Stats Row */}
-        <Flex justify="center" gap="8" py="3">
-          <Flex direction="column" align="center" gap="1">
-            <Text
-              size="4"
-              style={{
-                fontWeight: theme.typography.h4.fontWeight,
-                color: theme.colors.text.primary,
-              }}
-            >
-              1,250+
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Models
-            </Text>
-          </Flex>
-          <Flex direction="column" align="center" gap="1">
-            <Text
-              size="4"
-              style={{
-                fontWeight: theme.typography.h4.fontWeight,
-                color: theme.colors.text.primary,
-              }}
-            >
-              340TB
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              On-chain Data
-            </Text>
-          </Flex>
-          <Flex direction="column" align="center" gap="1">
-            <Text
-              size="4"
-              style={{
-                fontWeight: theme.typography.h4.fontWeight,
-                color: theme.colors.text.primary,
-              }}
-            >
-              99.9%
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Verifiable
-            </Text>
-          </Flex>
-        </Flex>
-      </Box>
-
-      {/* Compact Features Section */}
-      <Box py="5" mb="4">
-        <Heading
-          size="4"
-          mb="4"
-          align="center"
-          style={{
-            fontWeight: theme.typography.h3.fontWeight,
-            color: theme.colors.text.primary,
-          }}
-        >
-          Platform Capabilities
-        </Heading>
-
-        <Grid columns={{ initial: "1", sm: "2", lg: "4" }} gap="3">
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <RocketIcon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.interactive.primary, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Model Verification
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Cryptographic proofs for all inference operations
-            </Text>
-          </Box>
-
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <Share1Icon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.interactive.accent, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Composable AI
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Build upon existing models with object composition
-            </Text>
-          </Box>
-
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <CodeIcon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.status.success, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Open Source
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Full transparency with open infrastructure
-            </Text>
-          </Box>
-
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <GitHubLogoIcon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.text.secondary, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Physical AI
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Real-world robotics and autonomous systems
-            </Text>
-          </Box>
-        </Grid>
-      </Box>
-
-      {/* Recent Activity & Quick Actions */}
-      <Grid columns={{ initial: "1", md: "2" }} gap="4" mb="4">
-        <Box>
-          <Heading
-            size="4"
-            mb="3"
-            style={{
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
-            }}
-          >
-            Recent Activity
-          </Heading>
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-            }}
-          >
-            <Flex direction="column" gap="3">
-              {[
-                { action: "Model uploaded", model: "GPT-2 Nano", time: "2 hours ago" },
-                { action: "Inference completed", model: "MNIST Classifier", time: "4 hours ago" },
-                { action: "Dataset verified", model: "Physics Sim Data", time: "6 hours ago" },
-              ].map((item, index) => (
-                <Flex key={index} justify="between" align="center">
-                  <Flex direction="column" gap="1">
-                    <Text size="2" style={{ color: theme.colors.text.primary }}>
-                      {item.action}
-                    </Text>
-                    <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                      {item.model}
-                    </Text>
-                  </Flex>
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-                    {item.time}
-                  </Text>
-                </Flex>
-              ))}
-            </Flex>
-          </Box>
-        </Box>
-
-        <Box>
-          <Heading
-            size="4"
-            mb="3"
-            style={{
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
-            }}
-          >
-            Quick Actions
-          </Heading>
-          <Flex direction="column" gap="3">
-            {[
-              {
-                href: "/models/upload",
-                icon: "rocket",
-                text: "Upload New Model",
-              },
-              {
-                href: "/datasets",
-                icon: "layers",
-                text: "Browse Datasets",
-              },
-              {
-                href: "/annotator",
-                icon: "pencil",
-                text: "Data Annotator",
-              },
-            ].map((action, index) => (
-              <Link key={index} to={action.href} style={{ textDecoration: "none" }}>
-                <Box
+                
+                <Text
                   style={{
-                    width: "100%",
-                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`,
-                    height: "44px",
-                    background: theme.colors.background.card,
-                    color: theme.colors.text.primary,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.sm,
-                    transition: "all 0.2s ease",
+                    margin: `0 ${theme.spacing.semantic.component.lg}`,
                     fontSize: theme.typography.bodySmall.fontSize,
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                    e.currentTarget.style.borderColor = theme.colors.interactive.primary;
-                    e.currentTarget.style.background = `${theme.colors.interactive.primary}08`;
-                  }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                    e.currentTarget.style.borderColor = theme.colors.border.primary;
-                    e.currentTarget.style.background = theme.colors.background.card;
+                    color: theme.colors.text.secondary,
+                    fontFamily: 'JetBrains Mono, SF Mono, Monaco, Inconsolata, Roboto Mono, Fira Code, Consolas, Liberation Mono, Menlo, Courier, monospace',
                   }}
                 >
-                  <Flex align="center" gap="2">
-                    <Box style={{ color: theme.colors.interactive.primary }}>
-                      {action.icon === "rocket" && <RocketIcon />}
-                      {action.icon === "layers" && <LayersIcon />}
-                      {action.icon === "pencil" && <Pencil1Icon />}
-                    </Box>
-                    {action.text}
-                  </Flex>
-                </Box>
-              </Link>
-            ))}
+                  Page {currentPage} of {totalPages}
+                </Text>
+
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.semantic.component.sm,
+                  }}
+                >
+                  Next
+                  <ChevronRightIcon width="16" height="16" />
+                </Button>
+              </Flex>
+            )}
+          </>
+        )}
+
+        {/* Simple Empty State */}
+        {!isLoading && images.length === 0 && (
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            gap="4"
+            style={{
+              minHeight: '300px',
+              padding: theme.spacing.semantic.layout.lg,
+            }}
+          >
+            <GridIcon 
+              width="64" 
+              height="64" 
+              style={{ 
+                color: theme.colors.text.tertiary,
+              }} 
+            />
+            
+            <Flex direction="column" align="center" gap="2">
+              <Heading 
+                size="4" 
+                style={{ 
+                  color: theme.colors.text.primary,
+                  fontSize: theme.typography.h4.fontSize,
+                  fontWeight: theme.typography.h4.fontWeight,
+                }}
+              >
+                {searchQuery ? 'No results found' : 'No images available'}
+              </Heading>
+              
+              <Text 
+                style={{ 
+                  color: theme.colors.text.secondary,
+                  textAlign: 'center',
+                  fontSize: theme.typography.body.fontSize,
+                }}
+              >
+                {searchQuery 
+                  ? `Try searching for something else`
+                  : 'Images will appear here when available'
+                }
+              </Text>
+            </Flex>
           </Flex>
-        </Box>
-      </Grid>
+        )}
+      </Box>
+
+      {/* Global Styles */}
+      <style>
+        {`
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          
+          input::placeholder {
+            color: ${theme.colors.text.tertiary};
+            opacity: 1;
+          }
+        `}
+      </style>
     </Box>
   );
 }
