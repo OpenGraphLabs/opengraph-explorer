@@ -5,22 +5,6 @@
   <h3>Bringing Transparency to AI through On-Chain Machine Learning</h3>
 </div>
 
-## SUI Overflow !!
-
-Our Overflow Deck [Overflow, Decentralized Data Annotation Platform]: 
-https://www.figma.com/deck/jz6NCLwVX3RazYHqBvoOnE/OpenGraph--Overflow2025--AI-?node-id=6-1055&t=ZetcuAb0izQp9lVz-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1
-
-Vote! [AI Track - OpenGraph]
-https://vote.sui.io/
-
-Twitter :
-https://x.com/opengraph_labs
-
-Challenges Demo : 
-https://explorer.opengraphlabs.xyz/challenges
-
-
-
 ## 🌟 Vision
 
 OpenGraph Explorer is pioneering a new era of transparent and decentralized AI by bringing machine learning models fully on-chain. We're transforming the traditional "black box" nature of AI into a transparent, auditable, and community-owned ecosystem powered by the Sui blockchain.
@@ -78,7 +62,7 @@ OpenGraph Explorer breaks down complex ML models into layers and executes them s
 1. Clone the repository:
    ```bash
    git clone https://github.com/OpenGraphLabs/opengraph-explorer.git
-   cd opengraph-explorer
+   cd opengraph-explorer/client
    ```
 
 2. Install dependencies:
@@ -88,14 +72,39 @@ OpenGraph Explorer breaks down complex ML models into layers and executes them s
    npm install
    ```
 
-3. Start the development server:
+3. Start the development client:
    ```bash
    yarn dev
-   # or
-   npm run dev
    ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Start the development server
+   ```bash
+   cd opengraph-explorer/server
+   docker-compose up -d converter
+   ```
+
+6. execute deploy.sh
+   ```bash
+   cd opengraph-explorer/scripts
+   ./deploy.sh # deploy contracts and extract test samples dataset
+   ```
+
+7. Open your browser and navigate to `http://localhost:5173` # convert and upload .h5 model
+
+8. Set Model parameters
+  ```bash
+  const MODEL_ID = "0x...";
+  const LAYER_COUNT = 3;
+  const LAYER_DIMENSIONS = [32, 16, 10]; 
+  ```
+
+9. Run inference experiment
+  ```bash
+  cd opengraph-explorer/scripts
+  npm start
+  cd opengraph-explorer/experiment
+  python3 compare_inference.py
+  ```
 
 ## 🔄 Workflow
 
