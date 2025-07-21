@@ -22,7 +22,10 @@ fi
 
 echo "Extracted Package ID: $PACKAGE_ID"
 
-# Update the contract configuration
+# Get the existing private key from contract.json
+PRIVATE_KEY=$(cat ../../config/contract.json | grep -o '"private_key": *"[^"]*"' | cut -d'"' -f4)
+
+# Update the contract configuration while preserving the private key
 echo "Updating contract configuration..."
 cat > ../../config/contract.json << EOF
 {
@@ -30,9 +33,17 @@ cat > ../../config/contract.json << EOF
   "contract": {
     "package_id": "$PACKAGE_ID",
     "module_name": "model"
+  },
+  "account": {
+    "private_key": "$PRIVATE_KEY"
   }
 }
 EOF
 
+# Run extract_test_samples.py
+echo "Extracting test samples..."
+cd ../../scripts/data
+python3 extract_test_samples.py
+
 echo "Deployment completed successfully!"
-echo "Contract configuration has been updated." 
+echo "Contract configuration has been updated and test samples have been extracted." 
