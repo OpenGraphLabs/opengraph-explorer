@@ -1,0 +1,18 @@
+{
+  "packageName": "opengraph-api-client",
+  "packageVersion": "1.0.0",
+  "typescriptThreePlus": true,
+  "withInterfaces": true,
+  "useSingleRequestParameter": true,
+  "withSeparateModelsAndApi": true,
+  "modelPropertyNaming": "camelCase",
+  "supportsES6": true,
+  "enumPropertyNaming": "UPPERCASE",
+  "stringEnums": false,
+  "npmName": "opengraph-api-client",
+  "npmVersion": "1.0.0",
+  "snapshot": false,
+  "withNodeImports": true,
+  "apiPackage": "apis",
+  "modelPackage": "models"
+} 
