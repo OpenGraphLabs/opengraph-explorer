@@ -18,7 +18,7 @@ const SUI_CONTRACT = {
 // Model parameters
 const MODEL_ID = "0x625124372982e2c2fb5da4c59b3938e02c38f83de2568fa6d1d7210334de8f2a";
 const LAYER_COUNT = 3;
-const LAYER_DIMENSIONS = [192, 32, 16, 10]; // Example dimensions
+const LAYER_DIMENSIONS = [32, 16, 10]; // Example dimensions
 
 const GAS_BUDGET = 3_000_000_000; // 1 SUI
 
@@ -209,6 +209,7 @@ async function main() {
         69, 69, 69, 69, 70, 70
     ]
     const inputSign = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
