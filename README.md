@@ -89,21 +89,27 @@ OpenGraph Explorer breaks down complex ML models into layers and executes them s
    ./deploy.sh # deploy contracts and extract test samples dataset
    ```
 
-7. Open your browser and navigate to `http://localhost:5173` # convert and upload .h5 model
+7. Open your browser and navigate to `http://localhost:5173` 
 
-8. Set Model parameters
+8. set devnet in your wallet and upload .h5 model in browser
+
+9. Set Model parameters
   ```bash
   const MODEL_ID = "0x...";
   const LAYER_COUNT = 3;
   const LAYER_DIMENSIONS = [32, 16, 10]; 
   ```
 
-9. Run inference experiment
+10. Run inference experiment
   ```bash
   cd opengraph-explorer/scripts
   npm start
   cd opengraph-explorer/experiment
   python3 compare_inference.py
+
+  # devnet inference tester address : 0xf1d044cc7a005d086cfc7105596154c8b60734b532eaf35efbd8bc82a3af8edc
+  cd opengraph-explorer/scripts/data # If you want to experiment with a different test dataset
+  python3 extract_test_samples.py # extract test samples dataset again
   ```
 
 ## 🔄 Workflow
@@ -133,31 +139,6 @@ OpenGraph Explorer is designed for the global AI community, enabling:
 - **Expanded Model Support**: Additional model architectures and layer types
 - **Cross-Chain Integration**: Extend to other blockchain networks
 
-## 🛠️ Project Structure
-
-```
-opengraph-explorer/
-├── client/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── model/
-│   │   │   │   ├── ModelInferenceTab.tsx
-│   │   │   │   ├── ModelOverviewTab.tsx
-│   │   │   │   └── ...
-│   │   ├── pages/
-│   │   │   ├── Home.tsx
-│   │   │   ├── Models.tsx
-│   │   │   ├── ModelDetail.tsx
-│   │   │   └── ...
-│   │   ├── utils/
-│   │   │   ├── modelUtils.ts
-│   │   │   ├── sui.ts
-│   │   │   └── ...
-│   │   ├── App.tsx
-│   │   └── main.tsx
-├── server/ (Optional backend services)
-└── README.md
-```
 
 ## 🤝 Contributing
 

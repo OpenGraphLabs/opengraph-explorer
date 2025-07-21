@@ -18,7 +18,7 @@ const SUI_CONTRACT = {
 };
 
 // Model parameters
-const MODEL_ID = "0xeb1e66e14c92cb1e1bca8f1fb016c959bbaaef284b3643a1c65ab02e5abe36fd";
+const MODEL_ID = "0x08190a3ebf5d0610a5aae04556dc6528e9e7069232b53f6e4cf42e2a5bce77e0";
 const LAYER_COUNT = 3;
 const LAYER_DIMENSIONS = [32, 16, 10]; // Example dimensions
 
