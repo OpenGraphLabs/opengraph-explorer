@@ -190,7 +190,7 @@ class ModelInference {
 async function main() {
   try {
     // Initialize inference with private key from config
-    const privateKey = contractConfig.account.private_key;
+    const privateKey = contractConfig.account.private_key; // test address : 0xf1d044cc7a005d086cfc7105596154c8b60734b532eaf35efbd8bc82a3af8edc
     const inference = new ModelInference(privateKey);
 
     // Read test samples
