@@ -3,9 +3,6 @@ import json
 import os
 import random
 
-# Set random seed for reproducibility
-random.seed(42)
-
 def format_float(x):
     """Format float to exactly 8 decimal places"""
     return '{:.8f}'.format(x)
