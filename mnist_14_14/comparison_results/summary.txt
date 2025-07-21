@@ -1,0 +1,8 @@
+MODEL ACCURACY COMPARISON SUMMARY
+==================================================
+
+TensorFlow Model Accuracy: 0.967400
+JSON Model Accuracy: 0.966700
+Accuracy Difference: 0.000700
+Prediction Agreement: 9984/10000
+Total Samples: 10000
