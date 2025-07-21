@@ -200,6 +200,7 @@ async function main() {
 
     let correctCount = 0;
     const totalCount = testSamples.test_samples.length;
+    const predictions: number[] = [];
 
     // Process each test sample
     for (const sample of testSamples.test_samples) {
@@ -235,7 +236,10 @@ async function main() {
         predicted_value: result.argmaxIdx,
         true_label_value: sample.true_label
       });
-      const isCorrect = Number(result.argmaxIdx) === sample.true_label;
+      const predictedClass = Number(result.argmaxIdx);
+      predictions.push(predictedClass);
+      
+      const isCorrect = predictedClass === sample.true_label;
       console.log("- Correct?:", isCorrect);
       
       if (isCorrect) {
@@ -247,6 +251,18 @@ async function main() {
     console.log("\n=== Final Results ===");
     console.log(`Correct predictions: ${correctCount}/${totalCount}`);
     console.log(`Accuracy: ${((correctCount / totalCount) * 100).toFixed(2)}%`);
+
+    // Save results to JSON file
+    const results = {
+      predictions,
+      accuracy: correctCount / totalCount,
+      total_samples: totalCount,
+      correct_samples: correctCount
+    };
+
+    const resultsPath = path.join(__dirname, 'blockchain_results.json');
+    fs.writeFileSync(resultsPath, JSON.stringify(results, null, 2));
+    console.log(`\nResults saved to: ${resultsPath}`);
 
   } catch (error) {
     console.error("Error in main:", error);
