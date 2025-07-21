@@ -14,6 +14,11 @@ const SUI_CONTRACT = {
   MODULE_NAME: "model",
 };
 
+// Model parameters
+const MODEL_ID = "0x42e9af4b10d27486cebeae450e9fdfd99d30f65147529253a1419d1fe99d670f";
+const LAYER_COUNT = 4;
+const LAYER_DIMENSIONS = [16, 8, 4, 2]; // Example dimensions
+
 const GAS_BUDGET = 3_000_000_000; // 1 SUI
 
 interface PredictionResult {
@@ -175,10 +180,7 @@ async function main() {
     const privateKey = ""; //process.env.SUI_PRIVATE_KEY;
     const inference = new ModelInference(privateKey);
 
-    // Model parameters
-    const modelId = "0x42e9af4b10d27486cebeae450e9fdfd99d30f65147529253a1419d1fe99d670f";
-    const layerCount = 4;
-    const layerDimensions = [16, 8, 4, 2]; // Example dimensions
+    
     
     // Example input (normalized between 0 and 1)
     // const inputSize = 784; // For MNIST
@@ -233,9 +235,9 @@ async function main() {
 
     // Run prediction
     const result = await inference.predict(
-      modelId,
-      layerCount,
-      layerDimensions,
+      MODEL_ID,
+      LAYER_COUNT,
+      LAYER_DIMENSIONS,
       inputMagnitude,
       inputSign
     );
