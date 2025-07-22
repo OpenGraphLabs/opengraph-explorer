@@ -784,7 +784,9 @@ class SAMEverything:
 
     def save_masks_coco_format_with_relations(self, masks: List[dict], output_path: str, 
                                             image_filename: str, image_id: int = 1,
-                                            grid_sizes: List[int] = None):
+                                            grid_sizes: List[int] = None,
+                                            original_shape: Tuple[int, int] = None,
+                                            scale_factor: float = 1.0):
         """
         Save masks with parent-child relationships in extended COCO format
         
@@ -798,7 +800,12 @@ class SAMEverything:
         if self.current_image is None:
             raise ValueError("No image set. Call set_image() first.")
         
+        # 현재 이미지 크기 (처리된 크기)
         h, w = self.current_image.shape[:2]
+        
+        # 원본 크기 정보 설정
+        if original_shape is None:
+            original_shape = (h, w)
         
         # Extract unique grid sizes from masks if not provided
         if grid_sizes is None:
@@ -838,7 +845,11 @@ class SAMEverything:
                     "flickr_url": "",
                     "coco_url": "",
                     "date_captured": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "grid_size": grid_sizes  # 사용된 그리드 크기들 추가
+                    "grid_size": grid_sizes,  # 사용된 그리드 크기들 추가
+                    "original_width": original_shape[1],  # 원본 너비
+                    "original_height": original_shape[0],  # 원본 높이
+                    "scale_factor": scale_factor,  # 스케일 팩터
+                    "was_resized": scale_factor != 1.0  # 리사이징 여부
                 }
             ],
             "annotations": [],
@@ -1577,6 +1588,12 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
     for i, (image_path, rel_path, image_filename) in enumerate(image_files, 1):
         print(f"\n[{i}/{len(image_files)}] Processing: {image_path}")
         
+        # 메모리 정리
+        import gc
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        
         try:
             # Load image
             image = cv2.imread(image_path)
@@ -1585,6 +1602,9 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
                 continue
                 
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            
+            # 메모리 효율성을 위해 큰 이미지 리사이징
+            image, original_shape, scale_factor = resize_image_if_needed(image, max_dimension=3000)
             height, width = image.shape[:2]
 
             max_dimension = max(height, width)
@@ -1636,13 +1656,13 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
                     image, mask, sam_everything,
                     max_iter=5,
                     init_grid=int(coarse_grid/2),
-                    min_mask_area=coarse_grid,
+                    min_mask_area=2,  # 더 작은 마스크도 허용
                     max_mask_area_ratio=1.5,
                     color_thresh=20,
-                    coverage_threshold=0.98,
+                    coverage_threshold=0.95,  # 더 낮은 커버리지 허용
                     level = 1,
-                    max_complexity_ratio = 5.0,
-                    min_solidity = 0.4
+                    max_complexity_ratio = 10.0,  # 더 관대한 복잡도 허용
+                    min_solidity = 0.2  # 더 관대한 solidity 허용
                 )
 
                 child_overlay = np.zeros((height, width), dtype=bool)
@@ -1658,6 +1678,20 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
                 child_masks_list += child_masks
                 count += 1
             final_masks = merged_masks + child_masks_list
+            
+            # 원본 크기로 스케일링 (리사이징된 경우)
+            if scale_factor != 1.0:
+                print(f"  Scaling results back to original size (scale: {scale_factor:.2f})")
+                for mask_dict in final_masks:
+                    # bbox와 mask 좌표를 원본 크기로 스케일링
+                    scaled_bbox, scaled_mask_coords = scale_bbox_and_mask(
+                        mask_dict['bbox'], 
+                        mask_dict['segmentation_sparse'], 
+                        scale_factor
+                    )
+                    mask_dict['bbox'] = scaled_bbox
+                    mask_dict['segmentation_sparse'] = scaled_mask_coords
+                    mask_dict['area'] = int(mask_dict['area'] * scale_factor * scale_factor)  # 면적도 스케일링
 
             if rel_path == '.':
                 # Image is in the root folder
@@ -1682,7 +1716,10 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
 
             # Save results
             sam_everything.save_masks_coco_format_with_relations(
-                final_masks, output_path, coco_file_name, image_id=i, grid_sizes=[coarse_grid, coarse_grid//2]
+                final_masks, output_path, coco_file_name, image_id=i, 
+                grid_sizes=[coarse_grid, coarse_grid//2],
+                original_shape=original_shape,
+                scale_factor=scale_factor
             )
 
             
@@ -1731,6 +1768,73 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
     print(f"Processed {len(image_files)} images")
     print(f"Results saved to: {final_output_folder}")
 
+def resize_image_if_needed(image, max_dimension=3000):
+    """
+    이미지가 너무 클 경우 리사이징하여 메모리 사용량 줄이기
+    
+    Args:
+        image: 입력 이미지 (numpy array)
+        max_dimension: 최대 차원 (width 또는 height)
+        
+    Returns:
+        resized_image: 리사이즈된 이미지
+        original_shape: 원본 이미지 크기 (height, width)
+        scale_factor: 스케일 팩터 (원본 / 리사이즈)
+    """
+    height, width = image.shape[:2]
+    original_shape = (height, width)
+    
+    if max(height, width) <= max_dimension:
+        # 리사이징 불필요
+        return image, original_shape, 1.0
+    
+    # 비율 유지하며 리사이징
+    if height > width:
+        new_height = max_dimension
+        new_width = int(width * max_dimension / height)
+    else:
+        new_width = max_dimension
+        new_height = int(height * max_dimension / width)
+    
+    # 리사이징
+    resized_image = cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_AREA)
+    scale_factor = width / new_width  # width 기준 스케일 팩터
+    
+    print(f"  Image resized: {width}x{height} -> {new_width}x{new_height} (scale: {scale_factor:.2f})")
+    
+    return resized_image, original_shape, scale_factor
+
+def scale_bbox_and_mask(bbox, mask_coords, scale_factor):
+    """
+    bbox와 mask 좌표를 원본 크기로 스케일링
+    
+    Args:
+        bbox: [x1, y1, x2, y2] 형태의 bbox
+        mask_coords: {'rows': [...], 'cols': [...], 'shape': ...} 형태의 mask 좌표
+        scale_factor: 스케일 팩터
+        
+    Returns:
+        scaled_bbox: 스케일된 bbox
+        scaled_mask_coords: 스케일된 mask 좌표
+    """
+    # bbox 스케일링
+    scaled_bbox = [int(coord * scale_factor) for coord in bbox]
+    
+    # mask 좌표 스케일링
+    scaled_rows = (mask_coords['rows'] * scale_factor).astype(int)
+    scaled_cols = (mask_coords['cols'] * scale_factor).astype(int)
+    
+    # 원본 이미지 크기로 shape 조정
+    original_shape = (int(mask_coords['shape'][0] * scale_factor), 
+                     int(mask_coords['shape'][1] * scale_factor))
+    
+    scaled_mask_coords = {
+        'rows': scaled_rows,
+        'cols': scaled_cols,
+        'shape': original_shape
+    }
+    
+    return scaled_bbox, scaled_mask_coords
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='SAM Everything with Relations - Multi-scale segmentation with parent-child relationships')
@@ -1782,54 +1886,4 @@ if __name__ == "__main__":
         print(f"Error: Input path '{args.input}' is neither a file nor a directory")
         print(f"Please check if the path exists and you have permission to access it.")
         exit(1)
-
-
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser(description='SAM Everything with Relations - Multi-scale segmentation with parent-child relationships')
-#     args = parser.parse_args()
-    
-
-#     args.input = "test/coco2017/images/val2017"
-#     args.output = "results"
-#     args.model_type = "vit_h"
-#     args.relations = True
-#     args.gpu = 0
-
-#     print("=" * 60)
-#     print("SAM Everything with Parent-Child Relations")
-#     print("=" * 60)
-#     print(f"Model: {args.model_type}")
-#     print(f"Input: {args.input}")
-#     print(f"Output: {args.output}")
-#     print(f"Relations: {args.relations}")
-#     print(f"GPU ID: {args.gpu}")
-#     print("=" * 60)
-    
-#     # Debug: Check current working directory and input path
-#     print(f"Current working directory: {os.getcwd()}")
-#     print(f"Input path exists: {os.path.exists(args.input)}")
-#     print(f"Input path is file: {os.path.isfile(args.input)}")
-#     print(f"Input path is directory: {os.path.isdir(args.input)}")
-    
-#     if os.path.isdir(args.input):
-#         print(f"Contents of input directory:")
-#         try:
-#             files = os.listdir(args.input)
-#             print(f"  Total files: {len(files)}")
-#             for i, file in enumerate(files[:10]):  # Show first 10 files
-#                 print(f"    {i+1}: {file}")
-#             if len(files) > 10:
-#                 print(f"    ... and {len(files) - 10} more files")
-#         except Exception as e:
-#             print(f"  Error listing directory: {e}")
-    
-#     if os.path.isdir(args.input):
-#         # Folder processing
-#         print("Processing folder...")
-#         process_folder_with_relations(args.input, args.output, args.model_type, args.gpu)
-
-#     else:
-#         print(f"Error: Input path '{args.input}' is neither a file nor a directory")
-#         print(f"Please check if the path exists and you have permission to access it.")
-#         exit(1)
                     

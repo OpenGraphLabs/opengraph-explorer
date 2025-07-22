@@ -26,6 +26,45 @@ def decode_rle_mask(rle_data: Dict[str, Any], image_height: int, image_width: in
     
     return mask
 
+def restore_to_original_size(coco_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    리사이징된 이미지의 좌표를 원본 크기로 복원합니다.
+    (참고: segmentation_dir.py에서 이미 원본 크기로 저장됨)
+    
+    Args:
+        coco_data: COCO 형식 데이터
+        
+    Returns:
+        restored_data: 원본 크기로 복원된 데이터
+    """
+    if len(coco_data['images']) == 0:
+        return coco_data
+    
+    image_info = coco_data['images'][0]
+    
+    # 리사이징 정보 확인
+    if 'scale_factor' not in image_info or image_info['scale_factor'] == 1.0:
+        # 리사이징되지 않은 경우 그대로 반환
+        return coco_data
+    
+    scale_factor = image_info['scale_factor']
+    original_width = image_info.get('original_width', image_info['width'])
+    original_height = image_info.get('original_height', image_info['height'])
+    
+    print(f"원본 크기 정보 확인... (scale_factor: {scale_factor:.2f})")
+    print(f"처리된 크기: {image_info['width']}x{image_info['height']}")
+    print(f"원본 크기: {original_width}x{original_height}")
+    print(f"좌표는 이미 원본 크기로 저장되어 있습니다.")
+    
+    # 복원된 데이터 생성
+    restored_data = coco_data.copy()
+    
+    # 이미지 정보만 원본 크기로 업데이트 (좌표는 이미 원본 크기)
+    restored_data['images'][0]['width'] = original_width
+    restored_data['images'][0]['height'] = original_height
+    
+    return restored_data
+
 def create_parent_child_coco_data(coco_data: Dict[str, Any], parent_id: int, child_id: int) -> Dict[str, Any]:
     """parent와 child annotation만 포함하는 새로운 COCO 데이터를 생성합니다."""
     # 기본 구조 복사
@@ -44,7 +83,7 @@ def create_parent_child_coco_data(coco_data: Dict[str, Any], parent_id: int, chi
     
     return new_coco_data
 
-def extract_parent_child_images(json_path: str, output_dir: str = None, alpha: float = 0.5, line_only: bool = False, base_path: str = None):
+def extract_parent_child_images(json_path: str, output_dir: str = None, alpha: float = 0.5, line_only: bool = False, base_path: str = None, restore_original: bool = True):
     """parent-child 관계별로 개별 이미지를 생성합니다."""
     
     # JSON 파일명에서 .json 제거
@@ -128,7 +167,7 @@ def extract_parent_child_images(json_path: str, output_dir: str = None, alpha: f
         
         # 이미지 생성
         try:
-            create_overlay_image(pair_coco_data, output_path, original_image_path, alpha, line_only)
+            create_overlay_image(pair_coco_data, output_path, original_image_path, alpha, line_only, restore_original)
             print(f"[{i+1}/{len(parent_child_pairs)}] 생성 완료: {output_filename}")
         except Exception as e:
             print(f"[{i+1}/{len(parent_child_pairs)}] 생성 실패: {output_filename} - {e}")
@@ -172,8 +211,12 @@ def draw_dashed_contour(image, contour, color, thickness=2, dash_length=10):
                     
                     cv2.line(image, start_point, end_point, color, thickness)
 
-def create_overlay_image(coco_data: Dict[str, Any], output_path: str, original_image_path: str = None, alpha: float = 0.5, line_only: bool = False):
+def create_overlay_image(coco_data: Dict[str, Any], output_path: str, original_image_path: str = None, alpha: float = 0.5, line_only: bool = False, restore_original: bool = True):
     """COCO 데이터에서 전체 오버레이 이미지를 생성합니다."""
+    
+    # 원본 크기로 복원 (필요한 경우)
+    if restore_original:
+        coco_data = restore_to_original_size(coco_data)
     
     # 이미지 정보 가져오기
     image_info = coco_data['images'][0]  # 첫 번째 이미지 정보
@@ -318,7 +361,7 @@ def create_overlay_image(coco_data: Dict[str, Any], output_path: str, original_i
     if not line_only:
         print(f"투명도: {alpha}")
 
-def process_directory_recursively(input_dir: str, output_dir: str, base_path: str = None, alpha: float = 0.5, line_only: bool = False):
+def process_directory_recursively(input_dir: str, output_dir: str, base_path: str = None, alpha: float = 0.5, line_only: bool = False, restore_original: bool = True):
     """디렉토리를 재귀적으로 순회하여 모든 JSON 파일을 처리합니다."""
     
     # input 디렉토리의 마지막 폴더명 추출
@@ -375,7 +418,7 @@ def process_directory_recursively(input_dir: str, output_dir: str, base_path: st
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
             # 오버레이 이미지 생성
-            create_overlay_image(coco_data, output_path, original_image_path, alpha, line_only)
+            create_overlay_image(coco_data, output_path, original_image_path, alpha, line_only, restore_original)
             
         except Exception as e:
             print(f"오류 발생: {json_path} - {e}")
@@ -392,12 +435,16 @@ def main():
     parser.add_argument('--line', action='store_true', help='contour line만 그리기 (기본값: False)')
     parser.add_argument('--extract-relations', action='store_true', help='parent-child 관계별로 개별 이미지 생성')
     parser.add_argument('--output-dir', help='parent-child 이미지들을 저장할 디렉토리')
+    parser.add_argument('--no-restore', action='store_true', help='원본 크기로 복원하지 않음 (기본값: 복원함)')
     
     args = parser.parse_args()
     
+    # 원본 크기 복원 설정
+    restore_original = not args.no_restore
+    
     # parent-child 관계 추출 모드
     if args.extract_relations:
-        extract_parent_child_images(args.input, args.output_dir, args.alpha, args.line, args.base)
+        extract_parent_child_images(args.input, args.output_dir, args.alpha, args.line, args.base, restore_original)
         return
     
     # input이 디렉토리인지 파일인지 확인
@@ -406,7 +453,7 @@ def main():
         if args.output is None:
             args.output = './results'
         
-        process_directory_recursively(args.input, args.output, args.base, args.alpha, args.line)
+        process_directory_recursively(args.input, args.output, args.base, args.alpha, args.line, restore_original)
     else:
         # 파일인 경우 기존 로직
         json_path = args.input
@@ -424,7 +471,7 @@ def main():
         coco_data = load_coco_annotations(json_path)
         
         # 오버레이 이미지 생성
-        create_overlay_image(coco_data, output_path, args.original, args.alpha, args.line)
+        create_overlay_image(coco_data, output_path, args.original, args.alpha, args.line, restore_original)
 
 if __name__ == "__main__":
     # 스크립트가 직접 실행될 때의 기본 동작
@@ -436,7 +483,7 @@ if __name__ == "__main__":
         
         if os.path.exists(json_path):
             coco_data = load_coco_annotations(json_path)
-            create_overlay_image(coco_data, output_path, alpha=0.5)
+            create_overlay_image(coco_data, output_path, alpha=0.5, restore_original=True)
         else:
             print(f"JSON 파일을 찾을 수 없습니다: {json_path}")
     else:
