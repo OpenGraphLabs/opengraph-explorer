@@ -420,7 +420,10 @@ class SAMEverything:
                     mask_dict['complexity_ratio'] = self._calculate_complexity_ratio(mask)
                     mask_dict['solidity'] = self._calculate_solidity(mask)
                     mask_dict['needs_computation'] = False
-
+                
+                # Progress tracking every 10 masks
+                if global_mask_idx % 10 == 0:
+                    print(f"    Complexity computation progress: {global_mask_idx}/{len(all_masks)}")
             
             # Memory cleanup after each complexity batch
             import gc
@@ -973,7 +976,7 @@ class SAMEverything:
         print(f"Saved {len(masks)} masks to {output_path}")
     
     def save_masks_coco_format(self, masks: List[dict], output_path: str, 
-                             image_filename: str, image_id: int = 1):
+                              image_filename: str, image_id: int = 1):
         """
         Save masks in COCO dataset format (COCO 포맷으로 저장)
         
@@ -1267,70 +1270,8 @@ class SAMEverything:
             if child_mask:
                 self._draw_hierarchy(ax, child_mask, all_masks, level+1, max_level, alpha)
 
-    def get_overlay_map(self, masks, shape):
-        overlay = np.zeros(shape, dtype=bool)
-        for mask_dict in masks:
-            mask = self._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
-            overlay = np.logical_or(overlay, mask)
-        return overlay
 
-    def get_uncovered_points(self, overlay, step=8):
-        points = []
-        h, w = overlay.shape
-        for y in range(0, h, step):
-            for x in range(0, w, step):
-                if not overlay[y, x]:
-                    points.append([x, y])
-        return points
 
-    def merge_similar_masks(self, masks, image, color_thresh=20):
-        merged = []
-        used = set()
-        for i, m1 in enumerate(masks):
-            if i in used:
-                continue
-            mask1 = self._sparse_to_dense_mask(m1['segmentation_sparse'])
-            color1 = image[mask1].mean(axis=0)
-            group = [m1]
-            for j, m2 in enumerate(masks):
-                if j <= i or j in used:
-                    continue
-                mask2 = self._sparse_to_dense_mask(m2['segmentation_sparse'])
-                color2 = image[mask2].mean(axis=0)
-                if np.linalg.norm(color1 - color2) < color_thresh:
-                    group.append(m2)
-                    used.add(j)
-            # group을 하나로 합치기
-            merged_mask = np.any([self._sparse_to_dense_mask(m['segmentation_sparse']) for m in group], axis=0)
-            coords = np.where(merged_mask)
-            # grid_size는 group 내 가장 작은 값(가장 fine한 것)으로!
-            grid_sizes = [m.get('grid_size', 0) for m in group if 'grid_size' in m]
-            merged_grid_size = min(grid_sizes) if grid_sizes else 0
-            merged.append({
-                'segmentation_sparse': {
-                    'rows': coords[0],
-                    'cols': coords[1],
-                    'shape': merged_mask.shape
-                },
-                'area': int(np.sum(merged_mask)),
-                'score': max(m['score'] for m in group),
-                'point': group[0]['point'],
-                'bbox': self._mask_to_bbox(merged_mask),
-                'grid_size': merged_grid_size,  # 반드시 포함!
-                'original_id': group[0].get('original_id', '')
-            })
-        return merged
-
-    def get_overlay_coverage(self, masks, shape):
-        overlay = self.get_overlay_map(masks, shape)
-        coverage = np.sum(overlay) / (overlay.shape[0] * overlay.shape[1])
-        return coverage, overlay
-
-    def calc_texture_complexity(self, mask, image):
-        dense_mask = self._sparse_to_dense_mask(mask['segmentation_sparse'])
-        region = image[dense_mask]
-        # 예시: RGB 표준편차의 평균 (더 advanced하게 LBP, Gabor 등도 가능)
-        return region.std(axis=0).mean() if len(region) > 0 else 0
 
 def process_folder_with_relations(input_folder: str, output_folder: str,
                                 model_type: str = "vit_h",
@@ -1396,90 +1337,34 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             height, width = image.shape[:2]
 
+            # 이미지 크기 출력
+            # height와 width 중 큰 값의 제곱근 정수 부분 계산
             max_dimension = max(height, width)
-            coarse_grid = int(max_dimension / 10)
-            print(f"  Coarse grid: {coarse_grid}")
+            sqrt_max_dimension = int(max_dimension / 10)
 
+            grid_sizes = [sqrt_max_dimension, sqrt_max_dimension//2, sqrt_max_dimension//4]
+            print(f"  Image size: {width}x{height}")
+            print(f"  Grid sizes: {grid_sizes}")
+
+
+
+            print(f"  Image size: {width}x{height}")
+            
+            # Set image for SAM
             sam_everything.set_image(image)
-            all_masks = []
-            overlay = np.zeros((height, width), dtype=bool)
-            max_mask_area = int(width * height // 1.5)
-            min_mask_area = 2
-            max_complexity_ratio = 5.0
-            min_solidity = 0.4
-
-            for iter_idx in range(10):  # 최대 10번 반복 (필요시 조정)
-                # 1. 미커버 영역(overlay==0)에만 포인트 생성
-                uncovered_points = sam_everything.get_uncovered_points(overlay, step=coarse_grid)
-                print(f"  [Iter {iter_idx+1}] Uncovered points: {len(uncovered_points)}")
-                if not uncovered_points:
-                    print("  모든 영역이 커버되었습니다.")
-                    break
-
-                # 2. 포인트별로 마스크 생성
-                new_masks = []
-                for pt in uncovered_points:
-                    try:
-                        masks, scores, logits = sam_everything.segment_with_points([pt], [1], multimask_output=True)
-                        best_mask_idx = np.argmax(scores)
-                        best_mask = masks[best_mask_idx]
-                        best_score = scores[best_mask_idx]
-                        mask_area = int(np.sum(best_mask))
-                        if mask_area < min_mask_area or mask_area > max_mask_area:
-                            continue
-                        mask_coords = np.where(best_mask)
-                        if len(mask_coords[0]) == 0:
-                            continue
-                        new_masks.append({
-                            'segmentation_sparse': {
-                                'rows': mask_coords[0],
-                                'cols': mask_coords[1],
-                                'shape': best_mask.shape
-                            },
-                            'area': mask_area,
-                            'score': float(best_score),
-                            'point': pt,
-                            'bbox': sam_everything._mask_to_bbox(best_mask),
-                            'grid_size': coarse_grid,
-                            'original_id': f"iter{iter_idx}_pt{pt[0]}_{pt[1]}"
-                        })
-                    except Exception as e:
-                        print(f"    Error at point {pt}: {e}")
-
-                all_masks += new_masks
-
-                # 3. overlay 갱신 및 커버리지 출력
-                for mask_dict in new_masks:
-                    mask = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
-                    overlay = np.logical_or(overlay, mask)
-                coverage = np.sum(overlay) / (height * width)
-                print(f"  [Iter {iter_idx+1}] Mask overlay coverage: {coverage*100:.2f}%")
-
-                # 4. 조건 완화
-                max_mask_area = int(max_mask_area * 2)
-                max_complexity_ratio *= 2
-
-                if coverage >= 0.995:
-                    print("  커버리지가 99.5% 이상입니다. 반복 종료.")
-                    break
-
-            # 4. coarse + fine 마스크 합치기
-            # all_masks = coarse_masks + fine_masks # 이 부분은 위의 for loop에서 처리됨
-
-            # 5. color 유사 마스크 머지
-            merged_masks = sam_everything.merge_similar_masks(all_masks, image, color_thresh=20)
-            print(f"  Merged masks: {len(merged_masks)}")
-
-            # 6. 이후 기존대로 parent-child 관계 등 처리
+            
+            # Multi-scale segmentation with relationships
+            print(f"  Processing multi-scale segmentation...")
             masks_with_relations = sam_everything.segment_everything_multi_scale(
-                grid_sizes=[coarse_grid, coarse_grid//2],
+                grid_sizes=grid_sizes,
                 min_mask_area=2,
                 max_mask_area=width*height//1.5,
                 max_complexity_ratio=5.0,
                 min_solidity=0.4,
                 iou_threshold=0.7
             )
-            # 또는, merged_masks를 바로 후처리해도 됨
+            
+            print(f"  Found {len(masks_with_relations)} masks with relationships")
             
             # Create output directory structure matching input
             if rel_path == '.':
@@ -1492,7 +1377,7 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             
             # Generate output filename
             base_name = os.path.splitext(image_filename)[0]
-            output_filename = f"{base_name}_relations_{'-'.join(map(str, [coarse_grid, coarse_grid//2]))}.json"
+            output_filename = f"{base_name}_relations_{'-'.join(map(str, grid_sizes))}.json"
             output_path = os.path.join(output_subdir, output_filename)
             
             # Create relative path for file_name in COCO format
@@ -1503,7 +1388,7 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             
             # Save results
             sam_everything.save_masks_coco_format_with_relations(
-                masks_with_relations, output_path, coco_file_name, image_id=i, grid_sizes=[coarse_grid, coarse_grid//2]
+                masks_with_relations, output_path, coco_file_name, image_id=i, grid_sizes=grid_sizes
             )
             
             print(f"  Results saved to: {output_path}")
@@ -1519,43 +1404,6 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             print("  Masks by grid size:")
             for grid_size in sorted(grid_stats.keys(), reverse=True):
                 print(f"    Grid {grid_size}: {grid_stats[grid_size]} masks")
-            
-            coverage, overlay = sam_everything.get_overlay_coverage(merged_masks, (height, width))
-            print(f"  Mask overlay coverage: {coverage*100:.2f}%")
-
-            if coverage < 0.995:
-                # 미커버 영역만 마스킹
-                uncovered_points = sam_everything.get_uncovered_points(overlay, step=coarse_grid//2)
-                print(f"  Uncovered points for background: {len(uncovered_points)}")
-                # 조건 완화해서 넓은 영역도 마스킹
-                for pt in uncovered_points:
-                    try:
-                        masks, scores, logits = sam_everything.segment_with_points([pt], [1], multimask_output=True)
-                        best_mask_idx = np.argmax(scores)
-                        best_mask = masks[best_mask_idx]
-                        best_score = scores[best_mask_idx]
-                        mask_area = int(np.sum(best_mask))
-                        # 넓은 영역도 허용
-                        if mask_area < 2:
-                            continue
-                        mask_coords = np.where(best_mask)
-                        if len(mask_coords[0]) == 0:
-                            continue
-                        merged_masks.append({
-                            'segmentation_sparse': {
-                                'rows': mask_coords[0],
-                                'cols': mask_coords[1],
-                                'shape': best_mask.shape
-                            },
-                            'area': mask_area,
-                            'score': float(best_score),
-                            'point': pt,
-                            'bbox': sam_everything._mask_to_bbox(best_mask),
-                            'grid_size': coarse_grid//2,
-                            'original_id': f"bg_{pt[0]}_{pt[1]}"
-                        })
-                    except Exception as e:
-                        print(f"    Error at bg point {pt}: {e}")
             
         except Exception as e:
             print(f"  Error processing {image_path}: {e}")
