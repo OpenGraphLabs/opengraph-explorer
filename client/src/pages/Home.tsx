@@ -204,7 +204,7 @@ export function Home() {
                 marginBottom: theme.spacing.semantic.component.sm,
               }}
             >
-              OpenGraph Approved Segmentations
+              OpenGraph
             </Heading>
 
             {/* Category Search Bar */}
@@ -244,7 +244,7 @@ export function Home() {
                 >
                   {selectedCategory 
                     ? `${annotationsWithImages.length} result${annotationsWithImages.length === 1 ? '' : 's'} for "${selectedCategory.name}"`
-                    : `${totalAnnotations} approved annotations available`
+                    : `${totalAnnotations} verified annotations available`
                   }
                 </Text>
                 
@@ -252,6 +252,7 @@ export function Home() {
                 <Button
                   variant="secondary"
                   size="sm"
+                  highContrast={true}
                   onClick={() => setShowGlobalMasks(!showGlobalMasks)}
                   style={{
                     display: 'flex',
@@ -361,6 +362,7 @@ export function Home() {
                 <Button
                   variant="secondary"
                   size="md"
+                  highContrast={true}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
                   style={{
@@ -387,6 +389,7 @@ export function Home() {
                 <Button
                   variant="secondary"
                   size="md"
+                  highContrast={true}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
                   style={{
@@ -452,6 +455,7 @@ export function Home() {
                 <Button
                   variant="secondary"
                   size="md"
+                  highContrast={true}
                   onClick={() => {
                     setSelectedCategory(null);
                     setSearchQuery('');
