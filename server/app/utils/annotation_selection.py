@@ -38,13 +38,13 @@ def normalize_annotation_ids(annotation_ids: List[int]) -> str:
 
 def parse_annotation_ids_key(annotation_ids_key: str) -> List[int]:
     """
-    정규화된 문자열 키를 어노테이션 ID 목록으로 파싱합니다.
+    Parse normalized keys to annotation ID list.
     
     Args:
-        annotation_ids_key: comma-separated 문자열 (예: "1,3,4")
+        annotation_ids_key: comma-separated string key (ex: "1,3,4")
         
     Returns:
-        List[int]: 어노테이션 ID 목록
+        List[int]: annotation ID list
         
     Examples:
         >>> parse_annotation_ids_key("1,3,4")

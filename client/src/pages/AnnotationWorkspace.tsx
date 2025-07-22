@@ -3,16 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import {
-  ArrowLeft,
   Database,
   Target,
-  Image,
-  Palette,
-  Eye,
-  EyeSlash,
   FloppyDisk,
   Trash,
-  Tag,
 } from "phosphor-react";
 import { useImages, useAnnotationsByImage } from "@/shared/hooks/useApiQuery";
 import { InteractiveAnnotationCanvas, CategorySearchPanel } from "@/features/annotation/components";
@@ -343,140 +337,16 @@ export function AnnotationWorkspace() {
           flexDirection: "column",
         }}
       >
-        {/* Header */}
-        <Box
-          style={{
-            background: theme.colors.background.primary,
-            borderBottom: `1px solid ${theme.colors.border.subtle}20`,
-            padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.md}`,
-          }}
-        >
-          <Flex justify="between" align="center">
-            <Button
-              onClick={() => navigate("/datasets")}
-              style={{
-                background: "transparent",
-                color: theme.colors.text.tertiary,
-                border: "none",
-                borderRadius: theme.borders.radius.sm,
-                padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: theme.spacing.semantic.component.xs,
-                fontSize: "11px",
-                fontWeight: 400,
-                opacity: 0.7,
-                transition: theme.animations.transitions.all,
-              }}
-            >
-              <ArrowLeft size={11} />
-              Back
-            </Button>
 
-            <Flex align="center" gap="3">
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.tertiary,
-                  fontSize: "10px",
-                  fontWeight: 400,
-                  opacity: 0.6,
-                }}
-              >
-                {imageAnnotations.length} masks • {entities.length} entities
-              </Text>
 
-              {entities.length > 0 && (
-                <Button
-                  onClick={handleSaveAnnotations}
-                  style={{
-                    background: theme.colors.interactive.primary,
-                    color: theme.colors.text.inverse,
-                    border: "none",
-                    borderRadius: theme.borders.radius.sm,
-                    padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.semantic.component.xs,
-                    fontSize: "11px",
-                    fontWeight: 600,
-                  }}
-                >
-                  <FloppyDisk size={11} />
-                  Save Entities
-                </Button>
-              )}
-            </Flex>
-          </Flex>
-        </Box>
 
-        {/* Image Info */}
-        <Flex 
-          justify="between" 
-          align="center" 
-          style={{ 
-            padding: theme.spacing.semantic.component.md,
-            paddingBottom: theme.spacing.semantic.component.sm,
-            opacity: 0.6,
-          }}
-        >
-          <Text
-            size="1"
-            style={{
-              color: theme.colors.text.tertiary,
-              fontSize: "11px",
-              fontWeight: 400,
-            }}
-          >
-            {selectedImage.file_name}
-          </Text>
-          
-          <Flex align="center" gap="2">
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.tertiary,
-                fontSize: "10px",
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              {selectedImage.width} × {selectedImage.height}
-            </Text>
-            
-            {annotationsLoading && (
-              <Flex align="center" gap="1">
-                <Box
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderTopColor: theme.colors.interactive.primary,
-                    animation: 'spin 1s linear infinite',
-                  }}
-                />
-                <Text
-                  size="1"
-                  style={{
-                    color: theme.colors.text.tertiary,
-                    fontSize: "9px",
-                  }}
-                >
-                  Loading...
-                </Text>
-              </Flex>
-            )}
-          </Flex>
-        </Flex>
 
         {/* Interactive Canvas */}
         <Box
           style={{
             flex: 1,
-            padding: `0 ${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.md}`,
-            minHeight: "calc(100vh - 120px)",
+            padding: theme.spacing.semantic.component.md,
+            minHeight: "100vh",
           }}
         >
           <InteractiveAnnotationCanvas
@@ -501,33 +371,7 @@ export function AnnotationWorkspace() {
           flexDirection: "column",
         }}
       >
-        {/* Sidebar Header */}
-        <Box
-          style={{
-            padding: theme.spacing.semantic.component.md,
-            borderBottom: `1px solid ${theme.colors.border.subtle}20`,
-          }}
-        >
-          <Text
-            size="3"
-            style={{
-              fontWeight: 600,
-              color: theme.colors.text.primary,
-            }}
-          >
-            Entities
-          </Text>
-          <Text
-            size="1"
-            style={{
-              color: theme.colors.text.secondary,
-              marginTop: theme.spacing.semantic.component.xs,
-              lineHeight: 1.4,
-            }}
-          >
-            Draw bounding boxes to select masks and create meaningful entities
-          </Text>
-        </Box>
+
 
         {/* Category Search Panel */}
         <Box
@@ -537,30 +381,6 @@ export function AnnotationWorkspace() {
             background: theme.colors.background.secondary,
           }}
         >
-          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
-            <Tag size={16} style={{ color: theme.colors.interactive.primary }} />
-            <Text
-              size="2"
-              style={{
-                fontWeight: 600,
-                color: theme.colors.text.primary,
-              }}
-            >
-              Category Search
-            </Text>
-            {!selectedEntityId && (
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.tertiary,
-                  fontSize: "10px",
-                  fontStyle: "italic",
-                }}
-              >
-                (Select an entity to assign)
-              </Text>
-            )}
-          </Flex>
           <CategorySearchPanel
             onCategorySelect={handleCategorySelect}
             selectedCategory={selectedEntity?.category || null}
@@ -743,6 +563,52 @@ export function AnnotationWorkspace() {
                 </Box>
               ))}
             </Flex>
+          )}
+          
+          {/* Save Button */}
+          {entities.length > 0 && (
+            <Box
+              style={{
+                paddingTop: theme.spacing.semantic.component.lg,
+                borderTop: `1px solid ${theme.colors.border.subtle}20`,
+                marginTop: theme.spacing.semantic.component.lg,
+              }}
+            >
+              <Button
+                onClick={handleSaveAnnotations}
+                style={{
+                  width: "100%",
+                  background: theme.colors.interactive.primary,
+                  color: theme.colors.text.inverse,
+                  border: "none",
+                  borderRadius: theme.borders.radius.md,
+                  padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: theme.spacing.semantic.component.sm,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  transition: theme.animations.transitions.all,
+                }}
+              >
+                <FloppyDisk size={16} />
+                Save {entities.length} Entities
+              </Button>
+              
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  fontSize: "10px",
+                  textAlign: "center",
+                  marginTop: theme.spacing.semantic.component.xs,
+                }}
+              >
+                {imageAnnotations.length} masks • {entities.length} entities
+              </Text>
+            </Box>
           )}
         </Box>
       </Box>

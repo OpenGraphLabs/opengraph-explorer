@@ -119,11 +119,6 @@ export function InteractiveAnnotationCanvas({
     img.onload = () => {
       setLoadedImage(img);
       setImageLoaded(true);
-      
-      // Auto-fill image to container for better initial viewing
-      setTimeout(() => {
-        zoomToFill();
-      }, 100);
     };
     img.src = imageUrl;
   }, [imageUrl]);
@@ -166,6 +161,9 @@ export function InteractiveAnnotationCanvas({
     const containerWidth = containerRect.width - 32;
     const containerHeight = containerRect.height - 32;
     
+    // Ensure we have valid container dimensions
+    if (containerWidth <= 0 || containerHeight <= 0) return;
+    
     const scaleX = containerWidth / imageWidth;
     const scaleY = containerHeight / imageHeight;
     const newZoom = Math.max(scaleX, scaleY);
@@ -180,6 +178,36 @@ export function InteractiveAnnotationCanvas({
     
     setPanOffset({ x: offsetX, y: offsetY });
   }, [imageLoaded, imageWidth, imageHeight]);
+
+  // Auto-zoom to fill when image loads or container resizes
+  useEffect(() => {
+    if (!imageLoaded) return;
+
+    // Wait for container to be properly sized
+    const timeoutId = setTimeout(() => {
+      zoomToFill();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [imageLoaded, zoomToFill]);
+
+  // Handle container resize
+  useEffect(() => {
+    if (!containerRef.current || !imageLoaded) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Debounce the resize calls
+      setTimeout(() => {
+        zoomToFill();
+      }, 100);
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [imageLoaded, zoomToFill]);
 
   // Zoom functions
   const zoomIn = useCallback(() => {

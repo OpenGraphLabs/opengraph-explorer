@@ -4,17 +4,16 @@ User Annotation Selection Service
 사용자의 어노테이션 선택 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
 """
 
-from datetime import datetime
-from typing import List, Optional, Dict, Any, Tuple
-from sqlalchemy import select, func, and_, or_, desc, asc
+from typing import List, Optional, Tuple
+from sqlalchemy import select, func, and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+import numpy as np
+from pycocotools import mask as maskUtils
 
+from . import AnnotationService
 from ..models.user_annotation_selection import UserAnnotationSelection
 from ..models.annotation import Annotation
-from ..models.user import User
 from ..models.category import Category
-from ..models.image import Image
 from ..schemas.user_annotation_selection import (
     UserAnnotationSelectionCreate,
     UserAnnotationSelectionUpdate,
@@ -22,6 +21,7 @@ from ..schemas.user_annotation_selection import (
     AnnotationSelectionStats,
     AnnotationSelectionSummary
 )
+from ..schemas.annotation import AnnotationCreate
 from ..utils.annotation_selection import (
     normalize_annotation_ids,
     parse_annotation_ids_key,
@@ -34,6 +34,7 @@ class UserAnnotationSelectionService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.annotation_service = AnnotationService(db)
     
     async def create_selection(
         self, 
@@ -41,26 +42,25 @@ class UserAnnotationSelectionService:
         selection_data: UserAnnotationSelectionCreate
     ) -> UserAnnotationSelectionRead:
         """
-        새로운 어노테이션 선택을 생성합니다.
+        Create user annotation selection
         
         Args:
-            user_id: 사용자 ID
-            selection_data: 선택 생성 데이터
+            user_id: User ID
+            selection_data: annotation selection data
             
         Returns:
-            생성된 선택 정보
-            
+            Created user annotation selection
+
         Raises:
-            ValueError: 유효하지 않은 어노테이션 ID 목록
+            ValueError: Invalid annotation ID list
         """
-        # 어노테이션 ID 유효성 검증
+
         if not validate_annotation_ids(selection_data.selected_annotation_ids):
-            raise ValueError("유효하지 않은 어노테이션 ID 목록입니다")
+            raise ValueError("Invalid annotation ids")
         
-        # 어노테이션 ID 정규화
+        # normalize annotation ids for comparing other selections
         annotation_ids_key = normalize_annotation_ids(selection_data.selected_annotation_ids)
-        
-        # 중복 선택 확인
+
         existing_selection = await self._find_existing_selection(
             user_id=user_id,
             image_id=selection_data.image_id,
@@ -69,10 +69,9 @@ class UserAnnotationSelectionService:
         )
         
         if existing_selection:
-            # 이미 동일한 선택이 있으면 기존 선택 반환
-            return UserAnnotationSelectionRead.from_orm(existing_selection)
-        
-        # 새 선택 생성
+            # if exists, return the existing one
+            return UserAnnotationSelectionRead.model_validate(existing_selection)
+
         new_selection = UserAnnotationSelection(
             user_id=user_id,
             image_id=selection_data.image_id,
@@ -85,14 +84,14 @@ class UserAnnotationSelectionService:
         await self.db.commit()
         await self.db.refresh(new_selection)
         
-        # 승인 가능 여부 확인 및 처리
+        # Check if it can be approved and if so, approve it
         await self._check_and_process_approval(
             image_id=selection_data.image_id,
             annotation_ids_key=annotation_ids_key,
             category_id=selection_data.category_id
         )
         
-        return UserAnnotationSelectionRead.from_orm(new_selection)
+        return UserAnnotationSelectionRead.model_validate(new_selection)
     
     async def get_selection_by_id(self, selection_id: int) -> Optional[UserAnnotationSelectionRead]:
         """ID로 선택 조회"""
@@ -103,7 +102,7 @@ class UserAnnotationSelectionService:
         selection = result.scalar_one_or_none()
         
         if selection:
-            return UserAnnotationSelectionRead.from_orm(selection)
+            return UserAnnotationSelectionRead.model_validate(selection)
         return None
     
     async def get_user_selections(
@@ -131,7 +130,7 @@ class UserAnnotationSelectionService:
         result = await self.db.execute(stmt)
         selections = result.scalars().all()
         
-        return [UserAnnotationSelectionRead.from_orm(s) for s in selections]
+        return [UserAnnotationSelectionRead.model_validate(s) for s in selections]
     
     async def get_image_selection_stats(
         self, 
@@ -202,12 +201,12 @@ class UserAnnotationSelectionService:
         if update_data.status is not None:
             selection.status = update_data.status
         
-        selection.updated_at = datetime.utcnow()
+        selection.updated_at = func.now()
         
         await self.db.commit()
         await self.db.refresh(selection)
         
-        return UserAnnotationSelectionRead.from_orm(selection)
+        return UserAnnotationSelectionRead.model_validate(selection)
     
     async def delete_selection(self, selection_id: int, user_id: int) -> bool:
         """선택 삭제 (본인만 삭제 가능)"""
@@ -281,11 +280,10 @@ class UserAnnotationSelectionService:
         self,
         selections_to_approve: List[Tuple[int, str, Optional[int]]]  # (image_id, annotation_ids_key, category_id)
     ) -> int:
-        """선택들을 일괄 승인"""
+        """Batch approve the user selections"""
         approved_count = 0
         
         for image_id, annotation_ids_key, category_id in selections_to_approve:
-            # 해당 선택들을 모두 APPROVED로 변경
             stmt = select(UserAnnotationSelection).where(
                 and_(
                     UserAnnotationSelection.image_id == image_id,
@@ -299,7 +297,7 @@ class UserAnnotationSelectionService:
             
             for selection in selections:
                 selection.status = "APPROVED"
-                selection.updated_at = datetime.utcnow()
+                selection.updated_at = func.now()
                 approved_count += len(selections)
         
         await self.db.commit()
@@ -381,7 +379,7 @@ class UserAnnotationSelectionService:
         annotation_ids_key: str,
         category_id: Optional[int]
     ) -> Optional[UserAnnotationSelection]:
-        """기존 동일 선택 찾기"""
+        """Find existing selection if a user selects the same annotations for the same category"""
         stmt = select(UserAnnotationSelection).where(
             and_(
                 UserAnnotationSelection.user_id == user_id,
@@ -400,8 +398,8 @@ class UserAnnotationSelectionService:
         category_id: Optional[int],
         approval_threshold: int = 5
     ) -> None:
-        """승인 조건 확인 및 자동 승인 처리"""
-        # 동일한 선택의 개수 확인
+        """ Check if it can be approved and if so, approve it """
+        # Count of same selections
         stmt = select(func.count(UserAnnotationSelection.id)).where(
             and_(
                 UserAnnotationSelection.image_id == image_id,
@@ -413,8 +411,141 @@ class UserAnnotationSelectionService:
         result = await self.db.execute(stmt)
         selection_count = result.scalar()
         
-        # 승인 임계값 도달시 자동 승인
+        # If it exceeds the threshold, auto approval
         if selection_count >= approval_threshold:
             await self.approve_selections_batch([
                 (image_id, annotation_ids_key, category_id)
             ])
+
+            # Extract annotation IDs and merge their masks into a single annotation
+            annotation_ids = parse_annotation_ids_key(annotation_ids_key)
+            merged_annotation_id = await self._create_merged_annotation(
+                image_id=image_id,
+                annotation_ids=annotation_ids,
+                category_id=category_id
+            )
+            
+            if merged_annotation_id:
+                print(f"Successfully created merged annotation {merged_annotation_id} for selections with key {annotation_ids_key}")
+
+    async def _create_merged_annotation(
+        self,
+        image_id: int,
+        annotation_ids: List[int],
+        category_id: Optional[int]
+    ) -> Optional[int]:
+        """
+        Create a single merged annotation from multiple selected annotations
+        
+        Args:
+            image_id: ID of the image
+            annotation_ids: List of annotation IDs to merge
+            category_id: Category to assign to the merged annotation
+            
+        Returns:
+            ID of the created merged annotation, or None if failed
+        """
+        # Get all annotations to merge
+        stmt = select(Annotation).where(
+            and_(
+                Annotation.id.in_(annotation_ids),
+                Annotation.image_id == image_id
+            )
+        )
+        result = await self.db.execute(stmt)
+        annotations = result.scalars().all()
+        
+        if not annotations:
+            return None
+        
+        # Extract RLE masks and merge them
+        merged_rle = self._merge_annotation_masks(list(annotations))
+        if not merged_rle:
+            return None
+        
+        # Calculate bounding box and area from merged mask
+        bbox = self._calculate_bbox_from_rle(merged_rle)
+        area = float(maskUtils.area(merged_rle))
+        
+        # Create the merged annotation
+        merged_annotation_data = AnnotationCreate(
+            image_id=image_id,
+            category_id=category_id,
+            segmentation_size=merged_rle['size'],
+            segmentation_counts=merged_rle['counts'].decode('utf-8') if isinstance(merged_rle['counts'], bytes) else merged_rle['counts'],
+            bbox=bbox,
+            area=area,
+            source_type="USER",
+            status="APPROVED",
+            is_crowd=False,
+            point_coords=None,
+            predicted_iou=None,
+            stability_score=None,
+            created_by=None  # This is a system-generated merged annotation
+        )
+        
+        created_annotation = await self.annotation_service.create_annotation(merged_annotation_data)
+        return created_annotation.id if created_annotation else None
+
+    def _merge_annotation_masks(self, annotations: List[Annotation]) -> Optional[dict]:
+        """
+        Merge multiple annotation masks into a single RLE mask
+        
+        Args:
+            annotations: List of annotations to merge
+            
+        Returns:
+            Merged RLE mask in COCO format, or None if merging failed
+        """
+        try:
+            valid_masks = []
+            
+            # Collect valid RLE masks
+            for annotation in annotations:
+                if annotation.segmentation_counts and annotation.segmentation_size:
+                    rle = {
+                        'size': annotation.segmentation_size,
+                        'counts': annotation.segmentation_counts.encode('utf-8')
+                    }
+                    valid_masks.append(rle)
+            
+            if not valid_masks:
+                return None
+            
+            if len(valid_masks) == 1:
+                return valid_masks[0]
+            
+            # Convert RLEs to binary masks
+            binary_masks = [maskUtils.decode(rle) for rle in valid_masks]
+            
+            # Merge by taking the union (logical OR) of all masks
+            merged_mask = binary_masks[0].astype(np.uint8)
+            for i in range(1, len(binary_masks)):
+                merged_mask = np.logical_or(merged_mask, binary_masks[i]).astype(np.uint8)
+            
+            # Convert back to RLE
+            merged_rle = maskUtils.encode(np.asfortranarray(merged_mask))
+            
+            return merged_rle
+            
+        except Exception as e:
+            print(f"Error merging annotation masks: {e}")
+            return None
+
+    def _calculate_bbox_from_rle(self, rle: dict) -> List[float]:
+        """
+        Calculate bounding box from RLE mask
+        
+        Args:
+            rle: RLE mask in COCO format
+            
+        Returns:
+            Bounding box in [x, y, width, height] format
+        """
+        try:
+            bbox = maskUtils.toBbox(rle)
+            return [float(x) for x in bbox]
+        except Exception as e:
+            print(f"Error calculating bbox from RLE: {e}")
+            # Return a default bbox if calculation fails
+            return [0.0, 0.0, float(rle['size'][1]), float(rle['size'][0])]

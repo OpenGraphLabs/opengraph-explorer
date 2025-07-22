@@ -71,8 +71,7 @@ class UserAnnotationSelectionRead(BaseModel):
         """선택된 어노테이션 ID 목록을 computed field로 제공"""
         return parse_annotation_ids_key(self.selected_annotation_ids_key)
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class UserAnnotationSelectionWithDetails(UserAnnotationSelectionRead):

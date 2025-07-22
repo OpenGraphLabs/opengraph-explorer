@@ -277,7 +277,7 @@ export function CategorySearchPanel({
           border: `1px solid ${theme.colors.border.primary}20`,
           borderRadius: theme.borders.radius.lg,
           boxShadow: `0 2px 8px ${theme.colors.background.primary}20`,
-          maxHeight: "280px",
+          maxHeight: "500px",
           overflowY: "auto",
         }}
       >
