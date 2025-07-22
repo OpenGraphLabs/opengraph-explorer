@@ -1,12 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Box, Card, Flex, Text, Badge } from "@radix-ui/themes";
-import { FileText, Shield, Archive } from "phosphor-react";
-import { DatasetObject } from "@/shared/api/graphql/datasetGraphQLService.ts";
+import { FileText, Shield, Archive, Palette } from "phosphor-react";
+import { DatasetRead } from "@/shared/api/generated/models";
 import { formatDataSize, getDataTypeColor, truncateAddress } from "../utils";
 import { useTheme } from "@/shared/ui/design-system";
+import { Button } from "@/shared/ui/design-system/components";
+
+// Extended DatasetRead with image_count from server response
+interface DatasetWithImageCount extends DatasetRead {
+  image_count?: number;
+}
 
 interface DatasetCardProps {
-  dataset: DatasetObject;
+  dataset: DatasetWithImageCount;
   index: number;
   isLoaded: boolean;
 }
@@ -19,8 +25,21 @@ const formatNumber = (num: number) => {
 
 export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
   const { theme } = useTheme();
-  const dataTypeColorConfig = getDataTypeColor(dataset.dataType);
-  const dataTypeColor = dataTypeColorConfig.text;
+  const navigate = useNavigate();
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const handleAnnotationClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/datasets/${dataset.id}/annotate`);
+  };
 
   return (
     <Box
@@ -33,14 +52,14 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
       <Link to={`/datasets/${dataset.id}`} style={{ textDecoration: "none" }}>
         <Card
           style={{
-            padding: theme.spacing.semantic.component.md,
+            padding: theme.spacing.semantic.component.lg,
             borderRadius: theme.borders.radius.lg,
             border: `1px solid ${theme.colors.border.primary}`,
             backgroundColor: theme.colors.background.card,
-            height: "110px",
             display: "flex",
             flexDirection: "column",
-            minHeight: "110px",
+            minHeight: "220px",
+            height: "auto",
             transition: theme.animations.transitions.hover,
             cursor: "pointer",
           }}
@@ -55,107 +74,153 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
             e.currentTarget.style.borderColor = theme.colors.border.primary;
           }}
         >
-          <Flex direction="column" gap="2" style={{ height: "100%" }}>
-            {/* Header: Dataset Name + Type Badge */}
-            <Flex justify="between" align="start" gap="2">
-              <Box style={{ flex: 1, minWidth: 0 }}>
+          <Flex direction="column" gap="4" style={{ height: "100%" }}>
+            {/* Header: Dataset Name */}
+            <Box style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                size="4"
+                weight="bold"
+                style={{
+                  color: theme.colors.text.primary,
+                  marginBottom: theme.spacing.semantic.component.xs,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  lineHeight: "1.3",
+                }}
+              >
+                {dataset.name}
+              </Text>
+              
+              {/* Description */}
+              {dataset.description && (
                 <Text
-                  size="3"
-                  weight="bold"
+                  size="2"
                   style={{
-                    color: theme.colors.text.primary,
-                    marginBottom: "2px",
+                    color: theme.colors.text.secondary,
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
-                    lineHeight: "1.3",
+                    lineHeight: "1.4",
+                    marginBottom: theme.spacing.semantic.component.sm,
                   }}
                 >
-                  {dataset.name}
+                  {dataset.description}
                 </Text>
-                <Text
-                  size="1"
-                  style={{
-                    color: theme.colors.text.secondary,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  by {truncateAddress(dataset.creator || "Unknown", 12)}
-                </Text>
-              </Box>
+              )}
+            </Box>
 
-              <Badge
-                size="1"
-                style={{
-                  backgroundColor: `${dataTypeColor}20`,
-                  color: dataTypeColor,
-                  border: `1px solid ${theme.colors.border.secondary}`,
-                  borderRadius: theme.borders.radius.sm,
-                  padding: "2px 6px",
-                  fontSize: "10px",
-                  fontWeight: "500",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                }}
-              >
-                {dataset.dataType.split("/")[0]}
-              </Badge>
-            </Flex>
+            {/* Tags */}
+            {dataset.tags && dataset.tags.length > 0 && (
+              <Flex gap="1" wrap="wrap" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+                {dataset.tags.slice(0, 3).map((tag, tagIndex) => (
+                  <Badge
+                    key={tagIndex}
+                    size="1"
+                    style={{
+                      backgroundColor: `${theme.colors.interactive.primary}15`,
+                      color: theme.colors.interactive.primary,
+                      border: `1px solid ${theme.colors.interactive.primary}30`,
+                      borderRadius: theme.borders.radius.sm,
+                      padding: "2px 6px",
+                      fontSize: "10px",
+                      fontWeight: "500",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+                {dataset.tags.length > 3 && (
+                  <Badge
+                    size="1"
+                    style={{
+                      backgroundColor: `${theme.colors.text.tertiary}15`,
+                      color: theme.colors.text.tertiary,
+                      border: `1px solid ${theme.colors.text.tertiary}30`,
+                      borderRadius: theme.borders.radius.sm,
+                      padding: "2px 6px",
+                      fontSize: "10px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    +{dataset.tags.length - 3}
+                  </Badge>
+                )}
+              </Flex>
+            )}
 
-            {/* Spacer */}
-            <Box style={{ flex: 1 }} />
-
-            {/* Footer: Stats */}
-            <Flex justify="between" align="center" style={{ marginTop: "auto" }}>
+            {/* Stats */}
+            <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
               <Flex gap="3" align="center">
                 <Flex align="center" gap="1">
-                  <FileText width="11" height="11" style={{ color: theme.colors.text.tertiary }} />
+                  <FileText width="12" height="12" style={{ color: theme.colors.text.tertiary }} />
                   <Text
                     size="1"
                     style={{
                       color: theme.colors.text.tertiary,
                       fontWeight: "500",
-                      fontSize: "10px",
+                      fontSize: "11px",
                     }}
                   >
-                    {formatNumber(dataset.dataCount || 0)}
+                    {formatNumber(dataset.image_count || 0)} images
                   </Text>
                 </Flex>
 
                 <Flex align="center" gap="1">
-                  <Archive width="11" height="11" style={{ color: theme.colors.text.tertiary }} />
+                  <Shield width="12" height="12" style={{ color: theme.colors.status.success }} />
                   <Text
                     size="1"
                     style={{
-                      color: theme.colors.text.tertiary,
+                      color: theme.colors.status.success,
                       fontWeight: "500",
-                      fontSize: "10px",
+                      fontSize: "11px",
                     }}
                   >
-                    {formatDataSize(dataset.dataSize)}
+                    Verified
                   </Text>
                 </Flex>
               </Flex>
 
-              <Flex align="center" gap="1">
-                <Shield width="11" height="11" style={{ color: theme.colors.status.success }} />
-                <Text
-                  size="1"
-                  style={{
-                    color: theme.colors.text.muted,
-                    fontWeight: "500",
-                    fontSize: "9px",
-                  }}
-                >
-                  Verified
-                </Text>
-              </Flex>
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
+                  fontSize: "10px",
+                }}
+              >
+                {formatDate(dataset.created_at)}
+              </Text>
             </Flex>
+
+            {/* Action Button */}
+            <Button
+              onClick={handleAnnotationClick}
+              style={{
+                width: "100%",
+                background: theme.colors.interactive.primary,
+                color: theme.colors.text.inverse,
+                border: "none",
+                borderRadius: theme.borders.radius.md,
+                padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: theme.spacing.semantic.component.sm,
+                marginTop: "auto",
+                transition: theme.animations.transitions.all,
+              }}
+            >
+              <Palette size={16} weight="fill" />
+              Join Annotation
+            </Button>
           </Flex>
         </Card>
       </Link>

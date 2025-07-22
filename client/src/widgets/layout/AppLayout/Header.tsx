@@ -60,13 +60,13 @@ export function Header() {
           <Flex gap="1" className="hidden md:flex">
             {" "}
             {/* Reduced gap */}
-            <NavLink
+            {/* <NavLink
               to="/models"
               current={location.pathname === "/models"}
               disabled={!isConnected && requiresWallet("/models")}
             >
               Models
-            </NavLink>
+            </NavLink> */}
             <NavLink
               to="/datasets"
               current={location.pathname === "/datasets"}
@@ -74,13 +74,13 @@ export function Header() {
             >
               Datasets
             </NavLink>
-            <NavLink
+            {/* <NavLink
               to="/annotator"
               current={location.pathname === "/annotator"}
               disabled={!isConnected && requiresWallet("/annotator")}
             >
               Annotator
-            </NavLink>
+            </NavLink> */}
           </Flex>
         </Flex>
 

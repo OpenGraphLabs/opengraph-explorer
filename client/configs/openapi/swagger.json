@@ -1326,6 +1326,52 @@
         }
       }
     },
+    "/api/v1/dictionary-categories/batch": {
+      "post": {
+        "tags": [
+          "dictionary-categories"
+        ],
+        "summary": "Create Dictionary Categories Batch",
+        "description": "Create multiple dictionary-category associations for one dictionary.\nAll operations succeed or all fail (atomic transaction).",
+        "operationId": "create_dictionary_categories_batch_api_v1_dictionary_categories_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DictionaryCategoryBatchCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DictionaryCategoryRead"
+                  },
+                  "type": "array",
+                  "title": "Response Create Dictionary Categories Batch Api V1 Dictionary Categories Batch Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/annotations/": {
       "post": {
         "tags": [
@@ -2182,6 +2228,30 @@
         "type": "object",
         "title": "DatasetUpdate",
         "description": "Dataset update schema"
+      },
+      "DictionaryCategoryBatchCreate": {
+        "properties": {
+          "dictionary_id": {
+            "type": "integer",
+            "title": "Dictionary Id",
+            "description": "Dictionary ID"
+          },
+          "category_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Category Ids",
+            "description": "List of Category IDs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dictionary_id",
+          "category_ids"
+        ],
+        "title": "DictionaryCategoryBatchCreate",
+        "description": "Batch dictionary-category association creation schema"
       },
       "DictionaryCategoryCreate": {
         "properties": {

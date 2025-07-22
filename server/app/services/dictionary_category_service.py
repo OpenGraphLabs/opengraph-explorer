@@ -12,7 +12,7 @@ from ..models.dictionary_category import DictionaryCategory
 from ..models.category import Category
 from ..schemas.category import CategoryListResponse, CategoryRead
 from ..schemas.common import Pagination
-from ..schemas.dictionary_category import DictionaryCategoryCreate, DictionaryCategoryRead
+from ..schemas.dictionary_category import DictionaryCategoryCreate, DictionaryCategoryRead, DictionaryCategoryBatchCreate
 
 
 class DictionaryCategoryService:
@@ -137,3 +137,52 @@ class DictionaryCategoryService:
         await self.db.commit()
         
         return True
+    
+    async def create_dictionary_categories_batch(self, data: DictionaryCategoryBatchCreate) -> List[DictionaryCategoryRead]:
+        """
+        Create multiple dictionary-category associations for one dictionary.
+        All operations succeed or all fail (atomic transaction).
+
+        Args:
+            data: Schema containing dictionary_id and list of category_ids.
+
+        Returns:
+            List[DictionaryCategoryRead]: List of created/existing associations
+
+        Raises:
+            Exception: If any category_id fails to be processed
+        """
+        created_associations = []
+
+        try:
+            for category_id in data.category_ids:
+                # Check if association already exists
+                existing_query = select(DictionaryCategory).where(
+                    DictionaryCategory.dictionary_id == data.dictionary_id,
+                    DictionaryCategory.category_id == category_id
+                )
+                existing_result = await self.db.execute(existing_query)
+                existing_association = existing_result.scalar_one_or_none()
+                
+                if existing_association:
+                    created_associations.append(DictionaryCategoryRead.model_validate(existing_association))
+                    continue
+
+                # Create new association
+                db_dictionary_category = DictionaryCategory(
+                    dictionary_id=data.dictionary_id,
+                    category_id=category_id,
+                )
+                
+                self.db.add(db_dictionary_category)
+                await self.db.flush()
+                
+                created_associations.append(DictionaryCategoryRead.model_validate(db_dictionary_category))
+
+            # Commit all operations
+            await self.db.commit()
+            return created_associations
+            
+        except Exception:
+            await self.db.rollback()
+            raise

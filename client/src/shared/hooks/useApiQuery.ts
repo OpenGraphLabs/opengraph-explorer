@@ -39,7 +39,7 @@ export const queryKeys = {
 
 // Dataset Hooks
 export function useDatasets(
-  filters: { skip?: number; limit?: number } = {},
+  filters: { page?: number; limit?: number; skip?: number } = {},
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);

@@ -5,13 +5,14 @@ Dictionary-category association API endpoints.
 """
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
 from ..schemas.category import CategoryListResponse
 from ..schemas.common import Pagination
-from ..schemas.dictionary_category import DictionaryCategoryCreate, DictionaryCategoryRead
+from ..schemas.dictionary_category import DictionaryCategoryCreate, DictionaryCategoryRead, DictionaryCategoryBatchCreate
 from ..services import DictionaryCategoryService
 
 router = APIRouter(
@@ -69,3 +70,17 @@ async def delete_dictionary_category(
         )
 
     return None
+
+
+@router.post("/batch", response_model=List[DictionaryCategoryRead], status_code=status.HTTP_201_CREATED)
+async def create_dictionary_categories_batch(
+    data: DictionaryCategoryBatchCreate,
+    # current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create multiple dictionary-category associations for one dictionary.
+    All operations succeed or all fail (atomic transaction).
+    """
+    dictionary_category_service = DictionaryCategoryService(db)
+    return await dictionary_category_service.create_dictionary_categories_batch(data)
