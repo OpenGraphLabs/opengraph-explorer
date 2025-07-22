@@ -34,6 +34,7 @@ export function Home() {
   const [limit] = useState(24);
   const [showGlobalMasks, setShowGlobalMasks] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch approved annotations
   const { 
@@ -76,7 +77,7 @@ export function Home() {
 
   // Combine annotations with their corresponding images and filter by category
   const annotationsWithImages: ApprovedAnnotationWithImage[] = useMemo(() => {
-    return approvedAnnotations
+    const result = approvedAnnotations
       .map(annotation => ({
         ...annotation,
         image: imageMap.get(annotation.image_id),
@@ -90,9 +91,17 @@ export function Home() {
         }
         return true;
       });
+
+    return result;
   }, [approvedAnnotations, imageMap, selectedCategory]);
 
   const isLoading = annotationsLoading || imagesLoading;
+
+  // Search state
+  const isSearching = !!selectedCategory;
+  const searchResultsCount = annotationsWithImages.length;
+  const hasSearchResults = searchResultsCount > 0;
+  const isInitialState = !isSearching && !isLoading;
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -106,8 +115,20 @@ export function Home() {
 
   const handleCategorySelect = (category: { id: number; name: string } | null) => {
     setSelectedCategory(category);
-    setCurrentPage(1); // Reset to first page when category changes
+    setSearchQuery(category?.name || '');
+    setCurrentPage(1);
+    
+    // Smooth scroll to top when category changes
+    if (category) {
+      setTimeout(() => {
+        window.scrollTo({ 
+          top: 0, 
+          behavior: 'smooth' 
+        });
+      }, 100);
+    }
   };
+
 
   if (annotationsError) {
     return (
@@ -187,9 +208,16 @@ export function Home() {
             </Heading>
 
             {/* Category Search Bar */}
-            <Box style={{ width: '100%', maxWidth: '580px' }}>
+            <Box 
+              style={{ 
+                width: '100%', 
+                maxWidth: '620px',
+                transition: theme.animations.transitions.all,
+                transform: selectedCategory ? 'scale(0.98)' : 'scale(1)',
+              }}
+            >
               <CategorySearchInput
-                placeholder="Search categories..."
+                placeholder="Search for categories, annotations, or image types..."
                 selectedCategory={selectedCategory}
                 onCategorySelect={handleCategorySelect}
               />
@@ -197,16 +225,25 @@ export function Home() {
 
             {/* Stats and Controls */}
             {!isLoading && (
-              <Flex direction="column" align="center" gap="3">
+              <Flex 
+                direction="column" 
+                align="center" 
+                gap="3"
+                style={{
+                  opacity: isLoading ? 0.6 : 1,
+                  transition: 'opacity 200ms ease-out',
+                }}
+              >
                 <Text
                   style={{
                     fontSize: theme.typography.bodySmall.fontSize,
                     color: theme.colors.text.secondary,
                     textAlign: 'center',
+                    transition: 'all 200ms ease-out',
                   }}
                 >
                   {selectedCategory 
-                    ? `${annotationsWithImages.length} annotations in "${selectedCategory.name}"`
+                    ? `${annotationsWithImages.length} result${annotationsWithImages.length === 1 ? '' : 's'} for "${selectedCategory.name}"`
                     : `${totalAnnotations} approved annotations available`
                   }
                 </Text>
@@ -291,6 +328,9 @@ export function Home() {
               gap="4"
               style={{
                 marginBottom: theme.spacing.semantic.layout.lg,
+                opacity: isLoading ? 0.6 : 1,
+                transform: isLoading ? 'translateY(8px)' : 'translateY(0)',
+                transition: 'opacity 300ms ease-out, transform 300ms ease-out',
               }}
             >
               {annotationsWithImages.map((annotationWithImage) => {
@@ -412,12 +452,23 @@ export function Home() {
                 <Button
                   variant="secondary"
                   size="md"
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setSearchQuery('');
+                    setCurrentPage(1);
+                    setTimeout(() => {
+                      window.scrollTo({ 
+                        top: 0, 
+                        behavior: 'smooth' 
+                      });
+                    }, 100);
+                  }}
                   style={{
                     marginTop: theme.spacing.semantic.component.md,
+                    transition: theme.animations.transitions.all,
                   }}
                 >
-                  Clear Category Filter
+                  View All Annotations
                 </Button>
               )}
             </Flex>
