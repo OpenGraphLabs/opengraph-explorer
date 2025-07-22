@@ -12,3 +12,4 @@ export { SaveNotification } from './SaveNotification';
 export { SegmentationMaskOverlay } from './SegmentationMaskOverlay';
 export { ImageWithSegmentation } from './ImageWithSegmentation';
 export { InteractiveAnnotationCanvas } from "./InteractiveAnnotationCanvas";
+export { CategorySearchPanel } from "./CategorySearchPanel";

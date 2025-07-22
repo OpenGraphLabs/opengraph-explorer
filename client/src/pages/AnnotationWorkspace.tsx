@@ -12,16 +12,19 @@ import {
   EyeSlash,
   FloppyDisk,
   Trash,
+  Tag,
 } from "phosphor-react";
 import { useImages, useAnnotationsByImage } from "@/shared/hooks/useApiQuery";
-import { InteractiveAnnotationCanvas } from "@/features/annotation/components";
+import { InteractiveAnnotationCanvas, CategorySearchPanel } from "@/features/annotation/components";
 import { Annotation } from "@/features/annotation/types/annotation";
 import { BoundingBox } from "@/features/annotation/types/workspace";
+import type { CategoryRead } from "@/shared/api/generated/models";
 
 interface EntityAnnotation {
   id: string;
   bbox: BoundingBox;
   selectedMaskIds: number[];
+  category?: CategoryRead;
   createdAt: Date;
 }
 
@@ -128,6 +131,19 @@ export function AnnotationWorkspace() {
     if (selectedEntityId === entityId) {
       setSelectedEntityId(null);
       setCurrentSelectedMasks([]);
+    }
+  }, [selectedEntityId]);
+
+  // Handle category selection for entity
+  const handleCategorySelect = useCallback((category: CategoryRead) => {
+    if (selectedEntityId) {
+      setEntities(prev => 
+        prev.map(entity => 
+          entity.id === selectedEntityId
+            ? { ...entity, category }
+            : entity
+        )
+      );
     }
   }, [selectedEntityId]);
 
@@ -279,6 +295,8 @@ export function AnnotationWorkspace() {
       </Box>
     );
   }
+
+  const selectedEntity = entities.find(e => e.id === selectedEntityId);
 
   return (
     <Box
@@ -447,7 +465,7 @@ export function AnnotationWorkspace() {
       {/* Entity Sidebar */}
       <Box
         style={{
-          width: "320px",
+          width: "380px",
           background: theme.colors.background.card,
           borderLeft: `1px solid ${theme.colors.border.subtle}20`,
           display: "flex",
@@ -481,6 +499,36 @@ export function AnnotationWorkspace() {
             Draw bounding boxes to select masks and create meaningful entities
           </Text>
         </Box>
+
+        {/* Category Search Panel */}
+        {selectedEntityId && (
+          <Box
+            style={{
+              padding: theme.spacing.semantic.component.md,
+              borderBottom: `1px solid ${theme.colors.border.subtle}20`,
+              background: theme.colors.background.secondary,
+            }}
+          >
+            <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+              <Tag size={16} style={{ color: theme.colors.interactive.primary }} />
+              <Text
+                size="2"
+                style={{
+                  fontWeight: 600,
+                  color: theme.colors.text.primary,
+                }}
+              >
+                Category Search
+              </Text>
+            </Flex>
+            <CategorySearchPanel
+              onCategorySelect={handleCategorySelect}
+              selectedCategory={selectedEntity?.category || null}
+              placeholder="Search categories (e.g., desk, chair, table...)"
+              dictionaryId={1}
+            />
+          </Box>
+        )}
 
         {/* Entity List */}
         <Box
@@ -532,17 +580,32 @@ export function AnnotationWorkspace() {
                   }}
                 >
                   <Flex justify="between" align="center">
-                    <Box>
-                      <Text
-                        size="2"
-                        style={{
-                          fontWeight: 600,
-                          color: theme.colors.text.primary,
-                          marginBottom: theme.spacing.semantic.component.xs,
-                        }}
-                      >
-                        Entity #{index + 1}
-                      </Text>
+                    <Box style={{ flex: 1 }}>
+                      <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+                        <Text
+                          size="2"
+                          style={{
+                            fontWeight: 600,
+                            color: theme.colors.text.primary,
+                          }}
+                        >
+                          Entity #{index + 1}
+                        </Text>
+                        {entity.category && (
+                          <Box
+                            style={{
+                              background: theme.colors.interactive.primary,
+                              color: theme.colors.text.inverse,
+                              borderRadius: theme.borders.radius.sm,
+                              padding: `2px 6px`,
+                              fontSize: "10px",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {entity.category.name}
+                          </Box>
+                        )}
+                      </Flex>
                       <Text
                         size="1"
                         style={{
@@ -551,6 +614,7 @@ export function AnnotationWorkspace() {
                         }}
                       >
                         {entity.selectedMaskIds.length} masks selected
+                        {entity.category && ` • ID: ${entity.category.id}`}
                       </Text>
                     </Box>
                     

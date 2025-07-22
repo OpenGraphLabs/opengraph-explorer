@@ -97,9 +97,9 @@ export function InteractiveAnnotationCanvas({
       setLoadedImage(img);
       setImageLoaded(true);
       
-      // Auto-fit image to container
+      // Auto-fill image to container for better initial viewing
       setTimeout(() => {
-        fitToContainer();
+        zoomToFill();
       }, 100);
     };
     img.src = imageUrl;
