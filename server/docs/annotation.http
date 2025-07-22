@@ -29,6 +29,10 @@ X-Opengraph-User-Id: 1
 GET {{http-host}}/api/v1/annotations/image/3
 X-Opengraph-User-Id: 1
 
+### annotation - ReadAll Approved Annotations
+GET {{http-host}}/api/v1/annotations/approved
+X-Opengraph-User-Id: 1
+
 # ==================== User Annotation Selections ====================
 
 ### annotation-selection - Create selection
@@ -40,6 +44,31 @@ X-Opengraph-User-Id: 1
     "image_id": 3,
     "selected_annotation_ids": [4, 5, 7, 8],
     "category_id": 5
+}
+
+### annotation-selection - Create selections batch
+POST {{http-host}}/api/v1/annotations/selections/batch
+Content-Type: application/json
+X-Opengraph-User-Id: 1
+
+{
+    "selections": [
+        {
+            "image_id": 3,
+            "selected_annotation_ids": [3, 4],
+            "category_id": 5
+        },
+        {
+            "image_id": 3,
+            "selected_annotation_ids": [3, 4, 5],
+            "category_id": 5
+        },
+        {
+            "image_id": 3,
+            "selected_annotation_ids": [3, 4],
+            "category_id": 5
+        }
+    ]
 }
 
 ### annotation-selection - Create another selection (same user, different annotations)
@@ -218,3 +247,49 @@ X-Opengraph-User-Id: 6
 ### Check stats (should show separate counts for different categories)
 GET {{http-host}}/api/v1/annotations/selections/image/3/stats
 X-Opengraph-User-Id: 1
+
+### Test Scenario 4: Batch creation for multiple users
+# User 1 creates multiple selections at once
+POST {{http-host}}/api/v1/annotations/selections/batch
+Content-Type: application/json
+X-Opengraph-User-Id: 1
+
+{
+    "selections": [
+        {
+            "image_id": 3,
+            "selected_annotation_ids": [11, 12, 13],
+            "category_id": 8
+        },
+        {
+            "image_id": 4,
+            "selected_annotation_ids": [14, 15],
+            "category_id": 9
+        },
+        {
+            "image_id": 5,
+            "selected_annotation_ids": [16, 17, 18, 19],
+            "category_id": 8
+        }
+    ]
+}
+
+### User 2 also creates batch selections with some overlapping choices
+POST {{http-host}}/api/v1/annotations/selections/batch
+Content-Type: application/json
+X-Opengraph-User-Id: 2
+
+{
+    "selections": [
+        {
+            "image_id": 3,
+            "selected_annotation_ids": [11, 12, 13],
+            "category_id": 8
+        },
+        {
+            "image_id": 4,
+            "selected_annotation_ids": [20, 21],
+            "category_id": 10
+        }
+    ]
+}

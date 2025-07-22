@@ -65,18 +65,13 @@ def parse_annotation_ids_key(annotation_ids_key: str) -> List[int]:
 
 def validate_annotation_ids(annotation_ids: List[int]) -> bool:
     """
-    어노테이션 ID 목록의 유효성을 검증합니다.
+    Validate annotation IDs.
     
     Args:
-        annotation_ids: 검증할 어노테이션 ID 목록
+        annotation_ids: annotation IDs to validate
         
     Returns:
-        bool: 유효한 경우 True, 그렇지 않으면 False
-        
-    Validation Rules:
-        - 빈 목록은 유효하지 않음
-        - 모든 ID는 양의 정수여야 함
-        - 중복된 ID가 있어도 허용 (정규화 과정에서 제거됨)
+        bool: True if valid, False otherwise
     """
     if not annotation_ids:
         return False

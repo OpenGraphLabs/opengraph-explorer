@@ -41,6 +41,24 @@ class UserAnnotationSelectionCreate(UserAnnotationSelectionBase):
     pass
 
 
+class UserAnnotationSelectionBatchCreate(BaseModel):
+    """사용자 어노테이션 선택 배치 생성 스키마"""
+    
+    selections: List[UserAnnotationSelectionCreate] = Field(
+        ...,
+        min_items=1,
+        max_items=50,  # Reasonable batch limit
+        description="List of annotation selections to create"
+    )
+    
+    @validator('selections')
+    def validate_selections_not_empty(cls, v):
+        """어노테이션 선택 목록이 비어있지 않은지 검증"""
+        if not v:
+            raise ValueError("At least one annotation selection is required")
+        return v
+
+
 class UserAnnotationSelectionUpdate(BaseModel):
     """사용자 어노테이션 선택 업데이트 스키마"""
     
@@ -72,6 +90,17 @@ class UserAnnotationSelectionRead(BaseModel):
         return parse_annotation_ids_key(self.selected_annotation_ids_key)
     
     model_config = {"from_attributes": True}
+
+
+class UserAnnotationSelectionBatchResponse(BaseModel):
+    """사용자 어노테이션 선택 배치 생성 응답 스키마"""
+    
+    created_selections: List[UserAnnotationSelectionRead] = Field(
+        description="Successfully created annotation selections"
+    )
+    total_created: int = Field(description="Total number of selections created")
+    auto_approved_count: int = Field(description="Number of selections that triggered auto-approval")
+    merged_annotations_count: int = Field(description="Number of merged annotations created from auto-approvals")
 
 
 class UserAnnotationSelectionWithDetails(UserAnnotationSelectionRead):

@@ -16,6 +16,8 @@ from ..models.annotation import Annotation
 from ..models.category import Category
 from ..schemas.user_annotation_selection import (
     UserAnnotationSelectionCreate,
+    UserAnnotationSelectionBatchCreate,
+    UserAnnotationSelectionBatchResponse,
     UserAnnotationSelectionUpdate,
     UserAnnotationSelectionRead,
     AnnotationSelectionStats,
@@ -84,7 +86,7 @@ class UserAnnotationSelectionService:
         await self.db.commit()
         await self.db.refresh(new_selection)
         
-        # Check if it can be approved and if so, approve it
+        # Check if it can be approved and if so, approve it (for single selections)
         await self._check_and_process_approval(
             image_id=selection_data.image_id,
             annotation_ids_key=annotation_ids_key,
@@ -92,6 +94,95 @@ class UserAnnotationSelectionService:
         )
         
         return UserAnnotationSelectionRead.model_validate(new_selection)
+    
+    async def create_selections_batch(
+        self,
+        user_id: int,
+        batch_data: UserAnnotationSelectionBatchCreate
+    ) -> UserAnnotationSelectionBatchResponse:
+        """
+        Create multiple annotation selections atomically
+        
+        All selections are created in a single transaction.
+        If any validation fails, the entire batch fails.
+        After all selections are created, check for auto-approval in batch.
+        
+        Args:
+            user_id: User ID
+            batch_data: Batch creation data containing list of selections
+            
+        Returns:
+            Batch response with created selections and auto-approval info
+            
+        Raises:
+            ValueError: If any selection data is invalid
+            HTTPException: If any database constraint is violated
+        """
+        # Phase 1: Validate all selections first (before any database operations)
+        validated_selections = []
+        for selection_data in batch_data.selections:
+            if not validate_annotation_ids(selection_data.selected_annotation_ids):
+                raise ValueError(f"Invalid annotation IDs: {selection_data.selected_annotation_ids}")
+            
+            annotation_ids_key = normalize_annotation_ids(selection_data.selected_annotation_ids)
+            validated_selections.append({
+                "selection_data": selection_data,
+                "annotation_ids_key": annotation_ids_key
+            })
+        
+        # Phase 2: Check for existing selections and prepare new ones
+        new_selections = []
+        for validated in validated_selections:
+            selection_data = validated["selection_data"]
+            annotation_ids_key = validated["annotation_ids_key"]
+            
+            # Check if selection already exists
+            existing_selection = await self._find_existing_selection(
+                user_id=user_id,
+                image_id=selection_data.image_id,
+                annotation_ids_key=annotation_ids_key,
+                category_id=selection_data.category_id
+            )
+            
+            if existing_selection:
+                continue  # Skip duplicates silently
+            
+            # Prepare new selection
+            new_selection = UserAnnotationSelection(
+                user_id=user_id,
+                image_id=selection_data.image_id,
+                selected_annotation_ids_key=annotation_ids_key,
+                category_id=selection_data.category_id,
+                status="PENDING"
+            )
+            new_selections.append({
+                "model": new_selection,
+                "image_id": selection_data.image_id,
+                "annotation_ids_key": annotation_ids_key,
+                "category_id": selection_data.category_id
+            })
+        
+        # Phase 3: Atomically create all new selections
+        created_selections = []
+        for new_selection_info in new_selections:
+            self.db.add(new_selection_info["model"])
+        
+        await self.db.commit()
+        
+        # Refresh all created selections
+        for new_selection_info in new_selections:
+            await self.db.refresh(new_selection_info["model"])
+            created_selections.append(UserAnnotationSelectionRead.model_validate(new_selection_info["model"]))
+        
+        # Phase 4: Batch check and process approvals
+        auto_approved_count, merged_annotations_count = await self._batch_check_and_process_approvals(new_selections)
+        
+        return UserAnnotationSelectionBatchResponse(
+            created_selections=created_selections,
+            total_created=len(created_selections),
+            auto_approved_count=auto_approved_count,
+            merged_annotations_count=merged_annotations_count
+        )
     
     async def get_selection_by_id(self, selection_id: int) -> Optional[UserAnnotationSelectionRead]:
         """ID로 선택 조회"""
@@ -549,3 +640,76 @@ class UserAnnotationSelectionService:
             print(f"Error calculating bbox from RLE: {e}")
             # Return a default bbox if calculation fails
             return [0.0, 0.0, float(rle['size'][1]), float(rle['size'][0])]
+
+    async def _batch_check_and_process_approvals(
+        self,
+        new_selections: List[dict],
+        approval_threshold: int = 5
+    ) -> tuple[int, int]:
+        """
+        Batch check and process approvals for newly created selections
+        
+        Args:
+            new_selections: List of newly created selection info dicts
+            approval_threshold: Minimum number of selections needed for approval
+            
+        Returns:
+            Tuple of (auto_approved_count, merged_annotations_count)
+        """
+        if not new_selections:
+            return 0, 0
+        
+        # Group selections by (image_id, annotation_ids_key, category_id)
+        selection_groups = {}
+        for selection_info in new_selections:
+            key = (
+                selection_info["image_id"],
+                selection_info["annotation_ids_key"], 
+                selection_info["category_id"]
+            )
+            if key not in selection_groups:
+                selection_groups[key] = []
+            selection_groups[key].append(selection_info)
+        
+        # Check each unique selection combination
+        selections_to_approve = []
+        auto_approved_count = 0
+        
+        for (image_id, annotation_ids_key, category_id), group in selection_groups.items():
+            # Count total selections (including existing ones) for this combination
+            stmt = select(func.count(UserAnnotationSelection.id)).where(
+                and_(
+                    UserAnnotationSelection.image_id == image_id,
+                    UserAnnotationSelection.selected_annotation_ids_key == annotation_ids_key,
+                    UserAnnotationSelection.category_id == category_id,
+                    UserAnnotationSelection.status == "PENDING"
+                )
+            )
+            result = await self.db.execute(stmt)
+            total_count = result.scalar()
+            
+            # If threshold is reached, mark for approval
+            if total_count >= approval_threshold:
+                selections_to_approve.append((image_id, annotation_ids_key, category_id))
+                auto_approved_count += total_count
+        
+        # Batch approve selections and create merged annotations
+        merged_annotations_count = 0
+        if selections_to_approve:
+            # Approve all qualifying selections
+            await self.approve_selections_batch(selections_to_approve)
+            
+            # Create merged annotations for each approved combination
+            for image_id, annotation_ids_key, category_id in selections_to_approve:
+                annotation_ids = parse_annotation_ids_key(annotation_ids_key)
+                merged_annotation_id = await self._create_merged_annotation(
+                    image_id=image_id,
+                    annotation_ids=annotation_ids,
+                    category_id=category_id
+                )
+                
+                if merged_annotation_id:
+                    merged_annotations_count += 1
+                    print(f"Created merged annotation {merged_annotation_id} for selection key {annotation_ids_key}")
+        
+        return auto_approved_count, merged_annotations_count

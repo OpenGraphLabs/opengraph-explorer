@@ -50,10 +50,8 @@ export class ApiClient {
 
     // Request interceptor to add user ID header
     this.axiosInstance.interceptors.request.use((config) => {
-      const userId = localStorage.getItem('opengraph-user-id');
-      if (userId) {
-        config.headers['X-Opengraph-User-Id'] = userId;
-      }
+      const userId = localStorage.getItem('opengraph-user-id') || '7'; // Default to user ID 1 for testing
+      config.headers['X-Opengraph-User-Id'] = userId;
       return config;
     });
 

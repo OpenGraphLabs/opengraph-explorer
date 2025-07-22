@@ -73,4 +73,13 @@ class AnnotationRead(AnnotationBase):
 
 class AnnotationInDB(AnnotationRead):
     """Database annotation schema"""
-    pass 
+    pass
+
+
+class AnnotationListResponse(BaseModel):
+    """ Annotation list response schema """
+    items: List[AnnotationRead] = Field(..., description="Annotation list")
+    total: int = Field(..., description="Total count")
+    page: int = Field(..., description="Current page")
+    limit: int = Field(..., description="Page size")
+    pages: int = Field(..., description="Total pages")

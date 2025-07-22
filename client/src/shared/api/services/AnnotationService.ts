@@ -1,7 +1,10 @@
 import { ApiClient } from '../client';
 import type {
   AnnotationUserCreate,
-  AnnotationRead
+  AnnotationRead,
+  UserAnnotationSelectionBatchCreate,
+  UserAnnotationSelectionBatchResponse,
+  UserAnnotationSelectionCreate
 } from '../generated/models';
 
 export class AnnotationService {
@@ -73,5 +76,34 @@ export class AnnotationService {
       }
     );
     return response.data;
+  }
+
+  // Create annotation selections in batch
+  async createAnnotationSelectionsBatch(batchData: UserAnnotationSelectionBatchCreate): Promise<UserAnnotationSelectionBatchResponse> {
+    const response = await this.apiClient.annotations.createAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPost({
+      userAnnotationSelectionBatchCreate: batchData
+    });
+    return response.data;
+  }
+
+  // Helper method to create batch data from entities
+  createBatchDataFromEntities(
+    imageId: number,
+    entities: Array<{
+      selectedMaskIds: number[];
+      category?: { id: number } | null;
+    }>
+  ): UserAnnotationSelectionBatchCreate {
+    const selections: UserAnnotationSelectionCreate[] = entities
+      .filter(entity => entity.selectedMaskIds.length > 0 && entity.category?.id)
+      .map(entity => ({
+        image_id: imageId,
+        selected_annotation_ids: entity.selectedMaskIds,
+        category_id: entity.category!.id
+      }));
+
+    return {
+      selections
+    };
   }
 } 

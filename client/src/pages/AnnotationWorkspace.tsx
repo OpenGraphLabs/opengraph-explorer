@@ -7,12 +7,15 @@ import {
   Target,
   FloppyDisk,
   Trash,
+  Check,
+  X,
 } from "phosphor-react";
 import { useImages, useAnnotationsByImage } from "@/shared/hooks/useApiQuery";
 import { InteractiveAnnotationCanvas, CategorySearchPanel } from "@/features/annotation/components";
 import { Annotation } from "@/features/annotation/types/annotation";
 import { BoundingBox } from "@/features/annotation/types/workspace";
 import type { CategoryRead } from "@/shared/api/generated/models";
+import { annotationService } from "@/shared/api";
 
 interface EntityAnnotation {
   id: string;
@@ -26,12 +29,16 @@ export function AnnotationWorkspace() {
   const { id: datasetId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [randomSeed] = useState(() => Math.floor(Math.random() * 1000));
+  const [randomSeed, setRandomSeed] = useState(() => Math.floor(Math.random() * 1000));
   
   // Annotation states
   const [entities, setEntities] = useState<EntityAnnotation[]>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [currentSelectedMasks, setCurrentSelectedMasks] = useState<number[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isMovingToNext, setIsMovingToNext] = useState(false);
 
   // Ensure we have a dataset ID
   if (!datasetId) {
@@ -171,10 +178,72 @@ export function AnnotationWorkspace() {
 
   // Save annotations
   const handleSaveAnnotations = useCallback(async () => {
-    // TODO: Implement saving to backend/blockchain
-    console.log('Saving entities:', entities);
-    // Show success notification
-  }, [entities]);
+    if (!selectedImage || entities.length === 0) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      // Filter entities that have both masks and categories
+      const validEntities = entities.filter(entity => 
+        entity.selectedMaskIds.length > 0 && entity.category?.id
+      );
+
+      if (validEntities.length === 0) {
+        throw new Error("No valid entities to save. Each entity must have selected masks and a category.");
+      }
+
+      // Create batch data using the helper method
+      const batchData = annotationService.createBatchDataFromEntities(
+        selectedImage.id,
+        validEntities
+      );
+
+      console.log('Saving annotation selections:', batchData);
+
+      // Call the batch API
+      const result = await annotationService.createAnnotationSelectionsBatch(batchData);
+
+      console.log('Save successful:', result);
+      
+      // Show success state
+      setSaveSuccess(true);
+      
+      // Auto-hide success message and move to next image after 1.5 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+        setIsMovingToNext(true);
+        
+        // Small delay to show "moving to next" state
+        setTimeout(() => {
+          // Reset all annotation states
+          setEntities([]);
+          setSelectedEntityId(null);
+          setCurrentSelectedMasks([]);
+          
+          // Generate new random seed to get different image
+          setRandomSeed(Math.floor(Math.random() * 1000));
+          
+          setIsMovingToNext(false);
+          
+          console.log('Moved to next image for continued annotation');
+        }, 800);
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error saving annotations:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save annotations';
+      setSaveError(errorMessage);
+      
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => {
+        setSaveError(null);
+      }, 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [entities, selectedImage]);
 
   // Loading state
   if (imagesLoading) {
@@ -445,8 +514,17 @@ export function AnnotationWorkspace() {
                   lineHeight: 1.4,
                 }}
               >
-                No entities created yet.<br />
-                Select masks on the image and choose a category, or draw a bounding box to start.
+                {isMovingToNext ? (
+                  <>
+                    Loading next image...<br />
+                    Continue annotating to help improve the dataset!
+                  </>
+                ) : (
+                  <>
+                    No entities created yet.<br />
+                    Select masks on the image and choose a category, or draw a bounding box to start.
+                  </>
+                )}
               </Text>
             </Box>
           ) : (
@@ -576,14 +654,19 @@ export function AnnotationWorkspace() {
             >
               <Button
                 onClick={handleSaveAnnotations}
+                disabled={isSaving}
                 style={{
                   width: "100%",
-                  background: theme.colors.interactive.primary,
+                  background: saveSuccess 
+                    ? theme.colors.status.success 
+                    : saveError
+                    ? theme.colors.status.error
+                    : theme.colors.interactive.primary,
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.md,
                   padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-                  cursor: "pointer",
+                  cursor: isSaving ? "not-allowed" : "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -591,11 +674,55 @@ export function AnnotationWorkspace() {
                   fontSize: "14px",
                   fontWeight: 600,
                   transition: theme.animations.transitions.all,
+                  opacity: isSaving ? 0.7 : 1,
                 }}
               >
-                <FloppyDisk size={16} />
-                Save {entities.length} Entities
+                {isSaving ? (
+                  <>
+                    <Box
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        border: `2px solid transparent`,
+                        borderTopColor: theme.colors.text.inverse,
+                        borderRadius: "50%",
+                        animation: 'spin 1s linear infinite',
+                      }}
+                    />
+                    Saving...
+                  </>
+                ) : saveSuccess ? (
+                  <>
+                    <Check size={16} />
+                    Saved! Loading next image...
+                  </>
+                ) : saveError ? (
+                  <>
+                    <X size={16} />
+                    Save Failed
+                  </>
+                ) : (
+                  <>
+                    <FloppyDisk size={16} />
+                    Save {entities.length} Entities
+                  </>
+                )}
               </Button>
+              
+              {saveError && (
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.status.error,
+                    fontSize: "10px",
+                    textAlign: "center",
+                    marginTop: theme.spacing.semantic.component.xs,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {saveError}
+                </Text>
+              )}
               
               <Text
                 size="1"

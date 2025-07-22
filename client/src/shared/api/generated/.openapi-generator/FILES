@@ -13,7 +13,10 @@ apis/users-api.ts
 base.ts
 common.ts
 configuration.ts
+docs/AnnotationListResponse.md
 docs/AnnotationRead.md
+docs/AnnotationSelectionStats.md
+docs/AnnotationSelectionSummary.md
 docs/AnnotationUserCreate.md
 docs/AnnotationsApi.md
 docs/CategoriesApi.md
@@ -30,6 +33,7 @@ docs/DatasetsApi.md
 docs/DefaultApi.md
 docs/DictionariesApi.md
 docs/DictionaryCategoriesApi.md
+docs/DictionaryCategoryBatchCreate.md
 docs/DictionaryCategoryCreate.md
 docs/DictionaryCategoryRead.md
 docs/DictionaryCreate.md
@@ -39,6 +43,11 @@ docs/ImageCreate.md
 docs/ImageListResponse.md
 docs/ImageRead.md
 docs/ImagesApi.md
+docs/UserAnnotationSelectionBatchCreate.md
+docs/UserAnnotationSelectionBatchResponse.md
+docs/UserAnnotationSelectionCreate.md
+docs/UserAnnotationSelectionRead.md
+docs/UserAnnotationSelectionUpdate.md
 docs/UserCreate.md
 docs/UserProfile.md
 docs/UserRead.md
@@ -48,7 +57,10 @@ docs/ValidationError.md
 docs/ValidationErrorLocInner.md
 git_push.sh
 index.ts
+models/annotation-list-response.ts
 models/annotation-read.ts
+models/annotation-selection-stats.ts
+models/annotation-selection-summary.ts
 models/annotation-user-create.ts
 models/category-create.ts
 models/category-list-response.ts
@@ -59,6 +71,7 @@ models/dataset-list-item.ts
 models/dataset-list-response.ts
 models/dataset-read.ts
 models/dataset-update.ts
+models/dictionary-category-batch-create.ts
 models/dictionary-category-create.ts
 models/dictionary-category-read.ts
 models/dictionary-create.ts
@@ -68,6 +81,11 @@ models/image-create.ts
 models/image-list-response.ts
 models/image-read.ts
 models/index.ts
+models/user-annotation-selection-batch-create.ts
+models/user-annotation-selection-batch-response.ts
+models/user-annotation-selection-create.ts
+models/user-annotation-selection-read.ts
+models/user-annotation-selection-update.ts
 models/user-create.ts
 models/user-profile.ts
 models/user-read.ts

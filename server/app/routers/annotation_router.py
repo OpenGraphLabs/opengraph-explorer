@@ -10,9 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
-from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationUserCreate
+from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationUserCreate, AnnotationListResponse
+from ..schemas.common import Pagination
 from ..schemas.user_annotation_selection import (
     UserAnnotationSelectionCreate,
+    UserAnnotationSelectionBatchCreate,
+    UserAnnotationSelectionBatchResponse,
     UserAnnotationSelectionRead,
     UserAnnotationSelectionUpdate,
     AnnotationSelectionStats,
@@ -45,6 +48,21 @@ async def create_user_annotation(
     )
     
     return await annotation_service.create_annotation(annotation_create_data)
+
+
+@router.get("/approved", response_model=AnnotationListResponse)
+async def get_approved_annotations(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List all approved annotations.
+    """
+    annotation_service = AnnotationService(db)
+    return await annotation_service.get_approved_user_annotations(
+        pagination=Pagination(page=page, limit=limit)
+    )
 
 
 @router.get("/{annotation_id}", response_model=AnnotationRead)
@@ -97,6 +115,38 @@ async def create_annotation_selection(
     """
     selection_service = UserAnnotationSelectionService(db)
     return await selection_service.create_selection(current_user.id, selection_data)
+
+
+@router.post("/selections/batch", response_model=UserAnnotationSelectionBatchResponse, status_code=status.HTTP_201_CREATED)
+async def create_annotation_selections_batch(
+    batch_data: UserAnnotationSelectionBatchCreate,
+    current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create multiple annotation selections in batch
+    
+    Allows creating multiple annotation selections at once for efficiency.
+    Each selection in the batch is processed independently - some may succeed while others fail.
+    
+    Request body example:
+    {
+        "selections": [
+            {
+                "image_id": 3,
+                "selected_annotation_ids": [1, 3, 4],
+                "category_id": 5
+            },
+            {
+                "image_id": 3, 
+                "selected_annotation_ids": [2, 6, 7],
+                "category_id": 7
+            }
+        ]
+    }
+    """
+    selection_service = UserAnnotationSelectionService(db)
+    return await selection_service.create_selections_batch(current_user.id, batch_data)
 
 
 @router.get("/selections/me", response_model=List[UserAnnotationSelectionRead])

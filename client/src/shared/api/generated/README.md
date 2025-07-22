@@ -51,9 +51,20 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AnnotationsApi* | [**approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost**](docs/AnnotationsApi.md#approveselectionsbatchapiv1annotationsselectionsapprovebatchpost) | **POST** /api/v1/annotations/selections/approve-batch | Approve Selections Batch
+*AnnotationsApi* | [**createAnnotationSelectionApiV1AnnotationsSelectionsPost**](docs/AnnotationsApi.md#createannotationselectionapiv1annotationsselectionspost) | **POST** /api/v1/annotations/selections | Create Annotation Selection
+*AnnotationsApi* | [**createAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPost**](docs/AnnotationsApi.md#createannotationselectionsbatchapiv1annotationsselectionsbatchpost) | **POST** /api/v1/annotations/selections/batch | Create Annotation Selections Batch
 *AnnotationsApi* | [**createUserAnnotationApiV1AnnotationsPost**](docs/AnnotationsApi.md#createuserannotationapiv1annotationspost) | **POST** /api/v1/annotations/ | Create User Annotation
+*AnnotationsApi* | [**deleteAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdDelete**](docs/AnnotationsApi.md#deleteannotationselectionapiv1annotationsselectionsselectioniddelete) | **DELETE** /api/v1/annotations/selections/{selection_id} | Delete Annotation Selection
 *AnnotationsApi* | [**getAnnotationApiV1AnnotationsAnnotationIdGet**](docs/AnnotationsApi.md#getannotationapiv1annotationsannotationidget) | **GET** /api/v1/annotations/{annotation_id} | Get Annotation
+*AnnotationsApi* | [**getAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdGet**](docs/AnnotationsApi.md#getannotationselectionapiv1annotationsselectionsselectionidget) | **GET** /api/v1/annotations/selections/{selection_id} | Get Annotation Selection
 *AnnotationsApi* | [**getAnnotationsByImageApiV1AnnotationsImageImageIdGet**](docs/AnnotationsApi.md#getannotationsbyimageapiv1annotationsimageimageidget) | **GET** /api/v1/annotations/image/{image_id} | Get Annotations By Image
+*AnnotationsApi* | [**getApprovedAnnotationsApiV1AnnotationsApprovedGet**](docs/AnnotationsApi.md#getapprovedannotationsapiv1annotationsapprovedget) | **GET** /api/v1/annotations/approved | Get Approved Annotations
+*AnnotationsApi* | [**getImageSelectionStatsApiV1AnnotationsSelectionsImageImageIdStatsGet**](docs/AnnotationsApi.md#getimageselectionstatsapiv1annotationsselectionsimageimageidstatsget) | **GET** /api/v1/annotations/selections/image/{image_id}/stats | Get Image Selection Stats
+*AnnotationsApi* | [**getMyAnnotationSelectionsApiV1AnnotationsSelectionsMeGet**](docs/AnnotationsApi.md#getmyannotationselectionsapiv1annotationsselectionsmeget) | **GET** /api/v1/annotations/selections/me | Get My Annotation Selections
+*AnnotationsApi* | [**getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet**](docs/AnnotationsApi.md#getselectionsummaryapiv1annotationsselectionssummaryget) | **GET** /api/v1/annotations/selections/summary | Get Selection Summary
+*AnnotationsApi* | [**getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet**](docs/AnnotationsApi.md#getselectionsreadyforapprovalapiv1annotationsselectionsreadyforapprovalget) | **GET** /api/v1/annotations/selections/ready-for-approval | Get Selections Ready For Approval
+*AnnotationsApi* | [**updateAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdPut**](docs/AnnotationsApi.md#updateannotationselectionapiv1annotationsselectionsselectionidput) | **PUT** /api/v1/annotations/selections/{selection_id} | Update Annotation Selection
 *CategoriesApi* | [**createCategoryApiV1CategoriesPost**](docs/CategoriesApi.md#createcategoryapiv1categoriespost) | **POST** /api/v1/categories/ | Create Category
 *CategoriesApi* | [**deleteCategoryApiV1CategoriesCategoryIdDelete**](docs/CategoriesApi.md#deletecategoryapiv1categoriescategoryiddelete) | **DELETE** /api/v1/categories/{category_id} | Delete Category
 *CategoriesApi* | [**getCategoryApiV1CategoriesCategoryIdGet**](docs/CategoriesApi.md#getcategoryapiv1categoriescategoryidget) | **GET** /api/v1/categories/{category_id} | Get Category
@@ -67,6 +78,7 @@ Class | Method | HTTP request | Description
 *DefaultApi* | [**rootGet**](docs/DefaultApi.md#rootget) | **GET** / | Root
 *DictionariesApi* | [**createDictionaryApiV1DictionariesPost**](docs/DictionariesApi.md#createdictionaryapiv1dictionariespost) | **POST** /api/v1/dictionaries/ | Create Dictionary
 *DictionariesApi* | [**getDictionaryApiV1DictionariesDictionaryIdGet**](docs/DictionariesApi.md#getdictionaryapiv1dictionariesdictionaryidget) | **GET** /api/v1/dictionaries/{dictionary_id} | Get Dictionary
+*DictionaryCategoriesApi* | [**createDictionaryCategoriesBatchApiV1DictionaryCategoriesBatchPost**](docs/DictionaryCategoriesApi.md#createdictionarycategoriesbatchapiv1dictionarycategoriesbatchpost) | **POST** /api/v1/dictionary-categories/batch | Create Dictionary Categories Batch
 *DictionaryCategoriesApi* | [**createDictionaryCategoryApiV1DictionaryCategoriesPost**](docs/DictionaryCategoriesApi.md#createdictionarycategoryapiv1dictionarycategoriespost) | **POST** /api/v1/dictionary-categories/ | Create Dictionary Category
 *DictionaryCategoriesApi* | [**deleteDictionaryCategoryApiV1DictionaryCategoriesDictionaryIdCategoryIdDelete**](docs/DictionaryCategoriesApi.md#deletedictionarycategoryapiv1dictionarycategoriesdictionaryidcategoryiddelete) | **DELETE** /api/v1/dictionary-categories/{dictionary_id}/{category_id} | Delete Dictionary Category
 *DictionaryCategoriesApi* | [**getDictionaryCategoriesApiV1DictionaryCategoriesDictionaryIdGet**](docs/DictionaryCategoriesApi.md#getdictionarycategoriesapiv1dictionarycategoriesdictionaryidget) | **GET** /api/v1/dictionary-categories/{dictionary_id} | Get Dictionary Categories
@@ -89,7 +101,10 @@ Class | Method | HTTP request | Description
 
 ### Documentation For Models
 
+ - [AnnotationListResponse](docs/AnnotationListResponse.md)
  - [AnnotationRead](docs/AnnotationRead.md)
+ - [AnnotationSelectionStats](docs/AnnotationSelectionStats.md)
+ - [AnnotationSelectionSummary](docs/AnnotationSelectionSummary.md)
  - [AnnotationUserCreate](docs/AnnotationUserCreate.md)
  - [CategoryCreate](docs/CategoryCreate.md)
  - [CategoryListResponse](docs/CategoryListResponse.md)
@@ -100,6 +115,7 @@ Class | Method | HTTP request | Description
  - [DatasetListResponse](docs/DatasetListResponse.md)
  - [DatasetRead](docs/DatasetRead.md)
  - [DatasetUpdate](docs/DatasetUpdate.md)
+ - [DictionaryCategoryBatchCreate](docs/DictionaryCategoryBatchCreate.md)
  - [DictionaryCategoryCreate](docs/DictionaryCategoryCreate.md)
  - [DictionaryCategoryRead](docs/DictionaryCategoryRead.md)
  - [DictionaryCreate](docs/DictionaryCreate.md)
@@ -108,6 +124,11 @@ Class | Method | HTTP request | Description
  - [ImageCreate](docs/ImageCreate.md)
  - [ImageListResponse](docs/ImageListResponse.md)
  - [ImageRead](docs/ImageRead.md)
+ - [UserAnnotationSelectionBatchCreate](docs/UserAnnotationSelectionBatchCreate.md)
+ - [UserAnnotationSelectionBatchResponse](docs/UserAnnotationSelectionBatchResponse.md)
+ - [UserAnnotationSelectionCreate](docs/UserAnnotationSelectionCreate.md)
+ - [UserAnnotationSelectionRead](docs/UserAnnotationSelectionRead.md)
+ - [UserAnnotationSelectionUpdate](docs/UserAnnotationSelectionUpdate.md)
  - [UserCreate](docs/UserCreate.md)
  - [UserProfile](docs/UserProfile.md)
  - [UserRead](docs/UserRead.md)

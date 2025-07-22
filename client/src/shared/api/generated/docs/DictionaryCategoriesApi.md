@@ -4,9 +4,63 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**createDictionaryCategoriesBatchApiV1DictionaryCategoriesBatchPost**](#createdictionarycategoriesbatchapiv1dictionarycategoriesbatchpost) | **POST** /api/v1/dictionary-categories/batch | Create Dictionary Categories Batch|
 |[**createDictionaryCategoryApiV1DictionaryCategoriesPost**](#createdictionarycategoryapiv1dictionarycategoriespost) | **POST** /api/v1/dictionary-categories/ | Create Dictionary Category|
 |[**deleteDictionaryCategoryApiV1DictionaryCategoriesDictionaryIdCategoryIdDelete**](#deletedictionarycategoryapiv1dictionarycategoriesdictionaryidcategoryiddelete) | **DELETE** /api/v1/dictionary-categories/{dictionary_id}/{category_id} | Delete Dictionary Category|
 |[**getDictionaryCategoriesApiV1DictionaryCategoriesDictionaryIdGet**](#getdictionarycategoriesapiv1dictionarycategoriesdictionaryidget) | **GET** /api/v1/dictionary-categories/{dictionary_id} | Get Dictionary Categories|
+
+# **createDictionaryCategoriesBatchApiV1DictionaryCategoriesBatchPost**
+> Array<DictionaryCategoryRead> createDictionaryCategoriesBatchApiV1DictionaryCategoriesBatchPost(dictionaryCategoryBatchCreate)
+
+Create multiple dictionary-category associations for one dictionary. All operations succeed or all fail (atomic transaction).
+
+### Example
+
+```typescript
+import {
+    DictionaryCategoriesApi,
+    Configuration,
+    DictionaryCategoryBatchCreate
+} from 'opengraph-api-client';
+
+const configuration = new Configuration();
+const apiInstance = new DictionaryCategoriesApi(configuration);
+
+let dictionaryCategoryBatchCreate: DictionaryCategoryBatchCreate; //
+
+const { status, data } = await apiInstance.createDictionaryCategoriesBatchApiV1DictionaryCategoriesBatchPost(
+    dictionaryCategoryBatchCreate
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **dictionaryCategoryBatchCreate** | **DictionaryCategoryBatchCreate**|  | |
+
+
+### Return type
+
+**Array<DictionaryCategoryRead>**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**201** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **createDictionaryCategoryApiV1DictionaryCategoriesPost**
 > DictionaryCategoryRead createDictionaryCategoryApiV1DictionaryCategoriesPost(dictionaryCategoryCreate)

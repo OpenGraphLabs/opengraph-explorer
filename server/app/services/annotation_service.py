@@ -9,7 +9,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.annotation import Annotation
-from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead
+from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationListResponse
+from ..schemas.common import Pagination
 from ..utils.segmentation import get_mask_info_for_client
 
 
@@ -136,22 +137,50 @@ class AnnotationService:
         
         return [self._create_annotation_read_with_mask_info(annotation) for annotation in annotations]
     
-    async def get_annotations_by_user(self, user_id: int) -> List[AnnotationRead]:
+    async def get_approved_user_annotations(
+        self,
+        pagination: Pagination,
+    ) -> AnnotationListResponse:
         """
-        특정 사용자가 생성한 어노테이션 목록을 조회합니다.
+        List of approved user annotations
         
         Args:
-            user_id: User ID
+            pagination: Pagination
             
         Returns:
-            List[AnnotationRead]: List of annotations created by the user
+            AnnotationListResponse: List of approved annotations with pagination information
         """
-        result = await self.db.execute(
-            select(Annotation).where(Annotation.created_by == user_id)
+        # Count total items
+        count_query = select(func.count(Annotation.id)).where(
+            Annotation.source_type == "USER",
+            Annotation.status == "APPROVED"
         )
+
+        total_result = await self.db.execute(count_query)
+        total = total_result.scalar() or 0
+
+        # Apply pagination
+        query = select(Annotation).where(
+                Annotation.source_type == "USER",
+                Annotation.status == "APPROVED"
+            ).order_by(Annotation.updated_at.desc())
+
+        offset = (pagination.page - 1) * pagination.limit
+        query = query.offset(offset).limit(pagination.limit)
+
+        result = await self.db.execute(query)
         annotations = result.scalars().all()
-        
-        return [self._create_annotation_read_with_mask_info(annotation) for annotation in annotations]
+
+        pages = (total + pagination.limit - 1) // pagination.limit
+
+        return AnnotationListResponse(
+            items=[AnnotationRead.model_validate(annotation) for annotation in annotations],
+            total=total,
+            page=pagination.page,
+            limit=pagination.limit,
+            pages=pages
+        )
+
     
     async def update_annotation(self, annotation_id: int, annotation_data: AnnotationUpdate) -> Optional[AnnotationRead]:
         """
