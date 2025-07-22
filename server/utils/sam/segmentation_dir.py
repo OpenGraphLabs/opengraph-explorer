@@ -1286,7 +1286,7 @@ class SAMEverything:
                     points.append([x, y])
         return points
 
-    def merge_similar_masks(self, masks, image, color_thresh=20):
+    def merge_similar_masks(self, masks, image, color_thresh=20, distance_thresh=100, iou_thresh=0.1):
         merged = []
         used = set()
         for i, m1 in enumerate(masks):
@@ -1294,15 +1294,31 @@ class SAMEverything:
                 continue
             mask1 = self._sparse_to_dense_mask(m1['segmentation_sparse'])
             color1 = image[mask1].mean(axis=0)
+            bbox1 = m1['bbox']  # [x1, y1, x2, y2]
+            center1 = [(bbox1[0] + bbox1[2]) / 2, (bbox1[1] + bbox1[3]) / 2]  # 중심점
             group = [m1]
             for j, m2 in enumerate(masks):
                 if j <= i or j in used:
                     continue
                 mask2 = self._sparse_to_dense_mask(m2['segmentation_sparse'])
                 color2 = image[mask2].mean(axis=0)
-                if np.linalg.norm(color1 - color2) < color_thresh:
-                    group.append(m2)
-                    used.add(j)
+                bbox2 = m2['bbox']
+                center2 = [(bbox2[0] + bbox2[2]) / 2, (bbox2[1] + bbox2[3]) / 2]
+                
+                # 색상 유사성 체크
+                color_similar = np.linalg.norm(color1 - color2) < color_thresh
+                
+                # 공간적 거리 체크
+                spatial_distance = np.sqrt((center1[0] - center2[0])**2 + (center1[1] - center2[1])**2)
+                spatial_close = spatial_distance < distance_thresh
+                
+                # 색상이 비슷하고 공간적으로 가까울 때만 합치기
+                if color_similar and spatial_close:
+                    # IoU 체크 추가 (선택적)
+                    iou = self._calculate_iou(m1['segmentation_sparse'], m2['segmentation_sparse'])
+                    if iou > iou_thresh:  # 최소한 10% 겹치는 경우만 합치기
+                        group.append(m2)
+                        used.add(j)
             # group을 하나로 합치기
             merged_mask = np.any([self._sparse_to_dense_mask(m['segmentation_sparse']) for m in group], axis=0)
             coords = np.where(merged_mask)
@@ -1366,12 +1382,26 @@ def iterative_mask_generation(
     max_mask_area = int(width * height // max_mask_area_ratio)
     current_overlay = np.zeros((height, width), dtype=bool)
 
+    width_min = width*0.015
+    height_min = height*0.015
+
+    min_length = int(min(width_min, height_min))
+
+    target = np.logical_and(target, np.logical_and(width > width_min, height > height_min))
+
     target_255 = target * 255
     for iter_idx in range(max_iter):
         
         uncovered_area = np.logical_and(target, np.logical_not(current_overlay))
 
-        init_grid = max(4,init_grid)
+        init_grid = max(int(min_length),init_grid)
+
+        max_complexity_ratio = max(max_complexity_ratio, 10)
+        min_solidity = min(min_solidity, 0.1)
+
+        if init_grid == int(min_length):
+            break
+            
         uncovered_points = sam_everything.get_uncovered_points(uncovered_area, step=init_grid)
         
         # print("target True count:", np.sum(target))
@@ -1432,7 +1462,7 @@ def iterative_mask_generation(
                 print(f"    Error at point {pt}: {e}")
         all_masks += new_masks
 
-        merged_masks = sam_everything.merge_similar_masks(all_masks, image, color_thresh=color_thresh)
+        merged_masks = sam_everything.merge_similar_masks(all_masks, image, color_thresh=color_thresh, distance_thresh=10, iou_thresh=0.05)
 
         for mask_dict in merged_masks:
             mask = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
@@ -1449,10 +1479,49 @@ def iterative_mask_generation(
         max_mask_area = int(max_mask_area * 2)
         min_mask_area = int(min_mask_area / 2)
         init_grid = int(init_grid / 2)
-        max_complexity_ratio = max_complexity_ratio + 1.0
-        min_solidity = min_solidity - 0.04
+        max_complexity_ratio = max_complexity_ratio + 1
+        min_solidity = min_solidity - 0.1
 
-    return merged_masks, current_overlay
+    # 최종 결과에 모폴로지 연산 적용하여 마스크 정리
+    cleaned_masks = []
+    for mask_dict in merged_masks:
+        # sparse mask를 dense로 변환
+        dense_mask = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
+        
+        # 모폴로지 연산으로 마스크 정리
+        import cv2
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (int(min_length), int(min_length)))
+        cleaned_mask = cv2.morphologyEx(dense_mask.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
+        cleaned_mask = cv2.morphologyEx(cleaned_mask, cv2.MORPH_OPEN, kernel)
+        cleaned_mask = cleaned_mask.astype(bool)
+        
+        # 정리된 마스크의 좌표 추출
+        cleaned_coords = np.where(cleaned_mask)
+        
+        # 정리된 마스크로 업데이트
+        cleaned_mask_dict = mask_dict.copy()
+        cleaned_mask_dict['segmentation_sparse'] = {
+            'rows': cleaned_coords[0],
+            'cols': cleaned_coords[1],
+            'shape': cleaned_mask.shape
+        }
+        cleaned_mask_dict['area'] = int(np.sum(cleaned_mask))
+        cleaned_mask_dict['bbox'] = sam_everything._mask_to_bbox(cleaned_mask)
+        
+        cleaned_masks.append(cleaned_mask_dict)
+    
+    # 정리된 마스크들의 overlay 계산
+    cleaned_overlay = np.zeros((height, width), dtype=bool)
+    for cleaned_mask_dict in cleaned_masks:
+        dense_mask = sam_everything._sparse_to_dense_mask(cleaned_mask_dict['segmentation_sparse'])
+        cleaned_overlay = np.logical_or(cleaned_overlay, dense_mask)
+    
+    # 정리된 마스크의 최종 커버리지 계산
+    covered_in_target = np.logical_and(cleaned_overlay, target)
+    final_coverage = np.sum(covered_in_target) / np.sum(target)
+    print(f"Final cleaned coverage: {final_coverage:.3f}")
+    
+    return cleaned_masks, cleaned_overlay
 
 def process_folder_with_relations(input_folder: str, output_folder: str,
                                 model_type: str = "vit_h",
