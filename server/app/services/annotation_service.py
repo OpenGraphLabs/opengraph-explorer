@@ -174,7 +174,7 @@ class AnnotationService:
         pages = (total + pagination.limit - 1) // pagination.limit
 
         return AnnotationListResponse(
-            items=[AnnotationRead.model_validate(annotation) for annotation in annotations],
+            items=[self._create_annotation_read_with_mask_info(annotation) for annotation in annotations],
             total=total,
             page=pagination.page,
             limit=pagination.limit,

@@ -229,6 +229,19 @@ export function useAnnotations(
   });
 }
 
+export function useApprovedAnnotations(
+  filters: { page?: number; limit?: number } = {},
+  options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { annotations } = useApiClient(options?.apiClientOptions);
+
+  return useQuery({
+    queryKey: [...queryKeys.annotations.all, 'approved', filters],
+    queryFn: () => annotations.getApprovedAnnotations(filters),
+    ...options
+  });
+}
+
 export function useAnnotation(
   annotationId: number,
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }

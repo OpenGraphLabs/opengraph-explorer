@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Box, Flex, Heading, Text, Grid, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { 
-  MagnifyingGlassIcon, 
-  GridIcon, 
   ChevronLeftIcon,
   ChevronRightIcon,
-  Crosshair1Icon,
+  GridIcon,
   EyeOpenIcon,
   EyeNoneIcon
 } from "@radix-ui/react-icons";
+import { useApprovedAnnotations } from "@/shared/hooks/useApiQuery";
 import { useImages } from "@/shared/hooks/useApiQuery";
-import { ImageWithSegmentation } from "@/features/annotation/components";
+import { ImageWithSingleAnnotation, CategorySearchInput } from "@/features/annotation/components";
+import type { AnnotationRead } from "@/shared/api/generated/models";
 
 interface ImageItem {
   id: number;
@@ -23,55 +23,93 @@ interface ImageItem {
   created_at: string;
 }
 
-interface ImageListResponse {
-  items: ImageItem[];
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
+interface ApprovedAnnotationWithImage extends AnnotationRead {
+  image?: ImageItem;
+  categoryName?: string;
 }
 
 export function Home() {
   const { theme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(24);
   const [showGlobalMasks, setShowGlobalMasks] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
 
+  // Fetch approved annotations
+  const { 
+    data: approvedAnnotationsResponse, 
+    isLoading: annotationsLoading, 
+    error: annotationsError 
+  } = useApprovedAnnotations(
+    { page: currentPage, limit },
+    { 
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    } as any
+  );
+
+  // Fetch all images (needed to get image details)
   const { 
     data: imagesResponse, 
-    isLoading, 
-    error 
+    isLoading: imagesLoading
   } = useImages(
-    { page: currentPage, limit },
+    { page: 1, limit: 100 }, // Get images to map with annotations (max 100)
     { 
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000,
     }
   );
 
-  const images = imagesResponse?.items || [];
-  const totalPages = imagesResponse?.pages || 0;
-  const totalImages = imagesResponse?.total || 0;
+  const approvedAnnotations = approvedAnnotationsResponse?.items || [];
+  const allImages = imagesResponse?.items || [];
+  const totalPages = approvedAnnotationsResponse?.pages || 0;
+  const totalAnnotations = approvedAnnotationsResponse?.total || 0;
 
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      // TODO: Implement search functionality
-      console.log('Search for:', searchQuery);
-    }
-  };
+  // Create a map of image_id to image for quick lookup
+  const imageMap = useMemo(() => {
+    const map = new Map<number, ImageItem>();
+    allImages.forEach(image => {
+      map.set(image.id, image);
+    });
+    return map;
+  }, [allImages]);
+
+  // Combine annotations with their corresponding images and filter by category
+  const annotationsWithImages: ApprovedAnnotationWithImage[] = useMemo(() => {
+    return approvedAnnotations
+      .map(annotation => ({
+        ...annotation,
+        image: imageMap.get(annotation.image_id),
+        categoryName: `Category ${annotation.category_id}` // TODO: Replace with actual category name
+      }))
+      .filter(item => item.image) // Only include items with valid images
+      .filter(item => {
+        // Filter by selected category
+        if (selectedCategory) {
+          return item.category_id === selectedCategory.id;
+        }
+        return true;
+      });
+  }, [approvedAnnotations, imageMap, selectedCategory]);
+
+  const isLoading = annotationsLoading || imagesLoading;
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleImageClick = (image: ImageItem) => {
-    // TODO: Open image detail modal or navigate to detail page
-    console.log('Clicked image:', image);
+  const handleAnnotationClick = (annotation: ApprovedAnnotationWithImage) => {
+    // TODO: Open annotation detail modal or navigate to detail page
+    console.log('Clicked annotation:', annotation);
   };
 
-  if (error) {
+  const handleCategorySelect = (category: { id: number; name: string } | null) => {
+    setSelectedCategory(category);
+    setCurrentPage(1); // Reset to first page when category changes
+  };
+
+  if (annotationsError) {
     return (
       <Box
         style={{
@@ -83,16 +121,16 @@ export function Home() {
         }}
       >
         <Flex direction="column" align="center" gap="4">
-          <Crosshair1Icon 
+          <GridIcon 
             width="48" 
             height="48" 
             style={{ color: theme.colors.status.error }}
           />
           <Heading size="4" style={{ color: theme.colors.text.primary }}>
-            Unable to Load Images
+            Unable to Load Annotations
           </Heading>
           <Text style={{ color: theme.colors.text.secondary, textAlign: 'center' }}>
-            There was an error loading the image gallery. Please try refreshing the page.
+            There was an error loading approved annotations. Please try refreshing the page.
           </Text>
           <Button
             variant="primary"
@@ -116,7 +154,7 @@ export function Home() {
         background: theme.colors.background.primary,
       }}
     >
-      {/* Simple Header - Google Style */}
+      {/* Header */}
       <Box
         style={{
           background: theme.colors.background.primary,
@@ -145,75 +183,19 @@ export function Home() {
                 marginBottom: theme.spacing.semantic.component.sm,
               }}
             >
-              OpenGraph
+              OpenGraph Approved Segmentations
             </Heading>
 
-            {/* Simple Search Bar */}
+            {/* Category Search Bar */}
             <Box style={{ width: '100%', maxWidth: '580px' }}>
-              <Box
-                style={{
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: theme.colors.background.card,
-                  border: `1px solid ${theme.colors.border.primary}`,
-                  borderRadius: theme.borders.radius.full,
-                  transition: theme.animations.transitions.all,
-                  boxShadow: theme.shadows.base.sm,
-                  padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-                }}
-                onFocusCapture={(e) => {
-                  e.currentTarget.style.boxShadow = theme.shadows.semantic.interactive.focus;
-                }}
-                onBlurCapture={(e) => {
-                  e.currentTarget.style.boxShadow = theme.shadows.base.sm;
-                }}
-              >
-                <MagnifyingGlassIcon 
-                  width="20" 
-                  height="20" 
-                  style={{ 
-                    color: theme.colors.text.tertiary,
-                    marginRight: theme.spacing.semantic.component.md,
-                  }} 
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Search images..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleSearchKeyPress}
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    outline: 'none',
-                    background: 'transparent',
-                    fontSize: theme.typography.body.fontSize,
-                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI Variable, Segoe UI, system-ui, Roboto, Helvetica Neue, Arial, sans-serif',
-                    color: theme.colors.text.primary,
-                  }}
-                />
-
-                {searchQuery && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setSearchQuery('')}
-                    style={{
-                      padding: `${theme.spacing[1]} ${theme.spacing[2]}`,
-                      fontSize: theme.typography.caption.fontSize,
-                      borderRadius: theme.borders.radius.sm,
-                      marginLeft: theme.spacing.semantic.component.sm,
-                    }}
-                  >
-                    Clear
-                  </Button>
-                )}
-              </Box>
+              <CategorySearchInput
+                placeholder="Search categories..."
+                selectedCategory={selectedCategory}
+                onCategorySelect={handleCategorySelect}
+              />
             </Box>
 
-            {/* Simple Stats and Controls */}
+            {/* Stats and Controls */}
             {!isLoading && (
               <Flex direction="column" align="center" gap="3">
                 <Text
@@ -223,7 +205,10 @@ export function Home() {
                     textAlign: 'center',
                   }}
                 >
-                  {totalImages.toLocaleString()} images available
+                  {selectedCategory 
+                    ? `${annotationsWithImages.length} annotations in "${selectedCategory.name}"`
+                    : `${totalAnnotations} approved annotations available`
+                  }
                 </Text>
                 
                 {/* Global Mask Toggle */}
@@ -287,13 +272,13 @@ export function Home() {
                 color: theme.colors.text.secondary,
               }}
             >
-              Loading images...
+              Loading approved annotations...
             </Text>
           </Flex>
         )}
 
-        {/* Images Grid */}
-        {!isLoading && images.length > 0 && (
+        {/* Annotations Grid */}
+        {!isLoading && annotationsWithImages.length > 0 && (
           <>
             <Grid 
               columns={{ 
@@ -308,24 +293,30 @@ export function Home() {
                 marginBottom: theme.spacing.semantic.layout.lg,
               }}
             >
-              {images.map((image) => (
-                <ImageWithSegmentation
-                  key={image.id}
-                  id={image.id}
-                  fileName={image.file_name}
-                  imageUrl={image.image_url}
-                  width={image.width}
-                  height={image.height}
-                  datasetId={image.dataset_id}
-                  createdAt={image.created_at}
-                  onClick={() => handleImageClick(image)}
-                  autoLoadAnnotations={showGlobalMasks}
-                />
-              ))}
+              {annotationsWithImages.map((annotationWithImage) => {
+                const { image, categoryName, ...annotation } = annotationWithImage;
+                
+                if (!image) return null;
+
+                return (
+                  <ImageWithSingleAnnotation
+                    key={annotation.id}
+                    annotation={annotation}
+                    imageId={image.id}
+                    imageUrl={image.image_url}
+                    imageWidth={image.width}
+                    imageHeight={image.height}
+                    fileName={image.file_name}
+                    categoryName={categoryName}
+                    onClick={() => handleAnnotationClick(annotationWithImage)}
+                    showMaskByDefault={showGlobalMasks}
+                  />
+                );
+              })}
             </Grid>
 
-            {/* Simple Pagination */}
-            {totalPages > 1 && (
+            {/* Pagination */}
+            {!selectedCategory && totalPages > 1 && (
               <Flex justify="center" align="center" gap="2">
                 <Button
                   variant="secondary"
@@ -372,8 +363,8 @@ export function Home() {
           </>
         )}
 
-        {/* Simple Empty State */}
-        {!isLoading && images.length === 0 && (
+        {/* Empty State */}
+        {!isLoading && annotationsWithImages.length === 0 && (
           <Flex
             direction="column"
             align="center"
@@ -401,7 +392,7 @@ export function Home() {
                   fontWeight: theme.typography.h4.fontWeight,
                 }}
               >
-                {searchQuery ? 'No results found' : 'No images available'}
+                {selectedCategory ? 'No annotations found in this category' : 'No approved annotations available'}
               </Heading>
               
               <Text 
@@ -411,11 +402,24 @@ export function Home() {
                   fontSize: theme.typography.body.fontSize,
                 }}
               >
-                {searchQuery 
-                  ? `Try searching for something else`
-                  : 'Images will appear here when available'
+                {selectedCategory 
+                  ? `Try selecting a different category or clear the current filter`
+                  : 'Approved annotations will appear here when available'
                 }
               </Text>
+
+              {selectedCategory && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setSelectedCategory(null)}
+                  style={{
+                    marginTop: theme.spacing.semantic.component.md,
+                  }}
+                >
+                  Clear Category Filter
+                </Button>
+              )}
             </Flex>
           </Flex>
         )}

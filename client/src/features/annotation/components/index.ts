@@ -11,5 +11,7 @@ export { SaveNotification } from './SaveNotification';
 // Segmentation related components
 export { SegmentationMaskOverlay } from './SegmentationMaskOverlay';
 export { ImageWithSegmentation } from './ImageWithSegmentation';
+export { ImageWithSingleAnnotation } from './ImageWithSingleAnnotation';
 export { InteractiveAnnotationCanvas } from "./InteractiveAnnotationCanvas";
 export { CategorySearchPanel } from "./CategorySearchPanel";
+export { CategorySearchInput } from "./CategorySearchInput";

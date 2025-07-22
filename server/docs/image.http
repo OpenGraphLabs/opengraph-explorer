@@ -1,5 +1,5 @@
 ### image - Read All
-GET {{http-host}}/api/v1/images?page=1&limit=10
+GET {{http-host}}/api/v1/images?page=1&limit=100
 X-Opengraph-User-Id: 1
 Content-Type: application/json
 

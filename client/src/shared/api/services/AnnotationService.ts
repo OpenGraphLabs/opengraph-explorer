@@ -18,6 +18,15 @@ export class AnnotationService {
     return response.data;
   }
 
+  // Get approved annotations
+  async getApprovedAnnotations(params: { page?: number; limit?: number } = {}) {
+    const response = await this.apiClient.annotations.getApprovedAnnotationsApiV1AnnotationsApprovedGet({
+      page: params.page,
+      limit: params.limit
+    });
+    return response.data;
+  }
+
   // Get annotation by ID
   async getAnnotationById(annotationId: number) {
     const response = await this.apiClient.annotations.getAnnotationApiV1AnnotationsAnnotationIdGet({
