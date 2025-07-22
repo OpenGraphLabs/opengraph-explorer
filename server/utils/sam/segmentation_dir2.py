@@ -1274,15 +1274,15 @@ class SAMEverything:
             overlay = np.logical_or(overlay, mask)
         return overlay
 
-    def get_uncovered_points(self, mask, step=8):
+    def get_uncovered_points(self, overlay, step=8):
         """
         overlay==0인 위치에만 step 간격으로 포인트를 생성
         """
         points = []
-        h, w = mask.shape
+        h, w = overlay.shape
         for y in range(0, h, step):
             for x in range(0, w, step):
-                if mask[y, x]:  # True인 곳에 포인트 생성
+                if not overlay[y, x]:
                     points.append([x, y])
         return points
 
@@ -1309,10 +1309,6 @@ class SAMEverything:
             # grid_size는 group 내 가장 작은 값(가장 fine한 것)으로!
             grid_sizes = [m.get('grid_size', 0) for m in group if 'grid_size' in m]
             merged_grid_size = min(grid_sizes) if grid_sizes else 0
-            # 병합된 마스크의 복잡도와 solidity 계산
-            merged_complexity_ratio = self._calculate_complexity_ratio(merged_mask)
-            merged_solidity = self._calculate_solidity(merged_mask)
-            
             merged.append({
                 'segmentation_sparse': {
                     'rows': coords[0],
@@ -1324,12 +1320,7 @@ class SAMEverything:
                 'point': group[0]['point'],
                 'bbox': self._mask_to_bbox(merged_mask),
                 'grid_size': merged_grid_size,  # 반드시 포함!
-                'original_id': group[0].get('original_id', ''),
-                'level': group[0].get('level', 0),  # level 필드 추가
-                'child_ids': [],  # child_ids 필드 추가
-                'parent_id': group[0].get('parent_id', None),  # parent_id 필드 추가
-                'complexity_ratio': merged_complexity_ratio,  # 복잡도 추가
-                'solidity': merged_solidity  # solidity 추가
+                'original_id': group[0].get('original_id', '')
             })
         return merged
 
@@ -1343,116 +1334,6 @@ class SAMEverything:
         region = image[dense_mask]
         # 예시: RGB 표준편차의 평균 (더 advanced하게 LBP, Gabor 등도 가능)
         return region.std(axis=0).mean() if len(region) > 0 else 0
-
-def iterative_mask_generation(
-    image, target,
-    sam_everything,
-    max_iter=5,
-    init_grid=None,
-    min_mask_area=2,
-    max_mask_area_ratio=1.5,
-    color_thresh=20,
-    coverage_threshold=0.98,
-    level = 0,
-    max_complexity_ratio=5.0,
-    min_solidity=0.4
-):
-    height, width = image.shape[:2]
-
-    sam_everything.set_image(image)
-    all_masks = []
-
-    merged_masks=[]
-    max_mask_area = int(width * height // max_mask_area_ratio)
-    current_overlay = np.zeros((height, width), dtype=bool)
-
-    target_255 = target * 255
-    for iter_idx in range(max_iter):
-        
-        uncovered_area = np.logical_and(target, np.logical_not(current_overlay))
-
-        init_grid = max(4,init_grid)
-        uncovered_points = sam_everything.get_uncovered_points(uncovered_area, step=init_grid)
-        
-        # print("target True count:", np.sum(target))
-        # print("current_overlay True count:", np.sum(current_overlay))
-        # uncovered_area = np.logical_and(target, np.logical_not(current_overlay))
-        # print("uncovered_area True count:", np.sum(uncovered_area))
-        # uncovered_points = sam_everything.get_uncovered_points(uncovered_area, step=init_grid)
-        # print("uncovered_points:", uncovered_points)
-
-        current_overlay_255 = uncovered_area * 255
-
-        if not uncovered_points:
-            break
-        new_masks = []
-        for pt in uncovered_points:
-            try:
-                masks, scores, logits = sam_everything.segment_with_points([pt], [1], multimask_output=True)
-                best_mask_idx = np.argmax(scores)
-                best_mask = masks[best_mask_idx]
-                best_score = scores[best_mask_idx]
-
-                          # target 영역과 겹치는 부분만 사용
-                final_mask = np.logical_and(best_mask, target)
-                mask_area = int(np.sum(final_mask))
-
-                if mask_area < min_mask_area or mask_area > max_mask_area:
-                    continue
-
-
-                mask_coords = np.where(best_mask)
-                if len(mask_coords[0]) == 0:
-                    continue
-
-                # 복잡도와 solidity 계산
-                complexity_ratio = sam_everything._calculate_complexity_ratio(best_mask)
-                solidity = sam_everything._calculate_solidity(best_mask)
-                
-                # 복잡도와 solidity 필터링
-                if complexity_ratio <= max_complexity_ratio and solidity >= min_solidity:
-                    new_masks.append({
-                        'segmentation_sparse': {
-                            'rows': mask_coords[0],
-                            'cols': mask_coords[1],
-                            'shape': best_mask.shape
-                        },
-                        'area': mask_area,
-                        'score': float(best_score),
-                        'point': pt,
-                        'bbox': sam_everything._mask_to_bbox(best_mask),
-                        'grid_size': init_grid,
-                        'original_id': f"iter{iter_idx}_pt{pt[0]}_{pt[1]}",
-                        'level': level,
-                        'child_ids': [],
-                        'complexity_ratio': complexity_ratio,
-                        'solidity': solidity
-                    })
-            except Exception as e:
-                print(f"    Error at point {pt}: {e}")
-        all_masks += new_masks
-
-        merged_masks = sam_everything.merge_similar_masks(all_masks, image, color_thresh=color_thresh)
-
-        for mask_dict in merged_masks:
-            mask = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
-            current_overlay = np.logical_or(current_overlay, mask)
-
-        all_masks = merged_masks
-
-        covered_in_target = np.logical_and(current_overlay, target)
-        target_coverage = np.sum(covered_in_target) / np.sum(target)
-        print(f"[Iter {iter_idx+1}] Target coverage: {target_coverage:.3f} c_max:{max_mask_area} c_min:{min_mask_area} c_grid:{init_grid}")
-        if bool(target_coverage >= coverage_threshold):
-            break
-
-        max_mask_area = int(max_mask_area * 2)
-        min_mask_area = int(min_mask_area / 2)
-        init_grid = int(init_grid / 2)
-        max_complexity_ratio = max_complexity_ratio + 1.0
-        min_solidity = min_solidity - 0.04
-
-    return merged_masks, current_overlay
 
 def process_folder_with_relations(input_folder: str, output_folder: str,
                                 model_type: str = "vit_h",
@@ -1531,65 +1412,147 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             max_complexity_ratio = 5.0
             min_solidity = 0.4
 
+            for iter_idx in range(10):  # 최대 10번 반복 (필요시 조정)
+                # === 변경: 미커버 영역(overlay==0)에만 포인트 생성 ===
+                uncovered_points = sam_everything.get_uncovered_points(overlay, step=coarse_grid)
+                print(f"  [Iter {iter_idx+1}] Uncovered points: {len(uncovered_points)}")
+                if not uncovered_points:
+                    print("  모든 영역이 커버되었습니다.")
+                    break
 
-            # first target
+                # 2. 포인트별로 마스크 생성
+                new_masks = []
+                for pt in uncovered_points:
+                    try:
+                        masks, scores, logits = sam_everything.segment_with_points([pt], [1], multimask_output=True)
+                        best_mask_idx = np.argmax(scores)
+                        best_mask = masks[best_mask_idx]
+                        best_score = scores[best_mask_idx]
+                        mask_area = int(np.sum(best_mask))
+                        if mask_area < min_mask_area or mask_area > max_mask_area:
+                            continue
+                        mask_coords = np.where(best_mask)
+                        if len(mask_coords[0]) == 0:
+                            continue
+                        new_masks.append({
+                            'segmentation_sparse': {
+                                'rows': mask_coords[0],
+                                'cols': mask_coords[1],
+                                'shape': best_mask.shape
+                            },
+                            'area': mask_area,
+                            'score': float(best_score),
+                            'point': pt,
+                            'bbox': sam_everything._mask_to_bbox(best_mask),
+                            'grid_size': coarse_grid,
+                            'original_id': f"iter{iter_idx}_pt{pt[0]}_{pt[1]}"
+                        })
+                    except Exception as e:
+                        print(f"    Error at point {pt}: {e}")
 
-            target=np.ones((height, width), dtype=bool)
+                all_masks += new_masks
 
-            merged_masks, overlay = iterative_mask_generation(
-                image, target, sam_everything,
-                max_iter=10,
-                init_grid=coarse_grid*10,
-                min_mask_area=coarse_grid,
-                max_mask_area_ratio=1.5,
-                color_thresh=20,
-                coverage_threshold=0.99,
-                level = 0,
-                max_complexity_ratio = 5.0,
-                min_solidity = 0.4
+                merged_masks = sam_everything.merge_similar_masks(all_masks, image, color_thresh=20)
+
+                # 3. overlay 갱신 및 커버리지 출력
+                for mask_dict in merged_masks:
+                    mask = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
+                    overlay = np.logical_or(overlay, mask)
+                all_masks = merged_masks
+
+                coverage = np.sum(overlay) / (height * width)
+                print(f"  [Iter {iter_idx+1}] Mask overlay coverage: {coverage*100:.2f}%")
+
+                # 4. 조건 완화
+                max_mask_area = int(max_mask_area * 2)
+                max_complexity_ratio *= 2
+                coarse_grid  = int(coarse_grid/2)
+
+
+                overlay_255 = overlay*255
+
+                if coverage >= 0.98:
+                    print("  커버리지가 99.5% 이상입니다. 반복 종료.")
+                    break
+
+            # 4. coarse + fine 마스크 합치기
+            # all_masks = coarse_masks + fine_masks # 이 부분은 위의 for loop에서 처리됨
+
+            # 5. color 유사 마스크 머지
+            merged_masks = sam_everything.merge_similar_masks(all_masks, image, color_thresh=20)
+            print(f"  Merged masks: {len(merged_masks)}")
+
+            for mask_dict in merged_masks:
+                mask = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
+
+                mask = np.logical_and(mask, child_overlay)
+                uncovered_points = sam_everything.get_uncovered_points(mask, step=int(start_gird/2))
+
+                new_masks = []
+                for pt in uncovered_points:
+                    try:
+                        masks, scores, logits = sam_everything.segment_with_points([pt], [1], multimask_output=True)
+                        best_mask_idx = np.argmax(scores)
+                        best_mask = masks[best_mask_idx]
+                        best_score = scores[best_mask_idx]
+                        mask_area = int(np.sum(best_mask))
+                        if mask_area < min_mask_area or mask_area > max_mask_area:
+                            continue
+                        mask_coords = np.where(best_mask)
+                        if len(mask_coords[0]) == 0:
+                            continue
+                        new_masks.append({
+                            'segmentation_sparse': {
+                                'rows': mask_coords[0],
+                                'cols': mask_coords[1],
+                                'shape': best_mask.shape
+                            },
+                            'area': mask_area,
+                            'score': float(best_score),
+                            'point': pt,
+                            'bbox': sam_everything._mask_to_bbox(best_mask),
+                            'grid_size': coarse_grid,
+                            'original_id': f"iter{iter_idx}_pt{pt[0]}_{pt[1]}"
+                        })
+                    except Exception as e:
+                        print(f"    Error at point {pt}: {e}")
+
+                    all_masks += new_masks
+
+                    child_masks = sam_everything.merge_similar_masks(all_masks, image, color_thresh=20)
+
+                    # 3. overlay 갱신 및 커버리지 출력
+                    for mask_dict in child_masks:
+                        mask = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
+                        child_overlay = np.logical_or(overlay, mask)
+
+                    max_mask_area = int(max_mask_area * 2)
+                    max_complexity_ratio *= 2
+                    start_gird = int(start_gird / 2)
+
+
+                    all_masks = child_masks
+
+
+
+
+
+
+
+
+
+            # 6. 이후 기존대로 parent-child 관계 등 처리
+            masks_with_relations = sam_everything.segment_everything_multi_scale(
+                grid_sizes=[coarse_grid, coarse_grid//2],
+                min_mask_area=2,
+                max_mask_area=width*height//1.5,
+                max_complexity_ratio=5.0,
+                min_solidity=0.4,
+                iou_threshold=0.7
             )
-
-            overlay_255 = overlay*255
-            next_id = 1
-            for mask in merged_masks:
-                mask['id'] = next_id
-                next_id += 1
-
-            count = 0
-            child_masks_list = []
-            for parent_mask in merged_masks:
-
-                print(f"{count} / {len(merged_masks)}")
-                mask = sam_everything._sparse_to_dense_mask(parent_mask['segmentation_sparse'])
-                mm = mask*255
-
-                child_masks, child_mask = iterative_mask_generation(
-                    image, mask, sam_everything,
-                    max_iter=5,
-                    init_grid=int(coarse_grid/2),
-                    min_mask_area=coarse_grid,
-                    max_mask_area_ratio=1.5,
-                    color_thresh=20,
-                    coverage_threshold=0.98,
-                    level = 1,
-                    max_complexity_ratio = 5.0,
-                    min_solidity = 0.4
-                )
-
-                child_overlay = np.zeros((height, width), dtype=bool)
-                for mask_dict in child_masks:
-                    masked = sam_everything._sparse_to_dense_mask(mask_dict['segmentation_sparse'])
-                    mask_dict['id'] = next_id
-                    parent_mask['child_ids'].append(mask_dict['id'])
-                    next_id += 1
-                    mask_dict['parent_id'] = parent_mask['id']
-                    child_overlay = np.logical_or(child_overlay, masked)
-
-
-                child_masks_list += child_masks
-                count += 1
-            final_masks = merged_masks + child_masks_list
-
+            # 또는, merged_masks를 바로 후처리해도 됨
+            
+            # Create output directory structure matching input
             if rel_path == '.':
                 # Image is in the root folder
                 output_subdir = final_output_folder
@@ -1608,14 +1571,25 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
                 coco_file_name = image_filename
             else:
                 coco_file_name = os.path.join(rel_path, image_filename)
-
-
-
+            
             # Save results
             sam_everything.save_masks_coco_format_with_relations(
-                final_masks, output_path, coco_file_name, image_id=i, grid_sizes=[coarse_grid, coarse_grid//2]
+                masks_with_relations, output_path, coco_file_name, image_id=i, grid_sizes=[coarse_grid, coarse_grid//2]
             )
-
+            
+            print(f"  Results saved to: {output_path}")
+            
+            # Print statistics
+            grid_stats = {}
+            for mask in masks_with_relations:
+                grid_size = mask['grid_size']
+                if grid_size not in grid_stats:
+                    grid_stats[grid_size] = 0
+                grid_stats[grid_size] += 1
+            
+            print("  Masks by grid size:")
+            for grid_size in sorted(grid_stats.keys(), reverse=True):
+                print(f"    Grid {grid_size}: {grid_stats[grid_size]} masks")
             
             coverage, overlay = sam_everything.get_overlay_coverage(merged_masks, (height, width))
             print(f"  Mask overlay coverage: {coverage*100:.2f}%")
@@ -1653,6 +1627,121 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
                         })
                     except Exception as e:
                         print(f"    Error at bg point {pt}: {e}")
+            
+        except Exception as e:
+            print(f"  Error processing {image_path}: {e}")
+            continue
+    
+    print(f"\nFolder processing completed!")
+    print(f"Processed {len(image_files)} images")
+    print(f"Results saved to: {final_output_folder}")
+
+
+def process_folder_simple(input_folder: str, output_folder: str,
+                         grid_size: int = 64, model_type: str = "vit_h",
+                         gpu_id: int = None):
+    """
+    Process all images in a folder with simple SAM segmentation
+    Supports recursive processing of subdirectories
+    
+    Args:
+        input_folder: Path to input folder containing images
+        output_folder: Path to output folder for JSON files
+        grid_size: Grid size for segmentation
+        model_type: SAM model type ("vit_h", "vit_l", "vit_b")
+        gpu_id: GPU device ID to use
+    """
+    print(f"Starting folder processing with SAM Everything (Simple)")
+    print(f"Input folder: {input_folder}")
+    print(f"Output folder: {output_folder}")
+    print(f"Model: {model_type}, Grid size: {grid_size}")
+    
+    # Get the last folder name from input_folder
+    input_folder_name = os.path.basename(input_folder)
+    
+    # Create output folder with input folder name
+    final_output_folder = os.path.join(output_folder, input_folder_name)
+    os.makedirs(final_output_folder, exist_ok=True)
+    
+    print(f"Final output folder: {final_output_folder}")
+    
+    # Initialize SAM Everything (only once for all images)
+    print("Initializing SAM model...")
+    sam_everything = SAMEverything(model_type=model_type, gpu_id=gpu_id)
+    
+    # Supported image extensions
+    image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
+    
+    # Get all image files recursively using os.walk
+    image_files = []
+    for root, dirs, files in os.walk(input_folder):
+        for filename in files:
+            file_ext = os.path.splitext(filename)[1].lower()
+            if file_ext in image_extensions:
+                # Get relative path from input_folder
+                rel_path = os.path.relpath(root, input_folder)
+                image_files.append((os.path.join(root, filename), rel_path, filename))
+    
+    if not image_files:
+        print(f"No image files found in {input_folder}")
+        return
+    
+    print(f"Found {len(image_files)} image files to process")
+    
+    # Process each image
+    for i, (image_path, rel_path, image_filename) in enumerate(image_files, 1):
+        print(f"\n[{i}/{len(image_files)}] Processing: {image_path}")
+        
+        try:
+            # Load image
+            image = cv2.imread(image_path)
+            if image is None:
+                print(f"  Failed to load image: {image_path}")
+                continue
+                
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            height, width = image.shape[:2]
+            print(f"  Image size: {width}x{height}")
+            
+            # Set image for SAM
+            sam_everything.set_image(image)
+            
+            # Segment everything
+            print(f"  Segmenting everything with grid_size={grid_size}...")
+            masks = sam_everything.segment_everything(
+                grid_size=grid_size, 
+                min_mask_area=500,
+                max_mask_area=width*height//8,
+                max_complexity_ratio=4.0,
+                min_solidity=0.4
+            )
+            
+            print(f"  Found {len(masks)} masks")
+            
+            # Create output directory structure matching input
+            if rel_path == '.':
+                # Image is in the root folder
+                output_subdir = final_output_folder
+            else:
+                # Image is in a subfolder
+                output_subdir = os.path.join(final_output_folder, rel_path)
+                os.makedirs(output_subdir, exist_ok=True)
+            
+            # Generate output filename
+            base_name = os.path.splitext(image_filename)[0]
+            output_filename = f"{base_name}_{model_type}_{grid_size}.json"
+            output_path = os.path.join(output_subdir, output_filename)
+            
+            # Create relative path for file_name in COCO format
+            if rel_path == '.':
+                coco_file_name = image_filename
+            else:
+                coco_file_name = os.path.join(rel_path, image_filename)
+            
+            # Save results
+            sam_everything.save_masks_coco_format(masks, output_path, coco_file_name, image_id=i)
+            
+            print(f"  Results saved to: {output_path}")
             
         except Exception as e:
             print(f"  Error processing {image_path}: {e}")
