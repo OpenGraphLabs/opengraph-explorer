@@ -5,11 +5,14 @@
 """
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import Column, BigInteger, String, DateTime, func
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from ..database import Base
+
+if TYPE_CHECKING:
+    from .user_annotation_selection import UserAnnotationSelection
 
 
 class User(Base):
@@ -43,6 +46,11 @@ class User(Base):
         "Annotation",
         back_populates="creator",
         foreign_keys="Annotation.created_by"
+    )
+    
+    annotation_selections: Mapped[List["UserAnnotationSelection"]] = relationship(
+        "UserAnnotationSelection",
+        back_populates="user"
     )
     
     def __repr__(self) -> str:

@@ -31,22 +31,26 @@ export function useDictionaryCategories({
   });
 }
 
-// Hook for searching categories by name
+// Enhanced hook for search with default categories
 export function useSearchCategories(searchTerm: string, dictionaryId: number = 1) {
+  // Always load categories, but adjust limit based on search term
   const { data, isLoading, error } = useDictionaryCategories({
     dictionaryId,
-    limit: 100, // Get more items for search
-    enabled: !!searchTerm && searchTerm.length > 0,
+    limit: searchTerm ? 100 : 20, // Show more when searching, fewer by default
+    enabled: true, // Always enabled now
   });
 
-  const filteredCategories = data?.items?.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredCategories = searchTerm 
+    ? data?.items?.filter(category =>
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ) || []
+    : data?.items?.slice(0, 8) || []; // Show first 8 as default
 
   return {
     categories: filteredCategories,
-    isLoading: isLoading && !!searchTerm,
+    isLoading,
     error,
-    total: filteredCategories.length,
+    total: searchTerm ? filteredCategories.length : data?.total || 0,
+    hasSearch: !!searchTerm,
   };
 } 

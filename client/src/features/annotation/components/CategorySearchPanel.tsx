@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { MagnifyingGlass, Check, X, CaretDown, CaretUp } from "phosphor-react";
+import { MagnifyingGlass, X, Sparkle } from "phosphor-react";
 import { useSearchCategories } from "@/shared/hooks";
 import type { CategoryRead } from "@/shared/api/generated/models";
 
@@ -15,46 +15,39 @@ interface CategorySearchPanelProps {
 export function CategorySearchPanel({
   onCategorySelect,
   selectedCategory,
-  placeholder = "Search for categories (e.g., desk, chair, table...)",
+  placeholder = "Search categories...",
   dictionaryId = 1,
 }: CategorySearchPanelProps) {
   const { theme } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { categories, isLoading, error } = useSearchCategories(searchTerm, dictionaryId);
+  const { categories, isLoading, error, hasSearch } = useSearchCategories(searchTerm, dictionaryId);
 
   // Handle input change
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setIsOpen(value.length > 0);
     setHighlightedIndex(-1);
   }, []);
 
   // Handle category selection
   const handleCategorySelect = useCallback((category: CategoryRead) => {
     onCategorySelect?.(category);
-    setSearchTerm("");
-    setIsOpen(false);
     setHighlightedIndex(-1);
-    inputRef.current?.blur();
   }, [onCategorySelect]);
 
   // Handle clear selection
   const handleClear = useCallback(() => {
     onCategorySelect?.(null as any);
     setSearchTerm("");
-    setIsOpen(false);
     setHighlightedIndex(-1);
   }, [onCategorySelect]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!isOpen || categories.length === 0) return;
+    if (categories.length === 0) return;
 
     switch (e.key) {
       case 'ArrowDown':
@@ -77,30 +70,11 @@ export function CategorySearchPanel({
         break;
       case 'Escape':
         e.preventDefault();
-        setIsOpen(false);
         setHighlightedIndex(-1);
         inputRef.current?.blur();
         break;
     }
-  }, [isOpen, categories, highlightedIndex, handleCategorySelect]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-        setHighlightedIndex(-1);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [categories, highlightedIndex, handleCategorySelect]);
 
   // Highlight matching text
   const highlightMatch = useCallback((text: string, searchTerm: string) => {
@@ -117,8 +91,8 @@ export function CategorySearchPanel({
             background: theme.colors.interactive.primary,
             color: theme.colors.text.inverse,
             fontWeight: 600,
-            borderRadius: "2px",
-            padding: "0 2px",
+            borderRadius: "3px",
+            padding: "1px 3px",
           }}
         >
           {part}
@@ -130,253 +104,315 @@ export function CategorySearchPanel({
   }, [theme, searchTerm]);
 
   return (
-    <Box style={{ position: "relative", width: "100%" }}>
+    <Box style={{ width: "100%" }}>
       {/* Selected Category Display */}
-      {selectedCategory && !isOpen && (
+      {selectedCategory && (
         <Box
           style={{
-            background: theme.colors.interactive.primary,
-            color: theme.colors.text.inverse,
-            borderRadius: theme.borders.radius.md,
-            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-            marginBottom: theme.spacing.semantic.component.sm,
+            background: `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.primary}08)`,
+            border: `1px solid ${theme.colors.interactive.primary}30`,
+            borderRadius: theme.borders.radius.lg,
+            padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+            marginBottom: theme.spacing.semantic.component.md,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            transition: theme.animations.transitions.all,
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          <Box>
-            <Text
-              size="2"
+          {/* Subtle background pattern */}
+          <Box
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: "60px",
+              height: "100%",
+              background: `linear-gradient(90deg, transparent, ${theme.colors.interactive.primary}05)`,
+              pointerEvents: "none",
+            }}
+          />
+          
+          <Flex align="center" gap="3">
+            <Box
               style={{
-                fontWeight: 600,
-                color: theme.colors.text.inverse,
-                marginBottom: theme.spacing.semantic.component.xs,
+                background: theme.colors.interactive.primary,
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
               }}
             >
-              {selectedCategory.name}
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.inverse,
-                opacity: 0.8,
-                fontSize: "11px",
-              }}
-            >
-              Category ID: {selectedCategory.id}
-            </Text>
-          </Box>
+              <Sparkle size={16} style={{ color: theme.colors.text.inverse }} />
+            </Box>
+            
+            <Box>
+              <Text
+                size="3"
+                style={{
+                  fontWeight: 600,
+                  color: theme.colors.text.primary,
+                  marginBottom: "2px",
+                }}
+              >
+                {selectedCategory.name}
+              </Text>
+
+            </Box>
+          </Flex>
           
           <Button
             onClick={handleClear}
             style={{
               background: "transparent",
-              color: theme.colors.text.inverse,
+              color: theme.colors.text.secondary,
               border: "none",
-              borderRadius: theme.borders.radius.sm,
-              padding: theme.spacing.semantic.component.xs,
+              borderRadius: "50%",
+              width: "32px",
+              height: "32px",
               cursor: "pointer",
-              opacity: 0.8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               transition: theme.animations.transitions.all,
+              position: "relative",
+              zIndex: 1,
             }}
           >
-            <X size={14} />
+            <X size={16} />
           </Button>
         </Box>
       )}
 
       {/* Search Input */}
-      <Box style={{ position: "relative" }}>
-        <input
-          ref={inputRef}
-          type="text"
-          value={searchTerm}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onFocus={() => searchTerm.length > 0 && setIsOpen(true)}
-          placeholder={selectedCategory ? "Search for a different category..." : placeholder}
-          style={{
-            width: "100%",
-            background: theme.colors.background.secondary,
-            color: theme.colors.text.primary,
-            border: `1px solid ${theme.colors.border.primary}`,
-            borderRadius: theme.borders.radius.sm,
-            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-            paddingLeft: "40px",
-            fontSize: "13px",
-            outline: "none",
-            transition: theme.animations.transitions.all,
-          }}
-        />
-        
+      <Box style={{ position: "relative", marginBottom: theme.spacing.semantic.component.md }}>
         <Box
           style={{
-            position: "absolute",
-            left: theme.spacing.semantic.component.sm,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: theme.colors.text.tertiary,
-            pointerEvents: "none",
+            position: "relative",
+            border: `2px solid ${theme.colors.border.primary}`,
+            borderRadius: theme.borders.radius.xl,
+            background: theme.colors.background.primary,
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: `0 1px 3px ${theme.colors.background.primary}20`,
           }}
         >
-          <MagnifyingGlass size={16} />
-        </Box>
-
-        {isOpen && (
+          <input
+            ref={inputRef}
+            type="text"
+            value={searchTerm}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            style={{
+              width: "100%",
+              background: "transparent",
+              color: theme.colors.text.primary,
+              border: "none",
+              borderRadius: theme.borders.radius.xl,
+              padding: `${theme.spacing.semantic.component.md} 50px ${theme.spacing.semantic.component.md} 50px`,
+              fontSize: "15px",
+              fontWeight: 400,
+              outline: "none",
+              transition: theme.animations.transitions.all,
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            }}
+          />
+          
+          {/* Search Icon */}
           <Box
             style={{
               position: "absolute",
-              right: theme.spacing.semantic.component.sm,
+              left: "16px",
               top: "50%",
               transform: "translateY(-50%)",
               color: theme.colors.text.tertiary,
+              transition: theme.animations.transitions.all,
               pointerEvents: "none",
             }}
           >
-            <CaretDown size={12} />
+            <MagnifyingGlass size={20} />
           </Box>
-        )}
+
+          {/* Clear button */}
+          {searchTerm && (
+            <Button
+              onClick={() => {
+                setSearchTerm("");
+                setHighlightedIndex(-1);
+                inputRef.current?.focus();
+              }}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                color: theme.colors.text.tertiary,
+                border: "none",
+                borderRadius: "50%",
+                width: "24px",
+                height: "24px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: theme.animations.transitions.all,
+              }}
+            >
+              <X size={14} />
+            </Button>
+          )}
+        </Box>
       </Box>
 
-      {/* Dropdown Results */}
-      {isOpen && (
-        <Box
-          ref={dropdownRef}
-          style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            background: theme.colors.background.card,
-            border: `1px solid ${theme.colors.border.primary}`,
-            borderRadius: theme.borders.radius.md,
-            boxShadow: theme.shadows.semantic.overlay.popover,
-            marginTop: theme.spacing.semantic.component.xs,
-            maxHeight: "240px",
-            overflowY: "auto",
-          }}
-        >
-          {isLoading && (
-            <Box
-              style={{
-                padding: theme.spacing.semantic.component.md,
-                textAlign: "center",
-              }}
-            >
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.text.secondary,
-                  fontStyle: "italic",
-                }}
-              >
-                Searching...
-              </Text>
-            </Box>
-          )}
-
-          {error && (
-            <Box
-              style={{
-                padding: theme.spacing.semantic.component.md,
-                textAlign: "center",
-              }}
-            >
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.status.error,
-                }}
-              >
-                Error loading categories
-              </Text>
-            </Box>
-          )}
-
-          {!isLoading && !error && categories.length === 0 && searchTerm && (
-            <Box
-              style={{
-                padding: theme.spacing.semantic.component.md,
-                textAlign: "center",
-              }}
-            >
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.text.secondary,
-                  fontStyle: "italic",
-                }}
-              >
-                No categories found for "{searchTerm}"
-              </Text>
-            </Box>
-          )}
-
-          {!isLoading && !error && categories.length > 0 && (
-            <>
+      {/* Category List - Always Visible */}
+      <Box
+        style={{
+          background: theme.colors.background.primary,
+          border: `1px solid ${theme.colors.border.primary}20`,
+          borderRadius: theme.borders.radius.lg,
+          boxShadow: `0 2px 8px ${theme.colors.background.primary}20`,
+          maxHeight: "280px",
+          overflowY: "auto",
+        }}
+      >
+        {isLoading && (
+          <Box
+            style={{
+              padding: `${theme.spacing.semantic.component.lg} ${theme.spacing.semantic.component.md}`,
+              textAlign: "center",
+            }}
+          >
+            <Flex direction="column" align="center" gap="2">
               <Box
                 style={{
-                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.md}`,
-                  borderBottom: `1px solid ${theme.colors.border.subtle}`,
-                  background: theme.colors.background.secondary,
+                  width: "24px",
+                  height: "24px",
+                  border: `2px solid ${theme.colors.border.primary}`,
+                  borderTopColor: theme.colors.interactive.primary,
+                  borderRadius: "50%",
+                  animation: 'spin 1s linear infinite',
+                }}
+              />
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  fontWeight: 500,
                 }}
               >
-                <Text
-                  size="1"
-                  style={{
-                    color: theme.colors.text.tertiary,
-                    fontSize: "11px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {categories.length} result{categories.length !== 1 ? 's' : ''}
-                </Text>
-              </Box>
+                Loading categories...
+              </Text>
+            </Flex>
+          </Box>
+        )}
 
+        {error && (
+          <Box
+            style={{
+              padding: theme.spacing.semantic.component.lg,
+              textAlign: "center",
+            }}
+          >
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.status.error,
+                fontWeight: 500,
+              }}
+            >
+              Unable to load categories
+            </Text>
+          </Box>
+        )}
+
+        {!isLoading && !error && categories.length === 0 && searchTerm && (
+          <Box
+            style={{
+              padding: theme.spacing.semantic.component.lg,
+              textAlign: "center",
+            }}
+          >
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                fontWeight: 500,
+              }}
+            >
+              No categories found for "{searchTerm}"
+            </Text>
+          </Box>
+        )}
+
+        {!isLoading && !error && categories.length > 0 && (
+          <>
+
+
+            {/* Categories */}
+            <Box style={{ padding: `${theme.spacing.semantic.component.xs} 0` }}>
               {categories.map((category, index) => (
                 <Box
                   key={category.id}
                   onClick={() => handleCategorySelect(category)}
                   style={{
-                    padding: theme.spacing.semantic.component.sm,
+                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.lg}`,
                     cursor: "pointer",
                     background: highlightedIndex === index 
-                      ? `${theme.colors.interactive.primary}20` 
+                      ? `${theme.colors.interactive.primary}12` 
+                      : selectedCategory?.id === category.id
+                      ? `${theme.colors.interactive.primary}08`
                       : "transparent",
-                    borderBottom: index < categories.length - 1 
-                      ? `1px solid ${theme.colors.border.subtle}20` 
-                      : "none",
-                    transition: theme.animations.transitions.all,
+                    borderLeft: highlightedIndex === index 
+                      ? `3px solid ${theme.colors.interactive.primary}` 
+                      : selectedCategory?.id === category.id
+                      ? `3px solid ${theme.colors.interactive.primary}60`
+                      : "3px solid transparent",
+                    transition: "all 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.semantic.component.md,
                   }}
                 >
-                  <Text
-                    size="2"
+                  <Box
                     style={{
-                      fontWeight: 600,
-                      color: theme.colors.text.primary,
-                      marginBottom: theme.spacing.semantic.component.xs,
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: selectedCategory?.id === category.id 
+                        ? theme.colors.interactive.primary
+                        : theme.colors.text.tertiary,
+                      opacity: selectedCategory?.id === category.id ? 1 : 0.6,
+                      flexShrink: 0,
+                      transition: theme.animations.transitions.all,
                     }}
-                  >
-                    {highlightMatch(category.name, searchTerm)}
-                  </Text>
-                  <Text
-                    size="1"
-                    style={{
-                      color: theme.colors.text.secondary,
-                      fontSize: "11px",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    ID: {category.id} • Created: {new Date(category.created_at).toLocaleDateString()}
-                  </Text>
+                  />
+                  
+                                     <Box style={{ flex: 1, minWidth: 0 }}>
+                     <Text
+                       size="2"
+                       style={{
+                         fontWeight: selectedCategory?.id === category.id ? 600 : 500,
+                         color: theme.colors.text.primary,
+                         overflow: "hidden",
+                         textOverflow: "ellipsis",
+                         whiteSpace: "nowrap",
+                       }}
+                     >
+                       {highlightMatch(category.name, searchTerm)}
+                     </Text>
+                   </Box>
                 </Box>
               ))}
-            </>
-          )}
-        </Box>
-      )}
+            </Box>
+          </>
+        )}
+      </Box>
     </Box>
   );
 } 

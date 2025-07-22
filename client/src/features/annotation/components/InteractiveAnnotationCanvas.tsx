@@ -28,6 +28,7 @@ interface InteractiveAnnotationCanvasProps {
   imageHeight: number;
   annotations: Annotation[];
   className?: string;
+  selectedMaskIds?: number[];
   onMaskSelectionChange?: (selectedMaskIds: number[]) => void;
   onBboxComplete?: (bbox: BoundingBox) => void;
 }
@@ -38,6 +39,7 @@ export function InteractiveAnnotationCanvas({
   imageHeight,
   annotations,
   className,
+  selectedMaskIds = [],
   onMaskSelectionChange,
   onBboxComplete,
 }: InteractiveAnnotationCanvasProps) {
@@ -89,6 +91,27 @@ export function InteractiveAnnotationCanvas({
     });
     setMaskStates(initialStates);
   }, [annotations]);
+
+  // Update mask selection when selectedMaskIds prop changes
+  useEffect(() => {
+    setMaskStates(prevStates => {
+      const newStates = { ...prevStates };
+      
+      // First, deselect all masks
+      Object.keys(newStates).forEach(id => {
+        newStates[parseInt(id)].selected = false;
+      });
+      
+      // Then, select the masks in selectedMaskIds
+      selectedMaskIds.forEach(maskId => {
+        if (newStates[maskId]) {
+          newStates[maskId].selected = true;
+        }
+      });
+      
+      return newStates;
+    });
+  }, [selectedMaskIds]);
 
   // Load image and fit to container
   useEffect(() => {

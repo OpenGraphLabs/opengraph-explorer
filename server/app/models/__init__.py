@@ -11,6 +11,7 @@ from .dictionary import Dictionary
 from .category import Category
 from .dictionary_category import DictionaryCategory
 from .annotation import Annotation
+from .user_annotation_selection import UserAnnotationSelection
 
 __all__ = [
     "User",
@@ -19,5 +20,6 @@ __all__ = [
     "Dictionary",
     "Category",
     "DictionaryCategory",
-    "Annotation"
+    "Annotation",
+    "UserAnnotationSelection"
 ] 

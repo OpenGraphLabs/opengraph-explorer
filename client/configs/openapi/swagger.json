@@ -1504,6 +1504,461 @@
         }
       }
     },
+    "/api/v1/annotations/selections": {
+      "post": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Create Annotation Selection",
+        "description": "Create a new annotation selection\n\nRecords user selections that combine multiple AUTO annotations to form a meaningful entity.\nIf the same selection is made by five or more users, it is automatically marked as APPROVED.",
+        "operationId": "create_annotation_selection_api_v1_annotations_selections_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAnnotationSelectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAnnotationSelectionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/annotations/selections/me": {
+      "get": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Get My Annotation Selections",
+        "description": "List annotation selections for specific user",
+        "operationId": "get_my_annotation_selections_api_v1_annotations_selections_me_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "특정 이미지의 선택만 조회",
+              "title": "Image Id"
+            },
+            "description": "특정 이미지의 선택만 조회"
+          },
+          {
+            "name": "selection_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "특정 상태의 선택만 조회 (PENDING|APPROVED|REJECTED)",
+              "title": "Selection Status"
+            },
+            "description": "특정 상태의 선택만 조회 (PENDING|APPROVED|REJECTED)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "조회할 선택 수",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "조회할 선택 수"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "건너뛸 선택 수",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "건너뛸 선택 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserAnnotationSelectionRead"
+                  },
+                  "title": "Response Get My Annotation Selections Api V1 Annotations Selections Me Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/selections/{selection_id}": {
+      "get": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Get Annotation Selection",
+        "description": "Get a annotation selection by id",
+        "operationId": "get_annotation_selection_api_v1_annotations_selections__selection_id__get",
+        "parameters": [
+          {
+            "name": "selection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Selection Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAnnotationSelectionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Update Annotation Selection",
+        "description": "Update a annotation selection\n\nMainly used for category update or status change by administrator",
+        "operationId": "update_annotation_selection_api_v1_annotations_selections__selection_id__put",
+        "parameters": [
+          {
+            "name": "selection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Selection Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAnnotationSelectionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAnnotationSelectionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Delete Annotation Selection",
+        "description": "Delete a annotation selection (only available for that annotator)",
+        "operationId": "delete_annotation_selection_api_v1_annotations_selections__selection_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "selection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Selection Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/selections/image/{image_id}/stats": {
+      "get": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Get Image Selection Stats",
+        "description": "Get annotation selection stats for a specific image\n\nProvides information such as the number of users who made the same selection and whether it qualifies for approval.",
+        "operationId": "get_image_selection_stats_api_v1_annotations_selections_image__image_id__stats_get",
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Image Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationSelectionStats"
+                  },
+                  "title": "Response Get Image Selection Stats Api V1 Annotations Selections Image  Image Id  Stats Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/selections/ready-for-approval": {
+      "get": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Get Selections Ready For Approval",
+        "description": "Get annotation selections ready for approval\n\nReturns items that have the same selection made by at least the specified minimum number of users.",
+        "operationId": "get_selections_ready_for_approval_api_v1_annotations_selections_ready_for_approval_get",
+        "parameters": [
+          {
+            "name": "min_selection_count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "승인을 위한 최소 선택 수",
+              "default": 5,
+              "title": "Min Selection Count"
+            },
+            "description": "승인을 위한 최소 선택 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationSelectionStats"
+                  },
+                  "title": "Response Get Selections Ready For Approval Api V1 Annotations Selections Ready For Approval Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/selections/summary": {
+      "get": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Get Selection Summary",
+        "description": "Get annotation selection summary\n\nProvides summary information such as total number of selections, distribution by status, and number of selections pending approval.",
+        "operationId": "get_selection_summary_api_v1_annotations_selections_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationSelectionSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/selections/approve-batch": {
+      "post": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Approve Selections Batch",
+        "description": "Bulk-approves annotation selections.\n\nUsed by administrators to process selections that are eligible for approval in bulk.",
+        "operationId": "approve_selections_batch_api_v1_annotations_selections_approve_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "type": "object"
+                },
+                "type": "array",
+                "title": "Selections To Approve"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "summary": "Root",
@@ -1716,6 +2171,144 @@
         ],
         "title": "AnnotationRead",
         "description": "Annotation read schema with client-friendly mask information"
+      },
+      "AnnotationSelectionStats": {
+        "properties": {
+          "image_id": {
+            "type": "integer",
+            "title": "Image Id"
+          },
+          "selected_annotation_ids_key": {
+            "type": "string",
+            "title": "Selected Annotation Ids Key"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "category_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Name"
+          },
+          "selection_count": {
+            "type": "integer",
+            "title": "Selection Count",
+            "description": "동일한 선택을 한 사용자 수"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "현재 상태"
+          },
+          "first_selected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Selected At",
+            "description": "첫 선택 시각"
+          },
+          "last_selected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Selected At",
+            "description": "마지막 선택 시각"
+          },
+          "is_ready_for_approval": {
+            "type": "boolean",
+            "title": "Is Ready For Approval",
+            "description": "승인 가능 여부 (5명 이상 선택)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_id",
+          "selected_annotation_ids_key",
+          "category_id",
+          "category_name",
+          "selection_count",
+          "status",
+          "first_selected_at",
+          "last_selected_at",
+          "is_ready_for_approval"
+        ],
+        "title": "AnnotationSelectionStats",
+        "description": "어노테이션 선택 통계 스키마"
+      },
+      "AnnotationSelectionSummary": {
+        "properties": {
+          "total_selections": {
+            "type": "integer",
+            "title": "Total Selections",
+            "description": "전체 선택 수"
+          },
+          "pending_selections": {
+            "type": "integer",
+            "title": "Pending Selections",
+            "description": "대기 중인 선택 수"
+          },
+          "approved_selections": {
+            "type": "integer",
+            "title": "Approved Selections",
+            "description": "승인된 선택 수"
+          },
+          "rejected_selections": {
+            "type": "integer",
+            "title": "Rejected Selections",
+            "description": "거부된 선택 수"
+          },
+          "ready_for_approval": {
+            "type": "integer",
+            "title": "Ready For Approval",
+            "description": "승인 가능한 선택 수"
+          },
+          "images_with_selections": {
+            "type": "integer",
+            "title": "Images With Selections",
+            "description": "선택이 있는 이미지 수"
+          },
+          "avg_selections_per_image": {
+            "type": "number",
+            "title": "Avg Selections Per Image",
+            "description": "이미지당 평균 선택 수"
+          },
+          "active_users": {
+            "type": "integer",
+            "title": "Active Users",
+            "description": "선택에 참여한 사용자 수"
+          },
+          "avg_selections_per_user": {
+            "type": "number",
+            "title": "Avg Selections Per User",
+            "description": "사용자당 평균 선택 수"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_selections",
+          "pending_selections",
+          "approved_selections",
+          "rejected_selections",
+          "ready_for_approval",
+          "images_with_selections",
+          "avg_selections_per_image",
+          "active_users",
+          "avg_selections_per_user"
+        ],
+        "title": "AnnotationSelectionSummary",
+        "description": "어노테이션 선택 요약 스키마"
       },
       "AnnotationUserCreate": {
         "properties": {
@@ -2507,6 +3100,151 @@
         ],
         "title": "ImageRead",
         "description": "Image read schema"
+      },
+      "UserAnnotationSelectionCreate": {
+        "properties": {
+          "image_id": {
+            "type": "integer",
+            "title": "Image Id",
+            "description": "이미지 ID"
+          },
+          "selected_annotation_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Selected Annotation Ids",
+            "description": "선택된 어노테이션 ID 목록"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "매핑할 카테고리 ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_id",
+          "selected_annotation_ids"
+        ],
+        "title": "UserAnnotationSelectionCreate",
+        "description": "사용자 어노테이션 선택 생성 스키마"
+      },
+      "UserAnnotationSelectionRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "image_id": {
+            "type": "integer",
+            "title": "Image Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "selected_annotation_ids_key": {
+            "type": "string",
+            "title": "Selected Annotation Ids Key",
+            "description": "정규화된 어노테이션 ID 문자열 키"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "선택 상태"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "selected_annotation_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Selected Annotation Ids",
+            "description": "선택된 어노테이션 ID 목록을 computed field로 제공",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "image_id",
+          "category_id",
+          "selected_annotation_ids_key",
+          "status",
+          "created_at",
+          "selected_annotation_ids"
+        ],
+        "title": "UserAnnotationSelectionRead",
+        "description": "사용자 어노테이션 선택 조회 스키마"
+      },
+      "UserAnnotationSelectionUpdate": {
+        "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "업데이트할 카테고리 ID"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(PENDING|APPROVED|REJECTED)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "상태 업데이트 (PENDING|APPROVED|REJECTED)"
+          }
+        },
+        "type": "object",
+        "title": "UserAnnotationSelectionUpdate",
+        "description": "사용자 어노테이션 선택 업데이트 스키마"
       },
       "UserCreate": {
         "properties": {

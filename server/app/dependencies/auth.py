@@ -5,9 +5,10 @@ FastAPI 의존성 주입을 위한 인증 관련 함수들
 """
 
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from jose import JWTError, jwt
 
 from ..config import settings
@@ -16,15 +17,51 @@ from ..models.user import User
 from ..schemas.user import UserRead
 
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)  # auto_error=False to allow optional authentication
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+async def get_user_from_test_header(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+) -> Optional[UserRead]:
+    """
+    Get user from X-Opengraph-User-Id header for testing purposes.
+    
+    This function extracts user_id from the custom header and retrieves
+    the corresponding user from the database.
+    """
+    user_id_header = request.headers.get("X-Opengraph-User-Id")
+    if not user_id_header:
+        return None
+    
+    try:
+        user_id = int(user_id_header)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID in X-Opengraph-User-Id header"
+        )
+    
+    # Query user from database
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"User with ID {user_id} not found"
+        )
+    
+    return UserRead.from_orm(user)
+
+
+async def get_user_from_jwt(
+    credentials: HTTPAuthorizationCredentials,
     db: AsyncSession = Depends(get_db)
 ) -> UserRead:
     """
-    Get the current user from the JWT token.
+    Get user from JWT token.
     
     Validates the JWT token and retrieves the user information.
     """
@@ -46,18 +83,46 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
     
-    # 사용자 조회 (실제 구현에서는 UserService를 사용해야 함)
-    # 여기서는 간단한 예시로 작성
-    user = await db.execute(
-        "SELECT * FROM users WHERE email = :email",
-        {"email": email}
-    )
-    user_data = user.fetchone()
+    # Query user from database
+    stmt = select(User).where(User.email == email)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
     
-    if user_data is None:
+    if not user:
         raise credentials_exception
     
-    return UserRead.model_validate(user_data)
+    return UserRead.from_orm(user)
+
+
+async def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: AsyncSession = Depends(get_db)
+) -> UserRead:
+    """
+    Get the current user from either JWT token or test header.
+    
+    Priority:
+    1. X-Opengraph-User-Id header (for testing)
+    2. JWT Bearer token (for production)
+    
+    Raises HTTPException if neither authentication method is provided or valid.
+    """
+    # Try test header first (for testing purposes)
+    test_user = await get_user_from_test_header(request, db)
+    if test_user:
+        return test_user
+    
+    # Try JWT token
+    if credentials:
+        return await get_user_from_jwt(credentials, db)
+    
+    # No valid authentication found
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="No valid authentication provided. Use either 'Authorization: Bearer <token>' or 'X-Opengraph-User-Id: <user_id>' header",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 async def get_current_active_user(
@@ -68,25 +133,32 @@ async def get_current_active_user(
     
     Checks if the user is active. If not, raises an HTTPException.
     """
-    # 실제로는 User 모델에 is_active 필드가 있어야 함
-    # 여기서는 간단한 예시로 작성
+    # In a real implementation, check if user has an is_active field
+    # For now, we assume all authenticated users are active
     return current_user
 
 
-def get_optional_current_user(
+async def get_optional_current_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> Optional[UserRead]:
     """
     Get the current user if available.
     
-    If no credentials are provided, returns None.
+    Returns None if no valid authentication is provided instead of raising an exception.
+    Useful for endpoints that work with or without authentication.
     """
-    if credentials is None:
-        return None
-    
     try:
-        # get_current_user 로직을 여기에 구현
-        return None  # 실제 구현 필요
+        # Try test header first
+        test_user = await get_user_from_test_header(request, db)
+        if test_user:
+            return test_user
+        
+        # Try JWT token
+        if credentials:
+            return await get_user_from_jwt(credentials, db)
+        
+        return None
     except HTTPException:
         return None 

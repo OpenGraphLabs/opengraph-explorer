@@ -118,12 +118,19 @@ export function AnnotationWorkspace() {
 
   // Handle entity selection
   const handleEntitySelect = useCallback((entityId: string) => {
-    setSelectedEntityId(entityId);
-    const entity = entities.find(e => e.id === entityId);
-    if (entity) {
-      setCurrentSelectedMasks(entity.selectedMaskIds);
+    if (selectedEntityId === entityId) {
+      // If clicking the same entity, deselect it and clear masks
+      setSelectedEntityId(null);
+      setCurrentSelectedMasks([]);
+    } else {
+      // Select the entity and show its masks
+      setSelectedEntityId(entityId);
+      const entity = entities.find(e => e.id === entityId);
+      if (entity) {
+        setCurrentSelectedMasks(entity.selectedMaskIds);
+      }
     }
-  }, [entities]);
+  }, [entities, selectedEntityId]);
 
   // Handle entity deletion
   const handleEntityDelete = useCallback((entityId: string) => {
@@ -137,6 +144,7 @@ export function AnnotationWorkspace() {
   // Handle category selection for entity
   const handleCategorySelect = useCallback((category: CategoryRead) => {
     if (selectedEntityId) {
+      // Update existing entity
       setEntities(prev => 
         prev.map(entity => 
           entity.id === selectedEntityId
@@ -144,8 +152,28 @@ export function AnnotationWorkspace() {
             : entity
         )
       );
+    } else if (currentSelectedMasks.length > 0) {
+      // Create new entity if no entity is selected but masks are selected
+      const newEntity: EntityAnnotation = {
+        id: `entity_${Date.now()}`,
+        bbox: { 
+          id: `bbox_${Date.now()}`,
+          x: 0, 
+          y: 0, 
+          width: 0, 
+          height: 0,
+          label: category.name
+        }, // Empty bbox since created from mask selection
+        selectedMaskIds: currentSelectedMasks,
+        category,
+        createdAt: new Date(),
+      };
+      
+      setEntities(prev => [...prev, newEntity]);
+      setSelectedEntityId(newEntity.id);
+      setCurrentSelectedMasks([]); // Clear mask selection after entity creation
     }
-  }, [selectedEntityId]);
+  }, [selectedEntityId, currentSelectedMasks]);
 
   // Save annotations
   const handleSaveAnnotations = useCallback(async () => {
@@ -456,6 +484,7 @@ export function AnnotationWorkspace() {
             imageWidth={selectedImage.width}
             imageHeight={selectedImage.height}
             annotations={imageAnnotations}
+            selectedMaskIds={currentSelectedMasks}
             onMaskSelectionChange={handleMaskSelectionChange}
             onBboxComplete={handleBboxComplete}
           />
@@ -501,34 +530,76 @@ export function AnnotationWorkspace() {
         </Box>
 
         {/* Category Search Panel */}
-        {selectedEntityId && (
-          <Box
-            style={{
-              padding: theme.spacing.semantic.component.md,
-              borderBottom: `1px solid ${theme.colors.border.subtle}20`,
-              background: theme.colors.background.secondary,
-            }}
-          >
-            <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
-              <Tag size={16} style={{ color: theme.colors.interactive.primary }} />
+        <Box
+          style={{
+            padding: theme.spacing.semantic.component.md,
+            borderBottom: `1px solid ${theme.colors.border.subtle}20`,
+            background: theme.colors.background.secondary,
+          }}
+        >
+          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Tag size={16} style={{ color: theme.colors.interactive.primary }} />
+            <Text
+              size="2"
+              style={{
+                fontWeight: 600,
+                color: theme.colors.text.primary,
+              }}
+            >
+              Category Search
+            </Text>
+            {!selectedEntityId && (
               <Text
-                size="2"
+                size="1"
                 style={{
-                  fontWeight: 600,
-                  color: theme.colors.text.primary,
+                  color: theme.colors.text.tertiary,
+                  fontSize: "10px",
+                  fontStyle: "italic",
                 }}
               >
-                Category Search
+                (Select an entity to assign)
               </Text>
-            </Flex>
-            <CategorySearchPanel
-              onCategorySelect={handleCategorySelect}
-              selectedCategory={selectedEntity?.category || null}
-              placeholder="Search categories (e.g., desk, chair, table...)"
-              dictionaryId={1}
-            />
-          </Box>
-        )}
+            )}
+          </Flex>
+          <CategorySearchPanel
+            onCategorySelect={handleCategorySelect}
+            selectedCategory={selectedEntity?.category || null}
+            placeholder={
+              selectedEntityId 
+                ? "Search categories (e.g., desk, chair, table...)" 
+                : currentSelectedMasks.length > 0
+                ? "Search and select category to create entity..."
+                : "Select masks first, then choose category"
+            }
+            dictionaryId={1}
+          />
+          {selectedEntityId && selectedEntity && (
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.interactive.primary,
+                fontSize: "11px",
+                marginTop: theme.spacing.semantic.component.xs,
+                fontWeight: 500,
+              }}
+            >
+              → Assigning to Entity #{entities.findIndex(e => e.id === selectedEntityId) + 1}
+            </Text>
+          )}
+          {!selectedEntityId && currentSelectedMasks.length > 0 && (
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.interactive.accent,
+                fontSize: "11px",
+                marginTop: theme.spacing.semantic.component.xs,
+                fontWeight: 500,
+              }}
+            >
+              → {currentSelectedMasks.length} masks selected • Choose category to create entity
+            </Text>
+          )}
+        </Box>
 
         {/* Entity List */}
         <Box
@@ -555,7 +626,7 @@ export function AnnotationWorkspace() {
                 }}
               >
                 No entities created yet.<br />
-                Draw a bounding box on the image to start.
+                Select masks on the image and choose a category, or draw a bounding box to start.
               </Text>
             </Box>
           ) : (
@@ -568,7 +639,7 @@ export function AnnotationWorkspace() {
                     background: selectedEntityId === entity.id 
                       ? `${theme.colors.interactive.primary}20` 
                       : theme.colors.background.secondary,
-                    border: `1px solid ${
+                    border: `2px solid ${
                       selectedEntityId === entity.id 
                         ? theme.colors.interactive.primary 
                         : theme.colors.border.subtle
@@ -577,20 +648,38 @@ export function AnnotationWorkspace() {
                     padding: theme.spacing.semantic.component.sm,
                     cursor: "pointer",
                     transition: theme.animations.transitions.all,
+                    position: "relative",
+                    transform: selectedEntityId === entity.id ? "scale(1.02)" : "scale(1)",
+                    boxShadow: selectedEntityId === entity.id 
+                      ? `0 4px 12px ${theme.colors.interactive.primary}20` 
+                      : "none",
                   }}
                 >
                   <Flex justify="between" align="center">
                     <Box style={{ flex: 1 }}>
                       <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
-                        <Text
-                          size="2"
-                          style={{
-                            fontWeight: 600,
-                            color: theme.colors.text.primary,
-                          }}
-                        >
-                          Entity #{index + 1}
-                        </Text>
+                        <Flex align="center" gap="1">
+                          <Text
+                            size="2"
+                            style={{
+                              fontWeight: 600,
+                              color: theme.colors.text.primary,
+                            }}
+                          >
+                            Entity #{index + 1}
+                          </Text>
+                          {selectedEntityId === entity.id && (
+                            <Box
+                              style={{
+                                width: "8px",
+                                height: "8px",
+                                borderRadius: "50%",
+                                background: theme.colors.interactive.primary,
+                                animation: "pulse 2s infinite",
+                              }}
+                            />
+                          )}
+                        </Flex>
                         {entity.category && (
                           <Box
                             style={{
@@ -606,16 +695,30 @@ export function AnnotationWorkspace() {
                           </Box>
                         )}
                       </Flex>
-                      <Text
-                        size="1"
-                        style={{
-                          color: theme.colors.text.secondary,
-                          fontSize: "10px",
-                        }}
-                      >
-                        {entity.selectedMaskIds.length} masks selected
-                        {entity.category && ` • ID: ${entity.category.id}`}
-                      </Text>
+                      <Flex align="center" justify="between">
+                        <Text
+                          size="1"
+                          style={{
+                            color: theme.colors.text.secondary,
+                            fontSize: "10px",
+                          }}
+                        >
+                          {entity.selectedMaskIds.length} masks selected
+                        </Text>
+                        {selectedEntityId === entity.id && (
+                          <Text
+                            size="1"
+                            style={{
+                              color: theme.colors.interactive.primary,
+                              fontSize: "9px",
+                              fontWeight: 500,
+                              fontStyle: "italic",
+                            }}
+                          >
+                            masks active
+                          </Text>
+                        )}
+                      </Flex>
                     </Box>
                     
                     <Button
