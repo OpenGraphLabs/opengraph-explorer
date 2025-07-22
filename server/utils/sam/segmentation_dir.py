@@ -1539,7 +1539,7 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             merged_masks, overlay = iterative_mask_generation(
                 image, target, sam_everything,
                 max_iter=10,
-                init_grid=coarse_grid*10,
+                init_grid=coarse_grid,
                 min_mask_area=coarse_grid,
                 max_mask_area_ratio=1.5,
                 color_thresh=20,
