@@ -1275,6 +1275,9 @@ class SAMEverything:
         return overlay
 
     def get_uncovered_points(self, overlay, step=8):
+        """
+        overlay==0인 위치에만 step 간격으로 포인트를 생성
+        """
         points = []
         h, w = overlay.shape
         for y in range(0, h, step):
@@ -1409,7 +1412,7 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
             min_solidity = 0.4
 
             for iter_idx in range(10):  # 최대 10번 반복 (필요시 조정)
-                # 1. 미커버 영역(overlay==0)에만 포인트 생성
+                # === 변경: 미커버 영역(overlay==0)에만 포인트 생성 ===
                 uncovered_points = sam_everything.get_uncovered_points(overlay, step=coarse_grid)
                 print(f"  [Iter {iter_idx+1}] Uncovered points: {len(uncovered_points)}")
                 if not uncovered_points:

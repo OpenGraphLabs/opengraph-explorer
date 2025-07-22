@@ -268,7 +268,8 @@ class SAMEverything:
                           min_mask_area: int = 1000,
                           max_mask_area: int = None,
                           max_complexity_ratio: float = 0.05,
-                          min_solidity: float = 0.3) -> List[dict]:
+                          min_solidity: float = 0.3,
+                          overlay: Optional[np.ndarray] = None) -> List[dict]:
         """
         Segment everything in the image using automatic mask generation
         
@@ -278,6 +279,7 @@ class SAMEverything:
             max_mask_area: Maximum area threshold for masks (None for no limit)
             max_complexity_ratio: Maximum perimeter/area ratio to filter complex shapes
             min_solidity: Minimum solidity (area/convex_hull_area) to filter irregular shapes
+            overlay: (Optional) 기존에 마스크로 덮인 영역 (bool ndarray)
             
         Returns:
             List of mask dictionaries
@@ -290,13 +292,16 @@ class SAMEverything:
             h, w = self.current_image.shape[:2]
             max_mask_area = (h * w) // 4
         
-        # Generate grid of points
         h, w = self.current_image.shape[:2]
-        points = []
-        for y in range(0, h, grid_size):
-            for x in range(0, w, grid_size):
-                if x < w and y < h:
-                    points.append([x, y])
+        # === 변경: overlay 기반 미커버 영역에만 포인트 생성 ===
+        if overlay is not None:
+            points = self.get_uncovered_points(overlay, step=grid_size)
+        else:
+            points = []
+            for y in range(0, h, grid_size):
+                for x in range(0, w, grid_size):
+                    if x < w and y < h:
+                        points.append([x, y])
         
         all_masks = []
         
