@@ -1662,69 +1662,19 @@ def process_folder_with_relations(input_folder: str, output_folder: str,
     print(f"Processed {len(image_files)} images")
     print(f"Results saved to: {final_output_folder}")
 
-#
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser(description='SAM Everything with Relations - Multi-scale segmentation with parent-child relationships')
-#     parser.add_argument('--input', type=str, required=True, help='Path to input image or folder')
-#     parser.add_argument('--output', type=str, default='./test', help='Path to output folder (default: ./test)')
-#     parser.add_argument('--model_type', type=str, default='vit_h', choices=['vit_h', 'vit_l', 'vit_b'],
-#                         help='SAM model type (default: vit_h)')
-#     parser.add_argument('--relations', action='store_true', default=True,
-#                         help='Enable parent-child relationship processing (default: True)')
-#     parser.add_argument('--gpu', type=int, default=None,
-#                         help='GPU device ID to use (None for auto, -1 for CPU, 0, 1, 2, etc. for specific GPU)')
-#
-#     args = parser.parse_args()
-#
-#     print("=" * 60)
-#     print("SAM Everything with Parent-Child Relations")
-#     print("=" * 60)
-#     print(f"Model: {args.model_type}")
-#     print(f"Input: {args.input}")
-#     print(f"Output: {args.output}")
-#     print(f"Relations: {args.relations}")
-#     print(f"GPU ID: {args.gpu}")
-#     print("=" * 60)
-#
-#     # Debug: Check current working directory and input path
-#     print(f"Current working directory: {os.getcwd()}")
-#     print(f"Input path exists: {os.path.exists(args.input)}")
-#     print(f"Input path is file: {os.path.isfile(args.input)}")
-#     print(f"Input path is directory: {os.path.isdir(args.input)}")
-#
-#     if os.path.isdir(args.input):
-#         print(f"Contents of input directory:")
-#         try:
-#             files = os.listdir(args.input)
-#             print(f"  Total files: {len(files)}")
-#             for i, file in enumerate(files[:10]):  # Show first 10 files
-#                 print(f"    {i+1}: {file}")
-#             if len(files) > 10:
-#                 print(f"    ... and {len(files) - 10} more files")
-#         except Exception as e:
-#             print(f"  Error listing directory: {e}")
-#
-#     if os.path.isdir(args.input):
-#         # Folder processing
-#         print("Processing folder...")
-#         process_folder_with_relations(args.input, args.output, args.model_type, args.gpu)
-#
-#     else:
-#         print(f"Error: Input path '{args.input}' is neither a file nor a directory")
-#         print(f"Please check if the path exists and you have permission to access it.")
-#         exit(1)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='SAM Everything with Relations - Multi-scale segmentation with parent-child relationships')
-    args = parser.parse_args()
-    
+    parser.add_argument('--input', type=str, required=True, help='Path to input image or folder')
+    parser.add_argument('--output', type=str, default='./test', help='Path to output folder (default: ./test)')
+    parser.add_argument('--model_type', type=str, default='vit_h', choices=['vit_h', 'vit_l', 'vit_b'],
+                        help='SAM model type (default: vit_h)')
+    parser.add_argument('--relations', action='store_true', default=True,
+                        help='Enable parent-child relationship processing (default: True)')
+    parser.add_argument('--gpu', type=int, default=None,
+                        help='GPU device ID to use (None for auto, -1 for CPU, 0, 1, 2, etc. for specific GPU)')
 
-    args.input = "test/coco2017/images/val2017"
-    args.output = "results"
-    args.model_type = "vit_h"
-    args.relations = True
-    args.gpu = 0
+    args = parser.parse_args()
 
     print("=" * 60)
     print("SAM Everything with Parent-Child Relations")
@@ -1735,13 +1685,13 @@ if __name__ == "__main__":
     print(f"Relations: {args.relations}")
     print(f"GPU ID: {args.gpu}")
     print("=" * 60)
-    
+
     # Debug: Check current working directory and input path
     print(f"Current working directory: {os.getcwd()}")
     print(f"Input path exists: {os.path.exists(args.input)}")
     print(f"Input path is file: {os.path.isfile(args.input)}")
     print(f"Input path is directory: {os.path.isdir(args.input)}")
-    
+
     if os.path.isdir(args.input):
         print(f"Contents of input directory:")
         try:
@@ -1753,7 +1703,7 @@ if __name__ == "__main__":
                 print(f"    ... and {len(files) - 10} more files")
         except Exception as e:
             print(f"  Error listing directory: {e}")
-    
+
     if os.path.isdir(args.input):
         # Folder processing
         print("Processing folder...")
@@ -1763,4 +1713,54 @@ if __name__ == "__main__":
         print(f"Error: Input path '{args.input}' is neither a file nor a directory")
         print(f"Please check if the path exists and you have permission to access it.")
         exit(1)
+
+
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser(description='SAM Everything with Relations - Multi-scale segmentation with parent-child relationships')
+#     args = parser.parse_args()
+    
+
+#     args.input = "test/coco2017/images/val2017"
+#     args.output = "results"
+#     args.model_type = "vit_h"
+#     args.relations = True
+#     args.gpu = 0
+
+#     print("=" * 60)
+#     print("SAM Everything with Parent-Child Relations")
+#     print("=" * 60)
+#     print(f"Model: {args.model_type}")
+#     print(f"Input: {args.input}")
+#     print(f"Output: {args.output}")
+#     print(f"Relations: {args.relations}")
+#     print(f"GPU ID: {args.gpu}")
+#     print("=" * 60)
+    
+#     # Debug: Check current working directory and input path
+#     print(f"Current working directory: {os.getcwd()}")
+#     print(f"Input path exists: {os.path.exists(args.input)}")
+#     print(f"Input path is file: {os.path.isfile(args.input)}")
+#     print(f"Input path is directory: {os.path.isdir(args.input)}")
+    
+#     if os.path.isdir(args.input):
+#         print(f"Contents of input directory:")
+#         try:
+#             files = os.listdir(args.input)
+#             print(f"  Total files: {len(files)}")
+#             for i, file in enumerate(files[:10]):  # Show first 10 files
+#                 print(f"    {i+1}: {file}")
+#             if len(files) > 10:
+#                 print(f"    ... and {len(files) - 10} more files")
+#         except Exception as e:
+#             print(f"  Error listing directory: {e}")
+    
+#     if os.path.isdir(args.input):
+#         # Folder processing
+#         print("Processing folder...")
+#         process_folder_with_relations(args.input, args.output, args.model_type, args.gpu)
+
+#     else:
+#         print(f"Error: Input path '{args.input}' is neither a file nor a directory")
+#         print(f"Please check if the path exists and you have permission to access it.")
+#         exit(1)
                     
