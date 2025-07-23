@@ -2731,6 +2731,18 @@
             ],
             "title": "Tags",
             "description": "Tag list"
+          },
+          "dictionary_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dictionary Id",
+            "description": "Dictionary ID for category validation"
           }
         },
         "type": "object",
@@ -2778,6 +2790,18 @@
             ],
             "title": "Tags",
             "description": "Tag list"
+          },
+          "dictionary_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dictionary Id",
+            "description": "Dictionary ID for category validation"
           },
           "created_by": {
             "anyOf": [
@@ -2889,6 +2913,18 @@
             "title": "Tags",
             "description": "Tag list"
           },
+          "dictionary_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dictionary Id",
+            "description": "Dictionary ID for category validation"
+          },
           "id": {
             "type": "integer",
             "title": "Id",
@@ -2962,6 +2998,18 @@
             ],
             "title": "Tags",
             "description": "Tag list"
+          },
+          "dictionary_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dictionary Id",
+            "description": "Dictionary ID for category validation"
           }
         },
         "type": "object",

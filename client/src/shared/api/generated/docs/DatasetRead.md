@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **name** | **string** | Dataset name | [default to undefined]
 **description** | **string** |  | [optional] [default to undefined]
 **tags** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
+**dictionaryId** | **number** |  | [optional] [default to undefined]
 **id** | **number** | Dataset ID | [default to undefined]
 **createdBy** | **number** |  | [optional] [default to undefined]
 **createdAt** | **string** | Creation timestamp | [default to undefined]
@@ -22,6 +23,7 @@ const instance: DatasetRead = {
     name,
     description,
     tags,
+    dictionaryId,
     id,
     createdBy,
     createdAt,

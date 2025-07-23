@@ -4,12 +4,16 @@ import { ConnectButton, useCurrentWallet } from "@mysten/dapp-kit";
 import { Box, Flex, Text, Avatar, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { HamburgerMenuIcon, GitHubLogoIcon, SunIcon, MoonIcon } from "@radix-ui/react-icons";
-import { requiresWallet } from "@/shared/config/routePermissions";
+import { requiresAuth } from "@/shared/config/routePermissions";
+import { useAuth } from "@/shared/hooks/useAuth";
+import { useDemoAuth, DEMO_LOGIN_ENABLED } from "@/features/auth";
 import logoImage from "@/assets/logo/logo.png";
 
 export function Header() {
   const location = useLocation();
   const { isConnected, currentWallet } = useCurrentWallet();
+  const { isDemoAuthenticated, demoUser } = useAuth();
+  const { logout } = useDemoAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { mode, toggleTheme, theme } = useTheme();
 
@@ -70,7 +74,7 @@ export function Header() {
             <NavLink
               to="/datasets"
               current={location.pathname === "/datasets"}
-              disabled={!isConnected && requiresWallet("/datasets")}
+              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/datasets")}
             >
               Datasets
             </NavLink>
@@ -146,38 +150,93 @@ export function Header() {
           >
             <GitHubLogoIcon width="16" height="16" />
           </a>
-          {/* Compact Connect Button */}
-          <ConnectButton
-            connectText="Connect"
-            data-testid="connect-button"
-            style={{
-              borderRadius: theme.borders.radius.sm,
-              background: isConnected
-                ? theme.colors.background.card
-                : theme.colors.interactive.primary,
-              color: isConnected ? theme.colors.text.primary : theme.colors.text.inverse,
-              border: isConnected ? `1px solid ${theme.colors.border.primary}` : "none",
-              fontWeight: theme.typography.label.fontWeight,
-              padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`, // Compact padding
-              fontSize: theme.typography.bodySmall.fontSize,
-              height: "32px",
-            }}
-          />
-          {/* Compact Profile (when connected) */}
-          {isConnected && (
-            <Link to="/profile" style={{ textDecoration: "none" }}>
-              <Avatar
-                size="1" // Smaller avatar
-                fallback={currentWallet?.accounts[0]?.address.slice(0, 2) || "0x"}
+          {/* Demo User Display or Connect Button */}
+          {DEMO_LOGIN_ENABLED && isDemoAuthenticated && demoUser ? (
+            <Flex align="center" gap="2">
+              <Box
                 style={{
-                  background: theme.colors.interactive.primary,
-                  cursor: "pointer",
-                  width: "32px",
+                  background: theme.colors.background.card,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.sm,
+                  padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
                   height: "32px",
-                  fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: theme.spacing.base[2],
                 }}
-              />
-            </Link>
+              >
+                <Avatar
+                  size="1"
+                  fallback={demoUser.displayName.substring(0, 2).toUpperCase()}
+                  style={{
+                    background: theme.colors.interactive.primary,
+                    width: "20px",
+                    height: "20px",
+                    fontSize: "10px",
+                  }}
+                />
+                <Text
+                  size="2"
+                  style={{
+                    color: theme.colors.text.primary,
+                    fontWeight: theme.typography.label.fontWeight,
+                  }}
+                >
+                  {demoUser.displayName}
+                </Text>
+                <Button
+                  variant="tertiary"
+                  onClick={logout}
+                  style={{
+                    padding: `${theme.spacing.base[0]} ${theme.spacing.base[1]}`,
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    height: "20px",
+                    minHeight: "20px",
+                    color: theme.colors.text.tertiary,
+                  }}
+                >
+                  Logout
+                </Button>
+              </Box>
+            </Flex>
+          ) : (
+            // <>
+            //   {/* Compact Connect Button */}
+            //   <ConnectButton
+            //     connectText="Connect"
+            //     data-testid="connect-button"
+            //     style={{
+            //       borderRadius: theme.borders.radius.sm,
+            //       background: isConnected
+            //         ? theme.colors.background.card
+            //         : theme.colors.interactive.primary,
+            //       color: isConnected ? theme.colors.text.primary : theme.colors.text.inverse,
+            //       border: isConnected ? `1px solid ${theme.colors.border.primary}` : "none",
+            //       fontWeight: theme.typography.label.fontWeight,
+            //       padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`, // Compact padding
+            //       fontSize: theme.typography.bodySmall.fontSize,
+            //       height: "32px",
+            //     }}
+            //   />
+            //   {/* Compact Profile (when connected) */}
+            //   {isConnected && (
+            //     <Link to="/profile" style={{ textDecoration: "none" }}>
+            //       <Avatar
+            //         size="1" // Smaller avatar
+            //         fallback={currentWallet?.accounts[0]?.address.slice(0, 2) || "0x"}
+            //         style={{
+            //           background: theme.colors.interactive.primary,
+            //           cursor: "pointer",
+            //           width: "32px",
+            //           height: "32px",
+            //           fontSize: "12px",
+            //         }}
+            //       />
+            //     </Link>
+            //   )}
+            // </>
+            <>
+            </>
           )}
         </Flex>
       </Flex>
@@ -213,7 +272,7 @@ export function Header() {
               to="/models"
               current={location.pathname === "/models"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && requiresWallet("/models")}
+              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/models")}
             >
               Models
             </MobileNavLink>
@@ -221,7 +280,7 @@ export function Header() {
               to="/datasets"
               current={location.pathname === "/datasets"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && requiresWallet("/datasets")}
+              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/datasets")}
             >
               Datasets
             </MobileNavLink>
@@ -229,7 +288,7 @@ export function Header() {
               to="/models/upload"
               current={location.pathname === "/models/upload"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && requiresWallet("/models/upload")}
+              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/models/upload")}
             >
               Upload Model
             </MobileNavLink>
@@ -237,7 +296,7 @@ export function Header() {
               to="/annotator"
               current={location.pathname === "/annotator"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && requiresWallet("/annotator")}
+              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/annotator")}
             >
               Annotator
             </MobileNavLink>

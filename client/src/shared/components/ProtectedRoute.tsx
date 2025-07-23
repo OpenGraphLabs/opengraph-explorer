@@ -1,24 +1,31 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useRoutePermission } from "../hooks/useAuth";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Wallet, ArrowRight, Sparkle } from "phosphor-react";
+import { DemoLoginPage, DEMO_LOGIN_ENABLED } from "@/features/auth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { hasPermission, needsWallet, routeConfig } = useRoutePermission();
+  const { hasPermission, needsAuth, routeConfig } = useRoutePermission();
   const { theme } = useTheme();
+  const location = useLocation();
 
-  // If no wallet is required or user has permission, render children
-  if (!needsWallet || hasPermission) {
+  // If no auth is required or user has permission, render children
+  if (!needsAuth || hasPermission) {
     return <>{children}</>;
   }
 
-  // If wallet is required but not connected, show access denied page
+  // If demo login is enabled, show demo login page with current location for redirect
+  if (DEMO_LOGIN_ENABLED) {
+    return <DemoLoginPage />;
+  }
+
+  // If auth is required but not authenticated, show access denied page
   return (
     <Box
       style={{

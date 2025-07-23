@@ -19,9 +19,18 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         {/* Public routes - no wallet required */}
-        <Route path="/" element={<Home />} />
+
 
         {/* Protected routes - wallet required */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/models"
           element={

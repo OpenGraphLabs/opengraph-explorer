@@ -29,6 +29,11 @@ class Dataset(Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True
     )
+    dictionary_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        ForeignKey("dictionaries.id", ondelete="SET NULL"),
+        nullable=True
+    )
     
     # 타임스탬프
     created_at: Mapped[datetime] = mapped_column(
@@ -42,6 +47,12 @@ class Dataset(Base):
         "User", 
         back_populates="datasets",
         foreign_keys=[created_by]
+    )
+    
+    dictionary: Mapped[Optional["Dictionary"]] = relationship(
+        "Dictionary",
+        back_populates="datasets",
+        foreign_keys=[dictionary_id]
     )
     
     images: Mapped[List["Image"]] = relationship(

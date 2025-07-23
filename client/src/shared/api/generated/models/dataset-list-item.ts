@@ -49,6 +49,12 @@ export interface DatasetListItem {
      * @type {number}
      * @memberof DatasetListItem
      */
+    'dictionary_id'?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DatasetListItem
+     */
     'created_by'?: number | null;
     /**
      * Creation timestamp

@@ -14,6 +14,7 @@ class DatasetBase(BaseModel):
     name: str = Field(..., description="Dataset name")
     description: Optional[str] = Field(None, description="Dataset description")
     tags: Optional[List[str]] = Field(None, description="Tag list")
+    dictionary_id: Optional[int] = Field(None, description="Dictionary ID for category validation")
 
 
 class DatasetCreate(DatasetBase):
@@ -26,6 +27,7 @@ class DatasetUpdate(BaseModel):
     name: Optional[str] = Field(None, description="Dataset name")
     description: Optional[str] = Field(None, description="Dataset description")
     tags: Optional[List[str]] = Field(None, description="Tag list")
+    dictionary_id: Optional[int] = Field(None, description="Dictionary ID for category validation")
 
 
 class DatasetRead(DatasetBase):
@@ -56,6 +58,7 @@ class DatasetListItem(BaseModel):
     name: str = Field(..., description="Dataset name")
     description: Optional[str] = Field(None, description="Dataset description")
     tags: Optional[List[str]] = Field(None, description="Tag list")
+    dictionary_id: Optional[int] = Field(None, description="Dictionary ID for category validation")
     created_by: Optional[int] = Field(None, description="Creator ID")
     created_at: datetime = Field(..., description="Creation timestamp")
     image_count: int = Field(0, description="Number of images")
@@ -67,6 +70,7 @@ class DatasetFilter(BaseModel):
     """Dataset filter schema"""
     name: Optional[str] = Field(None, description="Name search")
     tags: Optional[List[str]] = Field(None, description="Tag filter")
+    dictionary_id: Optional[int] = Field(None, description="Dictionary ID filter")
     created_by: Optional[int] = Field(None, description="Creator filter")
     created_after: Optional[datetime] = Field(None, description="Created after timestamp")
     created_before: Optional[datetime] = Field(None, description="Created before timestamp")

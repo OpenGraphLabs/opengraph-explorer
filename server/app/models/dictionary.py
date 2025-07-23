@@ -37,6 +37,12 @@ class Dictionary(Base):
         cascade="all, delete-orphan"
     )
     
+    datasets: Mapped[List["Dataset"]] = relationship(
+        "Dataset",
+        back_populates="dictionary",
+        foreign_keys="Dataset.dictionary_id"
+    )
+    
     def __repr__(self) -> str:
         return f"<Dictionary(id={self.id}, name={self.name})>"
     

@@ -12,6 +12,7 @@ from ..models.annotation import Annotation
 from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationListResponse
 from ..schemas.common import Pagination
 from ..utils.segmentation import get_mask_info_for_client
+from ..utils.annotation_validation import validate_category_for_dataset
 
 
 class AnnotationService:
@@ -54,7 +55,20 @@ class AnnotationService:
             
         Returns:
             AnnotationRead: Created annotation information
+            
+        Raises:
+            ValueError: If category is not valid for the dataset's dictionary
         """
+        # Validate category against dataset's dictionary
+        is_valid_category = await validate_category_for_dataset(
+            category_id=annotation_data.category_id,
+            image_id=annotation_data.image_id,
+            db=self.db
+        )
+        
+        if not is_valid_category:
+            raise ValueError(f"Category {annotation_data.category_id} is not valid for this dataset's dictionary")
+        
         # AUTO 타입의 경우 created_by를 None으로 설정
         created_by = None if annotation_data.source_type == "AUTO" else annotation_data.created_by
         

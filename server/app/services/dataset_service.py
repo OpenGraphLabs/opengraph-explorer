@@ -41,6 +41,7 @@ class DatasetService:
             name=dataset_data.name,
             description=dataset_data.description,
             tags=dataset_data.tags,
+            dictionary_id=dataset_data.dictionary_id,
             created_by=created_by
         )
         
@@ -118,6 +119,7 @@ class DatasetService:
             name=dataset.name,
             description=dataset.description,
             tags=dataset.tags,
+            dictionary_id=dataset.dictionary_id,
             created_by=dataset.created_by,
             created_at=dataset.created_at,
             image_count=image_count,
@@ -200,6 +202,8 @@ class DatasetService:
                 query = query.where(Dataset.name.contains(filter_params.name))
             if filter_params.tags:
                 query = query.where(Dataset.tags.overlap(filter_params.tags))
+            if filter_params.dictionary_id:
+                query = query.where(Dataset.dictionary_id == filter_params.dictionary_id)
             if filter_params.created_by:
                 query = query.where(Dataset.created_by == filter_params.created_by)
             if filter_params.created_after:
@@ -217,6 +221,8 @@ class DatasetService:
                 count_query = count_query.where(Dataset.name.contains(filter_params.name))
             if filter_params.tags:
                 count_query = count_query.where(Dataset.tags.overlap(filter_params.tags))
+            if filter_params.dictionary_id:
+                count_query = count_query.where(Dataset.dictionary_id == filter_params.dictionary_id)
             if filter_params.created_by:
                 count_query = count_query.where(Dataset.created_by == filter_params.created_by)
             if filter_params.created_after:
@@ -257,6 +263,7 @@ class DatasetService:
                 name=dataset.name,
                 description=dataset.description,
                 tags=dataset.tags,
+                dictionary_id=dataset.dictionary_id,
                 created_by=dataset.created_by,
                 created_at=dataset.created_at,
                 image_count=len(dataset.images)

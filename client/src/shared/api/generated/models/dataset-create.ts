@@ -38,5 +38,11 @@ export interface DatasetCreate {
      * @memberof DatasetCreate
      */
     'tags'?: Array<string> | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DatasetCreate
+     */
+    'dictionary_id'?: number | null;
 }
 

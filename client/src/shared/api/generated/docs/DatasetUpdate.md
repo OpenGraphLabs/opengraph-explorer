@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **name** | **string** |  | [optional] [default to undefined]
 **description** | **string** |  | [optional] [default to undefined]
 **tags** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
+**dictionaryId** | **number** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -19,6 +20,7 @@ const instance: DatasetUpdate = {
     name,
     description,
     tags,
+    dictionaryId,
 };
 ```
 

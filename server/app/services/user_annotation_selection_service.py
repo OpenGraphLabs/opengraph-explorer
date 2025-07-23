@@ -29,6 +29,7 @@ from ..utils.annotation_selection import (
     parse_annotation_ids_key,
     validate_annotation_ids
 )
+from ..utils.annotation_validation import validate_category_for_dataset
 
 
 class UserAnnotationSelectionService:
@@ -59,6 +60,16 @@ class UserAnnotationSelectionService:
 
         if not validate_annotation_ids(selection_data.selected_annotation_ids):
             raise ValueError("Invalid annotation ids")
+        
+        # Validate category against dataset's dictionary
+        if selection_data.category_id is not None:
+            is_valid_category = await validate_category_for_dataset(
+                category_id=selection_data.category_id,
+                image_id=selection_data.image_id,
+                db=self.db
+            )
+            if not is_valid_category:
+                raise ValueError(f"Category {selection_data.category_id} is not valid for this dataset's dictionary")
         
         # normalize annotation ids for comparing other selections
         annotation_ids_key = normalize_annotation_ids(selection_data.selected_annotation_ids)
@@ -123,6 +134,16 @@ class UserAnnotationSelectionService:
         for selection_data in batch_data.selections:
             if not validate_annotation_ids(selection_data.selected_annotation_ids):
                 raise ValueError(f"Invalid annotation IDs: {selection_data.selected_annotation_ids}")
+            
+            # Validate category against dataset's dictionary
+            if selection_data.category_id is not None:
+                is_valid_category = await validate_category_for_dataset(
+                    category_id=selection_data.category_id,
+                    image_id=selection_data.image_id,
+                    db=self.db
+                )
+                if not is_valid_category:
+                    raise ValueError(f"Category {selection_data.category_id} is not valid for this dataset's dictionary")
             
             annotation_ids_key = normalize_annotation_ids(selection_data.selected_annotation_ids)
             validated_selections.append({
@@ -287,6 +308,15 @@ class UserAnnotationSelectionService:
         
         # 업데이트 적용
         if update_data.category_id is not None:
+            # Validate category against dataset's dictionary
+            is_valid_category = await validate_category_for_dataset(
+                category_id=update_data.category_id,
+                image_id=selection.image_id,
+                db=self.db
+            )
+            if not is_valid_category:
+                raise ValueError(f"Category {update_data.category_id} is not valid for this dataset's dictionary")
+            
             selection.category_id = update_data.category_id
         
         if update_data.status is not None:

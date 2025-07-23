@@ -38,5 +38,11 @@ export interface DatasetUpdate {
      * @memberof DatasetUpdate
      */
     'tags'?: Array<string> | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DatasetUpdate
+     */
+    'dictionary_id'?: number | null;
 }
 

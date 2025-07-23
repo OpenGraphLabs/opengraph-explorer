@@ -39,6 +39,12 @@ export interface DatasetRead {
      */
     'tags'?: Array<string> | null;
     /**
+     * 
+     * @type {number}
+     * @memberof DatasetRead
+     */
+    'dictionary_id'?: number | null;
+    /**
      * Dataset ID
      * @type {number}
      * @memberof DatasetRead

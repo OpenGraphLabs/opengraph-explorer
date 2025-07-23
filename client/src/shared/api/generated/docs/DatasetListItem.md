@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **name** | **string** | Dataset name | [default to undefined]
 **description** | **string** |  | [optional] [default to undefined]
 **tags** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
+**dictionaryId** | **number** |  | [optional] [default to undefined]
 **createdBy** | **number** |  | [optional] [default to undefined]
 **createdAt** | **string** | Creation timestamp | [default to undefined]
 **imageCount** | **number** | Number of images | [optional] [default to 0]
@@ -24,6 +25,7 @@ const instance: DatasetListItem = {
     name,
     description,
     tags,
+    dictionaryId,
     createdBy,
     createdAt,
     imageCount,
