@@ -79,7 +79,7 @@ OpenGraph Explorer breaks down complex ML models into layers and executes them s
 
 5. Start the development server
    ```bash
-   cd opengraph-explorer/server
+   cd opengraph-explorer
    docker-compose up -d converter
    ```
 

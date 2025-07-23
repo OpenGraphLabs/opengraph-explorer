@@ -13,7 +13,7 @@ def float_to_fixed(x, scale):
     abs_val = int(round(x * factor))  # Round to nearest integer
     return sign_bit, abs_val
 
-def convert_model_to_schema(model, scale=8):
+def convert_model_to_schema(model, scale=7):
     """Convert Keras model to Model schema format"""
     layer_dimensions = []
     weights_magnitudes = []
@@ -79,7 +79,7 @@ def convert_model_to_schema(model, scale=8):
 
 # current_dir = os.path.dirname(os.path.abspath(__file__))
 # path = os.path.join(current_dir, "fp32_model_norm_7_7.h5")
-# SCALE = 8
+# SCALE = 7
 # model = load_model(path)
 # model_schema = convert_model_to_schema(model)
 
