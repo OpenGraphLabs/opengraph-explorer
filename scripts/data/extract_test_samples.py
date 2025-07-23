@@ -4,8 +4,8 @@ import os
 import random
 
 def format_float(x):
-    """Format float to exactly 8 decimal places"""
-    return '{:.8f}'.format(x)
+    """Format float to exactly 7 decimal places"""
+    return '{:.7f}'.format(x)
 
 def main():
     # Load test data
@@ -23,7 +23,7 @@ def main():
 
     # Extract the selected samples and their labels
     for idx in selected_indices:
-        # Format input values to exactly 8 decimal places
+        # Format input values to exactly 7 decimal places
         input_values = [format_float(val) for val in X_test[idx]]
         
         sample = {
