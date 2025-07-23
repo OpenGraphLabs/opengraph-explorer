@@ -104,3 +104,8 @@ target/
 # Database
 *.sqlite
 *.db
+
+config/contract.json
+scripts/data/mnist_14_14/test_samples/test_samples.json
+scripts/experiment/blockchain_results.json
+contracts/tensorflowsui/Move.lock
