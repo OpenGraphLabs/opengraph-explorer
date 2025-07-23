@@ -153,6 +153,22 @@ export function Header() {
           {/* Demo User Display or Connect Button */}
           {DEMO_LOGIN_ENABLED && isDemoAuthenticated && demoUser ? (
             <Flex align="center" gap="2">
+              {/* Profile Avatar Link for Demo User */}
+              <Link to="/profile" style={{ textDecoration: "none" }}>
+                <Avatar
+                  size="1"
+                  fallback={demoUser.displayName.substring(0, 2).toUpperCase()}
+                  style={{
+                    background: theme.colors.interactive.primary,
+                    cursor: "pointer",
+                    width: "32px",
+                    height: "32px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: theme.colors.text.inverse,
+                  }}
+                />
+              </Link>
               <Box
                 style={{
                   background: theme.colors.background.card,
@@ -165,16 +181,6 @@ export function Header() {
                   gap: theme.spacing.base[2],
                 }}
               >
-                <Avatar
-                  size="1"
-                  fallback={demoUser.displayName.substring(0, 2).toUpperCase()}
-                  style={{
-                    background: theme.colors.interactive.primary,
-                    width: "20px",
-                    height: "20px",
-                    fontSize: "10px",
-                  }}
-                />
                 <Text
                   size="2"
                   style={{
@@ -236,6 +242,24 @@ export function Header() {
             //   )}
             // </>
             <>
+              {/* Profile Avatar Link */}
+              {isConnected && (
+                <Link to="/profile" style={{ textDecoration: "none" }}>
+                  <Avatar
+                    size="1"
+                    fallback={currentWallet?.accounts[0]?.address.slice(0, 2).toUpperCase() || "0x"}
+                    style={{
+                      background: theme.colors.interactive.primary,
+                      cursor: "pointer",
+                      width: "32px",
+                      height: "32px",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      color: theme.colors.text.inverse,
+                    }}
+                  />
+                </Link>
+              )}
             </>
           )}
         </Flex>
@@ -299,6 +323,14 @@ export function Header() {
               disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/annotator")}
             >
               Annotator
+            </MobileNavLink>
+            <MobileNavLink
+              to="/profile"
+              current={location.pathname === "/profile"}
+              onClick={() => setIsMobileMenuOpen(false)}
+              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/profile")}
+            >
+              Profile
             </MobileNavLink>
           </Flex>
         </Box>

@@ -1,28 +1,28 @@
 # AnnotationRead
 
-Annotation read schema with client-friendly mask information
+어노테이션 읽기 스키마
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**bbox** | **Array&lt;number&gt;** |  | [optional] [default to undefined]
-**area** | **number** |  | [optional] [default to undefined]
+**bbox** | **Array&lt;number&gt;** | Bounding box [x, y, width, height] | [default to undefined]
+**area** | **number** | Segmentation area | [default to undefined]
 **segmentationSize** | **Array&lt;number&gt;** |  | [optional] [default to undefined]
 **segmentationCounts** | **string** |  | [optional] [default to undefined]
+**polygon** | **object** |  | [optional] [default to undefined]
 **pointCoords** | **Array&lt;Array&lt;number&gt;&gt;** |  | [optional] [default to undefined]
-**isCrowd** | **boolean** | Is Crowd | [optional] [default to false]
+**isCrowd** | **boolean** | Is crowd annotation | [optional] [default to false]
 **predictedIou** | **number** |  | [optional] [default to undefined]
 **stabilityScore** | **number** |  | [optional] [default to undefined]
-**status** | **string** | Status of the annotation | [optional] [default to StatusEnum_PENDING]
-**sourceType** | **string** | Source type of the annotation | [default to undefined]
-**imageId** | **number** | Image ID | [default to undefined]
+**id** | **number** | Annotation ID | [default to undefined]
+**status** | **string** | Annotation status | [default to undefined]
+**sourceType** | **string** | Source type (AUTO or USER) | [default to undefined]
+**imageId** | **number** | Associated image ID | [default to undefined]
 **categoryId** | **number** |  | [optional] [default to undefined]
 **createdBy** | **number** |  | [optional] [default to undefined]
-**id** | **number** | Annotation ID | [default to undefined]
 **createdAt** | **string** | Creation timestamp | [default to undefined]
 **updatedAt** | **string** | Last update timestamp | [default to undefined]
-**maskInfo** | **object** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -34,19 +34,19 @@ const instance: AnnotationRead = {
     area,
     segmentationSize,
     segmentationCounts,
+    polygon,
     pointCoords,
     isCrowd,
     predictedIou,
     stabilityScore,
+    id,
     status,
     sourceType,
     imageId,
     categoryId,
     createdBy,
-    id,
     createdAt,
     updatedAt,
-    maskInfo,
 };
 ```
 

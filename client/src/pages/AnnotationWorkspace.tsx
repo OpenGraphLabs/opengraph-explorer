@@ -10,7 +10,7 @@ import {
   Check,
   X,
 } from "phosphor-react";
-import { useImages, useAnnotationsByImage } from "@/shared/hooks/useApiQuery";
+import { useImages, useAnnotationsByImage, useDataset } from "@/shared/hooks/useApiQuery";
 import { InteractiveAnnotationCanvas, CategorySearchPanel } from "@/features/annotation/components";
 import { Annotation } from "@/features/annotation/types/annotation";
 import { BoundingBox } from "@/features/annotation/types/workspace";
@@ -45,6 +45,16 @@ export function AnnotationWorkspace() {
     navigate('/datasets');
     return null;
   }
+
+  // Fetch dataset information
+  const {
+    data: dataset,
+    isLoading: datasetLoading,
+    error: datasetError,
+  } = useDataset(parseInt(datasetId), {
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  } as any);
 
   // Fetch images for the dataset
   const {
@@ -246,7 +256,7 @@ export function AnnotationWorkspace() {
   }, [entities, selectedImage]);
 
   // Loading state
-  if (imagesLoading) {
+  if (imagesLoading || datasetLoading) {
     return (
       <Box
         style={{
@@ -319,7 +329,7 @@ export function AnnotationWorkspace() {
   }
 
   // Error state
-  if (imagesError || !selectedImage) {
+  if (imagesError || datasetError || !selectedImage || !dataset) {
     return (
       <Box
         style={{
@@ -364,7 +374,11 @@ export function AnnotationWorkspace() {
                 marginBottom: theme.spacing.semantic.component.md,
               }}
             >
-              {imagesError ? "Unable to load dataset images" : "No images found in this dataset"}
+              {imagesError 
+                ? "Unable to load dataset images" 
+                : datasetError 
+                ? "Unable to load dataset information"
+                : "No images found in this dataset"}
             </Text>
             <Button
               onClick={() => navigate("/datasets")}
@@ -460,7 +474,7 @@ export function AnnotationWorkspace() {
                 ? "Search and select category to create entity..."
                 : "Select masks first, then choose category"
             }
-            dictionaryId={1}
+            dictionaryId={dataset?.dictionary_id || undefined}
           />
           {selectedEntityId && selectedEntity && (
             <Text

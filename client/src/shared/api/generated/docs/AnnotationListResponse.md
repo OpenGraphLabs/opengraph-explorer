@@ -1,6 +1,6 @@
 # AnnotationListResponse
 
-Annotation list response schema 
+어노테이션 목록 응답 스키마
 
 ## Properties
 

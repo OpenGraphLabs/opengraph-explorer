@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from ..models.user import User
 from ..schemas.user import UserCreate, UserUpdate, UserRead, UserProfile
+from pydantic import EmailStr
 from ..utils.common import hash_password, verify_password
 
 
@@ -23,12 +24,12 @@ class UserService:
             UserRead: Created user information
         """
 
-        existing_user = await self.get_user_by_email(user_data.email)
+        existing_user = await self.get_user_by_email(str(user_data.email))
         if existing_user:
             raise ValueError("Email already exists")
 
         db_user = User(
-            email=user_data.email,
+            email=str(user_data.email),
             google_id=user_data.google_id,
             display_name=user_data.display_name,
             profile_image_url=user_data.profile_image_url,

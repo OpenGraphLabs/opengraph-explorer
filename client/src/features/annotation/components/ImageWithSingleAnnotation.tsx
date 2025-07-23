@@ -13,7 +13,6 @@ export interface ImageWithSingleAnnotationProps {
   imageWidth: number;
   imageHeight: number;
   fileName: string;
-  categoryName?: string;
   onClick?: () => void;
   className?: string;
   showMaskByDefault?: boolean;
@@ -26,7 +25,6 @@ export function ImageWithSingleAnnotation({
   imageWidth,
   imageHeight,
   fileName,
-  categoryName,
   onClick,
   className,
   showMaskByDefault = true,
@@ -226,30 +224,6 @@ export function ImageWithSingleAnnotation({
                 <EyeOpenIcon width="14" height="14" />
               )}
             </Button>
-          </Box>
-        )}
-
-        {/* Category Badge */}
-        {categoryName && (
-          <Box
-            style={{
-              position: 'absolute',
-              top: theme.spacing.semantic.component.sm,
-              right: theme.spacing.semantic.component.sm,
-              background: theme.colors.interactive.primary,
-              color: 'white',
-              padding: `${theme.spacing[1]} ${theme.spacing[2]}`,
-              borderRadius: theme.borders.radius.sm,
-              fontSize: theme.typography.caption.fontSize,
-              fontWeight: theme.typography.labelLarge.fontWeight,
-              display: 'flex',
-              alignItems: 'center',
-              gap: theme.spacing[1],
-              boxShadow: theme.shadows.base.sm,
-            }}
-          >
-            <BookmarkIcon width="12" height="12" />
-            {categoryName}
           </Box>
         )}
 

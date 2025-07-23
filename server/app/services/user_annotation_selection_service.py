@@ -500,7 +500,7 @@ class UserAnnotationSelectionService:
         annotation_ids_key: str,
         category_id: Optional[int]
     ) -> Optional[UserAnnotationSelection]:
-        """Find existing selection if a user selects the same annotations for the same category"""
+        """Find existing selection if a user selects the same annotations_test for the same category"""
         stmt = select(UserAnnotationSelection).where(
             and_(
                 UserAnnotationSelection.user_id == user_id,
@@ -556,7 +556,7 @@ class UserAnnotationSelectionService:
         category_id: Optional[int]
     ) -> Optional[int]:
         """
-        Create a single merged annotation from multiple selected annotations
+        Create a single merged annotation from multiple selected annotations_test
         
         Args:
             image_id: ID of the image
@@ -566,7 +566,7 @@ class UserAnnotationSelectionService:
         Returns:
             ID of the created merged annotation, or None if failed
         """
-        # Get all annotations to merge
+        # Get all annotations_test to merge
         stmt = select(Annotation).where(
             and_(
                 Annotation.id.in_(annotation_ids),
@@ -613,7 +613,7 @@ class UserAnnotationSelectionService:
         Merge multiple annotation masks into a single RLE mask
         
         Args:
-            annotations: List of annotations to merge
+            annotations: List of annotations_test to merge
             
         Returns:
             Merged RLE mask in COCO format, or None if merging failed
@@ -723,13 +723,13 @@ class UserAnnotationSelectionService:
                 selections_to_approve.append((image_id, annotation_ids_key, category_id))
                 auto_approved_count += total_count
         
-        # Batch approve selections and create merged annotations
+        # Batch approve selections and create merged annotations_test
         merged_annotations_count = 0
         if selections_to_approve:
             # Approve all qualifying selections
             await self.approve_selections_batch(selections_to_approve)
             
-            # Create merged annotations for each approved combination
+            # Create merged annotations_test for each approved combination
             for image_id, annotation_ids_key, category_id in selections_to_approve:
                 annotation_ids = parse_annotation_ids_key(annotation_ids_key)
                 merged_annotation_id = await self._create_merged_annotation(

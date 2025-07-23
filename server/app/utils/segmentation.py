@@ -44,7 +44,7 @@ def rle_to_polygon(segmentation_counts: str, segmentation_size: List[int]) -> Li
         polygons = []
         for contour in contours:
             # contour 단순화 (너무 많은 점들 제거)
-            epsilon = 0.005 * cv2.arcLength(contour, True)
+            epsilon = 0.01 * cv2.arcLength(contour, True)
             simplified_contour = cv2.approxPolyDP(contour, epsilon, True)
             
             # 최소 3개의 점이 있어야 polygon

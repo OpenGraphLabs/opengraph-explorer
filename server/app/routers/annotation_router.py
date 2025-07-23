@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
-from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationUserCreate, AnnotationListResponse
+from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationUserCreate, AnnotationListResponse, AnnotationClientRead
 from ..schemas.common import Pagination
 from ..schemas.user_annotation_selection import (
     UserAnnotationSelectionCreate,
@@ -85,16 +85,16 @@ async def get_annotation(
     return annotation
 
 
-@router.get("/image/{image_id}", response_model=List[AnnotationRead])
+@router.get("/image/{image_id}", response_model=List[AnnotationClientRead])
 async def get_annotations_by_image(
     image_id: int,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Get all annotations for a specific image with client-friendly mask information
+    Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
     """
     annotation_service = AnnotationService(db)
-    annotations = await annotation_service.get_annotations_by_image_id(image_id)
+    annotations = await annotation_service.get_annotations_by_image_id_for_client(image_id)
     
     return annotations
 

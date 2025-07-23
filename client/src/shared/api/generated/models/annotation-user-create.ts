@@ -15,23 +15,23 @@
 
 
 /**
- * 사용자가 어노테이션을 생성할 때 사용하는 스키마 (source_type, status 제외)
+ * 사용자가 생성하는 어노테이션 스키마
  * @export
  * @interface AnnotationUserCreate
  */
 export interface AnnotationUserCreate {
     /**
-     * 
+     * Bounding box [x, y, width, height]
      * @type {Array<number>}
      * @memberof AnnotationUserCreate
      */
-    'bbox'?: Array<number> | null;
+    'bbox': Array<number>;
     /**
-     * 
+     * Segmentation area
      * @type {number}
      * @memberof AnnotationUserCreate
      */
-    'area'?: number | null;
+    'area': number;
     /**
      * 
      * @type {Array<number>}
@@ -46,12 +46,18 @@ export interface AnnotationUserCreate {
     'segmentation_counts'?: string | null;
     /**
      * 
+     * @type {object}
+     * @memberof AnnotationUserCreate
+     */
+    'polygon'?: object | null;
+    /**
+     * 
      * @type {Array<Array<number>>}
      * @memberof AnnotationUserCreate
      */
     'point_coords'?: Array<Array<number>> | null;
     /**
-     * Is Crowd
+     * Is crowd annotation
      * @type {boolean}
      * @memberof AnnotationUserCreate
      */
@@ -69,7 +75,7 @@ export interface AnnotationUserCreate {
      */
     'stability_score'?: number | null;
     /**
-     * Image ID
+     * Associated image ID
      * @type {number}
      * @memberof AnnotationUserCreate
      */
@@ -80,11 +86,5 @@ export interface AnnotationUserCreate {
      * @memberof AnnotationUserCreate
      */
     'category_id'?: number | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof AnnotationUserCreate
-     */
-    'created_by'?: number | null;
 }
 

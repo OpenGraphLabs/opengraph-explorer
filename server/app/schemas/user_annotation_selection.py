@@ -100,7 +100,7 @@ class UserAnnotationSelectionBatchResponse(BaseModel):
     )
     total_created: int = Field(description="Total number of selections created")
     auto_approved_count: int = Field(description="Number of selections that triggered auto-approval")
-    merged_annotations_count: int = Field(description="Number of merged annotations created from auto-approvals")
+    merged_annotations_count: int = Field(description="Number of merged annotations_test created from auto-approvals")
 
 
 class UserAnnotationSelectionWithDetails(UserAnnotationSelectionRead):

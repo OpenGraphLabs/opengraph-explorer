@@ -26,7 +26,7 @@ X-Opengraph-User-Id: 1
 }
 
 ### annotation - List annotations by image id
-GET {{http-host}}/api/v1/annotations/image/3
+GET {{http-host}}/api/v1/annotations/image/180
 X-Opengraph-User-Id: 1
 
 ### annotation - ReadAll Approved Annotations
@@ -168,7 +168,7 @@ X-Opengraph-User-Id: 1
 # ==================== Testing Scenarios ====================
 
 ### Test Scenario 1: Multiple users selecting same annotations
-# User 1 selects annotations 1,3,4 for image 3
+# User 1 selects annotations_test 1,3,4 for image 3
 POST {{http-host}}/api/v1/annotations/selections
 Content-Type: application/json
 X-Opengraph-User-Id: 1
@@ -206,7 +206,7 @@ GET {{http-host}}/api/v1/annotations/selections/image/3/stats
 X-Opengraph-User-Id: 1
 
 ### Test Scenario 2: Different order should be normalized to same selection
-# User 4 selects annotations in different order but same IDs
+# User 4 selects annotations_test in different order but same IDs
 POST {{http-host}}/api/v1/annotations/selections
 Content-Type: application/json
 X-Opengraph-User-Id: 4
@@ -233,7 +233,7 @@ GET {{http-host}}/api/v1/annotations/selections/image/3/stats
 X-Opengraph-User-Id: 1
 
 ### Test Scenario 3: Different categories for same annotations
-# User 6 selects same annotations but different category
+# User 6 selects same annotations_test but different category
 POST {{http-host}}/api/v1/annotations/selections
 Content-Type: application/json
 X-Opengraph-User-Id: 6

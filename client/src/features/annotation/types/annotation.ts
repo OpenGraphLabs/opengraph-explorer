@@ -46,7 +46,7 @@ export interface Annotation {
   created_by: number | null;
   created_at: string;
   updated_at: string;
-  mask_info: MaskInfo;
+  polygon: MaskInfo;
 }
 
 export interface AnnotationResponse {

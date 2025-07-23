@@ -1520,7 +1520,7 @@
           "annotations"
         ],
         "summary": "Get Annotations By Image",
-        "description": "Get all annotations for a specific image with client-friendly mask information",
+        "description": "Get all annotations for a specific image with client-friendly format (polygon data, no RLE)",
         "operationId": "get_annotations_by_image_api_v1_annotations_image__image_id__get",
         "parameters": [
           {
@@ -1541,7 +1541,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AnnotationRead"
+                    "$ref": "#/components/schemas/AnnotationClientRead"
                   },
                   "title": "Response Get Annotations By Image Api V1 Annotations Image  Image Id  Get"
                 }
@@ -2082,6 +2082,152 @@
   },
   "components": {
     "schemas": {
+      "AnnotationClientRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Annotation ID"
+          },
+          "bbox": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Bbox",
+            "description": "Bounding box [x, y, width, height]"
+          },
+          "area": {
+            "type": "number",
+            "title": "Area",
+            "description": "Segmentation area"
+          },
+          "point_coords": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point Coords",
+            "description": "Point coordinates used for SAM"
+          },
+          "is_crowd": {
+            "type": "boolean",
+            "title": "Is Crowd",
+            "description": "Is crowd annotation",
+            "default": false
+          },
+          "predicted_iou": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Iou",
+            "description": "Predicted IoU from SAM"
+          },
+          "stability_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stability Score",
+            "description": "Stability score from SAM"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Annotation status"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type",
+            "description": "Source type (AUTO or USER)"
+          },
+          "image_id": {
+            "type": "integer",
+            "title": "Image Id",
+            "description": "Associated image ID"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "Associated category ID"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By",
+            "description": "Creator user ID"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon",
+            "description": "Pre-computed polygon data for client rendering"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "bbox",
+          "area",
+          "status",
+          "source_type",
+          "image_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AnnotationClientRead",
+        "description": "클라이언트용 어노테이션 읽기 스키마 (RLE 데이터 제외)"
+      },
       "AnnotationListResponse": {
         "properties": {
           "items": {
@@ -2122,36 +2268,22 @@
           "pages"
         ],
         "title": "AnnotationListResponse",
-        "description": "Annotation list response schema "
+        "description": "어노테이션 목록 응답 스키마"
       },
       "AnnotationRead": {
         "properties": {
           "bbox": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "number"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
             "title": "Bbox",
-            "description": "Bounding Box [x, y, width, height]"
+            "description": "Bounding box [x, y, width, height]"
           },
           "area": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "number",
             "title": "Area",
-            "description": "Annotation area"
+            "description": "Segmentation area"
           },
           "segmentation_size": {
             "anyOf": [
@@ -2166,7 +2298,7 @@
               }
             ],
             "title": "Segmentation Size",
-            "description": "Segmentation Size [height, width]"
+            "description": "[height, width] of the segmentation"
           },
           "segmentation_counts": {
             "anyOf": [
@@ -2178,7 +2310,19 @@
               }
             ],
             "title": "Segmentation Counts",
-            "description": "Segmentation RLE Encoding"
+            "description": "COCO RLE encoding"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon",
+            "description": "Pre-computed polygon data for client rendering"
           },
           "point_coords": {
             "anyOf": [
@@ -2196,12 +2340,12 @@
               }
             ],
             "title": "Point Coords",
-            "description": "Point Coordinates [[x, y], [x, y], ...]"
+            "description": "Point coordinates used for SAM"
           },
           "is_crowd": {
             "type": "boolean",
             "title": "Is Crowd",
-            "description": "Is Crowd",
+            "description": "Is crowd annotation",
             "default": false
           },
           "predicted_iou": {
@@ -2214,7 +2358,7 @@
               }
             ],
             "title": "Predicted Iou",
-            "description": "Predicted IoU"
+            "description": "Predicted IoU from SAM"
           },
           "stability_score": {
             "anyOf": [
@@ -2226,32 +2370,27 @@
               }
             ],
             "title": "Stability Score",
-            "description": "Stability Score"
+            "description": "Stability score from SAM"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Annotation ID"
           },
           "status": {
             "type": "string",
-            "enum": [
-              "PENDING",
-              "APPROVED",
-              "REJECTED"
-            ],
             "title": "Status",
-            "description": "Status of the annotation",
-            "default": "PENDING"
+            "description": "Annotation status"
           },
           "source_type": {
             "type": "string",
-            "enum": [
-              "AUTO",
-              "USER"
-            ],
             "title": "Source Type",
-            "description": "Source type of the annotation"
+            "description": "Source type (AUTO or USER)"
           },
           "image_id": {
             "type": "integer",
             "title": "Image Id",
-            "description": "Image ID"
+            "description": "Associated image ID"
           },
           "category_id": {
             "anyOf": [
@@ -2263,7 +2402,7 @@
               }
             ],
             "title": "Category Id",
-            "description": "Category ID"
+            "description": "Associated category ID"
           },
           "created_by": {
             "anyOf": [
@@ -2275,12 +2414,7 @@
               }
             ],
             "title": "Created By",
-            "description": "Creator ID (NULL for AUTO)"
-          },
-          "id": {
-            "type": "integer",
-            "title": "Id",
-            "description": "Annotation ID"
+            "description": "Creator user ID"
           },
           "created_at": {
             "type": "string",
@@ -2293,30 +2427,21 @@
             "format": "date-time",
             "title": "Updated At",
             "description": "Last update timestamp"
-          },
-          "mask_info": {
-            "anyOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mask Info",
-            "description": "Client-friendly mask information"
           }
         },
         "type": "object",
         "required": [
+          "bbox",
+          "area",
+          "id",
+          "status",
           "source_type",
           "image_id",
-          "id",
           "created_at",
           "updated_at"
         ],
         "title": "AnnotationRead",
-        "description": "Annotation read schema with client-friendly mask information"
+        "description": "어노테이션 읽기 스키마"
       },
       "AnnotationSelectionStats": {
         "properties": {
@@ -2459,31 +2584,17 @@
       "AnnotationUserCreate": {
         "properties": {
           "bbox": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "number"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
             "title": "Bbox",
-            "description": "Bounding Box [x, y, width, height]"
+            "description": "Bounding box [x, y, width, height]"
           },
           "area": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "number",
             "title": "Area",
-            "description": "Annotation area"
+            "description": "Segmentation area"
           },
           "segmentation_size": {
             "anyOf": [
@@ -2498,7 +2609,7 @@
               }
             ],
             "title": "Segmentation Size",
-            "description": "Segmentation Size [height, width]"
+            "description": "[height, width] of the segmentation"
           },
           "segmentation_counts": {
             "anyOf": [
@@ -2510,7 +2621,19 @@
               }
             ],
             "title": "Segmentation Counts",
-            "description": "Segmentation RLE Encoding"
+            "description": "COCO RLE encoding"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon",
+            "description": "Pre-computed polygon data for client rendering"
           },
           "point_coords": {
             "anyOf": [
@@ -2528,12 +2651,12 @@
               }
             ],
             "title": "Point Coords",
-            "description": "Point Coordinates [[x, y], [x, y], ...]"
+            "description": "Point coordinates used for SAM"
           },
           "is_crowd": {
             "type": "boolean",
             "title": "Is Crowd",
-            "description": "Is Crowd",
+            "description": "Is crowd annotation",
             "default": false
           },
           "predicted_iou": {
@@ -2546,7 +2669,7 @@
               }
             ],
             "title": "Predicted Iou",
-            "description": "Predicted IoU"
+            "description": "Predicted IoU from SAM"
           },
           "stability_score": {
             "anyOf": [
@@ -2558,12 +2681,12 @@
               }
             ],
             "title": "Stability Score",
-            "description": "Stability Score"
+            "description": "Stability score from SAM"
           },
           "image_id": {
             "type": "integer",
             "title": "Image Id",
-            "description": "Image ID"
+            "description": "Associated image ID"
           },
           "category_id": {
             "anyOf": [
@@ -2575,27 +2698,17 @@
               }
             ],
             "title": "Category Id",
-            "description": "Category ID"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By",
-            "description": "Creator ID (NULL for AUTO)"
+            "description": "Associated category ID"
           }
         },
         "type": "object",
         "required": [
+          "bbox",
+          "area",
           "image_id"
         ],
         "title": "AnnotationUserCreate",
-        "description": "사용자가 어노테이션을 생성할 때 사용하는 스키마 (source_type, status 제외)"
+        "description": "사용자가 생성하는 어노테이션 스키마"
       },
       "CategoryCreate": {
         "properties": {
@@ -3338,7 +3451,7 @@
           "merged_annotations_count": {
             "type": "integer",
             "title": "Merged Annotations Count",
-            "description": "Number of merged annotations created from auto-approvals"
+            "description": "Number of merged annotations_test created from auto-approvals"
           }
         },
         "type": "object",

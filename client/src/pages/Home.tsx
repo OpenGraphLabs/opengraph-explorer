@@ -348,7 +348,6 @@ export function Home() {
                     imageWidth={image.width}
                     imageHeight={image.height}
                     fileName={image.file_name}
-                    categoryName={categoryName}
                     onClick={() => handleAnnotationClick(annotationWithImage)}
                     showMaskByDefault={showGlobalMasks}
                   />

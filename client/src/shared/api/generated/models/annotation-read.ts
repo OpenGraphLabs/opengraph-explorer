@@ -15,23 +15,23 @@
 
 
 /**
- * Annotation read schema with client-friendly mask information
+ * 어노테이션 읽기 스키마
  * @export
  * @interface AnnotationRead
  */
 export interface AnnotationRead {
     /**
-     * 
+     * Bounding box [x, y, width, height]
      * @type {Array<number>}
      * @memberof AnnotationRead
      */
-    'bbox'?: Array<number> | null;
+    'bbox': Array<number>;
     /**
-     * 
+     * Segmentation area
      * @type {number}
      * @memberof AnnotationRead
      */
-    'area'?: number | null;
+    'area': number;
     /**
      * 
      * @type {Array<number>}
@@ -46,12 +46,18 @@ export interface AnnotationRead {
     'segmentation_counts'?: string | null;
     /**
      * 
+     * @type {object}
+     * @memberof AnnotationRead
+     */
+    'polygon'?: object | null;
+    /**
+     * 
      * @type {Array<Array<number>>}
      * @memberof AnnotationRead
      */
     'point_coords'?: Array<Array<number>> | null;
     /**
-     * Is Crowd
+     * Is crowd annotation
      * @type {boolean}
      * @memberof AnnotationRead
      */
@@ -69,19 +75,25 @@ export interface AnnotationRead {
      */
     'stability_score'?: number | null;
     /**
-     * Status of the annotation
+     * Annotation ID
+     * @type {number}
+     * @memberof AnnotationRead
+     */
+    'id': number;
+    /**
+     * Annotation status
      * @type {string}
      * @memberof AnnotationRead
      */
-    'status'?: AnnotationReadStatusEnum;
+    'status': string;
     /**
-     * Source type of the annotation
+     * Source type (AUTO or USER)
      * @type {string}
      * @memberof AnnotationRead
      */
-    'source_type': AnnotationReadSourceTypeEnum;
+    'source_type': string;
     /**
-     * Image ID
+     * Associated image ID
      * @type {number}
      * @memberof AnnotationRead
      */
@@ -99,12 +111,6 @@ export interface AnnotationRead {
      */
     'created_by'?: number | null;
     /**
-     * Annotation ID
-     * @type {number}
-     * @memberof AnnotationRead
-     */
-    'id': number;
-    /**
      * Creation timestamp
      * @type {string}
      * @memberof AnnotationRead
@@ -116,26 +122,5 @@ export interface AnnotationRead {
      * @memberof AnnotationRead
      */
     'updated_at': string;
-    /**
-     * 
-     * @type {object}
-     * @memberof AnnotationRead
-     */
-    'mask_info'?: object | null;
 }
-
-export const AnnotationReadStatusEnum = {
-    PENDING: 'PENDING',
-    APPROVED: 'APPROVED',
-    REJECTED: 'REJECTED'
-} as const;
-
-export type AnnotationReadStatusEnum = typeof AnnotationReadStatusEnum[keyof typeof AnnotationReadStatusEnum];
-export const AnnotationReadSourceTypeEnum = {
-    AUTO: 'AUTO',
-    USER: 'USER'
-} as const;
-
-export type AnnotationReadSourceTypeEnum = typeof AnnotationReadSourceTypeEnum[keyof typeof AnnotationReadSourceTypeEnum];
-
 

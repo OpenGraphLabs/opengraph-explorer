@@ -89,10 +89,37 @@ export class AnnotationService {
 
   // Create annotation selections in batch
   async createAnnotationSelectionsBatch(batchData: UserAnnotationSelectionBatchCreate): Promise<UserAnnotationSelectionBatchResponse> {
-    const response = await this.apiClient.annotations.createAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPost({
-      userAnnotationSelectionBatchCreate: batchData
-    });
-    return response.data;
+    // TEST CODE: Make 5 sequential requests with different user IDs
+    const testUserIds = ['1', '4', '5', '6', '7'];
+    const responses: any[] = [];
+    
+    // Get original user ID from localStorage
+    const originalUserId = localStorage.getItem('opengraph-user-id');
+    
+    for (const userId of testUserIds) {
+      // Temporarily set the user ID in localStorage (interceptor will use this)
+      localStorage.setItem('opengraph-user-id', userId);
+      
+      console.log(`Making request for user ID: ${userId}`);
+      
+      // Use the original API method
+      const response = await this.apiClient.annotations.createAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPost({
+        userAnnotationSelectionBatchCreate: batchData
+      });
+      
+      responses.push(response);
+      console.log(`Test request completed for user ID: ${userId}`);
+    }
+    
+    // Restore original user ID
+    if (originalUserId) {
+      localStorage.setItem('opengraph-user-id', originalUserId);
+    }
+    
+    console.log('All 5 test requests completed sequentially');
+    
+    // Return the first response's data (for compatibility)
+    return responses[0].data;
   }
 
   // Helper method to create batch data from entities

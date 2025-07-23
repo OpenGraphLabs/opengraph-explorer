@@ -47,9 +47,9 @@ export function SegmentationMaskOverlay({
   }
 
   const renderPolygon = (annotation: Annotation, index: number) => {
-    const { mask_info } = annotation;
+    const { polygon } = annotation;
     
-    if (!mask_info.has_segmentation || !mask_info.polygons.length) {
+    if (!polygon.has_segmentation || !polygon.polygons.length) {
       return null;
     }
 
@@ -57,7 +57,7 @@ export function SegmentationMaskOverlay({
     const baseColor = COLOR_PALETTE[index % COLOR_PALETTE.length];
     const opacity = options.maskOpacity;
 
-    return mask_info.polygons.map((polygon, polygonIndex) => {
+    return polygon.polygons.map((polygon, polygonIndex) => {
       if (polygon.length < 3) return null; // Need at least 3 points for a polygon
       
       // Convert points to SVG path

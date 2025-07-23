@@ -65,7 +65,7 @@ async def get_valid_categories_for_image(
     db: AsyncSession
 ) -> list[int]:
     """
-    Gets all valid category IDs for annotations on the given image.
+    Gets all valid category IDs for annotations_test on the given image.
     
     Args:
         image_id: Image ID

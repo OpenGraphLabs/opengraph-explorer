@@ -2,7 +2,8 @@ import { ApiClient } from '../client';
 import type {
   UserCreate,
   UserUpdate,
-  UserRead
+  UserRead,
+  UserProfile
 } from '../generated/models';
 
 export class UserService {
@@ -12,6 +13,12 @@ export class UserService {
   async getCurrentUser() {
     const response = await this.apiClient.users.getCurrentUserInfoApiV1UsersMeGet();
     return response.data as UserRead;
+  }
+
+  // Get current user profile
+  async getCurrentUserProfile() {
+    const response = await this.apiClient.users.getCurrentUserProfileApiV1UsersMeProfileGet();
+    return response.data as UserProfile;
   }
 
   // Get user by ID

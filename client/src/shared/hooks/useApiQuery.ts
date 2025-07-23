@@ -155,6 +155,18 @@ export function useCurrentUser(
   });
 }
 
+export function useCurrentUserProfile(
+  options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { users } = useApiClient(options?.apiClientOptions);
+
+  return useQuery({
+    queryKey: [...queryKeys.users.current(), 'profile'],
+    queryFn: () => users.getCurrentUserProfile(),
+    ...options
+  });
+}
+
 export function useUser(
   userId: number,
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }

@@ -292,7 +292,7 @@ export function InteractiveAnnotationCanvas({
 
   // Check if bbox intersects with annotation
   const checkBboxIntersection = useCallback((bbox: BoundingBox, annotation: Annotation): boolean => {
-    if (!annotation.mask_info.has_segmentation) return false;
+    if (!annotation.polygon.has_segmentation) return false;
     
     // Simple bbox intersection check first
     const [annX, annY, annWidth, annHeight] = annotation.bbox;
@@ -306,7 +306,7 @@ export function InteractiveAnnotationCanvas({
     }
     
     // Check if any polygon points are inside the bbox or vice versa
-    for (const polygon of annotation.mask_info.polygons) {
+    for (const polygon of annotation.polygon.polygons) {
       for (const point of polygon) {
         const [x, y] = point;
         if (x >= bbox.x && x <= bboxRight && y >= bbox.y && y <= bboxBottom) {
@@ -386,7 +386,7 @@ export function InteractiveAnnotationCanvas({
     if (showMasks) {
       // Draw masks
       annotations.forEach((annotation, index) => {
-        if (!annotation.mask_info.has_segmentation) return;
+        if (!annotation.polygon.has_segmentation) return;
         
         const maskState = maskStates[annotation.id];
         if (!maskState) return;
@@ -399,7 +399,7 @@ export function InteractiveAnnotationCanvas({
         ctx.scale(zoom, zoom);
         
         // Draw polygons
-        annotation.mask_info.polygons.forEach(polygon => {
+        annotation.polygon.polygons.forEach(polygon => {
           if (polygon.length < 3) return;
           
           ctx.beginPath();
@@ -517,9 +517,9 @@ export function InteractiveAnnotationCanvas({
     // Check if clicking on a mask
     let clickedMask = false;
     for (const annotation of annotations) {
-      if (!annotation.mask_info.has_segmentation) continue;
+      if (!annotation.polygon.has_segmentation) continue;
       
-      for (const polygon of annotation.mask_info.polygons) {
+      for (const polygon of annotation.polygon.polygons) {
         if (isPointInPolygon(imagePoint, polygon)) {
           toggleMaskSelection(annotation.id);
           clickedMask = true;
