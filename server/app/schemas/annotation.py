@@ -21,6 +21,19 @@ class AnnotationBase(BaseModel):
     is_crowd: bool = Field(False, description="Is crowd annotation")
     predicted_iou: Optional[float] = Field(None, description="Predicted IoU from SAM")
     stability_score: Optional[float] = Field(None, description="Stability score from SAM")
+    
+    @field_validator('polygon', mode='before')
+    @classmethod
+    def validate_polygon(cls, v):
+        """JSON 문자열을 딕셔너리로 변환"""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return v
 
 
 class AnnotationCreate(AnnotationBase):
@@ -45,6 +58,19 @@ class AnnotationUserCreate(BaseModel):
     stability_score: Optional[float] = Field(None, description="Stability score from SAM")
     image_id: int = Field(..., description="Associated image ID")
     category_id: Optional[int] = Field(None, description="Associated category ID")
+    
+    @field_validator('polygon', mode='before')
+    @classmethod
+    def validate_polygon(cls, v):
+        """JSON 문자열을 딕셔너리로 변환"""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return v
 
 
 class AnnotationUpdate(BaseModel):

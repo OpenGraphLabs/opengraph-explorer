@@ -5,6 +5,7 @@
 """
 
 import asyncio
+import json
 from typing import Optional, List, Dict, Any
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,7 +57,8 @@ class AnnotationService:
         
         # polygon 필드가 있으면 사용, 없으면 실시간 변환 (하위 호환성)
         if annotation.polygon:
-            annotation_read.mask_info = annotation.polygon
+            # polygon은 이미 Pydantic validator에 의해 딕셔너리로 변환됨
+            annotation_read.mask_info = annotation_read.polygon
         else:
             # 기존 로직: 실시간 변환 (이전 데이터 호환성을 위해)
             mask_info = get_mask_info_for_client(
@@ -93,7 +95,8 @@ class AnnotationService:
             
             # polygon 필드가 있으면 직접 사용
             if annotation.polygon:
-                annotation_read.mask_info = annotation.polygon
+                # polygon은 이미 Pydantic validator에 의해 딕셔너리로 변환됨
+                annotation_read.mask_info = annotation_read.polygon
                 needs_processing.append(False)
             else:
                 # polygon 필드가 없으면 병렬 처리 대상으로 추가
@@ -146,7 +149,8 @@ class AnnotationService:
         
         # polygon 필드가 있으면 사용, 없으면 mask_info 기반으로 생성
         if annotation.polygon:
-            client_annotation.polygon = annotation.polygon
+            # polygon은 이미 Pydantic validator에 의해 딕셔너리로 변환됨
+            client_annotation.polygon = client_annotation.polygon
         else:
             # 기존 로직: 실시간 변환 (이전 데이터 호환성을 위해)
             mask_info = get_mask_info_for_client(
@@ -183,7 +187,8 @@ class AnnotationService:
             
             # polygon 필드가 있으면 직접 사용
             if annotation.polygon:
-                client_annotation.polygon = annotation.polygon
+                # polygon은 이미 Pydantic validator에 의해 딕셔너리로 변환됨
+                client_annotation.polygon = client_annotation.polygon
                 needs_processing.append(False)
             else:
                 # polygon 필드가 없으면 병렬 처리 대상으로 추가
@@ -256,7 +261,7 @@ class AnnotationService:
                 'segmentation_size': annotation_data.segmentation_size,
                 'bbox': annotation_data.bbox
             }
-            polygon_data = process_single_mask_info(segmentation_data)
+            polygon_data = json.dumps(process_single_mask_info(segmentation_data))
         
         db_annotation = Annotation(
             bbox=annotation_data.bbox,

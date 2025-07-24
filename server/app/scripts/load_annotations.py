@@ -125,7 +125,7 @@ async def create_and_commit_annotation_batch(
         # polygon 데이터 할당
         polygon_data = None
         if needs_conv and polygon_idx < len(polygon_results):
-            polygon_data = polygon_results[polygon_idx]
+            polygon_data = json.dumps(polygon_results[polygon_idx])
             polygon_idx += 1
         
         db_annotation = Annotation(
@@ -185,7 +185,7 @@ def prepare_data_from_files(image_files: List[Path], annotation_files: List[Path
         # 이미지 데이터 준비
         image_data = ImageCreate(
             file_name=image_info["file_name"],
-            image_url=f"https://ik.imagekit.io/opengraphv1/kitchen_images/{image_info['file_name']}",
+            image_url=f"https://ik.imagekit.io/opengraphv1/val2017/{image_info['file_name']}",
             width=image_info["width"],
             height=image_info["height"],
             dataset_id=dataset_id
@@ -195,8 +195,21 @@ def prepare_data_from_files(image_files: List[Path], annotation_files: List[Path
         # 파일과 이미지 인덱스 매핑 저장
         file_to_image_mapping[str(annotation_file)] = i
         
+        # parent-child 관계 확인
+        parent_ids = set()
+        if "relationships" in coco_data and "parent_children" in coco_data["relationships"]:
+            # parent_children의 키는 parent id들
+            for parent_id in coco_data["relationships"]["parent_children"].keys():
+                parent_ids.add(int(parent_id))
+        
+        # parent가 아닌 annotation만 필터링
+        filtered_annotations = []
+        for ann in coco_data["annotations"]:
+            if ann["id"] not in parent_ids:
+                filtered_annotations.append(ann)
+        
         # annotation 데이터는 나중에 image_id가 필요하므로 raw 데이터만 저장
-        all_annotations.append((i, coco_data["annotations"]))
+        all_annotations.append((i, filtered_annotations))
     
     return image_data_list, all_annotations, file_to_image_mapping
 
@@ -324,8 +337,8 @@ async def main():
     
     # 스크립트 디렉토리 경로
     script_dir = Path(__file__).parent
-    images_dir = script_dir / "images_high"
-    annotations_dir = script_dir / "annotations_high"
+    images_dir = script_dir / "images_coco"
+    annotations_dir = script_dir / "annotations_coco"
 
     # annotation 파일 기준으로 매칭
     annotation_files = sorted(annotations_dir.glob("*_relations_*.json"))

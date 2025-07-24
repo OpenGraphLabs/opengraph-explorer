@@ -12,6 +12,7 @@ import {
 } from "phosphor-react";
 import { useImages, useAnnotationsByImage, useDataset } from "@/shared/hooks/useApiQuery";
 import { InteractiveAnnotationCanvas, CategorySearchPanel } from "@/features/annotation/components";
+import { SimpleSelectionUI } from "@/features/annotation/components/SimpleSelectionUI";
 import { Annotation } from "@/features/annotation/types/annotation";
 import { BoundingBox } from "@/features/annotation/types/workspace";
 import type { CategoryRead } from "@/shared/api/generated/models";
@@ -456,7 +457,7 @@ export function AnnotationWorkspace() {
       >
 
 
-        {/* Category Search Panel */}
+        {/* Simple Mask Selection UI */}
         <Box
           style={{
             padding: theme.spacing.semantic.component.md,
@@ -464,32 +465,31 @@ export function AnnotationWorkspace() {
             background: theme.colors.background.secondary,
           }}
         >
-          <CategorySearchPanel
-            onCategorySelect={handleCategorySelect}
-            selectedCategory={selectedEntity?.category || null}
-            placeholder={
-              selectedEntityId 
-                ? "Search categories (e.g., desk, chair, table...)" 
-                : currentSelectedMasks.length > 0
-                ? "Search and select category to create entity..."
-                : "Select masks first, then choose category"
-            }
-            dictionaryId={dataset?.dictionary_id || undefined}
+          <SimpleSelectionUI
+            selectedMaskIds={currentSelectedMasks}
+            annotations={imageAnnotations}
+            onClearSelection={() => setCurrentSelectedMasks([])}
+            onRemoveMask={(maskId) => {
+              setCurrentSelectedMasks(prev => prev.filter(id => id !== maskId));
+            }}
           />
-          {selectedEntityId && selectedEntity && (
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.interactive.primary,
-                fontSize: "11px",
-                marginTop: theme.spacing.semantic.component.xs,
-                fontWeight: 500,
-              }}
-            >
-              → Assigning to Entity #{entities.findIndex(e => e.id === selectedEntityId) + 1}
-            </Text>
-          )}
-          {!selectedEntityId && currentSelectedMasks.length > 0 && (
+        </Box>
+
+        {/* Category Search Panel */}
+        {currentSelectedMasks.length > 0 && (
+          <Box
+            style={{
+              padding: theme.spacing.semantic.component.md,
+              borderBottom: `1px solid ${theme.colors.border.subtle}20`,
+              background: theme.colors.background.secondary,
+            }}
+          >
+            <CategorySearchPanel
+              onCategorySelect={handleCategorySelect}
+              selectedCategory={selectedEntity?.category || null}
+              placeholder="Search categories (e.g., desk, chair, table...)"
+              dictionaryId={dataset?.dictionary_id || undefined}
+            />
             <Text
               size="1"
               style={{
@@ -497,12 +497,13 @@ export function AnnotationWorkspace() {
                 fontSize: "11px",
                 marginTop: theme.spacing.semantic.component.xs,
                 fontWeight: 500,
+                textAlign: "center",
               }}
             >
-              → {currentSelectedMasks.length} masks selected • Choose category to create entity
+              💡 Select a category to create a new entity
             </Text>
-          )}
-        </Box>
+          </Box>
+        )}
 
         {/* Entity List */}
         <Box

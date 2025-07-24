@@ -15,6 +15,9 @@ import {
   Hand,
   Target,
 } from "phosphor-react";
+import { SimpleMaskOverlay } from "./SimpleMaskOverlay";
+import { SimpleInteractionSystem, SimpleInteractionState } from "./SimpleInteractionSystem";
+import { SimpleSelectionUI, SimpleGuide } from "./SimpleSelectionUI";
 
 interface MaskState {
   id: number;
@@ -66,14 +69,19 @@ export function InteractiveAnnotationCanvas({
   // Mask states
   const [maskStates, setMaskStates] = useState<Record<number, MaskState>>({});
   const [showMasks, setShowMasks] = useState(true);
-  const [maskOpacity] = useState(0.6);
+  const [showColorControls, setShowColorControls] = useState(false);
+  const [interactionState, setInteractionState] = useState<SimpleInteractionState>({
+    hoveredMaskId: null,
+    selectedMaskIds: [],
+    lastClickedMaskId: null,
+  });
 
   // Constants
   const MIN_ZOOM = 0.1;
   const MAX_ZOOM = 10;
   const ZOOM_STEP = 0.1;
 
-  // Color palette for masks
+  // Legacy color palette (kept for canvas fallback)
   const COLOR_PALETTE = [
     '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
     '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1',
@@ -383,49 +391,8 @@ export function InteractiveAnnotationCanvas({
     ctx.drawImage(loadedImage, 0, 0, imageWidth, imageHeight);
     ctx.restore();
     
-    if (showMasks) {
-      // Draw masks
-      annotations.forEach((annotation, index) => {
-        if (!annotation.polygon.has_segmentation) return;
-        
-        const maskState = maskStates[annotation.id];
-        if (!maskState) return;
-        
-        const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
-        const alpha = maskState.selected ? maskOpacity : maskOpacity * 0.3;
-        
-        ctx.save();
-        ctx.translate(panOffset.x, panOffset.y);
-        ctx.scale(zoom, zoom);
-        
-        // Draw polygons
-        annotation.polygon.polygons.forEach(polygon => {
-          if (polygon.length < 3) return;
-          
-          ctx.beginPath();
-          ctx.moveTo(polygon[0][0], polygon[0][1]);
-          
-          for (let i = 1; i < polygon.length; i++) {
-            ctx.lineTo(polygon[i][0], polygon[i][1]);
-          }
-          
-          ctx.closePath();
-          
-          // Fill
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = color;
-          ctx.fill();
-          
-          // Stroke
-          ctx.globalAlpha = maskState.selected ? 1 : 0.5;
-          ctx.strokeStyle = maskState.selected ? '#FFFFFF' : color;
-          ctx.lineWidth = maskState.selected ? 3 / zoom : 1 / zoom;
-          ctx.stroke();
-        });
-        
-        ctx.restore();
-      });
-    }
+    // Note: Mask rendering is now handled by ModernMaskOverlay component
+    // This canvas is primarily for the image and bounding box drawing
     
     // Draw current bbox being drawn
     if (isDrawingBbox && currentBbox) {
@@ -442,7 +409,7 @@ export function InteractiveAnnotationCanvas({
     }
   }, [
     loadedImage, imageLoaded, imageWidth, imageHeight, zoom, panOffset,
-    showMasks, annotations, maskStates, COLOR_PALETTE, maskOpacity,
+    showMasks, annotations, maskStates, COLOR_PALETTE,
     isDrawingBbox, currentBbox
   ]);
 
@@ -624,52 +591,82 @@ export function InteractiveAnnotationCanvas({
         overflow: "hidden",
       }}
     >
-      <canvas
-        ref={canvasRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onWheel={handleWheel}
-        onContextMenu={handleContextMenu}
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "block",
-          cursor: getCursor(),
+      <SimpleInteractionSystem
+        annotations={annotations}
+        zoom={zoom}
+        panOffset={panOffset}
+        imageWidth={imageWidth}
+        imageHeight={imageHeight}
+        canvasWidth={canvasRef.current?.width || 0}
+        canvasHeight={canvasRef.current?.height || 0}
+        selectedMaskIds={selectedMaskIds}
+        onStateChange={(updates) => {
+          setInteractionState(prev => ({ ...prev, ...updates }));
+          if (updates.selectedMaskIds) {
+            onMaskSelectionChange?.(updates.selectedMaskIds);
+          }
         }}
-      />
-      
-      {/* Instructions Overlay */}
-      {imageLoaded && (
-        <Box
-          style={{
-            position: "absolute",
-            top: "16px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: `${theme.colors.background.card}95`,
-            color: theme.colors.text.primary,
-            padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-            borderRadius: theme.borders.radius.md,
-            border: `1px solid ${theme.colors.border.primary}30`,
-            boxShadow: `0 4px 16px ${theme.colors.background.primary}40`,
-            backdropFilter: "blur(12px)",
-            maxWidth: "90%",
-            textAlign: "center",
-          }}
-        >
-          <Text
-            size="2"
+      >
+        {(interactionState, handlers) => (
+          <>
+            <canvas
+              ref={canvasRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={(e) => {
+                handleMouseMove(e);
+                handlers.handleMouseMove(e);
+              }}
+              onMouseUp={handleMouseUp}
+              onWheel={handleWheel}
+              onContextMenu={handleContextMenu}
+              onMouseLeave={handlers.handleMouseLeave}
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "block",
+                cursor: getCursor(),
+              }}
+            />
+            
+            {/* Simple Mask Overlay */}
+            {showMasks && (
+              <SimpleMaskOverlay
+                annotations={annotations}
+                selectedMaskIds={selectedMaskIds}
+                hoveredMaskId={interactionState.hoveredMaskId}
+                zoom={zoom}
+                panOffset={panOffset}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
+                canvasWidth={canvasRef.current?.width || 0}
+                canvasHeight={canvasRef.current?.height || 0}
+                onMaskHover={(maskId) => {
+                  setInteractionState(prev => ({ ...prev, hoveredMaskId: maskId }));
+                }}
+                onMaskClick={(maskId, event) => {
+                  handlers.toggleMaskSelection(maskId);
+                }}
+              />
+            )}
+          </>
+        )}
+      </SimpleInteractionSystem>
+        
+        {/* Simple Guide */}
+        {imageLoaded && (
+          <Box
             style={{
-              fontWeight: 600,
-              color: theme.colors.text.primary,
-              lineHeight: 1.4,
+              position: "absolute",
+              top: "16px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              maxWidth: "90%",
+              zIndex: 5,
             }}
           >
-            Draw bbox to select masks • Click masks to toggle • Space+drag to pan • Mouse wheel to zoom
-          </Text>
-        </Box>
-      )}
+            <SimpleGuide />
+          </Box>
+        )}
       
       {/* Zoom and View Controls */}
       <Box
@@ -817,7 +814,7 @@ export function InteractiveAnnotationCanvas({
           </Box>
         )}
 
-        {/* Mask Visibility Toggle */}
+        {/* Simple Mask Toggle */}
         <Button
           onClick={() => setShowMasks(!showMasks)}
           style={{
@@ -837,23 +834,6 @@ export function InteractiveAnnotationCanvas({
         >
           {showMasks ? <EyeSlash size={14} /> : <Eye size={14} />}
         </Button>
-        
-        {/* Selected Mask Count */}
-        {selectedMaskCount > 0 && (
-          <Box
-            style={{
-              background: theme.colors.interactive.primary,
-              color: theme.colors.text.inverse,
-              borderRadius: theme.borders.radius.sm,
-              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
-              fontSize: "12px",
-              fontWeight: 600,
-              textAlign: "center",
-            }}
-          >
-            {selectedMaskCount} selected
-          </Box>
-        )}
       </Box>
     </Box>
   );
