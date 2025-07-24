@@ -59,7 +59,7 @@ async def create_and_commit_annotation_batch(
         return 0
     
     batch_start_time = time.time()
-    print(f"\n  Batch {batch_id}/{total_batches}: Processing {len(annotation_data_list)} annotations_test...")
+    print(f"\n  Batch {batch_id}/{total_batches}: Processing {len(annotation_data_list)} annotations...")
     
     # 병렬 처리를 위한 segmentation 데이터 준비
     segmentation_data_list = []
@@ -185,7 +185,7 @@ def prepare_data_from_files(image_files: List[Path], annotation_files: List[Path
         # 이미지 데이터 준비
         image_data = ImageCreate(
             file_name=image_info["file_name"],
-            image_url=f"https://ik.imagekit.io/opengraphv1/kitchen_small/{image_info['file_name']}",
+            image_url=f"https://ik.imagekit.io/opengraphv1/kitchen_images/{image_info['file_name']}",
             width=image_info["width"],
             height=image_info["height"],
             dataset_id=dataset_id
@@ -324,8 +324,8 @@ async def main():
     
     # 스크립트 디렉토리 경로
     script_dir = Path(__file__).parent
-    images_dir = script_dir / "images"
-    annotations_dir = script_dir / "annotations"
+    images_dir = script_dir / "images_high"
+    annotations_dir = script_dir / "annotations_high"
 
     # annotation 파일 기준으로 매칭
     annotation_files = sorted(annotations_dir.glob("*_relations_*.json"))

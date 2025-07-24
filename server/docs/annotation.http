@@ -26,7 +26,7 @@ X-Opengraph-User-Id: 1
 }
 
 ### annotation - List annotations by image id
-GET {{http-host}}/api/v1/annotations/image/180
+GET {{http-host}}/api/v1/annotations/image/2421
 X-Opengraph-User-Id: 1
 
 ### annotation - ReadAll Approved Annotations

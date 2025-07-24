@@ -6,7 +6,8 @@
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator, field_serializer
+import json
 
 
 class AnnotationBase(BaseModel):
@@ -106,6 +107,29 @@ class AnnotationClientRead(BaseModel):
     
     # Polygon 데이터 (JSON 형태)
     polygon: Optional[Dict[str, Any]] = Field(None, description="Pre-computed polygon data for client rendering")
+    
+    @field_validator('polygon', mode='before')
+    def parse_polygon(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return None
+        return v
+    
+    @field_serializer('polygon')
+    def serialize_polygon(self, v):
+        # Serialize 시에는 항상 dict나 None을 반환
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return None
+        return v
     
     model_config = ConfigDict(from_attributes=True)
 

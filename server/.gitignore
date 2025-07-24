@@ -1,5 +1,3 @@
-app/scripts/images/
-app/scripts/images_test/
-app/scripts/annotations/
-app/scripts/annotations_test/
+app/scripts/images*/
+app/scripts/annotations*/
 

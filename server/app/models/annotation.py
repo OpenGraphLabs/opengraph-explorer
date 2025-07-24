@@ -6,8 +6,7 @@ SQLAlchemy model for unified annotation management (both auto-generated and user
 
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import Column, BigInteger, String, DateTime, func, ForeignKey, Boolean, ARRAY, Float, CheckConstraint
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, BigInteger, String, DateTime, func, ForeignKey, Boolean, ARRAY, Float, CheckConstraint, Text
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from ..database import Base
@@ -24,7 +23,7 @@ class Annotation(Base):
     area: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     segmentation_size: Mapped[Optional[List[int]]] = mapped_column(ARRAY(BigInteger, dimensions=1), nullable=True)
     segmentation_counts: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    polygon: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    polygon: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     point_coords: Mapped[Optional[List[List[float]]]] = mapped_column(ARRAY(Float, dimensions=2), nullable=True)
     is_crowd: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     predicted_iou: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

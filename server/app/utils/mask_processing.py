@@ -65,7 +65,7 @@ def process_single_mask_info(segmentation_data: Dict[str, Any]) -> Dict[str, Any
     
     # Segmentation 변환 시도
     if segmentation_counts and segmentation_size:
-        polygons = rle_to_polygon_optimized(segmentation_counts, segmentation_size)
+        polygons = rle_to_polygon(segmentation_counts, segmentation_size)
         if polygons:
             mask_info["has_segmentation"] = True
             mask_info["polygons"] = polygons
@@ -76,6 +76,56 @@ def process_single_mask_info(segmentation_data: Dict[str, Any]) -> Dict[str, Any
         mask_info["bbox_polygon"] = bbox_polygon
     
     return mask_info
+
+
+def rle_to_polygon(segmentation_counts: str, segmentation_size: List[int]) -> List[List[List[float]]]:
+    """
+    COCO RLE 포맷을 polygon 좌표로 변환
+
+    Args:
+        segmentation_counts: COCO RLE encoding string
+        segmentation_size: [height, width] of the segmentation
+
+    Returns:
+        List[List[List[float]]]: List of polygons, each polygon is a list of [x, y] coordinates
+    """
+    if not segmentation_counts or not segmentation_size:
+        return []
+
+    try:
+        # COCO RLE 포맷으로 변환
+        rle = {
+            'size': segmentation_size,  # [height, width]
+            'counts': segmentation_counts.encode('utf-8')
+        }
+
+        # RLE를 binary mask로 변환
+        binary_mask = maskUtils.decode(rle)
+
+        # OpenCV를 사용해서 contour 찾기
+        contours, _ = cv2.findContours(
+            binary_mask.astype(np.uint8),
+            cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE
+        )
+
+        polygons = []
+        for contour in contours:
+            # contour 단순화 (너무 많은 점들 제거)
+            epsilon = 0.01 * cv2.arcLength(contour, True)
+            simplified_contour = cv2.approxPolyDP(contour, epsilon, True)
+
+            # 최소 3개의 점이 있어야 polygon
+            if len(simplified_contour) >= 3:
+                # contour를 [x, y] 좌표 리스트로 변환
+                polygon = simplified_contour.reshape(-1, 2).astype(float).tolist()
+                polygons.append(polygon)
+
+        return polygons
+
+    except Exception as e:
+        print(f"Error converting RLE to polygon: {e}")
+        return []
 
 
 def rle_to_polygon_optimized(segmentation_counts: str, segmentation_size: List[int]) -> List[List[List[float]]]:
