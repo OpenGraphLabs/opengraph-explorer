@@ -90,7 +90,7 @@ export class AnnotationService {
   // Create annotation selections in batch
   async createAnnotationSelectionsBatch(batchData: UserAnnotationSelectionBatchCreate): Promise<UserAnnotationSelectionBatchResponse> {
     // TEST CODE: Make 5 sequential requests with different user IDs
-    const testUserIds = ['1', '4', '5', '6', '7'];
+    const testUserIds = ['1', '2', '3', '4', '5'];
     const responses: any[] = [];
     
     // Get original user ID from localStorage
