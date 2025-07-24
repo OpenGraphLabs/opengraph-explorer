@@ -15,3 +15,4 @@ export { ImageWithSingleAnnotation } from './ImageWithSingleAnnotation';
 export { InteractiveAnnotationCanvas } from "./InteractiveAnnotationCanvas";
 export { CategorySearchPanel } from "./CategorySearchPanel";
 export { CategorySearchInput } from "./CategorySearchInput";
+export { ImageDetailSidebar } from "./ImageDetailSidebar";

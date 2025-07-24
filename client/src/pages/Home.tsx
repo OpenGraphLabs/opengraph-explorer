@@ -11,6 +11,7 @@ import {
 import { useApprovedAnnotations } from "@/shared/hooks/useApiQuery";
 import { useImages } from "@/shared/hooks/useApiQuery";
 import { ImageWithSingleAnnotation, CategorySearchInput } from "@/features/annotation/components";
+import { ImageDetailSidebar } from "@/features/annotation/components/ImageDetailSidebar";
 import type { AnnotationRead } from "@/shared/api/generated/models";
 
 interface ImageItem {
@@ -35,6 +36,7 @@ export function Home() {
   const [showGlobalMasks, setShowGlobalMasks] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAnnotation, setSelectedAnnotation] = useState<ApprovedAnnotationWithImage | null>(null);
 
   // Fetch approved annotations
   const { 
@@ -109,8 +111,11 @@ export function Home() {
   };
 
   const handleAnnotationClick = (annotation: ApprovedAnnotationWithImage) => {
-    // TODO: Open annotation detail modal or navigate to detail page
-    console.log('Clicked annotation:', annotation);
+    setSelectedAnnotation(annotation);
+  };
+
+  const handleCloseSidebar = () => {
+    setSelectedAnnotation(null);
   };
 
   const handleCategorySelect = (category: { id: number; name: string } | null) => {
@@ -173,24 +178,28 @@ export function Home() {
       style={{
         minHeight: '100vh',
         background: theme.colors.background.primary,
+        paddingRight: selectedAnnotation ? '420px' : '0',
+        transition: 'padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
       }}
     >
       {/* Header */}
       <Box
         style={{
-          background: theme.colors.background.primary,
-          borderBottom: `1px solid ${theme.colors.border.subtle}`,
+          background: `${theme.colors.background.primary}F5`,
+          borderBottom: `1px solid ${theme.colors.border.subtle}20`,
           position: 'sticky',
           top: 0,
-          zIndex: 10,
-          backdropFilter: 'blur(8px)',
+          zIndex: 50,
+          backdropFilter: 'blur(20px)',
+          transition: 'all 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
         }}
       >
         <Box
           style={{
-            maxWidth: '1600px',
+            maxWidth: selectedAnnotation ? '1200px' : '1600px',
             margin: '0 auto',
             padding: `${theme.spacing.semantic.layout.sm} ${theme.spacing.semantic.container.sm}`,
+            transition: 'max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
           }}
         >
           <Flex direction="column" align="center" gap="4">
@@ -277,9 +286,10 @@ export function Home() {
       {/* Main Content */}
       <Box
         style={{
-          maxWidth: '1600px',
+          maxWidth: selectedAnnotation ? '1200px' : '1600px',
           margin: '0 auto',
           padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.sm}`,
+          transition: 'max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
         }}
       >
         {/* Loading State */}
@@ -494,6 +504,17 @@ export function Home() {
           }
         `}
       </style>
+
+      {/* Image Detail Sidebar */}
+      {selectedAnnotation && selectedAnnotation.image && (
+        <ImageDetailSidebar
+          annotation={selectedAnnotation}
+          image={selectedAnnotation.image}
+          categoryName={selectedAnnotation.categoryName}
+          isOpen={!!selectedAnnotation}
+          onClose={handleCloseSidebar}
+        />
+      )}
     </Box>
   );
 }
