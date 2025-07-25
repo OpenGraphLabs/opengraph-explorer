@@ -84,8 +84,8 @@ export function ImageDetailSidebar({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // 캔버스 크기를 컨테이너에 맞게 조정
-    const containerWidth = 400;
+    // 캔버스 크기를 컨테이너에 맞게 조정 (520px 사이드바에 맞게 조정)
+    const containerWidth = 480; // 사이드바 520px - 좌우 패딩 40px
     const aspectRatio = image.height / image.width;
     const containerHeight = containerWidth * aspectRatio;
     
@@ -101,8 +101,9 @@ export function ImageDetailSidebar({
 
   // SVG 좌표 변환
   const transformCoordinates = useCallback((originalX: number, originalY: number) => {
-    const scaleX = 400 / image.width;
-    const scaleY = (400 * image.height / image.width) / image.height;
+    const containerWidth = 480; // 캔버스와 동일한 크기
+    const scaleX = containerWidth / image.width;
+    const scaleY = (containerWidth * image.height / image.width) / image.height;
     
     return {
       x: originalX * scaleX,
@@ -222,7 +223,7 @@ A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an ora
         top: 0,
         right: 0,
         bottom: 0,
-        width: "420px",
+        width: "520px",
         background: theme.colors.background.primary,
         borderLeft: `1px solid ${theme.colors.border.subtle}20`,
         zIndex: 100,
@@ -414,7 +415,7 @@ A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an ora
                   height: "100%",
                   pointerEvents: "none",
                 }}
-                viewBox={`0 0 400 ${400 * image.height / image.width}`}
+                viewBox={`0 0 480 ${480 * image.height / image.width}`}
               >
                 <defs>
                   {/* 마스크용 글로우 효과 */}
