@@ -12,7 +12,9 @@ import {
   Tag,
   Hash,
   Target,
-  BoundingBox as BoundingBoxIcon
+  BoundingBox as BoundingBoxIcon,
+  Brain,
+  Sparkle
 } from "phosphor-react";
 import type { AnnotationRead, AnnotationClientRead } from "@/shared/api/generated/models";
 import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
@@ -169,6 +171,36 @@ export function ImageDetailSidebar({
     
     return annotations;
   }, [allApprovedAnnotations, annotation]);
+
+  // 더미 컨텍스트 데이터 (추후 API에서 가져올 예정)
+  const contextDescription = `A <em>person</em> who is located from (151, 0) to (329, 401) is standing on a dirt ground, wearing a white shirt and blue jeans, facing away from the camera.
+A large <em>dog</em> is standing from (134, 120) to (456, 481) with dark curly fur. It is positioned directly in front of the <em>person</em> and facing the same direction.
+A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an orange toy in its mouth. It is to the left of the larger <em>dog</em> and partially in front of the <em>person</em>.`;
+
+  // HTML 태그를 파싱해서 React 요소로 변환
+  const parseContextDescription = useCallback((text: string) => {
+    const parts = text.split(/(<em>.*?<\/em>)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('<em>') && part.endsWith('</em>')) {
+        const content = part.replace(/<\/?em>/g, '');
+        return (
+          <span
+            key={index}
+            style={{
+              color: HIGHLIGHT_COLOR,
+              fontWeight: 600,
+              textDecoration: `underline ${HIGHLIGHT_COLOR}40`,
+              textUnderlineOffset: "2px",
+            }}
+          >
+            {content}
+          </span>
+        );
+      }
+      return part;
+    });
+  }, []);
   
   // 디버깅용 로그
   useEffect(() => {
@@ -259,6 +291,7 @@ export function ImageDetailSidebar({
           
           {/* 현재 선택된 어노테이션 표시 */}
           <Text
+            as="p"
             style={{
               fontSize: "11px",
               color: theme.colors.text.secondary,
@@ -404,8 +437,8 @@ export function ImageDetailSidebar({
                 {showMask && annotationsToRender.map((ann: AnnotationClientRead) => {
                   const isSelected = isSelectedAnnotation(ann);
                   const color = isSelected ? HIGHLIGHT_COLOR : OTHER_COLOR;
-                  const opacity = isSelected ? 0.4 : 0.3; // 다른 annotation 투명도 증가
-                  const strokeWidth = isSelected ? 2.5 : 2; // 다른 annotation 선 두께 증가
+                  const opacity = isSelected ? 0.4 : 0.2; // 다른 annotation 투명도 감소
+                  const strokeWidth = isSelected ? 2.5 : 1.5; // 다른 annotation 선 두께 감소
                   
                   if (!ann.polygon || !(ann.polygon as any).has_segmentation) return null;
                   
@@ -440,8 +473,8 @@ export function ImageDetailSidebar({
                   
                   const isSelected = isSelectedAnnotation(ann);
                   const color = isSelected ? HIGHLIGHT_COLOR : OTHER_COLOR;
-                  const strokeWidth = isSelected ? 2.5 : 1.8; // 다른 annotation bbox 선 두께 증가
-                  const opacity = isSelected ? 1 : 0.75; // 다른 annotation bbox 투명도 증가
+                  const strokeWidth = isSelected ? 2.5 : 1.3; // 다른 annotation bbox 선 두께 감소
+                  const opacity = isSelected ? 1 : 0.6; // 다른 annotation bbox 투명도 감소
                   
                   const [x, y, width, height] = ann.bbox;
                   const topLeft = transformCoordinates(x, y);
@@ -537,6 +570,84 @@ export function ImageDetailSidebar({
           </Heading>
 
           <Flex direction="column" gap="4">
+            {/* AI 생성 컨텍스트 */}
+            <Box>
+              <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+                <Box
+                  style={{
+                    background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
+                    borderRadius: "50%",
+                    padding: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Brain size={12} color="white" />
+                </Box>
+                <Text style={{ 
+                  fontSize: "12px", 
+                  fontWeight: 600, 
+                  color: theme.colors.text.secondary,
+                }}>
+                  AI CONTEXT ANALYSIS
+                </Text>
+                <Box
+                  style={{
+                    background: `linear-gradient(45deg, #FFD700, #FFA500)`,
+                    borderRadius: "50%",
+                    padding: "2px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Sparkle size={8} color="white" />
+                </Box>
+              </Flex>
+              
+              <Box
+                style={{
+                  background: `linear-gradient(135deg, ${theme.colors.background.card}80, ${theme.colors.background.secondary}40)`,
+                  border: `1px solid ${theme.colors.border.subtle}30`,
+                  borderRadius: theme.borders.radius.md,
+                  padding: theme.spacing.semantic.component.md,
+                  position: "relative",
+                }}
+              >
+                <Box
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: "1.5",
+                    color: theme.colors.text.primary,
+                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                    letterSpacing: "0.01em",
+                  }}
+                >
+                  {parseContextDescription(contextDescription)}
+                </Box>
+                
+                {/* AI 배지 */}
+                <Box
+                  style={{
+                    position: "absolute",
+                    bottom: "8px",
+                    right: "8px",
+                    background: `${theme.colors.background.primary}95`,
+                    backdropFilter: "blur(8px)",
+                    borderRadius: theme.borders.radius.sm,
+                    padding: "2px 6px",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    color: theme.colors.text.tertiary,
+                    border: `1px solid ${theme.colors.border.subtle}20`,
+                  }}
+                >
+                  AI Generated
+                </Box>
+              </Box>
+            </Box>
+
             {/* 파일 정보 */}
             <Box>
               <Text style={{ 
