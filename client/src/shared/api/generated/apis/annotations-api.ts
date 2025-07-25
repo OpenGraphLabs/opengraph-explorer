@@ -22,6 +22,8 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { AnnotationClientRead } from '../models';
+// @ts-ignore
 import type { AnnotationListResponse } from '../models';
 // @ts-ignore
 import type { AnnotationRead } from '../models';
@@ -308,7 +310,7 @@ export const AnnotationsApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
-         * Get all annotations for a specific image with client-friendly mask information
+         * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
          * @summary Get Annotations By Image
          * @param {number} imageId 
          * @param {*} [options] Override http request option.
@@ -369,6 +371,40 @@ export const AnnotationsApiAxiosParamCreator = function (configuration?: Configu
             if (limit !== undefined) {
                 localVarQueryParameter['limit'] = limit;
             }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
+         * @summary Get Approved Annotations By Image
+         * @param {number} imageId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet: async (imageId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'imageId' is not null or undefined
+            assertParamExists('getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet', 'imageId', imageId)
+            const localVarPath = `/api/v1/annotations/image/{image_id}/approved`
+                .replace(`{${"image_id"}}`, encodeURIComponent(String(imageId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
 
     
@@ -676,13 +712,13 @@ export const AnnotationsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get all annotations for a specific image with client-friendly mask information
+         * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
          * @summary Get Annotations By Image
          * @param {number} imageId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAnnotationsByImageApiV1AnnotationsImageImageIdGet(imageId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AnnotationRead>>> {
+        async getAnnotationsByImageApiV1AnnotationsImageImageIdGet(imageId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AnnotationClientRead>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getAnnotationsByImageApiV1AnnotationsImageImageIdGet(imageId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AnnotationsApi.getAnnotationsByImageApiV1AnnotationsImageImageIdGet']?.[localVarOperationServerIndex]?.url;
@@ -700,6 +736,19 @@ export const AnnotationsApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getApprovedAnnotationsApiV1AnnotationsApprovedGet(page, limit, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AnnotationsApi.getApprovedAnnotationsApiV1AnnotationsApprovedGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
+         * @summary Get Approved Annotations By Image
+         * @param {number} imageId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(imageId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AnnotationClientRead>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(imageId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AnnotationsApi.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -851,13 +900,13 @@ export const AnnotationsApiFactory = function (configuration?: Configuration, ba
             return localVarFp.getAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdGet(requestParameters.selectionId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get all annotations for a specific image with client-friendly mask information
+         * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
          * @summary Get Annotations By Image
          * @param {AnnotationsApiGetAnnotationsByImageApiV1AnnotationsImageImageIdGetRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAnnotationsByImageApiV1AnnotationsImageImageIdGet(requestParameters: AnnotationsApiGetAnnotationsByImageApiV1AnnotationsImageImageIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<AnnotationRead>> {
+        getAnnotationsByImageApiV1AnnotationsImageImageIdGet(requestParameters: AnnotationsApiGetAnnotationsByImageApiV1AnnotationsImageImageIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<AnnotationClientRead>> {
             return localVarFp.getAnnotationsByImageApiV1AnnotationsImageImageIdGet(requestParameters.imageId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -869,6 +918,16 @@ export const AnnotationsApiFactory = function (configuration?: Configuration, ba
          */
         getApprovedAnnotationsApiV1AnnotationsApprovedGet(requestParameters: AnnotationsApiGetApprovedAnnotationsApiV1AnnotationsApprovedGetRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<AnnotationListResponse> {
             return localVarFp.getApprovedAnnotationsApiV1AnnotationsApprovedGet(requestParameters.page, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
+         * @summary Get Approved Annotations By Image
+         * @param {AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(requestParameters: AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<AnnotationClientRead>> {
+            return localVarFp.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(requestParameters.imageId, options).then((request) => request(axios, basePath));
         },
         /**
          * Get annotation selection stats for a specific image  Provides information such as the number of users who made the same selection and whether it qualifies for approval.
@@ -999,14 +1058,14 @@ export interface AnnotationsApiInterface {
     getAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdGet(requestParameters: AnnotationsApiGetAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserAnnotationSelectionRead>;
 
     /**
-     * Get all annotations for a specific image with client-friendly mask information
+     * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
      * @summary Get Annotations By Image
      * @param {AnnotationsApiGetAnnotationsByImageApiV1AnnotationsImageImageIdGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AnnotationsApiInterface
      */
-    getAnnotationsByImageApiV1AnnotationsImageImageIdGet(requestParameters: AnnotationsApiGetAnnotationsByImageApiV1AnnotationsImageImageIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<AnnotationRead>>;
+    getAnnotationsByImageApiV1AnnotationsImageImageIdGet(requestParameters: AnnotationsApiGetAnnotationsByImageApiV1AnnotationsImageImageIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<AnnotationClientRead>>;
 
     /**
      * List all approved annotations.
@@ -1017,6 +1076,16 @@ export interface AnnotationsApiInterface {
      * @memberof AnnotationsApiInterface
      */
     getApprovedAnnotationsApiV1AnnotationsApprovedGet(requestParameters?: AnnotationsApiGetApprovedAnnotationsApiV1AnnotationsApprovedGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<AnnotationListResponse>;
+
+    /**
+     * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
+     * @summary Get Approved Annotations By Image
+     * @param {AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AnnotationsApiInterface
+     */
+    getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(requestParameters: AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<AnnotationClientRead>>;
 
     /**
      * Get annotation selection stats for a specific image  Provides information such as the number of users who made the same selection and whether it qualifies for approval.
@@ -1203,6 +1272,20 @@ export interface AnnotationsApiGetApprovedAnnotationsApiV1AnnotationsApprovedGet
 }
 
 /**
+ * Request parameters for getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet operation in AnnotationsApi.
+ * @export
+ * @interface AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest
+ */
+export interface AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet
+     */
+    readonly imageId: number
+}
+
+/**
  * Request parameters for getImageSelectionStatsApiV1AnnotationsSelectionsImageImageIdStatsGet operation in AnnotationsApi.
  * @export
  * @interface AnnotationsApiGetImageSelectionStatsApiV1AnnotationsSelectionsImageImageIdStatsGetRequest
@@ -1378,7 +1461,7 @@ export class AnnotationsApi extends BaseAPI implements AnnotationsApiInterface {
     }
 
     /**
-     * Get all annotations for a specific image with client-friendly mask information
+     * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
      * @summary Get Annotations By Image
      * @param {AnnotationsApiGetAnnotationsByImageApiV1AnnotationsImageImageIdGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1399,6 +1482,18 @@ export class AnnotationsApi extends BaseAPI implements AnnotationsApiInterface {
      */
     public getApprovedAnnotationsApiV1AnnotationsApprovedGet(requestParameters: AnnotationsApiGetApprovedAnnotationsApiV1AnnotationsApprovedGetRequest = {}, options?: RawAxiosRequestConfig) {
         return AnnotationsApiFp(this.configuration).getApprovedAnnotationsApiV1AnnotationsApprovedGet(requestParameters.page, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
+     * @summary Get Approved Annotations By Image
+     * @param {AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AnnotationsApi
+     */
+    public getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(requestParameters: AnnotationsApiGetApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGetRequest, options?: RawAxiosRequestConfig) {
+        return AnnotationsApiFp(this.configuration).getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(requestParameters.imageId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

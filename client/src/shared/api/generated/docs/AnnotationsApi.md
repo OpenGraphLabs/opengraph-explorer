@@ -13,6 +13,7 @@ All URIs are relative to *http://localhost*
 |[**getAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdGet**](#getannotationselectionapiv1annotationsselectionsselectionidget) | **GET** /api/v1/annotations/selections/{selection_id} | Get Annotation Selection|
 |[**getAnnotationsByImageApiV1AnnotationsImageImageIdGet**](#getannotationsbyimageapiv1annotationsimageimageidget) | **GET** /api/v1/annotations/image/{image_id} | Get Annotations By Image|
 |[**getApprovedAnnotationsApiV1AnnotationsApprovedGet**](#getapprovedannotationsapiv1annotationsapprovedget) | **GET** /api/v1/annotations/approved | Get Approved Annotations|
+|[**getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet**](#getapprovedannotationsbyimageapiv1annotationsimageimageidapprovedget) | **GET** /api/v1/annotations/image/{image_id}/approved | Get Approved Annotations By Image|
 |[**getImageSelectionStatsApiV1AnnotationsSelectionsImageImageIdStatsGet**](#getimageselectionstatsapiv1annotationsselectionsimageimageidstatsget) | **GET** /api/v1/annotations/selections/image/{image_id}/stats | Get Image Selection Stats|
 |[**getMyAnnotationSelectionsApiV1AnnotationsSelectionsMeGet**](#getmyannotationselectionsapiv1annotationsselectionsmeget) | **GET** /api/v1/annotations/selections/me | Get My Annotation Selections|
 |[**getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet**](#getselectionsummaryapiv1annotationsselectionssummaryget) | **GET** /api/v1/annotations/selections/summary | Get Selection Summary|
@@ -387,9 +388,9 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAnnotationsByImageApiV1AnnotationsImageImageIdGet**
-> Array<AnnotationRead> getAnnotationsByImageApiV1AnnotationsImageImageIdGet()
+> Array<AnnotationClientRead> getAnnotationsByImageApiV1AnnotationsImageImageIdGet()
 
-Get all annotations for a specific image with client-friendly mask information
+Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
 
 ### Example
 
@@ -418,7 +419,7 @@ const { status, data } = await apiInstance.getAnnotationsByImageApiV1Annotations
 
 ### Return type
 
-**Array<AnnotationRead>**
+**Array<AnnotationClientRead>**
 
 ### Authorization
 
@@ -474,6 +475,58 @@ const { status, data } = await apiInstance.getApprovedAnnotationsApiV1Annotation
 ### Return type
 
 **AnnotationListResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet**
+> Array<AnnotationClientRead> getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet()
+
+Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
+
+### Example
+
+```typescript
+import {
+    AnnotationsApi,
+    Configuration
+} from 'opengraph-api-client';
+
+const configuration = new Configuration();
+const apiInstance = new AnnotationsApi(configuration);
+
+let imageId: number; // (default to undefined)
+
+const { status, data } = await apiInstance.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(
+    imageId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **imageId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**Array<AnnotationClientRead>**
 
 ### Authorization
 

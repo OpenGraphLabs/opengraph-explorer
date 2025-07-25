@@ -1561,6 +1561,53 @@
         }
       }
     },
+    "/api/v1/annotations/image/{image_id}/approved": {
+      "get": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Get Approved Annotations By Image",
+        "description": "Get all annotations for a specific image with client-friendly format (polygon data, no RLE)",
+        "operationId": "get_approved_annotations_by_image_api_v1_annotations_image__image_id__approved_get",
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Image Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationClientRead"
+                  },
+                  "title": "Response Get Approved Annotations By Image Api V1 Annotations Image  Image Id  Approved Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/annotations/selections": {
       "post": {
         "tags": [

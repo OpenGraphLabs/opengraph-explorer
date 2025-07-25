@@ -283,6 +283,20 @@ export function useAnnotationsByImage(
   });
 }
 
+export function useApprovedAnnotationsByImage(
+  imageId: number,
+  options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { annotations } = useApiClient(options?.apiClientOptions);
+
+  return useQuery({
+    queryKey: [...queryKeys.annotations.byImage(imageId), 'approved'],
+    queryFn: () => annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet({ imageId }),
+    enabled: !!imageId,
+    ...options
+  });
+}
+
 // Annotation Mutations
 export function useCreateAnnotation(
   options?: UseMutationOptions<any, Error, AnnotationUserCreate> & { apiClientOptions?: UseApiClientOptions }

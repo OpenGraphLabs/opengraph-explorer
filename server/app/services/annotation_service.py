@@ -326,10 +326,10 @@ class AnnotationService:
     async def get_annotations_by_image_id_for_client(self, image_id: int) -> List[AnnotationClientRead]:
         """
         특정 이미지에 포함된 어노테이션 목록을 클라이언트용으로 조회합니다.
-        
+
         Args:
             image_id: Image ID
-            
+
         Returns:
             List[AnnotationClientRead]: List of client-friendly annotations for the image
         """
@@ -337,7 +337,29 @@ class AnnotationService:
             select(Annotation).where(Annotation.image_id == image_id)
         )
         annotations = result.scalars().all()
-        
+
+        # Use batch processing for better performance
+        return await self._batch_create_annotation_client_read(annotations)
+
+    async def get_approved_user_annotations_by_image_id_for_client(self, image_id: int) -> List[AnnotationClientRead]:
+        """
+        Get approved user annotations for a specific image in client-friendly format.
+
+        Args:
+            image_id: Image ID
+
+        Returns:
+            List[AnnotationClientRead]: List of client-friendly annotations for the image
+        """
+        result = await self.db.execute(
+            select(Annotation).where(
+                Annotation.image_id == image_id,
+                Annotation.source_type == "USER",
+                Annotation.status == "APPROVED"
+            )
+        )
+        annotations = result.scalars().all()
+
         # Use batch processing for better performance
         return await self._batch_create_annotation_client_read(annotations)
     

@@ -42,7 +42,7 @@ export interface UserAnnotationSelectionBatchResponse {
      */
     'auto_approved_count': number;
     /**
-     * Number of merged annotations created from auto-approvals
+     * Number of merged annotations_test created from auto-approvals
      * @type {number}
      * @memberof UserAnnotationSelectionBatchResponse
      */

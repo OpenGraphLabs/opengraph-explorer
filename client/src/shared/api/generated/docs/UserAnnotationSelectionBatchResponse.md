@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **createdSelections** | [**Array&lt;UserAnnotationSelectionRead&gt;**](UserAnnotationSelectionRead.md) | Successfully created annotation selections | [default to undefined]
 **totalCreated** | **number** | Total number of selections created | [default to undefined]
 **autoApprovedCount** | **number** | Number of selections that triggered auto-approval | [default to undefined]
-**mergedAnnotationsCount** | **number** | Number of merged annotations created from auto-approvals | [default to undefined]
+**mergedAnnotationsCount** | **number** | Number of merged annotations_test created from auto-approvals | [default to undefined]
 
 ## Example
 

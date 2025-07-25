@@ -99,6 +99,20 @@ async def get_annotations_by_image(
     return annotations
 
 
+@router.get("/image/{image_id}/approved", response_model=List[AnnotationClientRead])
+async def get_approved_annotations_by_image(
+        image_id: int,
+        db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all annotations for a specific image with client-friendly format (polygon data, no RLE)
+    """
+    annotation_service = AnnotationService(db)
+    annotations = await annotation_service.get_approved_user_annotations_by_image_id_for_client(image_id)
+
+    return annotations
+
+
 # ==================== User Annotation Selections ====================
 
 @router.post("/selections", response_model=UserAnnotationSelectionRead, status_code=status.HTTP_201_CREATED)

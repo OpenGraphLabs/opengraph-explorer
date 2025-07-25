@@ -66,6 +66,14 @@ export class AnnotationService {
     return response.data;
   }
 
+  // Get approved annotations by image
+  async getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(params: { imageId: number }) {
+    const response = await this.apiClient.annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet({
+      imageId: params.imageId
+    });
+    return response.data;
+  }
+
   // Bulk create annotations (direct axios call)
   async bulkCreateAnnotations(annotations: AnnotationUserCreate[]) {
     const response = await this.apiClient.getAxiosInstance().post(

@@ -10,6 +10,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useApprovedAnnotations } from "@/shared/hooks/useApiQuery";
 import { useImages } from "@/shared/hooks/useApiQuery";
+import { useDictionaryCategories } from "@/shared/hooks/useDictionaryCategories";
 import { ImageWithSingleAnnotation, CategorySearchInput } from "@/features/annotation/components";
 import { ImageDetailSidebar } from "@/features/annotation/components/ImageDetailSidebar";
 import type { AnnotationRead } from "@/shared/api/generated/models";
@@ -63,8 +64,19 @@ export function Home() {
     }
   );
 
+  // Fetch categories to get actual category names
+  const { 
+    data: categoriesResponse, 
+    isLoading: categoriesLoading
+  } = useDictionaryCategories({
+    dictionaryId: 1, // Default dictionary ID
+    limit: 100,
+    enabled: true,
+  });
+
   const approvedAnnotations = approvedAnnotationsResponse?.items || [];
   const allImages = imagesResponse?.items || [];
+  const allCategories = categoriesResponse?.items || [];
   const totalPages = approvedAnnotationsResponse?.pages || 0;
   const totalAnnotations = approvedAnnotationsResponse?.total || 0;
 
@@ -77,13 +89,22 @@ export function Home() {
     return map;
   }, [allImages]);
 
+  // Create a map of category_id to category for quick lookup
+  const categoryMap = useMemo(() => {
+    const map = new Map<number, string>();
+    allCategories.forEach(category => {
+      map.set(category.id, category.name);
+    });
+    return map;
+  }, [allCategories]);
+
   // Combine annotations with their corresponding images and filter by category
   const annotationsWithImages: ApprovedAnnotationWithImage[] = useMemo(() => {
     const result = approvedAnnotations
       .map(annotation => ({
         ...annotation,
         image: imageMap.get(annotation.image_id),
-        categoryName: `Category ${annotation.category_id}` // TODO: Replace with actual category name
+        categoryName: categoryMap.get(annotation.category_id) || `Category ${annotation.category_id}`
       }))
       .filter(item => item.image) // Only include items with valid images
       .filter(item => {
@@ -95,9 +116,9 @@ export function Home() {
       });
 
     return result;
-  }, [approvedAnnotations, imageMap, selectedCategory]);
+  }, [approvedAnnotations, imageMap, categoryMap, selectedCategory]);
 
-  const isLoading = annotationsLoading || imagesLoading;
+  const isLoading = annotationsLoading || imagesLoading || categoriesLoading;
 
   // Search state
   const isSearching = !!selectedCategory;

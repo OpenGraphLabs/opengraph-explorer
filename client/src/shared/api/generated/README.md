@@ -60,6 +60,7 @@ Class | Method | HTTP request | Description
 *AnnotationsApi* | [**getAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdGet**](docs/AnnotationsApi.md#getannotationselectionapiv1annotationsselectionsselectionidget) | **GET** /api/v1/annotations/selections/{selection_id} | Get Annotation Selection
 *AnnotationsApi* | [**getAnnotationsByImageApiV1AnnotationsImageImageIdGet**](docs/AnnotationsApi.md#getannotationsbyimageapiv1annotationsimageimageidget) | **GET** /api/v1/annotations/image/{image_id} | Get Annotations By Image
 *AnnotationsApi* | [**getApprovedAnnotationsApiV1AnnotationsApprovedGet**](docs/AnnotationsApi.md#getapprovedannotationsapiv1annotationsapprovedget) | **GET** /api/v1/annotations/approved | Get Approved Annotations
+*AnnotationsApi* | [**getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet**](docs/AnnotationsApi.md#getapprovedannotationsbyimageapiv1annotationsimageimageidapprovedget) | **GET** /api/v1/annotations/image/{image_id}/approved | Get Approved Annotations By Image
 *AnnotationsApi* | [**getImageSelectionStatsApiV1AnnotationsSelectionsImageImageIdStatsGet**](docs/AnnotationsApi.md#getimageselectionstatsapiv1annotationsselectionsimageimageidstatsget) | **GET** /api/v1/annotations/selections/image/{image_id}/stats | Get Image Selection Stats
 *AnnotationsApi* | [**getMyAnnotationSelectionsApiV1AnnotationsSelectionsMeGet**](docs/AnnotationsApi.md#getmyannotationselectionsapiv1annotationsselectionsmeget) | **GET** /api/v1/annotations/selections/me | Get My Annotation Selections
 *AnnotationsApi* | [**getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet**](docs/AnnotationsApi.md#getselectionsummaryapiv1annotationsselectionssummaryget) | **GET** /api/v1/annotations/selections/summary | Get Selection Summary
@@ -101,6 +102,7 @@ Class | Method | HTTP request | Description
 
 ### Documentation For Models
 
+ - [AnnotationClientRead](docs/AnnotationClientRead.md)
  - [AnnotationListResponse](docs/AnnotationListResponse.md)
  - [AnnotationRead](docs/AnnotationRead.md)
  - [AnnotationSelectionStats](docs/AnnotationSelectionStats.md)

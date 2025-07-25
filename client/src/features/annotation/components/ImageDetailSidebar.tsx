@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Box, Flex, Text, Button, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { 
@@ -14,7 +14,8 @@ import {
   Target,
   BoundingBox as BoundingBoxIcon
 } from "phosphor-react";
-import type { AnnotationRead } from "@/shared/api/generated/models";
+import type { AnnotationRead, AnnotationClientRead } from "@/shared/api/generated/models";
+import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
 
 interface ImageItem {
   id: number;
@@ -34,11 +35,9 @@ interface ImageDetailSidebarProps {
   onClose: () => void;
 }
 
-// 세련된 색상 팔레트
-const ANNOTATION_COLORS = [
-  "#0066FF", "#00CC44", "#FF8800", "#9933FF", 
-  "#FF1177", "#00AAFF", "#FFD700", "#FF4455",
-];
+// 색상 팔레트
+const HIGHLIGHT_COLOR = "#0066FF"; // 선택된 어노테이션 색상 (메인 파란색)
+const OTHER_COLOR = "#8B5A96"; // 다른 어노테이션 색상 (차분한 보라색)
 
 export function ImageDetailSidebar({
   annotation,
@@ -53,6 +52,15 @@ export function ImageDetailSidebar({
   const [imageLoaded, setImageLoaded] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<SVGSVGElement>(null);
+  
+  // 이미지의 모든 approved 어노테이션 가져오기
+  const { data: allApprovedAnnotations, isLoading: annotationsLoading } = useApprovedAnnotationsByImage(
+    image.id,
+    {
+      enabled: isOpen && !!image.id,
+      refetchOnWindowFocus: false,
+    } as any
+  );
 
   // 이미지 로드 처리
   useEffect(() => {
@@ -114,6 +122,11 @@ export function ImageDetailSidebar({
     
     return path;
   }, [transformCoordinates]);
+  
+  // 어노테이션이 현재 선택된 어노테이션인지 확인
+  const isSelectedAnnotation = useCallback((annotationToCheck: AnnotationClientRead) => {
+    return annotationToCheck.id === annotation.id;
+  }, [annotation.id]);
 
   // 바운딩 박스 좌표 변환
   const getBBoxCoordinates = useCallback(() => {
@@ -140,7 +153,33 @@ export function ImageDetailSidebar({
     createdDate: new Date(image.created_at).toLocaleDateString(),
   };
 
-  const color = ANNOTATION_COLORS[0]; // 단일 어노테이션이므로 첫 번째 색상 사용
+  // 렌더링할 어노테이션 목록 준비
+  const annotationsToRender = useMemo(() => {
+    const annotations = allApprovedAnnotations || [];
+    
+    // 현재 어노테이션이 목록에 없으면 추가 (AnnotationClientRead 형식으로 변환)
+    const hasCurrentAnnotation = annotations.some((ann: AnnotationClientRead) => ann.id === annotation.id);
+    if (!hasCurrentAnnotation && annotation) {
+      const currentAsClientRead: AnnotationClientRead = {
+        ...annotation,
+        polygon: annotation.polygon || null
+      };
+      return [...annotations, currentAsClientRead];
+    }
+    
+    return annotations;
+  }, [allApprovedAnnotations, annotation]);
+  
+  // 디버깅용 로그
+  useEffect(() => {
+    console.log('ImageDetailSidebar Debug:', {
+      imageId: image.id,
+      annotationsLoading,
+      allApprovedAnnotations,
+      annotationsToRender,
+      currentAnnotationId: annotation.id
+    });
+  }, [image.id, annotationsLoading, allApprovedAnnotations, annotationsToRender, annotation.id]);
 
   if (!isOpen) return null;
 
@@ -206,8 +245,8 @@ export function ImageDetailSidebar({
               display: "inline-flex",
               alignItems: "center",
               gap: theme.spacing.semantic.component.xs,
-              background: `${color}20`,
-              color: color,
+              background: `${HIGHLIGHT_COLOR}20`,
+              color: HIGHLIGHT_COLOR,
               padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
               borderRadius: theme.borders.radius.md,
               fontSize: "13px",
@@ -217,6 +256,17 @@ export function ImageDetailSidebar({
             <Tag size={14} />
             {categoryName}
           </Box>
+          
+          {/* 현재 선택된 어노테이션 표시 */}
+          <Text
+            style={{
+              fontSize: "11px",
+              color: theme.colors.text.secondary,
+              marginTop: theme.spacing.semantic.component.xs,
+            }}
+          >
+            Selected Annotation ID: #{annotation.id}
+          </Text>
         </Box>
 
         {/* 이미지 뷰어 */}
@@ -291,6 +341,25 @@ export function ImageDetailSidebar({
               border: `1px solid ${theme.colors.border.primary}`,
             }}
           >
+            {/* 로딩 상태 표시 */}
+            {annotationsLoading && (
+              <Box
+                style={{
+                  position: "absolute",
+                  top: "8px",
+                  right: "8px",
+                  background: `${theme.colors.background.primary}E6`,
+                  borderRadius: theme.borders.radius.sm,
+                  padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+                  fontSize: "11px",
+                  color: theme.colors.text.secondary,
+                  zIndex: 10,
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                Loading annotations...
+              </Box>
+            )}
             <canvas
               ref={canvasRef}
               style={{
@@ -331,37 +400,61 @@ export function ImageDetailSidebar({
                   </pattern>
                 </defs>
 
-                {/* 세그멘테이션 마스크 */}
-                {showMask && annotation.polygon && (annotation.polygon as any).has_segmentation && (
-                  <g>
-                    {(annotation.polygon as any).polygons.map((polygon: number[][], index: number) => {
-                      const pathData = polygonToPath(polygon);
-                      if (!pathData) return null;
+                {/* 모든 approved 어노테이션의 세그멘테이션 마스크 */}
+                {showMask && annotationsToRender.map((ann: AnnotationClientRead) => {
+                  const isSelected = isSelectedAnnotation(ann);
+                  const color = isSelected ? HIGHLIGHT_COLOR : OTHER_COLOR;
+                  const opacity = isSelected ? 0.4 : 0.3; // 다른 annotation 투명도 증가
+                  const strokeWidth = isSelected ? 2.5 : 2; // 다른 annotation 선 두께 증가
+                  
+                  if (!ann.polygon || !(ann.polygon as any).has_segmentation) return null;
+                  
+                  return (
+                    <g key={ann.id}>
+                      {(ann.polygon as any).polygons.map((polygon: number[][], index: number) => {
+                        const pathData = polygonToPath(polygon);
+                        if (!pathData) return null;
 
-                      return (
-                        <path
-                          key={index}
-                          d={pathData}
-                          fill={`${color}30`}
-                          stroke={color}
-                          strokeWidth={2}
-                          filter="url(#maskGlow)"
-                          style={{
-                            transition: "all 0.3s ease",
-                          }}
-                        />
-                      );
-                    })}
-                  </g>
-                )}
+                        return (
+                          <path
+                            key={`${ann.id}-${index}`}
+                            d={pathData}
+                            fill={`${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`}
+                            stroke={color}
+                            strokeWidth={strokeWidth}
+                            filter={isSelected ? "url(#maskGlow)" : undefined}
+                            style={{
+                              transition: "all 0.3s ease",
+                              cursor: "pointer",
+                            }}
+                          />
+                        );
+                      })}
+                    </g>
+                  );
+                })}
 
-                {/* 바운딩 박스 */}
-                {showBBox && (() => {
-                  const bboxCoords = getBBoxCoordinates();
-                  if (!bboxCoords) return null;
+                {/* 모든 approved 어노테이션의 바운딩 박스 */}
+                {showBBox && annotationsToRender.map((ann: AnnotationClientRead) => {
+                  if (!ann.bbox || ann.bbox.length < 4) return null;
+                  
+                  const isSelected = isSelectedAnnotation(ann);
+                  const color = isSelected ? HIGHLIGHT_COLOR : OTHER_COLOR;
+                  const strokeWidth = isSelected ? 2.5 : 1.8; // 다른 annotation bbox 선 두께 증가
+                  const opacity = isSelected ? 1 : 0.75; // 다른 annotation bbox 투명도 증가
+                  
+                  const [x, y, width, height] = ann.bbox;
+                  const topLeft = transformCoordinates(x, y);
+                  const bottomRight = transformCoordinates(x + width, y + height);
+                  const bboxCoords = {
+                    x: topLeft.x,
+                    y: topLeft.y,
+                    width: bottomRight.x - topLeft.x,
+                    height: bottomRight.y - topLeft.y,
+                  };
 
                   return (
-                    <g>
+                    <g key={`bbox-${ann.id}`} opacity={opacity}>
                       {/* BBox 배경 */}
                       <rect
                         x={bboxCoords.x}
@@ -370,23 +463,23 @@ export function ImageDetailSidebar({
                         height={bboxCoords.height}
                         fill="none"
                         stroke={color}
-                        strokeWidth={2}
-                        strokeDasharray="8 4"
+                        strokeWidth={strokeWidth}
+                        strokeDasharray={isSelected ? "8 4" : "4 2"}
                         rx={4}
                         style={{
-                          animation: "dashMove 2s linear infinite",
+                          animation: isSelected ? "dashMove 2s linear infinite" : undefined,
                         }}
                       />
                       
-                      {/* BBox 코너 마커 */}
-                      {[
+                      {/* 선택된 어노테이션만 코너 마커 표시 */}
+                      {isSelected && [
                         [bboxCoords.x, bboxCoords.y],
                         [bboxCoords.x + bboxCoords.width, bboxCoords.y],
                         [bboxCoords.x, bboxCoords.y + bboxCoords.height],
                         [bboxCoords.x + bboxCoords.width, bboxCoords.y + bboxCoords.height],
                       ].map(([x, y], index) => (
                         <rect
-                          key={index}
+                          key={`corner-${index}`}
                           x={x - 4}
                           y={y - 4}
                           width={8}
@@ -397,7 +490,7 @@ export function ImageDetailSidebar({
                       ))}
                     </g>
                   );
-                })()}
+                })}
 
                 {/* CSS 애니메이션 */}
                 <style>
@@ -412,6 +505,20 @@ export function ImageDetailSidebar({
               </svg>
             )}
           </Box>
+          
+          {/* 어노테이션 개수 정보 */}
+          {!annotationsLoading && annotationsToRender.length > 0 && (
+            <Text
+              style={{
+                fontSize: "12px",
+                color: theme.colors.text.secondary,
+                marginTop: theme.spacing.semantic.component.sm,
+                textAlign: "center",
+              }}
+            >
+              Showing {annotationsToRender.length} approved annotation{annotationsToRender.length > 1 ? 's' : ''}
+            </Text>
+          )}
         </Box>
 
         {/* 메타데이터 */}
