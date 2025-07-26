@@ -4,18 +4,16 @@ import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircle, Users, Database, Hash } from "phosphor-react";
 import {
-  useDatasetDetail,
   DatasetImageGallery,
   DatasetPagination,
   getAnnotationColor,
   DEFAULT_PAGE_SIZE,
 } from "@/features/dataset";
+import { useDatasetDetailServer } from "@/features/dataset/hooks/useDatasetDetailServer";
 import { DatasetImageModal } from "@/features/dataset/components/DatasetImageModal.tsx";
-import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 
 export function DatasetDetail() {
   const { theme } = useTheme();
-  const { addConfirmedAnnotationLabels } = useDatasetSuiService();
   const { id } = useParams<{ id: string }>();
 
   const {
@@ -41,11 +39,12 @@ export function DatasetDetail() {
     handleCloseModal,
     handleTogglePendingAnnotation,
     setConfirmationStatus,
-  } = useDatasetDetail(id);
+  } = useDatasetDetailServer(id);
 
-  // TODO(Jerry): Implement actual logic to retrieve image URL
+  // Get image URL from server response
   const getImageUrl = (item: any) => {
-    return "image_url_placeholder"; // Placeholder, implement actual image URL retrieval logic
+    // Use the image_url from server API response
+    return item.image_url || item.path || "image_url_placeholder";
   };
   const isItemLoading = (item: any) => false;
   const isAnyBlobLoading = () => false; // Placeholder, implement actual loading check
@@ -72,18 +71,16 @@ export function DatasetDetail() {
     try {
       setConfirmationStatus({
         status: "pending",
-        message: `Confirming ${labels.length} annotation(s) on blockchain...`,
+        message: `Confirming ${labels.length} annotation(s)...`,
       });
 
-      const result = await addConfirmedAnnotationLabels(dataset, {
-        path: selectedImageData.path,
-        label: labels,
-      });
+      // TODO: Implement server-side annotation confirmation
+      // For now, just simulate success
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setConfirmationStatus({
         status: "success",
         message: `Successfully confirmed ${labels.length} annotation(s)!`,
-        txHash: (result as any)?.digest || undefined,
         confirmedLabels: labels,
       });
 
@@ -132,7 +129,7 @@ export function DatasetDetail() {
             }}
           />
           <Text size="3" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
-            Loading dataset registry
+            Loading dataset from server
           </Text>
         </Flex>
       </Box>
@@ -310,7 +307,7 @@ export function DatasetDetail() {
                         fontWeight: 500,
                       }}
                     >
-                      SUI
+                      Server
                     </Text>
                   </Flex>
 

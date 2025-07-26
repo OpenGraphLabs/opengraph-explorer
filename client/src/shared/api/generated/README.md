@@ -73,6 +73,7 @@ Class | Method | HTTP request | Description
 *DatasetsApi* | [**createDatasetApiV1DatasetsPost**](docs/DatasetsApi.md#createdatasetapiv1datasetspost) | **POST** /api/v1/datasets/ | Create Dataset
 *DatasetsApi* | [**deleteDatasetApiV1DatasetsDatasetIdDelete**](docs/DatasetsApi.md#deletedatasetapiv1datasetsdatasetiddelete) | **DELETE** /api/v1/datasets/{dataset_id} | Delete Dataset
 *DatasetsApi* | [**getDatasetApiV1DatasetsDatasetIdGet**](docs/DatasetsApi.md#getdatasetapiv1datasetsdatasetidget) | **GET** /api/v1/datasets/{dataset_id} | Get Dataset
+*DatasetsApi* | [**getDatasetImagesApiV1DatasetsDatasetIdImagesGet**](docs/DatasetsApi.md#getdatasetimagesapiv1datasetsdatasetidimagesget) | **GET** /api/v1/datasets/{dataset_id}/images | Get Dataset Images
 *DatasetsApi* | [**getDatasetsApiV1DatasetsGet**](docs/DatasetsApi.md#getdatasetsapiv1datasetsget) | **GET** /api/v1/datasets/ | Get Datasets
 *DatasetsApi* | [**updateDatasetApiV1DatasetsDatasetIdPut**](docs/DatasetsApi.md#updatedatasetapiv1datasetsdatasetidput) | **PUT** /api/v1/datasets/{dataset_id} | Update Dataset
 *DefaultApi* | [**healthCheckHealthGet**](docs/DefaultApi.md#healthcheckhealthget) | **GET** /health | Health Check

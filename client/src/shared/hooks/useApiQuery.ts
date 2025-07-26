@@ -354,6 +354,23 @@ export function useImageById(
   });
 }
 
+export function useDatasetImages(
+  datasetId: number,
+  filters: { page?: number; limit?: number } = {},
+  options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { datasets } = useApiClient(options?.apiClientOptions);
+  return useQuery({
+    queryKey: [...queryKeys.datasets.detail(datasetId), 'images', filters],
+    queryFn: () => datasets.getDatasetImages(datasetId, {
+      page: filters.page || 1,
+      limit: filters.limit || 100
+    }),
+    enabled: !!datasetId,
+    ...options
+  });
+}
+
 export function useCreateImage(
   options?: UseMutationOptions<any, Error, ImageCreate> & { apiClientOptions?: UseApiClientOptions }
 ) {

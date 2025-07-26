@@ -3,7 +3,8 @@ import type {
   DatasetCreate,
   DatasetUpdate,
   DatasetRead,
-  DatasetListResponse
+  DatasetListResponse,
+  ImageListResponse
 } from '../generated/models';
 
 export class DatasetService {
@@ -79,5 +80,15 @@ export class DatasetService {
       `/api/v1/datasets/${datasetId}/stats`
     );
     return response.data;
+  }
+
+  // Get images for a dataset
+  async getDatasetImages(datasetId: number, params: { page?: number; limit?: number } = {}): Promise<ImageListResponse> {
+    const response = await this.apiClient.datasets.getDatasetImagesApiV1DatasetsDatasetIdImagesGet({
+      datasetId,
+      page: params.page || 1,
+      limit: params.limit || 100
+    });
+    return response.data as ImageListResponse;
   }
 } 

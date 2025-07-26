@@ -7,6 +7,7 @@ All URIs are relative to *http://localhost*
 |[**createDatasetApiV1DatasetsPost**](#createdatasetapiv1datasetspost) | **POST** /api/v1/datasets/ | Create Dataset|
 |[**deleteDatasetApiV1DatasetsDatasetIdDelete**](#deletedatasetapiv1datasetsdatasetiddelete) | **DELETE** /api/v1/datasets/{dataset_id} | Delete Dataset|
 |[**getDatasetApiV1DatasetsDatasetIdGet**](#getdatasetapiv1datasetsdatasetidget) | **GET** /api/v1/datasets/{dataset_id} | Get Dataset|
+|[**getDatasetImagesApiV1DatasetsDatasetIdImagesGet**](#getdatasetimagesapiv1datasetsdatasetidimagesget) | **GET** /api/v1/datasets/{dataset_id}/images | Get Dataset Images|
 |[**getDatasetsApiV1DatasetsGet**](#getdatasetsapiv1datasetsget) | **GET** /api/v1/datasets/ | Get Datasets|
 |[**updateDatasetApiV1DatasetsDatasetIdPut**](#updatedatasetapiv1datasetsdatasetidput) | **PUT** /api/v1/datasets/{dataset_id} | Update Dataset|
 
@@ -148,6 +149,64 @@ const { status, data } = await apiInstance.getDatasetApiV1DatasetsDatasetIdGet(
 ### Return type
 
 **DatasetRead**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getDatasetImagesApiV1DatasetsDatasetIdImagesGet**
+> ImageListResponse getDatasetImagesApiV1DatasetsDatasetIdImagesGet()
+
+Get all images in a dataset.
+
+### Example
+
+```typescript
+import {
+    DatasetsApi,
+    Configuration
+} from 'opengraph-api-client';
+
+const configuration = new Configuration();
+const apiInstance = new DatasetsApi(configuration);
+
+let datasetId: number; // (default to undefined)
+let page: number; // (optional) (default to 1)
+let limit: number; // (optional) (default to 100)
+
+const { status, data } = await apiInstance.getDatasetImagesApiV1DatasetsDatasetIdImagesGet(
+    datasetId,
+    page,
+    limit
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **datasetId** | [**number**] |  | defaults to undefined|
+| **page** | [**number**] |  | (optional) defaults to 1|
+| **limit** | [**number**] |  | (optional) defaults to 100|
+
+
+### Return type
+
+**ImageListResponse**
 
 ### Authorization
 

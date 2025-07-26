@@ -31,6 +31,8 @@ import type { DatasetRead } from '../models';
 import type { DatasetUpdate } from '../models';
 // @ts-ignore
 import type { HTTPValidationError } from '../models';
+// @ts-ignore
+import type { ImageListResponse } from '../models';
 /**
  * DatasetsApi - axios parameter creator
  * @export
@@ -133,6 +135,50 @@ export const DatasetsApiAxiosParamCreator = function (configuration?: Configurat
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get all images in a dataset.
+         * @summary Get Dataset Images
+         * @param {number} datasetId 
+         * @param {number} [page] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDatasetImagesApiV1DatasetsDatasetIdImagesGet: async (datasetId: number, page?: number, limit?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'datasetId' is not null or undefined
+            assertParamExists('getDatasetImagesApiV1DatasetsDatasetIdImagesGet', 'datasetId', datasetId)
+            const localVarPath = `/api/v1/datasets/{dataset_id}/images`
+                .replace(`{${"dataset_id"}}`, encodeURIComponent(String(datasetId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
 
 
     
@@ -279,6 +325,21 @@ export const DatasetsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Get all images in a dataset.
+         * @summary Get Dataset Images
+         * @param {number} datasetId 
+         * @param {number} [page] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDatasetImagesApiV1DatasetsDatasetIdImagesGet(datasetId: number, page?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ImageListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDatasetImagesApiV1DatasetsDatasetIdImagesGet(datasetId, page, limit, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DatasetsApi.getDatasetImagesApiV1DatasetsDatasetIdImagesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * List all datasets.
          * @summary Get Datasets
          * @param {number} [page] 
@@ -347,6 +408,16 @@ export const DatasetsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.getDatasetApiV1DatasetsDatasetIdGet(requestParameters.datasetId, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get all images in a dataset.
+         * @summary Get Dataset Images
+         * @param {DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDatasetImagesApiV1DatasetsDatasetIdImagesGet(requestParameters: DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<ImageListResponse> {
+            return localVarFp.getDatasetImagesApiV1DatasetsDatasetIdImagesGet(requestParameters.datasetId, requestParameters.page, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
          * List all datasets.
          * @summary Get Datasets
          * @param {DatasetsApiGetDatasetsApiV1DatasetsGetRequest} requestParameters Request parameters.
@@ -404,6 +475,16 @@ export interface DatasetsApiInterface {
      * @memberof DatasetsApiInterface
      */
     getDatasetApiV1DatasetsDatasetIdGet(requestParameters: DatasetsApiGetDatasetApiV1DatasetsDatasetIdGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<DatasetRead>;
+
+    /**
+     * Get all images in a dataset.
+     * @summary Get Dataset Images
+     * @param {DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DatasetsApiInterface
+     */
+    getDatasetImagesApiV1DatasetsDatasetIdImagesGet(requestParameters: DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<ImageListResponse>;
 
     /**
      * List all datasets.
@@ -467,6 +548,34 @@ export interface DatasetsApiGetDatasetApiV1DatasetsDatasetIdGetRequest {
      * @memberof DatasetsApiGetDatasetApiV1DatasetsDatasetIdGet
      */
     readonly datasetId: number
+}
+
+/**
+ * Request parameters for getDatasetImagesApiV1DatasetsDatasetIdImagesGet operation in DatasetsApi.
+ * @export
+ * @interface DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest
+ */
+export interface DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGet
+     */
+    readonly datasetId: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGet
+     */
+    readonly page?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGet
+     */
+    readonly limit?: number
 }
 
 /**
@@ -552,6 +661,18 @@ export class DatasetsApi extends BaseAPI implements DatasetsApiInterface {
      */
     public getDatasetApiV1DatasetsDatasetIdGet(requestParameters: DatasetsApiGetDatasetApiV1DatasetsDatasetIdGetRequest, options?: RawAxiosRequestConfig) {
         return DatasetsApiFp(this.configuration).getDatasetApiV1DatasetsDatasetIdGet(requestParameters.datasetId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get all images in a dataset.
+     * @summary Get Dataset Images
+     * @param {DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DatasetsApi
+     */
+    public getDatasetImagesApiV1DatasetsDatasetIdImagesGet(requestParameters: DatasetsApiGetDatasetImagesApiV1DatasetsDatasetIdImagesGetRequest, options?: RawAxiosRequestConfig) {
+        return DatasetsApiFp(this.configuration).getDatasetImagesApiV1DatasetsDatasetIdImagesGet(requestParameters.datasetId, requestParameters.page, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

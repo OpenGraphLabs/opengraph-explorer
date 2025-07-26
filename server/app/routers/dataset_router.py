@@ -18,7 +18,8 @@ from ..schemas.dataset import (
     DatasetListResponse,
     DatasetFilter,
 )
-from ..services import DatasetService
+from ..schemas.image import ImageListResponse
+from ..services import DatasetService, ImageService
 
 router = APIRouter(
     prefix="/datasets",
@@ -116,4 +117,45 @@ async def delete_dataset(
     데이터셋을 삭제합니다.
     """
     # TODO: DatasetService 구현
-    pass 
+    pass
+
+
+@router.get("/{dataset_id}/images", response_model=ImageListResponse)
+async def get_dataset_images(
+    dataset_id: int,
+    page: int = Query(1, ge=1),
+    limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all images in a dataset.
+    """
+    dataset_service = DatasetService(db)
+    image_service = ImageService(db)
+    
+    # Check if dataset exists
+    dataset = await dataset_service.get_dataset_by_id(dataset_id)
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found"
+        )
+    
+    # Get images for the dataset
+    images = await image_service.get_images_by_dataset_id(dataset_id)
+    
+    # Apply pagination
+    start = (page - 1) * limit
+    end = start + limit
+    paginated_images = images[start:end]
+    
+    total = len(images)
+    pages = (total + limit - 1) // limit
+    
+    return ImageListResponse(
+        items=paginated_images,
+        total=total,
+        page=page,
+        limit=limit,
+        pages=pages
+    ) 
