@@ -27,17 +27,14 @@ export function DatasetDetail() {
     activeTab,
     totalCounts,
     selectedImage,
-    selectedAnnotations,
     selectedImageData,
     selectedImageIndex,
     selectedPendingLabels,
-    confirmationStatus,
     setActiveTab,
     getPaginatedItems,
     loadPage,
     handleImageClick,
     handleCloseModal,
-    handleTogglePendingAnnotation,
     setConfirmationStatus,
   } = useDatasetDetailServer(id);
 
@@ -100,7 +97,7 @@ export function DatasetDetail() {
   };
 
   const hasConfirmedAnnotations = (item: any): boolean => {
-    return item.annotations && item.annotations.length > 0;
+    return item.approvedAnnotationsCount > 0;
   };
 
   if (loading) {
@@ -163,7 +160,7 @@ export function DatasetDetail() {
     );
   }
 
-  const totalItems = totalCounts.confirmed + totalCounts.pending;
+  const totalItems = totalCounts.total;
   const verificationRate = totalItems > 0 ? totalCounts.confirmed / totalItems : 0;
 
   return (
@@ -287,29 +284,6 @@ export function DatasetDetail() {
                       background: theme.colors.border.secondary,
                     }}
                   />
-
-                  <Flex align="center" gap="2">
-                    <Text
-                      size="1"
-                      style={{
-                        color: theme.colors.text.tertiary,
-                        fontWeight: 500,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.1em",
-                      }}
-                    >
-                      Network
-                    </Text>
-                    <Text
-                      size="2"
-                      style={{
-                        color: theme.colors.text.primary,
-                        fontWeight: 500,
-                      }}
-                    >
-                      Server
-                    </Text>
-                  </Flex>
 
                   <Box
                     style={{
@@ -808,14 +782,8 @@ export function DatasetDetail() {
         onClose={handleCloseModal}
         selectedImage={selectedImage}
         selectedImageData={selectedImageData}
-        selectedAnnotations={selectedAnnotations}
         selectedImageIndex={selectedImageIndex}
-        selectedPendingLabels={selectedPendingLabels}
-        confirmationStatus={confirmationStatus}
-        onTogglePendingAnnotation={handleTogglePendingAnnotation}
-        onConfirmSelectedAnnotations={handleConfirmSelectedAnnotations}
         onCloseModal={handleCloseModal}
-        getConfirmedLabels={() => new Set(selectedAnnotations.map(annotation => annotation.label))}
         getAnnotationColor={getAnnotationColor}
       />
 

@@ -174,7 +174,7 @@ export function DatasetImageGallery({
               fontSize: "11px",
             }}
           >
-            Labels
+            Annotations
           </Text>
           <Box />
         </Grid>
@@ -192,7 +192,7 @@ export function DatasetImageGallery({
         {items.map((item: any, index: number) => {
           const isLoading = isItemLoading(item);
           const hasAnnotations = hasConfirmedAnnotations(item);
-          const annotationCount = item.annotations?.length || 0;
+          const annotationCount = item.approvedAnnotationsCount || 0;
 
           return (
             <Box

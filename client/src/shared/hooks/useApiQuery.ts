@@ -291,7 +291,7 @@ export function useApprovedAnnotationsByImage(
 
   return useQuery({
     queryKey: [...queryKeys.annotations.byImage(imageId), 'approved'],
-    queryFn: () => annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet({ imageId }),
+    queryFn: () => annotations.getApprovedAnnotationsByImage(imageId),
     enabled: !!imageId,
     ...options
   });

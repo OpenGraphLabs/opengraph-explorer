@@ -67,9 +67,9 @@ export class AnnotationService {
   }
 
   // Get approved annotations by image
-  async getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(params: { imageId: number }) {
+  async getApprovedAnnotationsByImage(imageId: number) {
     const response = await this.apiClient.annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet({
-      imageId: params.imageId
+      imageId
     });
     return response.data;
   }

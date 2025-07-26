@@ -1,286 +1,193 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Box,
   Flex,
   Text,
   Badge,
   Dialog,
-  Grid,
-  Separator,
+  Button,
+  Heading,
 } from "@/shared/ui/design-system/components";
-import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import {
-  CheckCircle,
-  Users,
   X,
+  Eye,
+  EyeSlash,
+  Info,
+  Calendar,
+  ArrowsOut,
   Tag,
   Hash,
-  WarningCircle,
-  CheckSquare,
-  Clock,
-  Cursor,
+  Target,
+  Brain,
+  Sparkle,
   Image as ImageIcon,
 } from "phosphor-react";
 import { ConfirmationStatus } from "../types";
-
-interface BoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  annotation: string;
-  id: string;
-}
+import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
+import { useDictionaryCategories } from "@/shared/hooks/useDictionaryCategories";
 
 interface DatasetImageModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedImage: string | null;
   selectedImageData: any;
-  selectedAnnotations: any[];
   selectedImageIndex: number;
-  selectedPendingLabels: Set<string>;
-  confirmationStatus: ConfirmationStatus;
-  onTogglePendingAnnotation: (label: string) => void;
-  onConfirmSelectedAnnotations: () => void;
   onCloseModal: () => void;
-  getConfirmedLabels: () => Set<string>;
   getAnnotationColor: (index: number) => any;
 }
+
+// Colors for annotation overlays
+const HIGHLIGHT_COLOR = "#0066FF";
+const OTHER_COLOR = "#8B5A96";
 
 export function DatasetImageModal({
   isOpen,
   onClose,
   selectedImage,
   selectedImageData,
-  selectedAnnotations,
   selectedImageIndex,
-  selectedPendingLabels,
-  confirmationStatus,
-  onTogglePendingAnnotation,
-  onConfirmSelectedAnnotations,
-  getConfirmedLabels,
 }: DatasetImageModalProps) {
   const { theme } = useTheme();
-  const [isDrawingMode, setIsDrawingMode] = useState(false);
-  const [selectedConfirmedAnnotation, setSelectedConfirmedAnnotation] = useState<string | null>(
-    null
-  );
-  const [boundingBoxes, setBoundingBoxes] = useState<BoundingBox[]>([]);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
-  const [currentBoundingBox, setCurrentBoundingBox] = useState<BoundingBox | null>(null);
-  const [annotationColors, setAnnotationColors] = useState<
-    Record<string, { stroke: string; bg: string; text: string }>
-  >({});
-
+  const [showMask, setShowMask] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayRef = useRef<SVGSVGElement>(null);
 
-  const hasConfirmedAnnotations = (item: any): boolean => {
-    return item?.annotations && item.annotations.length > 0;
+  // Get all approved annotations for this image if imageId is available
+  const { data: allApprovedAnnotations, isLoading: annotationsLoading } = useApprovedAnnotationsByImage(
+    selectedImageData?.imageId || 0,
+    {
+      enabled: isOpen && !!selectedImageData?.imageId,
+      refetchOnWindowFocus: false,
+    } as any
+  );
+
+  // Fetch categories to get actual category names
+  const { 
+    data: categoriesResponse, 
+    isLoading: categoriesLoading 
+  } = useDictionaryCategories({
+    dictionaryId: 1, // Default dictionary ID
+    limit: 100,
+    enabled: isOpen,
+  });
+
+  const approvedAnnotations = allApprovedAnnotations || [];
+  const hasConfirmedAnnotations = approvedAnnotations.length > 0;
+  const allCategories = categoriesResponse?.items || [];
+
+  // Create a map of category_id to category name for quick lookup
+  const categoryMap = new Map<number, string>();
+  allCategories.forEach(category => {
+    categoryMap.set(category.id, category.name);
+  });
+
+  // Helper function to get category name
+  const getCategoryName = (categoryId: number): string => {
+    return categoryMap.get(categoryId) || `Category ${categoryId}`;
   };
 
-  // Annotation 색상 초기화
+  // Image loading and canvas drawing
   useEffect(() => {
-    if (selectedAnnotations.length > 0) {
-      const newColors: Record<string, { stroke: string; bg: string; text: string }> = {};
-      selectedAnnotations.forEach((annotation, index) => {
-        const hue = (360 / selectedAnnotations.length) * index;
-        newColors[annotation.label] = {
-          stroke: `hsla(${hue}, 80%, 45%, 1)`,
-          bg: `hsla(${hue}, 80%, 95%, 1)`,
-          text: `hsla(${hue}, 80%, 25%, 1)`,
-        };
-      });
-      setAnnotationColors(newColors);
-    }
-  }, [selectedAnnotations]);
-
-  const handleDrawingModeToggle = (enabled: boolean) => {
-    if (!selectedImageData) return;
-    const isConfirmed = hasConfirmedAnnotations(selectedImageData);
-    if (!isConfirmed) return;
-
-    setIsDrawingMode(enabled);
-    if (!enabled) {
-      setBoundingBoxes([]);
-      setSelectedConfirmedAnnotation(null);
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !selectedConfirmedAnnotation) return;
-
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    setIsDrawing(true);
-    setStartPoint({ x, y });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !selectedConfirmedAnnotation || !isDrawing || !startPoint) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const width = x - startPoint.x;
-    const height = y - startPoint.y;
-
-    const box = {
-      x: width > 0 ? startPoint.x : x,
-      y: height > 0 ? startPoint.y : y,
-      width: Math.abs(width),
-      height: Math.abs(height),
-      annotation: selectedConfirmedAnnotation,
-      id: `${selectedConfirmedAnnotation}_${Date.now()}`,
-    };
-
-    setCurrentBoundingBox(box);
-    redrawCanvas(canvas, ctx);
-
-    const color = annotationColors[selectedConfirmedAnnotation];
-    if (color) {
-      ctx.strokeStyle = color.stroke;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(box.x, box.y, box.width, box.height);
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    if (isDrawing && currentBoundingBox) {
-      setBoundingBoxes([...boundingBoxes, currentBoundingBox]);
-      setIsDrawing(false);
-      setStartPoint(null);
-      setCurrentBoundingBox(null);
-    }
-
-    redrawCanvas(canvas, ctx);
-  };
-
-  const redrawCanvas = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    if (!isOpen || !selectedImage) return;
+    
     const img = new Image();
-    img.src = selectedImage || "";
     img.onload = () => {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      boundingBoxes.forEach(box => {
-        const color = annotationColors[box.annotation];
-        if (color) {
-          ctx.strokeStyle = color.stroke;
-          ctx.lineWidth = 2;
-          ctx.strokeRect(box.x, box.y, box.width, box.height);
-        }
-      });
+      setImageLoaded(true);
+      drawImageOnCanvas(img);
     };
-  };
+    img.src = selectedImage;
+  }, [isOpen, selectedImage]);
 
-  useEffect(() => {
-    if (selectedImage && canvasRef.current && isDrawingMode) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+  // Draw image on canvas
+  const drawImageOnCanvas = useCallback((img: HTMLImageElement) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-      const img = new Image();
-      img.src = selectedImage;
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-      };
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Adjust canvas size to fit modal (max 600px width)
+    const containerWidth = Math.min(600, img.width);
+    const aspectRatio = img.height / img.width;
+    const containerHeight = containerWidth * aspectRatio;
+    
+    canvas.width = containerWidth;
+    canvas.height = containerHeight;
+    canvas.style.width = `${containerWidth}px`;
+    canvas.style.height = `${containerHeight}px`;
+
+    // Draw image
+    ctx.clearRect(0, 0, containerWidth, containerHeight);
+    ctx.drawImage(img, 0, 0, containerWidth, containerHeight);
+  }, [selectedImageData]);
+
+  // Polygon to SVG path conversion (following ImageDetailSidebar pattern)
+  const polygonToPath = useCallback((polygon: number[][]): string => {
+    if (polygon.length < 3) return "";
+    
+    const canvas = canvasRef.current;
+    if (!canvas || !selectedImageData) return "";
+    
+    const transformedPoints = polygon.map(([x, y]) => {
+      const scaledX = (x / selectedImageData.width) * canvas.width;
+      const scaledY = (y / selectedImageData.height) * canvas.height;
+      return { x: scaledX, y: scaledY };
+    });
+    
+    let path = `M ${transformedPoints[0].x} ${transformedPoints[0].y}`;
+    for (let i = 1; i < transformedPoints.length; i++) {
+      path += ` L ${transformedPoints[i].x} ${transformedPoints[i].y}`;
     }
-  }, [selectedImage, isDrawingMode]);
+    path += " Z";
+    
+    return path;
+  }, [selectedImageData]);
 
-  const ConfirmationStatusDisplay = () => {
-    if (confirmationStatus.status === "idle") return null;
+  // Render annotation overlays as React elements
+  const renderAnnotationOverlays = useCallback(() => {
+    if (!showMask || !imageLoaded) return null;
 
-    const getStatusConfig = () => {
-      switch (confirmationStatus.status) {
-        case "pending":
-          return {
-            icon: <Clock size={20} />,
-            title: "Processing",
-            bg: theme.colors.background.secondary,
-            border: theme.colors.border.primary,
-            text: theme.colors.text.primary,
-          };
-        case "success":
-          return {
-            icon: <CheckCircle size={20} weight="fill" />,
-            title: "Success",
-            bg: theme.colors.status.success + "10",
-            border: theme.colors.status.success,
-            text: theme.colors.status.success,
-          };
-        case "failed":
-          return {
-            icon: <WarningCircle size={20} weight="fill" />,
-            title: "Error",
-            bg: theme.colors.status.error + "10",
-            border: theme.colors.status.error,
-            text: theme.colors.status.error,
-          };
-        default:
-          return {
-            icon: <Clock size={20} />,
-            title: "Processing",
-            bg: theme.colors.background.secondary,
-            border: theme.colors.border.primary,
-            text: theme.colors.text.primary,
-          };
+    return approvedAnnotations.map((annotation, index) => {
+      const color = index === 0 ? HIGHLIGHT_COLOR : OTHER_COLOR;
+      const opacity = index === 0 ? 0.4 : 0.2;
+      const strokeWidth = index === 0 ? 2.5 : 1.5;
+      
+      // Check if annotation has polygon data
+      if (annotation.polygon && (annotation.polygon as any).has_segmentation) {
+        const polygons = (annotation.polygon as any).polygons;
+        if (polygons && Array.isArray(polygons)) {
+          return (
+            <g key={annotation.id}>
+              {polygons.map((polygon: number[][], polygonIndex: number) => {
+                const pathData = polygonToPath(polygon);
+                if (!pathData) return null;
+
+                return (
+                  <path
+                    key={`${annotation.id}-${polygonIndex}`}
+                    d={pathData}
+                    fill={`${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`}
+                    stroke={color}
+                    strokeWidth={strokeWidth}
+                    filter={index === 0 ? "url(#maskGlow)" : undefined}
+                    style={{
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                );
+              })}
+            </g>
+          );
+        }
       }
-    };
+      
+      return null;
+    });
+  }, [approvedAnnotations, showMask, imageLoaded, polygonToPath]);
 
-    const config = getStatusConfig();
-
-    return (
-      <Card
-        style={{
-          background: config.bg,
-          border: `2px solid ${config.border}`,
-          borderRadius: theme.borders.radius.md,
-          marginBottom: theme.spacing.semantic.component.lg,
-          overflow: "hidden",
-        }}
-      >
-        <Box style={{ padding: theme.spacing.semantic.component.lg }}>
-          <Flex align="center" gap="3">
-            <Box style={{ color: config.text }}>{config.icon}</Box>
-            <Flex direction="column" gap="1">
-              <Text
-                size="3"
-                style={{
-                  color: config.text,
-                  fontWeight: 600,
-                }}
-              >
-                {config.title}
-              </Text>
-              <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                {confirmationStatus.message}
-              </Text>
-            </Flex>
-          </Flex>
-        </Box>
-      </Card>
-    );
-  };
+  // No need for useEffect since we're using React rendering
 
   if (!selectedImage || !selectedImageData) return null;
 
@@ -288,539 +195,335 @@ export function DatasetImageModal({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Content
         style={{
-          maxWidth: "1400px",
-          maxHeight: "95vh",
+          maxWidth: "1200px",
+          maxHeight: "90vh",
           padding: 0,
           borderRadius: theme.borders.radius.lg,
           overflow: "hidden",
           background: theme.colors.background.card,
           border: `1px solid ${theme.colors.border.primary}`,
+          position: "relative",
         }}
       >
-        <Dialog.Title className="visually-hidden">Dataset Image Analysis</Dialog.Title>
+        <Dialog.Title className="visually-hidden">Dataset Image Detail</Dialog.Title>
 
         {/* Header */}
         <Box
           style={{
-            padding: theme.spacing.semantic.component.lg,
-            background: theme.colors.background.secondary,
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            background: theme.colors.background.card,
             borderBottom: `1px solid ${theme.colors.border.primary}`,
+            padding: theme.spacing.semantic.component.lg,
           }}
         >
           <Flex align="center" justify="between">
             <Flex align="center" gap="3">
               <ImageIcon size={20} style={{ color: theme.colors.text.primary }} />
               <Box>
-                <Text
-                  size="4"
-                  style={{
-                    color: theme.colors.text.primary,
-                    fontWeight: 600,
-                  }}
-                >
-                  Image Analysis
-                </Text>
-                <Flex align="center" gap="2" style={{ marginTop: "2px" }}>
-                  <Hash size={12} style={{ color: theme.colors.text.tertiary }} />
-                  <Text
-                    size="1"
-                    style={{
-                      color: theme.colors.text.tertiary,
-                      fontFamily: "monospace",
-                    }}
-                  >
-                    {selectedImageData.blobId?.slice(0, 12) || "loading..."}
+                <Heading size="4" style={{ color: theme.colors.text.primary, margin: 0 }}>
+                  {selectedImageData.path?.split("/").pop() || `Image ${selectedImageIndex + 1}`}
+                </Heading>
+                <Flex align="center" gap="2" style={{ marginTop: "4px" }}>
+                  <Text size="1" style={{ color: theme.colors.text.secondary }}>
+                    {selectedImageData.width} × {selectedImageData.height}
+                  </Text>
+                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>•</Text>
+                  <Text size="1" style={{ color: theme.colors.text.secondary }}>
+                    {selectedImageData.approvedAnnotationsCount} annotation{selectedImageData.approvedAnnotationsCount !== 1 ? 's' : ''}
                   </Text>
                 </Flex>
               </Box>
             </Flex>
 
-            <Flex align="center" gap="2">
-              <Badge
+            <Flex align="center" gap="3">
+              {/* Mask Toggle */}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowMask(!showMask)}
                 style={{
-                  background: theme.colors.background.primary,
-                  color: theme.colors.text.secondary,
-                  border: `1px solid ${theme.colors.border.primary}`,
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  padding: "4px 8px",
-                  borderRadius: theme.borders.radius.sm,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: theme.spacing.semantic.component.xs,
                 }}
               >
-                Item {selectedImageIndex + 1}
-              </Badge>
+                {showMask ? <EyeSlash size={14} /> : <Eye size={14} />}
+                {showMask ? 'Hide Masks' : 'Show Masks'}
+              </Button>
 
-              <Box
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: theme.borders.radius.sm,
-                  background: theme.colors.background.primary,
-                  border: `1px solid ${theme.colors.border.primary}`,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
+              {/* Close Button */}
+              <Button
+                variant="secondary" 
+                size="sm"
                 onClick={onClose}
-                className="close-button"
+                style={{
+                  padding: theme.spacing.semantic.component.sm,
+                  minWidth: "32px",
+                }}
               >
-                <X size={16} style={{ color: theme.colors.text.secondary }} />
-              </Box>
+                <X size={16} />
+              </Button>
             </Flex>
           </Flex>
         </Box>
 
-        <Grid columns="2" style={{ height: "calc(95vh - 80px)" }}>
-          {/* 왼쪽: 이미지 뷰 */}
+        {/* Content */}
+        <Flex style={{ height: "calc(90vh - 80px)" }}>
+          {/* Image Display */}
           <Box
             style={{
+              flex: "1 1 60%",
               background: theme.colors.background.primary,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               position: "relative",
-              borderRight: `1px solid ${theme.colors.border.primary}`,
+              overflow: "hidden",
             }}
           >
-            {!isDrawingMode ? (
-              <Box
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <img
-                  src={selectedImage}
-                  alt="Dataset Image Analysis"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    objectFit: "contain",
-                    borderRadius: theme.borders.radius.sm,
-                  }}
-                />
-                {hasConfirmedAnnotations(selectedImageData) && (
-                  <Box
-                    style={{
-                      position: "absolute",
-                      bottom: theme.spacing.semantic.component.lg,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      background: theme.colors.background.card,
-                      border: `1px solid ${theme.colors.border.primary}`,
-                      color: theme.colors.text.primary,
-                      padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                      borderRadius: theme.borders.radius.md,
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      boxShadow: theme.shadows.semantic.card.medium,
-                    }}
-                    onClick={() => handleDrawingModeToggle(true)}
-                    className="annotation-trigger"
-                  >
-                    <Flex align="center" gap="2">
-                      <Cursor size={14} />
-                      <Text size="2" style={{ fontWeight: 500 }}>
-                        Click to Draw Bounding Boxes
-                      </Text>
-                    </Flex>
-                  </Box>
-                )}
-              </Box>
-            ) : (
+            <Box style={{ position: "relative", maxWidth: "100%", maxHeight: "100%" }}>
+              {/* Canvas for image */}
               <canvas
                 ref={canvasRef}
                 style={{
                   maxWidth: "100%",
                   maxHeight: "100%",
                   objectFit: "contain",
-                  cursor: selectedConfirmedAnnotation ? "crosshair" : "default",
                   borderRadius: theme.borders.radius.sm,
                 }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
               />
-            )}
+              
+              {/* SVG overlay for annotations */}
+              {imageLoaded && (
+                <svg
+                  ref={overlayRef}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    pointerEvents: "none",
+                  }}
+                  viewBox={`0 0 ${canvasRef.current?.width || 600} ${canvasRef.current?.height || 400}`}
+                >
+                  <defs>
+                    {/* Mask glow effect */}
+                    <filter id="maskGlow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  
+                  {/* Render annotation overlays */}
+                  {renderAnnotationOverlays()}
+                </svg>
+              )}
+            </Box>
           </Box>
 
-          {/* 오른쪽: 어노테이션 패널 */}
+          {/* Sidebar */}
           <Box
             style={{
+              flex: "1 1 40%",
               background: theme.colors.background.card,
+              borderLeft: `1px solid ${theme.colors.border.primary}`,
               overflow: "auto",
-              display: "flex",
-              flexDirection: "column",
+              maxHeight: "100%",
             }}
           >
-            <Box
-              style={{
-                padding: theme.spacing.semantic.component.lg,
-                flexGrow: 1,
-              }}
-            >
-              <ConfirmationStatusDisplay />
+            <Box style={{ padding: theme.spacing.semantic.component.lg }}>
+              {/* Image Metadata */}
+              <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                  <Info size={16} style={{ color: theme.colors.text.secondary }} />
+                  <Heading size="3" style={{ color: theme.colors.text.primary, margin: 0 }}>
+                    Image Details
+                  </Heading>
+                </Flex>
 
-              {/* Confirmed Annotations */}
-              <Box style={{ marginBottom: theme.spacing.semantic.component.xl }}>
-                <Flex
-                  align="center"
-                  gap="2"
-                  style={{ marginBottom: theme.spacing.semantic.component.md }}
+                <Box
+                  style={{
+                    background: theme.colors.background.secondary,
+                    padding: theme.spacing.semantic.component.md,
+                    borderRadius: theme.borders.radius.md,
+                    border: `1px solid ${theme.colors.border.primary}`,
+                  }}
                 >
-                  <CheckCircle
-                    size={18}
-                    style={{ color: theme.colors.status.success }}
-                    weight="fill"
-                  />
-                  <Text
-                    size="4"
-                    style={{
-                      color: theme.colors.text.primary,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Verified Annotations
-                  </Text>
+                  <Flex direction="column" gap="2">
+                    <Flex justify="between">
+                      <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                        Filename
+                      </Text>
+                      <Text size="2" style={{ color: theme.colors.text.primary, fontFamily: 'monospace' }}>
+                        {selectedImageData.path?.split("/").pop() || 'Unknown'}
+                      </Text>
+                    </Flex>
+                    
+                    <Flex justify="between">
+                      <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                        Dimensions
+                      </Text>
+                      <Text size="2" style={{ color: theme.colors.text.primary, fontFamily: 'monospace' }}>
+                        {selectedImageData.width} × {selectedImageData.height}
+                      </Text>
+                    </Flex>
+                    
+                    <Flex justify="between">
+                      <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                        Dataset ID
+                      </Text>
+                      <Text size="2" style={{ color: theme.colors.text.primary, fontFamily: 'monospace' }}>
+                        #{selectedImageData.metadata?.datasetId || 'Unknown'}
+                      </Text>
+                    </Flex>
+                    
+                    <Flex justify="between">
+                      <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                        Status
+                      </Text>
+                      <Badge
+                        style={{
+                          background: hasConfirmedAnnotations 
+                            ? `${theme.colors.status.success}20` 
+                            : `${theme.colors.status.warning}20`,
+                          color: hasConfirmedAnnotations 
+                            ? theme.colors.status.success 
+                            : theme.colors.status.warning,
+                          border: `1px solid ${hasConfirmedAnnotations 
+                            ? theme.colors.status.success 
+                            : theme.colors.status.warning}40`,
+                          fontSize: "11px",
+                          fontWeight: 500,
+                          padding: "2px 6px",
+                        }}
+                      >
+                        {hasConfirmedAnnotations ? 'Approved' : 'Pending'}
+                      </Badge>
+                    </Flex>
+                  </Flex>
+                </Box>
+              </Box>
+
+              {/* Approved Annotations */}
+              <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                  <Target size={16} style={{ color: theme.colors.status.success }} />
+                  <Heading size="3" style={{ color: theme.colors.text.primary, margin: 0 }}>
+                    Approved Annotations
+                  </Heading>
                   <Badge
                     style={{
-                      background: theme.colors.status.success + "20",
+                      background: `${theme.colors.status.success}20`,
                       color: theme.colors.status.success,
-                      border: `1px solid ${theme.colors.status.success}40`,
-                      fontSize: "10px",
+                      fontSize: "11px",
                       fontWeight: 600,
                       padding: "2px 6px",
-                      borderRadius: theme.borders.radius.sm,
                     }}
                   >
-                    {selectedAnnotations.length}
+                    {approvedAnnotations.length}
                   </Badge>
                 </Flex>
 
-                {selectedAnnotations.length > 0 ? (
-                  <Box>
-                    {selectedAnnotations.map((annotation, index) => {
-                      const color = annotationColors[annotation.label] || {
-                        stroke: theme.colors.text.secondary,
-                        bg: theme.colors.background.secondary,
-                        text: theme.colors.text.primary,
-                      };
-                      const isSelected = selectedConfirmedAnnotation === annotation.label;
-
-                      return (
-                        <Box
-                          key={index}
-                          style={{
-                            background: isSelected ? color.bg : theme.colors.background.primary,
-                            border: `2px solid ${isSelected ? color.stroke : theme.colors.border.primary}`,
-                            borderRadius: theme.borders.radius.sm,
-                            padding: theme.spacing.semantic.component.sm,
-                            cursor: isDrawingMode ? "pointer" : "default",
-                            transition: "all 0.2s ease",
-                            marginBottom: theme.spacing.semantic.component.sm,
-                          }}
-                          onClick={() => {
-                            if (isDrawingMode) {
-                              setSelectedConfirmedAnnotation(isSelected ? null : annotation.label);
-                            }
-                          }}
-                          className="annotation-item"
-                        >
+                {annotationsLoading ? (
+                  <Box
+                    style={{
+                      padding: theme.spacing.semantic.component.lg,
+                      textAlign: "center",
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.md,
+                    }}
+                  >
+                    <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                      Loading annotations...
+                    </Text>
+                  </Box>
+                ) : approvedAnnotations.length > 0 ? (
+                  <Box
+                    style={{
+                      background: theme.colors.background.secondary,
+                      padding: theme.spacing.semantic.component.md,
+                      borderRadius: theme.borders.radius.md,
+                      border: `1px solid ${theme.colors.border.primary}`,
+                    }}
+                  >
+                    <Flex direction="column" gap="2">
+                      {approvedAnnotations.map((annotation, index) => (
+                        <Flex key={annotation.id} align="center" justify="between">
                           <Flex align="center" gap="2">
                             <Box
                               style={{
-                                width: "12px",
-                                height: "12px",
-                                background: color.stroke,
-                                borderRadius: theme.borders.radius.sm,
+                                width: "8px",
+                                height: "8px",
+                                background: index === 0 ? HIGHLIGHT_COLOR : OTHER_COLOR,
+                                borderRadius: "50%",
                               }}
                             />
-                            <Text
-                              size="2"
-                              style={{
-                                color: theme.colors.text.primary,
-                                fontWeight: 500,
-                              }}
-                            >
-                              {annotation.label}
+                            <Text size="2" style={{ color: theme.colors.text.primary }}>
+                              {getCategoryName(annotation.category_id)}
                             </Text>
-                            {isSelected && isDrawingMode && (
-                              <CheckSquare
-                                size={14}
-                                style={{ color: color.stroke }}
-                                weight="fill"
-                              />
-                            )}
                           </Flex>
-                        </Box>
-                      );
-                    })}
+                        </Flex>
+                      ))}
+                    </Flex>
                   </Box>
                 ) : (
                   <Box
                     style={{
                       padding: theme.spacing.semantic.component.lg,
+                      textAlign: "center",
                       background: theme.colors.background.secondary,
                       borderRadius: theme.borders.radius.md,
                       border: `2px dashed ${theme.colors.border.secondary}`,
-                      textAlign: "center",
                     }}
                   >
                     <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                      No verified annotations yet
+                      No approved annotations yet
                     </Text>
                   </Box>
                 )}
               </Box>
 
-              <Separator
-                size="4"
-                style={{
-                  background: theme.colors.border.primary,
-                  margin: `${theme.spacing.semantic.component.lg} 0`,
-                }}
-              />
-
-              {/* Pending Annotations */}
+              {/* Actions */}
               <Box>
-                <Flex
-                  align="center"
-                  gap="2"
-                  style={{ marginBottom: theme.spacing.semantic.component.md }}
-                >
-                  <Users size={18} style={{ color: theme.colors.status.warning }} weight="fill" />
-                  <Text
-                    size="4"
+                <Flex direction="column" gap="2">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => window.open(selectedImage!, '_blank')}
                     style={{
-                      color: theme.colors.text.primary,
-                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: theme.spacing.semantic.component.sm,
+                      justifyContent: 'center',
                     }}
                   >
-                    Pending Annotations
-                  </Text>
-                  <Badge
-                    style={{
-                      background: theme.colors.status.warning + "20",
-                      color: theme.colors.status.warning,
-                      border: `1px solid ${theme.colors.status.warning}40`,
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      padding: "2px 6px",
-                      borderRadius: theme.borders.radius.sm,
-                    }}
-                  >
-                    {selectedImageData?.pendingAnnotationStats?.length || 0}
-                  </Badge>
+                    <ArrowsOut size={14} />
+                    View Full Size
+                  </Button>
                 </Flex>
-
-                {selectedImageData?.pendingAnnotationStats?.length > 0 ? (
-                  <Box>
-                    {selectedImageData.pendingAnnotationStats
-                      .sort((a: any, b: any) => b.count - a.count)
-                      .map((stat: any, index: number) => {
-                        const isSelected = selectedPendingLabels.has(stat.label);
-                        const confirmedLabels = getConfirmedLabels();
-                        const isAlreadyConfirmed = confirmedLabels.has(stat.label);
-
-                        return (
-                          <Box
-                            key={index}
-                            style={{
-                              background: isSelected
-                                ? theme.colors.status.warning + "10"
-                                : isAlreadyConfirmed
-                                  ? theme.colors.background.secondary
-                                  : theme.colors.background.primary,
-                              border: `2px solid ${
-                                isSelected
-                                  ? theme.colors.status.warning
-                                  : isAlreadyConfirmed
-                                    ? theme.colors.border.secondary
-                                    : theme.colors.border.primary
-                              }`,
-                              borderRadius: theme.borders.radius.sm,
-                              padding: theme.spacing.semantic.component.sm,
-                              cursor: isAlreadyConfirmed ? "not-allowed" : "pointer",
-                              transition: "all 0.2s ease",
-                              marginBottom: theme.spacing.semantic.component.sm,
-                              opacity: isAlreadyConfirmed ? 0.6 : 1,
-                            }}
-                            onClick={() =>
-                              !isAlreadyConfirmed && onTogglePendingAnnotation(stat.label)
-                            }
-                            className="pending-annotation-item"
-                          >
-                            <Flex align="center" justify="between">
-                              <Flex align="center" gap="2">
-                                <Tag
-                                  size={14}
-                                  style={{
-                                    color: isAlreadyConfirmed
-                                      ? theme.colors.text.tertiary
-                                      : theme.colors.text.secondary,
-                                  }}
-                                />
-                                <Text
-                                  size="2"
-                                  style={{
-                                    color: isAlreadyConfirmed
-                                      ? theme.colors.text.tertiary
-                                      : theme.colors.text.primary,
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  {stat.label}
-                                </Text>
-                                {isAlreadyConfirmed && (
-                                  <Badge
-                                    style={{
-                                      background: theme.colors.status.success + "20",
-                                      color: theme.colors.status.success,
-                                      fontSize: "9px",
-                                      fontWeight: 600,
-                                      padding: "2px 4px",
-                                      borderRadius: theme.borders.radius.sm,
-                                    }}
-                                  >
-                                    CONFIRMED
-                                  </Badge>
-                                )}
-                              </Flex>
-                              <Flex align="center" gap="2">
-                                <Badge
-                                  style={{
-                                    background: theme.colors.background.secondary,
-                                    color: theme.colors.text.secondary,
-                                    fontSize: "10px",
-                                    fontWeight: 600,
-                                    padding: "2px 6px",
-                                    borderRadius: theme.borders.radius.sm,
-                                    fontFeatureSettings: '"tnum"',
-                                  }}
-                                >
-                                  {stat.count}
-                                </Badge>
-                                {isSelected && !isAlreadyConfirmed && (
-                                  <CheckSquare
-                                    size={14}
-                                    style={{ color: theme.colors.status.warning }}
-                                    weight="fill"
-                                  />
-                                )}
-                              </Flex>
-                            </Flex>
-                          </Box>
-                        );
-                      })}
-                  </Box>
-                ) : (
-                  <Box
-                    style={{
-                      padding: theme.spacing.semantic.component.lg,
-                      background: theme.colors.background.secondary,
-                      borderRadius: theme.borders.radius.md,
-                      border: `2px dashed ${theme.colors.border.secondary}`,
-                      textAlign: "center",
-                    }}
-                  >
-                    <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                      No pending annotations
-                    </Text>
-                  </Box>
-                )}
-
-                {/* Action Button */}
-                {selectedPendingLabels.size > 0 && (
-                  <Box style={{ marginTop: theme.spacing.semantic.component.lg }}>
-                    <Box
-                      style={{
-                        background:
-                          confirmationStatus.status === "pending"
-                            ? theme.colors.background.secondary
-                            : theme.colors.status.warning,
-                        color:
-                          confirmationStatus.status === "pending"
-                            ? theme.colors.text.secondary
-                            : "white",
-                        border: `1px solid ${theme.colors.status.warning}`,
-                        borderRadius: theme.borders.radius.md,
-                        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                        cursor: confirmationStatus.status === "pending" ? "not-allowed" : "pointer",
-                        transition: "all 0.2s ease",
-                        textAlign: "center",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                      }}
-                      onClick={
-                        confirmationStatus.status === "pending"
-                          ? undefined
-                          : onConfirmSelectedAnnotations
-                      }
-                      className="confirm-button"
-                    >
-                      {confirmationStatus.status === "pending" ? (
-                        <Flex align="center" justify="center" gap="2">
-                          <Box
-                            style={{
-                              width: "12px",
-                              height: "12px",
-                              border: "2px solid transparent",
-                              borderTop: `2px solid ${theme.colors.text.secondary}`,
-                              borderRadius: "50%",
-                              animation: "spin 1s linear infinite",
-                            }}
-                          />
-                          Processing...
-                        </Flex>
-                      ) : (
-                        `Confirm ${selectedPendingLabels.size} annotation(s) on blockchain`
-                      )}
-                    </Box>
-                  </Box>
-                )}
               </Box>
             </Box>
           </Box>
-        </Grid>
+        </Flex>
 
         <style>
           {`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-            
-            .close-button:hover {
-              background: ${theme.colors.background.secondary} !important;
-              transform: scale(1.05);
-            }
-            
-            .annotation-trigger:hover {
-              background: ${theme.colors.background.secondary} !important;
-              transform: translateX(-50%) translateY(-2px);
-              box-shadow: ${theme.shadows.semantic.card.high} !important;
-            }
-            
-            .annotation-item:hover {
-              transform: translateY(-1px);
-              box-shadow: ${theme.shadows.semantic.card.low} !important;
-            }
-            
-            .pending-annotation-item:hover:not([style*="cursor: not-allowed"]) {
-              transform: translateY(-1px);
-              box-shadow: ${theme.shadows.semantic.card.low} !important;
-            }
-            
-            .confirm-button:hover:not([style*="cursor: not-allowed"]) {
-              background: ${theme.colors.status.warning}dd !important;
-              transform: translateY(-1px);
-              box-shadow: ${theme.shadows.semantic.card.medium} !important;
+            .visually-hidden {
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              padding: 0;
+              margin: -1px;
+              overflow: hidden;
+              clip: rect(0, 0, 0, 0);
+              white-space: nowrap;
+              border: 0;
             }
           `}
         </style>
