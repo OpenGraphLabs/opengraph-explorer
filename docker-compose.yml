@@ -43,7 +43,7 @@ services:
     environment:
       DATABASE_URL: ${SERVER_DATABASE_URL}
     volumes:
-      - ./server:/app
+      - ./server_archived:/app
     networks:
       - opengraph-network
 
@@ -52,7 +52,7 @@ services:
     build:
       context: .
       dockerfile: docker/server/Dockerfile
-    container_name: opengraph-server
+    container_name: opengraph-server_archived
     ports:
       - "8080:8080"
     environment:

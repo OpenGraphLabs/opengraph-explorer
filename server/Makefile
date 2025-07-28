@@ -1,27 +1,40 @@
-# OpenGraph Annotation Challenge Server
-# Essential commands for development
+# OpenGraph Database Migration Commands
+.PHONY: help create-migration upgrade-db downgrade-db reset-db run
 
-.PHONY: build run test clean migrate
+help:
+	@echo "Available database migration commands:"
+	@echo "  create-migration  - Create new migration (usage: make create-migration MSG='message')"
+	@echo "  upgrade-db        - Apply all pending migrations"
+	@echo "  downgrade-db      - Rollback one migration"
+	@echo "  reset-db          - Reset database and apply all migrations"
 
-build:
-	@echo "🔨 Building OpenGraph Server..."
-	cargo build
+create-migration:
+	@if [ -z "$(MSG)" ]; then \
+		echo "Error: Please provide a message. Usage: make create-migration MSG='your message'"; \
+		exit 1; \
+	fi
+	@echo "Creating migration: $(MSG)"
+	alembic revision --autogenerate -m "$(MSG)"
+
+upgrade-db:
+	@echo "Applying all pending migrations..."
+	alembic upgrade head
+
+downgrade-db:
+	@echo "Rolling back one migration..."
+	alembic downgrade -1
+
+reset-db:
+	@echo "Resetting database..."
+	@echo "Warning: This will destroy all data. Continue? (y/N)"
+	@read confirm && [ "$$confirm" = "y" ] || exit 1
+	docker-compose down -v
+	docker-compose up -d postgres
+	@echo "Waiting for database to be ready..."
+	@sleep 10
+	alembic upgrade head
+	@echo "Database reset complete!"
 
 run:
-	@echo "🚀 Starting OpenGraph Server..."
-	cargo run
-
-clean:
-	@echo "🧹 Cleaning build artifacts..."
-	cargo clean
-
-# Database migration
-migrate:
-	@echo "🔄 Running database migrations..."
-	sqlx database create
-	sqlx migrate run
-	cargo sqlx prepare
-
-test:
-	@echo "🧪 Running tests..."
-	cargo test
+	@echo "Running the application..."
+	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000

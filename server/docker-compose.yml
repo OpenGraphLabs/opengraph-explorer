@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:15
-    container_name: opengraph-postgres
+    container_name: opengraph-server-postgres
     environment:
       POSTGRES_DB: opengraph
       POSTGRES_USER: opengraph_user
@@ -10,7 +10,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U opengraph_user -d opengraph"]
       interval: 10s
@@ -18,4 +17,4 @@ services:
       retries: 5
 
 volumes:
-  postgres_data: 
+  postgres_data:

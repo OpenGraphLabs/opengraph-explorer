@@ -15,12 +15,11 @@ import {
 import { useTheme } from "@/shared/ui/design-system";
 import { motion } from "framer-motion";
 import { useModelById } from "@/shared/hooks/useModels";
-import { ModelOverviewTab, ModelInferenceTab } from "@/features/model";
+import { ModelOverviewTab } from "@/features/model";
 import { datasetGraphQLService, DatasetObject } from "@/shared/api/graphql/datasetGraphQLService";
 import {
   Brain,
   Database,
-  Lightning,
   Cube,
   Activity,
   Code,
@@ -401,49 +400,6 @@ export function ModelDetail() {
                   </Flex>
                 </Flex>
               </Flex>
-
-              {/* Action buttons */}
-              <Flex direction="column" gap="2" align="end" style={{ gridColumn: "3 / 4" }}>
-                <Button
-                  style={{
-                    background: theme.colors.interactive.primary,
-                    color: theme.colors.text.inverse,
-                    border: "none",
-                    borderRadius: theme.borders.radius.md,
-                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                    fontWeight: theme.typography.label.fontWeight,
-                    cursor: "pointer",
-                    transition: theme.animations.transitions.all,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.semantic.component.xs,
-                    fontSize: "14px",
-                  }}
-                  onClick={() => setActiveTab("inference")}
-                >
-                  <Play size={12} weight="fill" />
-                  Run Inference
-                </Button>
-                <Button
-                  style={{
-                    background: theme.colors.background.secondary,
-                    color: theme.colors.text.primary,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.md,
-                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                    fontWeight: theme.typography.label.fontWeight,
-                    cursor: "pointer",
-                    transition: theme.animations.transitions.all,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.semantic.component.xs,
-                    fontSize: "14px",
-                  }}
-                >
-                  <Eye size={12} />
-                  Inspect
-                </Button>
-              </Flex>
             </Grid>
           </Card>
         </motion.div>
@@ -501,41 +457,11 @@ export function ModelDetail() {
                     <Cube size={14} />
                     Architecture Overview
                   </Tabs.Trigger>
-                  <Tabs.Trigger
-                    value="inference"
-                    style={{
-                      cursor: "pointer",
-                      fontWeight: theme.typography.label.fontWeight,
-                      color:
-                        activeTab === "inference"
-                          ? theme.colors.text.inverse
-                          : theme.colors.text.secondary,
-                      background:
-                        activeTab === "inference"
-                          ? theme.colors.interactive.primary
-                          : "transparent",
-                      transition: theme.animations.transitions.all,
-                      padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                      borderRadius: theme.borders.radius.md,
-                      border: "none",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: theme.spacing.semantic.component.xs,
-                      fontSize: "14px",
-                    }}
-                  >
-                    <Lightning size={14} />
-                    Onchain Inference
-                  </Tabs.Trigger>
                 </Tabs.List>
 
                 <Box py="5" px="4" style={{ backgroundColor: theme.colors.background.card }}>
                   <Tabs.Content value="overview">
                     <ModelOverviewTab model={model} />
-                  </Tabs.Content>
-
-                  <Tabs.Content value="inference">
-                    <ModelInferenceTab model={model} />
                   </Tabs.Content>
                 </Box>
               </Tabs.Root>

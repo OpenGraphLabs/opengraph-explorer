@@ -1,0 +1,21 @@
+### image - Read All
+GET {{http-host}}/api/v1/images?page=1&limit=100
+X-Opengraph-User-Id: 1
+Content-Type: application/json
+
+### image - Read
+GET {{http-host}}/api/v1/images/1
+X-Opengraph-User-Id: 1
+
+### image - Create
+POST {{http-host}}/api/v1/images
+Content-Type: application/json
+X-Opengraph-User-Id: 1
+
+{
+  "file_name": "test.jpg",
+  "image_url": "s3:testurl.com",
+  "width": 640,
+  "height": 370,
+  "dataset_id": 2
+}

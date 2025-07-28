@@ -1,30 +1,16 @@
 import { RouteConfig } from "../types/auth";
 
 export const ROUTE_PERMISSIONS: RouteConfig[] = [
-  // Public routes - no wallet required
-  { path: "/", permission: "public" },
-  { path: "/challenges", permission: "public" },
-  { path: "/challenges/:id", permission: "public" },
-  { path: "/models", permission: "public" },
-  { path: "/datasets", permission: "public" },
-
-  // Wallet required routes
-  { path: "/models/upload", permission: "wallet-required", redirectTo: "/" },
-  { path: "/models/:id", permission: "wallet-required", redirectTo: "/" },
-  { path: "/datasets/upload", permission: "wallet-required", redirectTo: "/" },
-  { path: "/datasets/:id", permission: "wallet-required", redirectTo: "/" },
-  {
-    path: "/challenges/:challengeId/annotate",
-    permission: "wallet-required",
-    redirectTo: "/challenges",
-  },
-  {
-    path: "/challenges/:challengeId/validate",
-    permission: "wallet-required",
-    redirectTo: "/challenges",
-  },
-  { path: "/annotator", permission: "wallet-required", redirectTo: "/" },
-  { path: "/profile", permission: "wallet-required", redirectTo: "/" },
+  // All routes now require authentication (wallet or demo login)
+  { path: "/", permission: "auth-required" },
+  { path: "/models", permission: "auth-required" },
+  { path: "/datasets", permission: "auth-required" },
+  { path: "/models/upload", permission: "auth-required" },
+  { path: "/models/:id", permission: "auth-required" },
+  { path: "/datasets/upload", permission: "auth-required" },
+  { path: "/datasets/:id", permission: "auth-required" },
+  { path: "/annotator", permission: "auth-required" },
+  { path: "/profile", permission: "auth-required" },
 ];
 
 /**
@@ -43,9 +29,17 @@ export const getRouteConfig = (path: string): RouteConfig | undefined => {
 };
 
 /**
- * Check if a path requires wallet connection
+ * Check if a path requires authentication (wallet or demo login)
+ */
+export const requiresAuth = (path: string): boolean => {
+  const config = getRouteConfig(path);
+  return config?.permission === "auth-required";
+};
+
+/**
+ * Legacy function name for backward compatibility
+ * @deprecated Use requiresAuth instead
  */
 export const requiresWallet = (path: string): boolean => {
-  const config = getRouteConfig(path);
-  return config?.permission === "wallet-required";
+  return requiresAuth(path);
 };

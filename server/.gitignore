@@ -1,12 +1,3 @@
-# Rust Build artifacts
-/target/
-**/*.rs.bk
+app/scripts/images*/
+app/scripts/annotations*/
 
-# IDE
-.vscode/
-.idea/
-
-# Environment variables (if any server-specific)
-.env
-.env.local
-.env.production

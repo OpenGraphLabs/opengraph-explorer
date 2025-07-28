@@ -1,792 +1,541 @@
-import { Link } from "react-router-dom";
-import {
-  Box,
-  Flex,
-  Heading,
-  Text,
-  Grid,
-  Button,
-  Badge,
-  type ModelData,
-} from "@/shared/ui/design-system/components";
+import React, { useState, useMemo } from "react";
+import { Box, Flex, Heading, Text, Grid, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import {
-  RocketIcon,
-  GitHubLogoIcon,
-  Share1Icon,
-  CodeIcon,
-  CubeIcon,
-  LayersIcon,
-  Pencil1Icon,
+import { 
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  GridIcon,
+  EyeOpenIcon,
+  EyeNoneIcon
 } from "@radix-ui/react-icons";
+import { useApprovedAnnotations } from "@/shared/hooks/useApiQuery";
+import { useImages } from "@/shared/hooks/useApiQuery";
+import { useDictionaryCategories } from "@/shared/hooks/useDictionaryCategories";
+import { ImageWithSingleAnnotation, CategorySearchInput } from "@/features/annotation/components";
+import { ImageDetailSidebar } from "@/features/annotation/components/ImageDetailSidebar";
+import type { AnnotationRead } from "@/shared/api/generated/models";
+
+interface ImageItem {
+  id: number;
+  file_name: string;
+  image_url: string;
+  width: number;
+  height: number;
+  dataset_id: number;
+  created_at: string;
+}
+
+interface ApprovedAnnotationWithImage extends AnnotationRead {
+  image?: ImageItem;
+  categoryName?: string;
+}
 
 export function Home() {
   const { theme } = useTheme();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(24);
+  const [showGlobalMasks, setShowGlobalMasks] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAnnotation, setSelectedAnnotation] = useState<ApprovedAnnotationWithImage | null>(null);
+
+  // Fetch approved annotations
+  const { 
+    data: approvedAnnotationsResponse, 
+    isLoading: annotationsLoading, 
+    error: annotationsError 
+  } = useApprovedAnnotations(
+    { page: currentPage, limit },
+    { 
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    } as any
+  );
+
+  // Fetch all images (needed to get image details)
+  const { 
+    data: imagesResponse, 
+    isLoading: imagesLoading
+  } = useImages(
+    { page: 1, limit: 100 }, // Get images to map with annotations (max 100)
+    { 
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
+
+  // Fetch categories to get actual category names
+  const { 
+    data: categoriesResponse, 
+    isLoading: categoriesLoading
+  } = useDictionaryCategories({
+    dictionaryId: 1, // Default dictionary ID
+    limit: 100,
+    enabled: true,
+  });
+
+  const approvedAnnotations = approvedAnnotationsResponse?.items || [];
+  const allImages = imagesResponse?.items || [];
+  const allCategories = categoriesResponse?.items || [];
+  const totalPages = approvedAnnotationsResponse?.pages || 0;
+  const totalAnnotations = approvedAnnotationsResponse?.total || 0;
+
+  // Create a map of image_id to image for quick lookup
+  const imageMap = useMemo(() => {
+    const map = new Map<number, ImageItem>();
+    allImages.forEach(image => {
+      map.set(image.id, image);
+    });
+    return map;
+  }, [allImages]);
+
+  // Create a map of category_id to category for quick lookup
+  const categoryMap = useMemo(() => {
+    const map = new Map<number, string>();
+    allCategories.forEach(category => {
+      map.set(category.id, category.name);
+    });
+    return map;
+  }, [allCategories]);
+
+  // Combine annotations with their corresponding images and filter by category
+  const annotationsWithImages: ApprovedAnnotationWithImage[] = useMemo(() => {
+    const result = approvedAnnotations
+      .map(annotation => ({
+        ...annotation,
+        image: imageMap.get(annotation.image_id),
+        categoryName: categoryMap.get(annotation.category_id) || `Category ${annotation.category_id}`
+      }))
+      .filter(item => item.image) // Only include items with valid images
+      .filter(item => {
+        // Filter by selected category
+        if (selectedCategory) {
+          return item.category_id === selectedCategory.id;
+        }
+        return true;
+      });
+
+    return result;
+  }, [approvedAnnotations, imageMap, categoryMap, selectedCategory]);
+
+  const isLoading = annotationsLoading || imagesLoading || categoriesLoading;
+
+  // Search state
+  const isSearching = !!selectedCategory;
+  const searchResultsCount = annotationsWithImages.length;
+  const hasSearchResults = searchResultsCount > 0;
+  const isInitialState = !isSearching && !isLoading;
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAnnotationClick = (annotation: ApprovedAnnotationWithImage) => {
+    setSelectedAnnotation(annotation);
+  };
+
+  const handleCloseSidebar = () => {
+    setSelectedAnnotation(null);
+  };
+
+  const handleCategorySelect = (category: { id: number; name: string } | null) => {
+    setSelectedCategory(category);
+    setSearchQuery(category?.name || '');
+    setCurrentPage(1);
+    
+    // Smooth scroll to top when category changes
+    if (category) {
+      setTimeout(() => {
+        window.scrollTo({ 
+          top: 0, 
+          behavior: 'smooth' 
+        });
+      }, 100);
+    }
+  };
+
+
+  if (annotationsError) {
+    return (
+      <Box
+        style={{
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
+        <Flex direction="column" align="center" gap="4">
+          <GridIcon 
+            width="48" 
+            height="48" 
+            style={{ color: theme.colors.status.error }}
+          />
+          <Heading size="4" style={{ color: theme.colors.text.primary }}>
+            Unable to Load Annotations
+          </Heading>
+          <Text style={{ color: theme.colors.text.secondary, textAlign: 'center' }}>
+            There was an error loading approved annotations. Please try refreshing the page.
+          </Text>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: theme.spacing.semantic.component.md,
+            }}
+          >
+            Refresh Page
+          </Button>
+        </Flex>
+      </Box>
+    );
+  }
 
   return (
     <Box
       style={{
-        maxWidth: "1400px",
-        margin: "0 auto",
-        padding: `0 ${theme.spacing.base[4]}`,
+        minHeight: '100vh',
+        background: theme.colors.background.primary,
+        paddingRight: selectedAnnotation ? '420px' : '0',
+        transition: 'padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
       }}
     >
-      {/* Compact Hero Section */}
-      <Box py="6" mb="4">
-        <Flex direction="column" align="center" gap="3" mb="4">
-          <Heading
-            size="7"
-            align="center"
-            style={{
-              fontWeight: theme.typography.h1.fontWeight,
-              background: theme.gradients.primary,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              maxWidth: "900px",
-              lineHeight: "1.2",
-            }}
-          >
-            Verifiable ML Infrastructure
-          </Heading>
+      {/* Header */}
+      <Box
+        style={{
+          background: `${theme.colors.background.primary}F5`,
+          borderBottom: `1px solid ${theme.colors.border.subtle}20`,
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          backdropFilter: 'blur(20px)',
+          transition: 'all 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+        }}
+      >
+        <Box
+          style={{
+            maxWidth: selectedAnnotation ? '1200px' : '1600px',
+            margin: '0 auto',
+            padding: `${theme.spacing.semantic.layout.sm} ${theme.spacing.semantic.container.sm}`,
+            transition: 'max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+          }}
+        >
+          <Flex direction="column" align="center" gap="4">
+            {/* OpenGraph Title */}
+            <Heading
+              style={{
+                fontSize: theme.typography.h2.fontSize,
+                fontWeight: theme.typography.h2.fontWeight,
+                color: theme.colors.text.primary,
+                letterSpacing: theme.typography.h2.letterSpacing,
+                marginBottom: theme.spacing.semantic.component.sm,
+              }}
+            >
+              OpenGraph
+            </Heading>
 
-          <Text
-            size="3"
-            align="center"
-            style={{
-              maxWidth: "700px",
-              color: theme.colors.text.secondary,
-              lineHeight: "1.4",
-            }}
-          >
-            Onchain machine learning with complete transparency. Build, verify, and deploy ML models
-            on Sui & Walrus.
-          </Text>
+            {/* Category Search Bar */}
+            <Box 
+              style={{ 
+                width: '100%', 
+                maxWidth: '620px',
+                transition: theme.animations.transitions.all,
+                transform: selectedCategory ? 'scale(0.98)' : 'scale(1)',
+              }}
+            >
+              <CategorySearchInput
+                placeholder="Search for categories, annotations, or image types..."
+                selectedCategory={selectedCategory}
+                onCategorySelect={handleCategorySelect}
+              />
+            </Box>
 
-          <Flex gap="3" mt="3">
-            <Link to="/models">
-              <Box
+            {/* Stats and Controls */}
+            {!isLoading && (
+              <Flex 
+                direction="column" 
+                align="center" 
+                gap="3"
                 style={{
-                  display: "inline-block",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.background = theme.colors.interactive.accent;
-                    button.style.boxShadow = `0 4px 12px ${theme.colors.interactive.accent}35`;
-                    button.style.transform = "translateY(-1px)";
-                  }
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.background = theme.colors.interactive.primary;
-                    button.style.boxShadow = `0 2px 8px ${theme.colors.interactive.primary}25`;
-                    button.style.transform = "translateY(0)";
-                  }
+                  opacity: isLoading ? 0.6 : 1,
+                  transition: 'opacity 200ms ease-out',
                 }}
               >
-                <Button
-                  variant="primary"
-                  size="md"
+                <Text
                   style={{
                     fontSize: theme.typography.bodySmall.fontSize,
-                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
-                    height: "40px",
-                    background: theme.colors.interactive.primary,
-                    color: theme.colors.text.inverse,
-                    border: "none",
-                    borderRadius: theme.borders.radius.sm,
-                    boxShadow: `0 2px 8px ${theme.colors.interactive.primary}25`,
-                    transition: "all 0.2s ease",
-                    fontWeight: 600,
+                    color: theme.colors.text.secondary,
+                    textAlign: 'center',
+                    transition: 'all 200ms ease-out',
                   }}
                 >
-                  Explore Models
+                  {selectedCategory 
+                    ? `${annotationsWithImages.length} result${annotationsWithImages.length === 1 ? '' : 's'} for "${selectedCategory.name}"`
+                    : `${totalAnnotations} verified annotations available`
+                  }
+                </Text>
+                
+                {/* Global Mask Toggle */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  highContrast={true}
+                  onClick={() => setShowGlobalMasks(!showGlobalMasks)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.semantic.component.sm,
+                    padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
+                  }}
+                >
+                  {showGlobalMasks ? (
+                    <EyeNoneIcon width="14" height="14" />
+                  ) : (
+                    <EyeOpenIcon width="14" height="14" />
+                  )}
+                  {showGlobalMasks ? 'Hide Segmentation Masks' : 'Show Segmentation Masks'}
                 </Button>
-              </Box>
-            </Link>
-            <Link to="/upload">
-              <Box
-                style={{
-                  display: "inline-block",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.borderColor = theme.colors.interactive.primary;
-                    button.style.background = `${theme.colors.interactive.primary}08`;
-                    button.style.transform = "translateY(-1px)";
-                  }
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                  const button = e.currentTarget.querySelector("button");
-                  if (button) {
-                    button.style.borderColor = theme.colors.border.primary;
-                    button.style.background = theme.colors.background.card;
-                    button.style.transform = "translateY(0)";
-                  }
-                }}
-              >
+              </Flex>
+            )}
+          </Flex>
+        </Box>
+      </Box>
+
+      {/* Main Content */}
+      <Box
+        style={{
+          maxWidth: selectedAnnotation ? '1200px' : '1600px',
+          margin: '0 auto',
+          padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.sm}`,
+          transition: 'max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+        }}
+      >
+        {/* Loading State */}
+        {isLoading && (
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            gap="4"
+            style={{
+              minHeight: '300px',
+              padding: theme.spacing.semantic.layout.lg,
+            }}
+          >
+            <Box
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: `3px solid ${theme.colors.border.primary}`,
+                borderTopColor: theme.colors.interactive.primary,
+                animation: 'spin 1s linear infinite',
+              }}
+            />
+            <Text
+              style={{
+                fontSize: theme.typography.body.fontSize,
+                color: theme.colors.text.secondary,
+              }}
+            >
+              Loading approved annotations...
+            </Text>
+          </Flex>
+        )}
+
+        {/* Annotations Grid */}
+        {!isLoading && annotationsWithImages.length > 0 && (
+          <>
+            <Grid 
+              columns={{ 
+                initial: "1", 
+                sm: "2", 
+                md: "3", 
+                lg: "4", 
+                xl: "5"
+              }} 
+              gap="4"
+              style={{
+                marginBottom: theme.spacing.semantic.layout.lg,
+                opacity: isLoading ? 0.6 : 1,
+                transform: isLoading ? 'translateY(8px)' : 'translateY(0)',
+                transition: 'opacity 300ms ease-out, transform 300ms ease-out',
+              }}
+            >
+              {annotationsWithImages.map((annotationWithImage) => {
+                const { image, categoryName, ...annotation } = annotationWithImage;
+                
+                if (!image) return null;
+
+                return (
+                  <ImageWithSingleAnnotation
+                    key={annotation.id}
+                    annotation={annotation}
+                    imageId={image.id}
+                    imageUrl={image.image_url}
+                    imageWidth={image.width}
+                    imageHeight={image.height}
+                    fileName={image.file_name}
+                    onClick={() => handleAnnotationClick(annotationWithImage)}
+                    showMaskByDefault={showGlobalMasks}
+                  />
+                );
+              })}
+            </Grid>
+
+            {/* Pagination */}
+            {!selectedCategory && totalPages > 1 && (
+              <Flex justify="center" align="center" gap="2">
                 <Button
                   variant="secondary"
                   size="md"
+                  highContrast={true}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
                   style={{
-                    fontSize: theme.typography.bodySmall.fontSize,
-                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
-                    height: "40px",
-                    background: theme.colors.background.card,
-                    color: theme.colors.text.primary,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.sm,
-                    transition: "all 0.2s ease",
-                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.semantic.component.sm,
                   }}
                 >
-                  Upload Model
+                  <ChevronLeftIcon width="16" height="16" />
+                  Previous
                 </Button>
-              </Box>
-            </Link>
-          </Flex>
-        </Flex>
-
-        {/* Compact Stats Row */}
-        <Flex justify="center" gap="8" py="3">
-          <Flex direction="column" align="center" gap="1">
-            <Text
-              size="4"
-              style={{
-                fontWeight: theme.typography.h4.fontWeight,
-                color: theme.colors.text.primary,
-              }}
-            >
-              1,250+
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Models
-            </Text>
-          </Flex>
-          <Flex direction="column" align="center" gap="1">
-            <Text
-              size="4"
-              style={{
-                fontWeight: theme.typography.h4.fontWeight,
-                color: theme.colors.text.primary,
-              }}
-            >
-              340TB
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              On-chain Data
-            </Text>
-          </Flex>
-          <Flex direction="column" align="center" gap="1">
-            <Text
-              size="4"
-              style={{
-                fontWeight: theme.typography.h4.fontWeight,
-                color: theme.colors.text.primary,
-              }}
-            >
-              99.9%
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Verifiable
-            </Text>
-          </Flex>
-        </Flex>
-      </Box>
-
-      {/* Main Content Grid */}
-      <Grid columns={{ initial: "1", lg: "4" }} gap="4" mb="6">
-        {/* Featured Models - Takes 3 columns */}
-        <Box style={{ gridColumn: "span 3" }}>
-          <Flex justify="between" align="center" mb="3">
-            <Heading
-              size="4"
-              style={{
-                fontWeight: theme.typography.h3.fontWeight,
-                color: theme.colors.text.primary,
-              }}
-            >
-              Featured Models
-            </Heading>
-            <Link to="/models">
-              <Button
-                variant="tertiary"
-                size="sm"
-                style={{
-                  fontSize: theme.typography.caption.fontSize,
-                  color: theme.colors.text.secondary,
-                  background: "transparent",
-                  border: "none",
-                }}
-              >
-                View All →
-              </Button>
-            </Link>
-          </Flex>
-
-          <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="3">
-            {featuredModels.slice(0, 6).map(model => (
-              <Box
-                key={model.id}
-                style={{
-                  background: theme.colors.background.card,
-                  borderRadius: theme.borders.radius.md,
-                  border: `1px solid ${theme.colors.border.primary}`,
-                  padding: theme.spacing.base[3],
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  boxShadow: theme.shadows.semantic.card.low,
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                  e.currentTarget.style.borderColor = theme.colors.interactive.primary;
-                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.medium;
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                  e.currentTarget.style.borderColor = theme.colors.border.primary;
-                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <Flex direction="column" gap="2">
-                  <Text
-                    size="2"
-                    style={{
-                      fontWeight: 600,
-                      color: theme.colors.text.primary,
-                      lineHeight: "1.3",
-                    }}
-                  >
-                    {model.name}
-                  </Text>
-                  <Text
-                    size="1"
-                    style={{
-                      color: theme.colors.text.secondary,
-                      lineHeight: "1.4",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {model.description}
-                  </Text>
-                  <Flex justify="between" align="center" mt="1">
-                    <Badge
-                      style={{
-                        background: `${theme.colors.interactive.accent}15`,
-                        color: theme.colors.interactive.accent,
-                        border: `1px solid ${theme.colors.interactive.accent}30`,
-                        padding: "2px 6px",
-                        borderRadius: theme.borders.radius.sm,
-                        fontSize: "10px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {model.task}
-                    </Badge>
-                    <Flex align="center" gap="3">
-                      <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-                        {model.downloads}↓
-                      </Text>
-                      <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-                        {model.likes}♡
-                      </Text>
-                    </Flex>
-                  </Flex>
-                </Flex>
-              </Box>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* Infrastructure Info - Takes 1 column */}
-        <Box>
-          <Heading
-            size="4"
-            mb="3"
-            style={{
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
-            }}
-          >
-            Infrastructure
-          </Heading>
-
-          <Flex direction="column" gap="3">
-            <Box
-              style={{
-                padding: theme.spacing.base[3],
-                background: theme.colors.background.card,
-                borderRadius: theme.borders.radius.md,
-                border: `1px solid ${theme.colors.border.primary}`,
-                boxShadow: theme.shadows.semantic.card.low,
-              }}
-            >
-              <Flex align="center" gap="2" mb="2">
-                <CubeIcon
-                  width="16"
-                  height="16"
-                  style={{ color: theme.colors.interactive.primary }}
-                />
+                
                 <Text
-                  size="2"
                   style={{
-                    fontWeight: theme.typography.label.fontWeight,
-                    color: theme.colors.text.primary,
-                  }}
-                >
-                  Sui Network
-                </Text>
-              </Flex>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.secondary,
-                  lineHeight: "1.4",
-                }}
-              >
-                Object-native ML execution with immutable inference
-              </Text>
-            </Box>
-
-            <Box
-              style={{
-                padding: theme.spacing.base[3],
-                background: theme.colors.background.card,
-                borderRadius: theme.borders.radius.md,
-                border: `1px solid ${theme.colors.border.primary}`,
-                boxShadow: theme.shadows.semantic.card.low,
-              }}
-            >
-              <Flex align="center" gap="2" mb="2">
-                <LayersIcon
-                  width="16"
-                  height="16"
-                  style={{ color: theme.colors.interactive.accent }}
-                />
-                <Text
-                  size="2"
-                  style={{
-                    fontWeight: theme.typography.label.fontWeight,
-                    color: theme.colors.text.primary,
-                  }}
-                >
-                  Walrus Storage
-                </Text>
-              </Flex>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.secondary,
-                  lineHeight: "1.4",
-                }}
-              >
-                Decentralized dataset storage with cryptographic proofs
-              </Text>
-            </Box>
-
-            <Box
-              style={{
-                padding: theme.spacing.base[3],
-                background: theme.colors.background.card,
-                borderRadius: theme.borders.radius.md,
-                border: `1px solid ${theme.colors.border.primary}`,
-                boxShadow: theme.shadows.semantic.card.low,
-              }}
-            >
-              <Flex align="center" gap="2" mb="2">
-                <RocketIcon width="16" height="16" style={{ color: theme.colors.status.success }} />
-                <Text
-                  size="2"
-                  style={{
-                    fontWeight: theme.typography.label.fontWeight,
-                    color: theme.colors.text.primary,
-                  }}
-                >
-                  RL Playground
-                </Text>
-              </Flex>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.secondary,
-                  lineHeight: "1.4",
-                }}
-              >
-                Physics simulation for autonomous agents
-              </Text>
-            </Box>
-          </Flex>
-        </Box>
-      </Grid>
-
-      {/* Compact Features Section */}
-      <Box py="5" mb="4">
-        <Heading
-          size="4"
-          mb="4"
-          align="center"
-          style={{
-            fontWeight: theme.typography.h3.fontWeight,
-            color: theme.colors.text.primary,
-          }}
-        >
-          Platform Capabilities
-        </Heading>
-
-        <Grid columns={{ initial: "1", sm: "2", lg: "4" }} gap="3">
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <RocketIcon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.interactive.primary, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Model Verification
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Cryptographic proofs for all inference operations
-            </Text>
-          </Box>
-
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <Share1Icon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.interactive.accent, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Composable AI
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Build upon existing models with object composition
-            </Text>
-          </Box>
-
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <CodeIcon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.status.success, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Open Source
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Full transparency with open infrastructure
-            </Text>
-          </Box>
-
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-              textAlign: "center",
-            }}
-          >
-            <GitHubLogoIcon
-              width="20"
-              height="20"
-              style={{ color: theme.colors.text.secondary, margin: "0 auto 8px" }}
-            />
-            <Text
-              size="2"
-              style={{
-                fontWeight: theme.typography.label.fontWeight,
-                color: theme.colors.text.primary,
-                display: "block",
-                marginBottom: "4px",
-              }}
-            >
-              Physical AI
-            </Text>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.3",
-              }}
-            >
-              Real-world robotics and autonomous systems
-            </Text>
-          </Box>
-        </Grid>
-      </Box>
-
-      {/* Recent Activity & Quick Actions */}
-      <Grid columns={{ initial: "1", md: "2" }} gap="4" mb="4">
-        <Box>
-          <Heading
-            size="4"
-            mb="3"
-            style={{
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
-            }}
-          >
-            Recent Activity
-          </Heading>
-          <Box
-            style={{
-              padding: theme.spacing.base[3],
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.md,
-              border: `1px solid ${theme.colors.border.primary}`,
-            }}
-          >
-            <Flex direction="column" gap="3">
-              {[
-                { action: "Model uploaded", model: "GPT-2 Nano", time: "2 hours ago" },
-                { action: "Inference completed", model: "MNIST Classifier", time: "4 hours ago" },
-                { action: "Dataset verified", model: "Physics Sim Data", time: "6 hours ago" },
-              ].map((item, index) => (
-                <Flex key={index} justify="between" align="center">
-                  <Flex direction="column" gap="1">
-                    <Text size="2" style={{ color: theme.colors.text.primary }}>
-                      {item.action}
-                    </Text>
-                    <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                      {item.model}
-                    </Text>
-                  </Flex>
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-                    {item.time}
-                  </Text>
-                </Flex>
-              ))}
-            </Flex>
-          </Box>
-        </Box>
-
-        <Box>
-          <Heading
-            size="4"
-            mb="3"
-            style={{
-              fontWeight: theme.typography.h3.fontWeight,
-              color: theme.colors.text.primary,
-            }}
-          >
-            Quick Actions
-          </Heading>
-          <Flex direction="column" gap="3">
-            {[
-              {
-                href: "/models/upload",
-                icon: "rocket",
-                text: "Upload New Model",
-              },
-              {
-                href: "/datasets",
-                icon: "layers",
-                text: "Browse Datasets",
-              },
-              {
-                href: "/annotator",
-                icon: "pencil",
-                text: "Data Annotator",
-              },
-            ].map((action, index) => (
-              <Link key={index} to={action.href} style={{ textDecoration: "none" }}>
-                <Box
-                  style={{
-                    width: "100%",
-                    padding: `${theme.spacing.base[2]} ${theme.spacing.base[3]}`,
-                    height: "44px",
-                    background: theme.colors.background.card,
-                    color: theme.colors.text.primary,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.sm,
-                    transition: "all 0.2s ease",
+                    margin: `0 ${theme.spacing.semantic.component.lg}`,
                     fontSize: theme.typography.bodySmall.fontSize,
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                    e.currentTarget.style.borderColor = theme.colors.interactive.primary;
-                    e.currentTarget.style.background = `${theme.colors.interactive.primary}08`;
-                  }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                    e.currentTarget.style.borderColor = theme.colors.border.primary;
-                    e.currentTarget.style.background = theme.colors.background.card;
+                    color: theme.colors.text.secondary,
+                    fontFamily: 'JetBrains Mono, SF Mono, Monaco, Inconsolata, Roboto Mono, Fira Code, Consolas, Liberation Mono, Menlo, Courier, monospace',
                   }}
                 >
-                  <Flex align="center" gap="2">
-                    <Box style={{ color: theme.colors.interactive.primary }}>
-                      {action.icon === "rocket" && <RocketIcon />}
-                      {action.icon === "layers" && <LayersIcon />}
-                      {action.icon === "pencil" && <Pencil1Icon />}
-                    </Box>
-                    {action.text}
-                  </Flex>
-                </Box>
-              </Link>
-            ))}
+                  Page {currentPage} of {totalPages}
+                </Text>
+
+                <Button
+                  variant="secondary"
+                  size="md"
+                  highContrast={true}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.semantic.component.sm,
+                  }}
+                >
+                  Next
+                  <ChevronRightIcon width="16" height="16" />
+                </Button>
+              </Flex>
+            )}
+          </>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && annotationsWithImages.length === 0 && (
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            gap="4"
+            style={{
+              minHeight: '300px',
+              padding: theme.spacing.semantic.layout.lg,
+            }}
+          >
+            <GridIcon 
+              width="64" 
+              height="64" 
+              style={{ 
+                color: theme.colors.text.tertiary,
+              }} 
+            />
+            
+            <Flex direction="column" align="center" gap="2">
+              <Heading 
+                size="4" 
+                style={{ 
+                  color: theme.colors.text.primary,
+                  fontSize: theme.typography.h4.fontSize,
+                  fontWeight: theme.typography.h4.fontWeight,
+                }}
+              >
+                {selectedCategory ? 'No annotations found in this category' : 'No approved annotations available'}
+              </Heading>
+              
+              <Text 
+                style={{ 
+                  color: theme.colors.text.secondary,
+                  textAlign: 'center',
+                  fontSize: theme.typography.body.fontSize,
+                }}
+              >
+                {selectedCategory 
+                  ? `Try selecting a different category or clear the current filter`
+                  : 'Approved annotations will appear here when available'
+                }
+              </Text>
+
+              {selectedCategory && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  highContrast={true}
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setSearchQuery('');
+                    setCurrentPage(1);
+                    setTimeout(() => {
+                      window.scrollTo({ 
+                        top: 0, 
+                        behavior: 'smooth' 
+                      });
+                    }, 100);
+                  }}
+                  style={{
+                    marginTop: theme.spacing.semantic.component.md,
+                    transition: theme.animations.transitions.all,
+                  }}
+                >
+                  View All Annotations
+                </Button>
+              )}
+            </Flex>
           </Flex>
-        </Box>
-      </Grid>
+        )}
+      </Box>
+
+      {/* Global Styles */}
+      <style>
+        {`
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          
+          input::placeholder {
+            color: ${theme.colors.text.tertiary};
+            opacity: 1;
+          }
+        `}
+      </style>
+
+      {/* Image Detail Sidebar */}
+      {selectedAnnotation && selectedAnnotation.image && (
+        <ImageDetailSidebar
+          annotation={selectedAnnotation}
+          image={selectedAnnotation.image}
+          categoryName={selectedAnnotation.categoryName}
+          isOpen={!!selectedAnnotation}
+          onClose={handleCloseSidebar}
+        />
+      )}
     </Box>
   );
 }
-
-// Featured models data (matching ModelData interface)
-const featuredModels: ModelData[] = [
-  {
-    id: "1",
-    name: "MNIST Classifier",
-    description: "Handwritten digit recognition with 99.2% accuracy",
-    creator: "0x1234...5678",
-    downloads: 1250,
-    likes: 89,
-    task: "Computer Vision",
-    frameworks: ["TensorFlow", "SUI"],
-  },
-  {
-    id: "2",
-    name: "Sentiment Analyzer",
-    description: "Advanced NLP model for sentiment classification",
-    creator: "0xabcd...efgh",
-    downloads: 892,
-    likes: 67,
-    task: "NLP",
-    frameworks: ["PyTorch", "SUI"],
-  },
-  {
-    id: "3",
-    name: "Physics Simulator",
-    description: "RL model for autonomous navigation",
-    creator: "0x9876...1234",
-    downloads: 456,
-    likes: 123,
-    task: "Reinforcement Learning",
-    frameworks: ["Custom", "SUI"],
-  },
-  {
-    id: "4",
-    name: "GPT-2 Nano",
-    description: "Lightweight text generation model",
-    creator: "0x5678...9abc",
-    downloads: 234,
-    likes: 45,
-    task: "Text Generation",
-    frameworks: ["PyTorch", "SUI"],
-  },
-  {
-    id: "5",
-    name: "Vision Transformer",
-    description: "Image classification with transformer architecture",
-    creator: "0xdef0...1234",
-    downloads: 678,
-    likes: 91,
-    task: "Computer Vision",
-    frameworks: ["JAX", "SUI"],
-  },
-  {
-    id: "6",
-    name: "Audio Classifier",
-    description: "Real-time audio event detection",
-    creator: "0x2468...ace0",
-    downloads: 345,
-    likes: 56,
-    task: "Audio Processing",
-    frameworks: ["TensorFlow", "SUI"],
-  },
-];

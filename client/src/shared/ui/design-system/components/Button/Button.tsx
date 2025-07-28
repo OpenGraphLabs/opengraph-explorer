@@ -152,6 +152,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 transform: translate(-50%, -50%) rotate(360deg); 
               }
             }
+            
+            /* Force secondary button text color in light mode */
+            .rt-Button[data-accent-color="gray"].rt-variant-soft {
+              color: ${theme.colors.text.primary} !important;
+              background-color: ${theme.colors.background.secondary} !important;
+              border: 1px solid ${theme.colors.border.primary} !important;
+            }
+            
+            .rt-Button[data-accent-color="gray"].rt-variant-soft:hover {
+              background-color: ${theme.colors.background.tertiary} !important;
+            }
           `}
         </style>
 

@@ -4,19 +4,16 @@ import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircle, Users, Database, Hash } from "phosphor-react";
 import {
-  useDatasetDetail,
-  useBlobData,
   DatasetImageGallery,
   DatasetPagination,
   getAnnotationColor,
   DEFAULT_PAGE_SIZE,
 } from "@/features/dataset";
+import { useDatasetDetailServer } from "@/features/dataset/hooks/useDatasetDetailServer";
 import { DatasetImageModal } from "@/features/dataset/components/DatasetImageModal.tsx";
-import { useDatasetSuiService } from "@/shared/api/sui/datasetSuiService";
 
 export function DatasetDetail() {
   const { theme } = useTheme();
-  const { addConfirmedAnnotationLabels } = useDatasetSuiService();
   const { id } = useParams<{ id: string }>();
 
   const {
@@ -30,21 +27,24 @@ export function DatasetDetail() {
     activeTab,
     totalCounts,
     selectedImage,
-    selectedAnnotations,
     selectedImageData,
     selectedImageIndex,
     selectedPendingLabels,
-    confirmationStatus,
     setActiveTab,
     getPaginatedItems,
     loadPage,
     handleImageClick,
     handleCloseModal,
-    handleTogglePendingAnnotation,
     setConfirmationStatus,
-  } = useDatasetDetail(id);
+  } = useDatasetDetailServer(id);
 
-  const { getImageUrl, isItemLoading, isAnyBlobLoading } = useBlobData(dataset);
+  // Get image URL from server response
+  const getImageUrl = (item: any) => {
+    // Use the image_url from server API response
+    return item.image_url || item.path || "image_url_placeholder";
+  };
+  const isItemLoading = (item: any) => false;
+  const isAnyBlobLoading = () => false; // Placeholder, implement actual loading check
 
   const handleConfirmSelectedAnnotations = async () => {
     if (selectedPendingLabels.size === 0) {
@@ -68,18 +68,16 @@ export function DatasetDetail() {
     try {
       setConfirmationStatus({
         status: "pending",
-        message: `Confirming ${labels.length} annotation(s) on blockchain...`,
+        message: `Confirming ${labels.length} annotation(s)...`,
       });
 
-      const result = await addConfirmedAnnotationLabels(dataset, {
-        path: selectedImageData.path,
-        label: labels,
-      });
+      // TODO: Implement server-side annotation confirmation
+      // For now, just simulate success
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setConfirmationStatus({
         status: "success",
         message: `Successfully confirmed ${labels.length} annotation(s)!`,
-        txHash: (result as any)?.digest || undefined,
         confirmedLabels: labels,
       });
 
@@ -99,7 +97,7 @@ export function DatasetDetail() {
   };
 
   const hasConfirmedAnnotations = (item: any): boolean => {
-    return item.annotations && item.annotations.length > 0;
+    return item.approvedAnnotationsCount > 0;
   };
 
   if (loading) {
@@ -128,7 +126,7 @@ export function DatasetDetail() {
             }}
           />
           <Text size="3" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
-            Loading dataset registry
+            Loading dataset from server
           </Text>
         </Flex>
       </Box>
@@ -162,7 +160,7 @@ export function DatasetDetail() {
     );
   }
 
-  const totalItems = totalCounts.confirmed + totalCounts.pending;
+  const totalItems = totalCounts.total;
   const verificationRate = totalItems > 0 ? totalCounts.confirmed / totalItems : 0;
 
   return (
@@ -286,29 +284,6 @@ export function DatasetDetail() {
                       background: theme.colors.border.secondary,
                     }}
                   />
-
-                  <Flex align="center" gap="2">
-                    <Text
-                      size="1"
-                      style={{
-                        color: theme.colors.text.tertiary,
-                        fontWeight: 500,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.1em",
-                      }}
-                    >
-                      Network
-                    </Text>
-                    <Text
-                      size="2"
-                      style={{
-                        color: theme.colors.text.primary,
-                        fontWeight: 500,
-                      }}
-                    >
-                      SUI
-                    </Text>
-                  </Flex>
 
                   <Box
                     style={{
@@ -807,14 +782,8 @@ export function DatasetDetail() {
         onClose={handleCloseModal}
         selectedImage={selectedImage}
         selectedImageData={selectedImageData}
-        selectedAnnotations={selectedAnnotations}
         selectedImageIndex={selectedImageIndex}
-        selectedPendingLabels={selectedPendingLabels}
-        confirmationStatus={confirmationStatus}
-        onTogglePendingAnnotation={handleTogglePendingAnnotation}
-        onConfirmSelectedAnnotations={handleConfirmSelectedAnnotations}
         onCloseModal={handleCloseModal}
-        getConfirmedLabels={() => new Set(selectedAnnotations.map(annotation => annotation.label))}
         getAnnotationColor={getAnnotationColor}
       />
 

@@ -1,0 +1,13 @@
+### dictionary - Read
+GET {{http-host}}/api/v1/dictionaries/1
+X-Opengraph-User-Id: 1
+
+### dictionary - Create
+POST {{http-host}}/api/v1/dictionaries/
+Content-Type: application/json
+X-Opengraph-User-Id: 1
+
+{
+  "name": "vehicles",
+  "description": "Dictionary for vehicle-related nouns"
+}

@@ -1,7 +1,6 @@
 import { SUI_NETWORK, SUI_CONTRACT } from "../../constants/suiConfig";
 import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { graphql } from "@mysten/sui/graphql/schemas/latest";
-import { WALRUS_AGGREGATOR_URL } from "../walrus/walrusService";
 
 /**
  * 모델 객체 인터페이스
@@ -229,75 +228,6 @@ export class ModelGraphQLService {
       }
 
       return defaultData;
-    });
-  }
-
-  /**
-   * Get all Blob objects owned by the current user
-   */
-  async getUserBlobs(userAddress: string): Promise<BlobObject[]> {
-    try {
-      const query = graphql(`
-        query GetUserBlobs {
-          objects(filter: {
-            type: "0x795ddbc26b8cfff2551f45e198b87fc19473f2df50f995376b924ac80e56f88b::blob::Blob",
-            owner: "${userAddress}"
-          }) {
-            nodes {
-              address
-              version
-              owner {
-                ... on AddressOwner {
-                  owner {
-                    address
-                  }
-                }
-              }
-              asMoveObject {
-                contents {
-                  json
-                }
-              }
-            }
-          }
-        }
-      `);
-
-      const result = await this.gqlClient.query({
-        query: query,
-      });
-
-      if (result.errors && result.errors.length > 0) {
-        throw new Error(`GraphQL error: ${result.errors[0].message}`);
-      }
-
-      const objectNodes = result.data?.objects?.nodes || [];
-      return this.transformBlobNodes(objectNodes as any[]);
-    } catch (error) {
-      console.error("Error fetching user blobs:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Transform GraphQL response nodes to BlobObject array
-   */
-  private transformBlobNodes(nodes: any[]): BlobObject[] {
-    return nodes.map(node => {
-      const jsonData = node?.asMoveObject?.contents?.json;
-      const ownerAddress = node.owner?.owner?.address || "Unknown";
-      const createdAt = new Date(node.createdAt || Date.now());
-
-      return {
-        id: node.address,
-        name: jsonData?.name || "Unknown",
-        description: jsonData?.description || "No description available",
-        owner: ownerAddress,
-        type: node.type,
-        createdAt: createdAt.toISOString(),
-        size: jsonData?.size || 0,
-        mediaUrl: `${WALRUS_AGGREGATOR_URL}/v1/blobs/by-object-id/${node.address}`,
-      };
     });
   }
 }

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 from routers import model_router
 
-# 환경 변수 로드
+# 환경 변수 로드w
 load_dotenv()
 
 app = FastAPI(
