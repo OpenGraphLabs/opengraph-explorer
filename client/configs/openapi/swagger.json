@@ -541,6 +541,11 @@
         "summary": "Create Dataset",
         "description": "Create a new dataset.",
         "operationId": "create_dataset_api_v1_datasets__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
