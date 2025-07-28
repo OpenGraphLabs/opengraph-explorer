@@ -16,3 +16,4 @@ export { InteractiveAnnotationCanvas } from "./InteractiveAnnotationCanvas";
 export { CategorySearchPanel } from "./CategorySearchPanel";
 export { CategorySearchInput } from "./CategorySearchInput";
 export { ImageDetailSidebar } from "./ImageDetailSidebar";
+export { SimpleSelectionUI } from "./SimpleSelectionUI";
