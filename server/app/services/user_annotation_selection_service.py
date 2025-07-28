@@ -21,7 +21,6 @@ from ..schemas.user_annotation_selection import (
     UserAnnotationSelectionUpdate,
     UserAnnotationSelectionRead,
     AnnotationSelectionStats,
-    AnnotationSelectionSummary
 )
 from ..schemas.annotation import AnnotationCreate
 from ..utils.annotation_selection import (
@@ -348,55 +347,6 @@ class UserAnnotationSelectionService:
         
         return True
     
-    async def get_selections_ready_for_approval(
-        self,
-        min_selection_count: int = 5
-    ) -> List[AnnotationSelectionStats]:
-        """승인 가능한 선택들 조회"""
-        stmt = select(
-            UserAnnotationSelection.image_id,
-            UserAnnotationSelection.selected_annotation_ids_key,
-            UserAnnotationSelection.category_id,
-            Category.name.label('category_name'),
-            func.count(UserAnnotationSelection.id).label('selection_count'),
-            func.min(UserAnnotationSelection.created_at).label('first_selected_at'),
-            func.max(UserAnnotationSelection.created_at).label('last_selected_at')
-        ).select_from(
-            UserAnnotationSelection
-        ).outerjoin(
-            Category, UserAnnotationSelection.category_id == Category.id
-        ).where(
-            UserAnnotationSelection.status == "PENDING"
-        ).group_by(
-            UserAnnotationSelection.image_id,
-            UserAnnotationSelection.selected_annotation_ids_key,
-            UserAnnotationSelection.category_id,
-            Category.name
-        ).having(
-            func.count(UserAnnotationSelection.id) >= min_selection_count
-        ).order_by(
-            desc('selection_count'),
-            UserAnnotationSelection.image_id
-        )
-        
-        result = await self.db.execute(stmt)
-        stats = []
-        
-        for row in result:
-            stats.append(AnnotationSelectionStats(
-                image_id=row.image_id,
-                selected_annotation_ids_key=row.selected_annotation_ids_key,
-                category_id=row.category_id,
-                category_name=row.category_name,
-                selection_count=row.selection_count,
-                status="PENDING",
-                first_selected_at=row.first_selected_at,
-                last_selected_at=row.last_selected_at,
-                is_ready_for_approval=True
-            ))
-        
-        return stats
-    
     async def approve_selections_batch(
         self,
         selections_to_approve: List[Tuple[int, str, Optional[int]]]  # (image_id, annotation_ids_key, category_id)
@@ -423,75 +373,6 @@ class UserAnnotationSelectionService:
         
         await self.db.commit()
         return approved_count
-    
-    async def get_selection_summary(self) -> AnnotationSelectionSummary:
-        """선택 통계 요약"""
-        # 전체 통계
-        total_stmt = select(func.count(UserAnnotationSelection.id))
-        total_result = await self.db.execute(total_stmt)
-        total_selections = total_result.scalar()
-        
-        # 상태별 통계
-        status_stmt = select(
-            UserAnnotationSelection.status,
-            func.count(UserAnnotationSelection.id)
-        ).group_by(UserAnnotationSelection.status)
-        status_result = await self.db.execute(status_stmt)
-        status_counts = {row[0]: row[1] for row in status_result}
-        
-        # 승인 가능한 선택 수
-        ready_stmt = select(
-            func.count().over()
-        ).select_from(
-            select(
-                UserAnnotationSelection.image_id,
-                UserAnnotationSelection.selected_annotation_ids_key,
-                UserAnnotationSelection.category_id,
-                func.count(UserAnnotationSelection.id).label('cnt')
-            ).where(
-                UserAnnotationSelection.status == "PENDING"
-            ).group_by(
-                UserAnnotationSelection.image_id,
-                UserAnnotationSelection.selected_annotation_ids_key,
-                UserAnnotationSelection.category_id
-            ).having(
-                func.count(UserAnnotationSelection.id) >= 5
-            ).subquery()
-        )
-        ready_result = await self.db.execute(ready_stmt)
-        ready_count = ready_result.scalar() or 0
-        
-        # 이미지 통계
-        images_stmt = select(
-            func.count(func.distinct(UserAnnotationSelection.image_id)),
-            func.avg(func.count(UserAnnotationSelection.id)).over()
-        ).group_by(UserAnnotationSelection.image_id)
-        images_result = await self.db.execute(images_stmt)
-        images_stats = images_result.fetchone()
-        images_with_selections = images_stats[0] if images_stats else 0
-        avg_selections_per_image = float(images_stats[1]) if images_stats and images_stats[1] else 0.0
-        
-        # 사용자 통계
-        users_stmt = select(
-            func.count(func.distinct(UserAnnotationSelection.user_id)),
-            func.avg(func.count(UserAnnotationSelection.id)).over()
-        ).group_by(UserAnnotationSelection.user_id)
-        users_result = await self.db.execute(users_stmt)
-        users_stats = users_result.fetchone()
-        active_users = users_stats[0] if users_stats else 0
-        avg_selections_per_user = float(users_stats[1]) if users_stats and users_stats[1] else 0.0
-        
-        return AnnotationSelectionSummary(
-            total_selections=total_selections,
-            pending_selections=status_counts.get("PENDING", 0),
-            approved_selections=status_counts.get("APPROVED", 0),
-            rejected_selections=status_counts.get("REJECTED", 0),
-            ready_for_approval=ready_count,
-            images_with_selections=images_with_selections,
-            avg_selections_per_image=avg_selections_per_image,
-            active_users=active_users,
-            avg_selections_per_user=avg_selections_per_user
-        )
     
     async def _find_existing_selection(
         self,

@@ -30,8 +30,7 @@ router = APIRouter(
 @router.post("/", response_model=DatasetRead, status_code=status.HTTP_201_CREATED)
 async def create_dataset(
     dataset_data: DatasetCreate,
-    request: Request,
-    # current_user = Depends(get_current_active_user),
+    current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -40,20 +39,7 @@ async def create_dataset(
     dataset_service = DatasetService(db)
 
     try:
-        # Get user_id from middleware
-        user_id = getattr(request.state, 'user_id', None)
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="X-Opengraph-User-Id header is required"
-            )
-        
-        return await dataset_service.create_dataset(dataset_data, int(user_id))
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Invalid user ID format"
-        )
+        return await dataset_service.create_dataset(dataset_data, current_user.id)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

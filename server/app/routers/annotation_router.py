@@ -30,26 +30,6 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=AnnotationRead, status_code=status.HTTP_201_CREATED)
-async def create_user_annotation(
-    annotation_data: AnnotationUserCreate,
-    # current_user = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Create a new annotation
-    """
-    annotation_service = AnnotationService(db)
-    
-    annotation_create_data = AnnotationCreate(
-        **annotation_data.model_dump(),
-        source_type="USER",
-        status="PENDING"
-    )
-    
-    return await annotation_service.create_annotation(annotation_create_data)
-
-
 @router.get("/approved", response_model=AnnotationListResponse)
 async def get_approved_annotations(
     page: int = Query(1, ge=1),
@@ -263,55 +243,4 @@ async def get_image_selection_stats(
     return await selection_service.get_image_selection_stats(image_id)
 
 
-@router.get("/selections/ready-for-approval", response_model=List[AnnotationSelectionStats])
-async def get_selections_ready_for_approval(
-    min_selection_count: int = Query(5, ge=1, description="승인을 위한 최소 선택 수"),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Get annotation selections ready for approval
-    
-    Returns items that have the same selection made by at least the specified minimum number of users.
-    """
-    selection_service = UserAnnotationSelectionService(db)
-    return await selection_service.get_selections_ready_for_approval(min_selection_count)
-
-
-@router.get("/selections/summary", response_model=AnnotationSelectionSummary)
-async def get_selection_summary(
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Get annotation selection summary
-
-    Provides summary information such as total number of selections, distribution by status, and number of selections pending approval.
-    """
-    selection_service = UserAnnotationSelectionService(db)
-    return await selection_service.get_selection_summary()
-
-
-@router.post("/selections/approve-batch")
-async def approve_selections_batch(
-    selections_to_approve: List[dict],  # [{"image_id": 1, "annotation_ids_key": "1,3,4", "category_id": 5}]
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Bulk-approves annotation selections.
-
-    Used by administrators to process selections that are eligible for approval in bulk.
-    """
-    selection_service = UserAnnotationSelectionService(db)
-    
-    # 데이터 변환
-    selections_tuple = [
-        (item["image_id"], item["annotation_ids_key"], item.get("category_id"))
-        for item in selections_to_approve
-    ]
-    
-    approved_count = await selection_service.approve_selections_batch(selections_tuple)
-    
-    return {
-        "message": f"{approved_count}개의 선택이 승인되었습니다",
-        "approved_count": approved_count
-    }
 

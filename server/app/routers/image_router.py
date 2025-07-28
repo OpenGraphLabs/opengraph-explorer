@@ -12,7 +12,7 @@ from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
 from ..schemas.common import Pagination
 from ..schemas.image import ImageCreate, ImageUpdate, ImageRead, ImageListResponse
-from ..services import ImageService
+from ..services import ImageService, DatasetService
 
 router = APIRouter(
     prefix="/images",
@@ -23,28 +23,31 @@ router = APIRouter(
 @router.post("/", response_model=ImageRead, status_code=status.HTTP_201_CREATED)
 async def add_image(
     image_data: ImageCreate,
-    request: Request,
-    # current_user = Depends(get_current_active_user),
+    current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Add a new image to specific dataset.
     """
     image_service = ImageService(db)
+    dataset_service = DatasetService(db)
+
+    dataset = await dataset_service.get_dataset_by_id(image_data.dataset_id)
+
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found"
+        )
+
+    if dataset.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to add images to this dataset"
+        )
 
     try:
-        user_id = getattr(request.state, 'user_id', None)
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User info is required"
-            )
         return await image_service.create_image(image_data)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid image data"
-        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

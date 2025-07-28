@@ -21,7 +21,6 @@ router = APIRouter(
 @router.post("/", response_model=CategoryRead, status_code=status.HTTP_201_CREATED)
 async def create_category(
     category_data: CategoryCreate,
-    # current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """

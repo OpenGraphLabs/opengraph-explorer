@@ -21,7 +21,6 @@ router = APIRouter(
 @router.post("/", response_model=DictionaryRead, status_code=status.HTTP_201_CREATED)
 async def create_dictionary(
     dictionary_data: DictionaryCreate,
-    # current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """

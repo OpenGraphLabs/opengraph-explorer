@@ -24,7 +24,6 @@ router = APIRouter(
 @router.post("/", response_model=DictionaryCategoryRead, status_code=status.HTTP_201_CREATED)
 async def create_dictionary_category(
     data: DictionaryCategoryCreate,
-    # current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -55,7 +54,6 @@ async def get_dictionary_categories(
 async def delete_dictionary_category(
     dictionary_id: int,
     category_id: int,
-    # current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -75,7 +73,6 @@ async def delete_dictionary_category(
 @router.post("/batch", response_model=List[DictionaryCategoryRead], status_code=status.HTTP_201_CREATED)
 async def create_dictionary_categories_batch(
     data: DictionaryCategoryBatchCreate,
-    # current_user = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
