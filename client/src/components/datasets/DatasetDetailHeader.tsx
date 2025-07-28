@@ -1,11 +1,15 @@
 import { Box, Flex, Text, Badge, Heading, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Hash } from "phosphor-react";
+import { useDatasets } from "@/contexts/data/DatasetsContext";
+import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
 
 export function DatasetDetailHeader() {
   const { theme } = useTheme();
-  const { dataset, totalCounts, isAnyBlobLoading } = useDatasetDetailPage();
+  const { dataset } = useDatasets();
+  const { totalCounts } = useImagesContext();
+  const { isAnyBlobLoading } = useDatasetDetailPage();
 
   if (!dataset) return null;
 
@@ -72,7 +76,7 @@ export function DatasetDetailHeader() {
                     textTransform: "capitalize",
                   }}
                 >
-                  {dataset.dataType.replace("_", " ")}
+                  {dataset.tags?.[0]?.replace("_", " ") || "image"}
                 </Text>
               </Flex>
 

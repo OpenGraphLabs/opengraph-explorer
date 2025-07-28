@@ -1,7 +1,12 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { DatasetDetailPageProvider, useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
+import { DatasetsProvider } from "@/contexts/data/DatasetsContext";
+import { ImagesProvider } from "@/contexts/data/ImagesContext";
+import { DatasetDetailPageProvider } from "@/contexts/page/DatasetDetailPageContext";
+import { useDatasets } from "@/contexts/data/DatasetsContext";
+import { useImagesContext } from "@/contexts/data/ImagesContext";
 import {
   DatasetDetailHeader,
   DatasetDetailDataBrowser,
@@ -12,7 +17,11 @@ import {
 
 function DatasetDetailContent() {
   const { theme } = useTheme();
-  const { loading, error, dataset } = useDatasetDetailPage();
+  const { dataset, isLoading: datasetLoading, error: datasetError } = useDatasets();
+  const { isLoading: imagesLoading, error: imagesError } = useImagesContext();
+
+  const loading = datasetLoading || imagesLoading;
+  const error = datasetError || imagesError;
 
   if (loading) {
     return <DatasetDetailLoadingState />;
@@ -83,9 +92,16 @@ function DatasetDetailContent() {
 }
 
 export function DatasetDetail() {
+  const { id } = useParams<{ id: string }>();
+  const datasetId = id ? parseInt(id) : 0;
+
   return (
-    <DatasetDetailPageProvider>
-      <DatasetDetailContent />
-    </DatasetDetailPageProvider>
+    <DatasetsProvider config={{ datasetId }}>
+      <ImagesProvider config={{ datasetId, limit: 100, fetchAnnotationCounts: true }}>
+        <DatasetDetailPageProvider>
+          <DatasetDetailContent />
+        </DatasetDetailPageProvider>
+      </ImagesProvider>
+    </DatasetsProvider>
   );
 }

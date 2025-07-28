@@ -1,12 +1,16 @@
 import { Box, Tabs } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
+import { useDatasets } from "@/contexts/data/DatasetsContext";
+import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
 import { DatasetDetailTabs } from "./DatasetDetailTabs";
 import { DatasetImageGallery, DatasetPagination, getAnnotationColor, DEFAULT_PAGE_SIZE } from "@/features/dataset";
 
 export function DatasetDetailDataBrowser() {
   const { theme } = useTheme();
+  const { dataset } = useDatasets();
+  const { totalCounts } = useImagesContext();
   const {
     activeTab,
     setActiveTab,
@@ -14,8 +18,6 @@ export function DatasetDetailDataBrowser() {
     confirmedPage,
     pendingPage,
     allPage,
-    totalCounts,
-    dataset,
     paginationLoading,
     loadPage,
     handleImageClick,
@@ -84,7 +86,7 @@ export function DatasetDetailDataBrowser() {
                       ? totalCounts.confirmed
                       : totalCounts.pending;
                 const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
-                return currentPage < totalPages || !!dataset?.pageInfo?.hasNextPage;
+                return currentPage < totalPages;
               })()}
               hasPrevPage={
                 (activeTab === "all"

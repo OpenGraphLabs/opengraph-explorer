@@ -847,6 +847,11 @@
         "summary": "Add Image",
         "description": "Add a new image to specific dataset.",
         "operationId": "add_image_api_v1_images__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {

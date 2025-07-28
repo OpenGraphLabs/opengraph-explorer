@@ -1,25 +1,15 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useParams } from 'react-router-dom';
-import { useDatasetDetailServer } from '@/features/dataset/hooks/useDatasetDetailServer';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useDatasets } from '@/contexts/data/DatasetsContext';
+import { useImagesContext } from '@/contexts/data/ImagesContext';
+import { DEFAULT_PAGE_SIZE } from '@/features/dataset/constants';
 
 interface DatasetDetailPageContextValue {
-  // Dataset data
-  dataset: any | null;
-  loading: boolean;
-  error: string | null;
-  paginationLoading: boolean;
-  
   // Pagination state
   confirmedPage: number;
   pendingPage: number;
   allPage: number;
   activeTab: 'all' | 'confirmed' | 'pending';
-  totalCounts: {
-    total: number;
-    confirmed: number;
-    pending: number;
-  };
-  cachedItems: any[];
+  paginationLoading: boolean;
   
   // Modal state
   selectedImage: string | null;
@@ -39,7 +29,6 @@ interface DatasetDetailPageContextValue {
   handleImageClick: (item: any, index: number, getImageUrl: (item: any, index: number) => string) => void;
   handleCloseModal: () => void;
   setConfirmationStatus: (status: any) => void;
-  refetch: () => void;
   
   // Utility functions
   getImageUrl: (item: any) => string;
@@ -52,32 +41,29 @@ interface DatasetDetailPageContextValue {
 const DatasetDetailPageContext = createContext<DatasetDetailPageContextValue | undefined>(undefined);
 
 export function DatasetDetailPageProvider({ children }: { children: ReactNode }) {
-  const { id } = useParams<{ id: string }>();
+  const { dataset } = useDatasets();
+  const { datasetImages, totalCounts } = useImagesContext();
   
-  const {
-    dataset,
-    loading,
-    error,
-    paginationLoading,
-    confirmedPage,
-    pendingPage,
-    allPage,
-    activeTab,
-    totalCounts,
-    cachedItems,
-    selectedImage,
-    selectedImageData,
-    selectedImageIndex,
-    selectedPendingLabels,
-    confirmationStatus,
-    setActiveTab,
-    getPaginatedItems,
-    loadPage,
-    handleImageClick,
-    handleCloseModal,
-    setConfirmationStatus,
-    refetch,
-  } = useDatasetDetailServer(id);
+  // Pagination state
+  const [confirmedPage, setConfirmedPage] = useState(1);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [allPage, setAllPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<'all' | 'confirmed' | 'pending'>('all');
+  const [paginationLoading, setPaginationLoading] = useState(false);
+  
+  // Modal state
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageData, setSelectedImageData] = useState<any | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
+  const [selectedPendingLabels, setSelectedPendingLabels] = useState<Set<string>>(new Set());
+  const [confirmationStatus, setConfirmationStatus] = useState<{
+    status: 'idle' | 'pending' | 'success' | 'failed';
+    message: string;
+    confirmedLabels?: string[];
+  }>({
+    status: 'idle',
+    message: '',
+  });
 
   // Utility functions
   const getImageUrl = (item: any) => {
@@ -89,6 +75,83 @@ export function DatasetDetailPageProvider({ children }: { children: ReactNode })
 
   const hasConfirmedAnnotations = (item: any): boolean => {
     return item.approvedAnnotationsCount > 0;
+  };
+
+  const getPaginatedItems = (page: number) => {
+    let filteredItems: any[];
+
+    if (activeTab === "all") {
+      filteredItems = datasetImages;
+    } else if (activeTab === "confirmed") {
+      filteredItems = datasetImages.filter(item => hasConfirmedAnnotations(item));
+    } else {
+      filteredItems = datasetImages.filter(item => !hasConfirmedAnnotations(item));
+    }
+
+    const start = (page - 1) * DEFAULT_PAGE_SIZE;
+    const end = start + DEFAULT_PAGE_SIZE;
+    return filteredItems.slice(start, end);
+  };
+
+  const loadPage = async (direction: "next" | "prev") => {
+    if (!dataset) return;
+
+    try {
+      setPaginationLoading(true);
+
+      const currentPage =
+        activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
+
+      const setPage =
+        activeTab === "all"
+          ? setAllPage
+          : activeTab === "confirmed"
+            ? setConfirmedPage
+            : setPendingPage;
+
+      const totalItems =
+        activeTab === "all"
+          ? totalCounts.total
+          : activeTab === "confirmed"
+            ? totalCounts.confirmed
+            : totalCounts.pending;
+      const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
+
+      if (direction === "next" && currentPage < totalPages) {
+        setPage(currentPage + 1);
+      } else if (direction === "prev" && currentPage > 1) {
+        setPage(currentPage - 1);
+      }
+    } catch (error) {
+      console.error(`Error loading ${direction} page:`, error);
+    } finally {
+      setPaginationLoading(false);
+    }
+  };
+
+  const handleImageClick = (
+    item: any,
+    index: number,
+    getImageUrl: (item: any, index: number) => string
+  ) => {
+    const currentPage =
+      activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
+    const absoluteIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE + index;
+
+    setSelectedImage(getImageUrl(item, absoluteIndex));
+    setSelectedImageData(item);
+    setSelectedImageIndex(absoluteIndex);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedImage(null);
+    setSelectedImageData(null);
+    setSelectedImageIndex(-1);
+    setSelectedPendingLabels(new Set());
+    setConfirmationStatus({
+      status: "idle",
+      message: "",
+    });
   };
 
   const handleConfirmSelectedAnnotations = async () => {
@@ -117,7 +180,6 @@ export function DatasetDetailPageProvider({ children }: { children: ReactNode })
       });
 
       // TODO: Implement server-side annotation confirmation
-      // For now, just simulate success
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       setConfirmationStatus({
@@ -144,16 +206,11 @@ export function DatasetDetailPageProvider({ children }: { children: ReactNode })
   return (
     <DatasetDetailPageContext.Provider
       value={{
-        dataset,
-        loading,
-        error,
-        paginationLoading,
         confirmedPage,
         pendingPage,
         allPage,
         activeTab,
-        totalCounts,
-        cachedItems,
+        paginationLoading,
         selectedImage,
         selectedImageData,
         selectedImageIndex,
@@ -165,7 +222,6 @@ export function DatasetDetailPageProvider({ children }: { children: ReactNode })
         handleImageClick,
         handleCloseModal,
         setConfirmationStatus,
-        refetch,
         getImageUrl,
         isItemLoading,
         isAnyBlobLoading,
