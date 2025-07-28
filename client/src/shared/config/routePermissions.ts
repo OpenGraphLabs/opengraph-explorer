@@ -9,7 +9,6 @@ export const ROUTE_PERMISSIONS: RouteConfig[] = [
   { path: "/models/:id", permission: "auth-required" },
   { path: "/datasets/upload", permission: "auth-required" },
   { path: "/datasets/:id", permission: "auth-required" },
-  { path: "/annotator", permission: "auth-required" },
   { path: "/profile", permission: "auth-required" },
 ];
 

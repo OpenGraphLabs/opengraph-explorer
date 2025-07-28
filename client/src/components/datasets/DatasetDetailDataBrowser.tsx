@@ -5,7 +5,9 @@ import { useDatasets } from "@/contexts/data/DatasetsContext";
 import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
 import { DatasetDetailTabs } from "./DatasetDetailTabs";
-import { DatasetImageGallery, DatasetPagination, getAnnotationColor, DEFAULT_PAGE_SIZE } from "@/features/dataset";
+import { DatasetImageGallery } from "./DatasetImageGallery";
+import { DatasetPagination } from "./DatasetPagination";
+import { getAnnotationColor, DEFAULT_PAGE_SIZE } from "@/shared/utils/dataset";
 
 export function DatasetDetailDataBrowser() {
   const { theme } = useTheme();

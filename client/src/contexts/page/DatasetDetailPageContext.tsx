@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useDatasets } from '@/contexts/data/DatasetsContext';
 import { useImagesContext } from '@/contexts/data/ImagesContext';
-import { DEFAULT_PAGE_SIZE } from '@/features/dataset/constants';
+import { DEFAULT_PAGE_SIZE } from '@/shared/utils/dataset';
 
 interface DatasetDetailPageContextValue {
   // Pagination state

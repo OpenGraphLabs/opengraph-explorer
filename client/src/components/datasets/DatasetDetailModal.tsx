@@ -1,6 +1,6 @@
 import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
-import { DatasetImageModal } from "@/features/dataset/components/DatasetImageModal.tsx";
-import { getAnnotationColor } from "@/features/dataset";
+import { DatasetImageModal } from "./DatasetImageModal";
+import { getAnnotationColor } from "@/shared/utils/dataset";
 
 export function DatasetDetailModal() {
   const {

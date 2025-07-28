@@ -10,7 +10,6 @@ import { UploadDataset } from "@/pages/UploadDataset";
 import { Profile } from "@/pages/Profile";
 import { Datasets } from "@/pages/Datasets";
 import { DatasetDetail } from "@/pages/DatasetDetail";
-import { Annotator } from "@/pages/Annotator";
 import { AnnotationWorkspace } from "@/pages/AnnotationWorkspace";
 
 export default function App() {
@@ -84,14 +83,6 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AnnotationWorkspace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/annotator"
-          element={
-            <ProtectedRoute>
-              <Annotator />
             </ProtectedRoute>
           }
         />

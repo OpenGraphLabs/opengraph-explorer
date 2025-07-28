@@ -14,3 +14,6 @@ export { DatasetDetailDataBrowser } from './DatasetDetailDataBrowser';
 export { DatasetDetailLoadingState } from './DatasetDetailLoadingState';
 export { DatasetDetailErrorState } from './DatasetDetailErrorState';
 export { DatasetDetailModal } from './DatasetDetailModal';
+export { DatasetImageModal } from "./DatasetImageModal";
+export { DatasetImageGallery } from "./DatasetImageGallery";
+export { DatasetPagination } from "./DatasetPagination";
