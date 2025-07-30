@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Text, Button, Badge, Flex, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useNavigate } from "react-router-dom";
 import { 
   MaskHappy, 
   Path, 
@@ -25,6 +26,7 @@ interface TaskType {
   category: string;
   featured?: boolean;
   thumbnailUrl?: string;
+  datasetId: number; // Dataset ID for annotation workspace
 }
 
 const TASK_TYPES: TaskType[] = [
@@ -39,7 +41,8 @@ const TASK_TYPES: TaskType[] = [
     category: "Computer Vision",
     featured: true,
     requirements: ["Basic image editing skills", "Understanding of object boundaries"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_mask.jpg"
+    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_mask.jpg",
+    datasetId: 3 // COCO dataset for segmentation tasks
   },
   {
     id: "trajectory-drawing",
@@ -52,7 +55,8 @@ const TASK_TYPES: TaskType[] = [
     category: "Robotics AI",
     featured: true,
     requirements: ["Spatial reasoning skills", "Understanding of robot kinematics"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_trajectory.jpg"
+    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_trajectory.jpg",
+    datasetId: 4 // Robot navigation dataset
   },
   {
     id: "picture-upload",
@@ -64,7 +68,8 @@ const TASK_TYPES: TaskType[] = [
     estimatedTime: "~5 min",
     category: "Data Collection",
     requirements: ["Camera or smartphone", "Good lighting conditions"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg"
+    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
+    datasetId: 5 // First-person view dataset
   },
   {
     id: "video-upload",
@@ -76,12 +81,14 @@ const TASK_TYPES: TaskType[] = [
     estimatedTime: "~30 min",
     category: "Behavioral AI",
     requirements: ["Video recording capability", "Clear action demonstration"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg"
+    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
+    datasetId: 6 // Action demonstration dataset
   }
 ];
 
 function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; isLoaded: boolean }) {
   const { theme } = useTheme();
+  const navigate = useNavigate();
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -375,6 +382,7 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           {/* Action Button */}
           <Button
             className="task-button"
+            onClick={() => navigate(`/datasets/${task.datasetId}/annotate`)}
             style={{
               width: "100%",
               background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
