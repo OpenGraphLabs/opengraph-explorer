@@ -5,7 +5,7 @@ JWT 토큰 검증 및 현재 사용자 추출을 담당합니다.
 """
 
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,13 +20,16 @@ security = HTTPBearer()
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
-    JWT 토큰으로부터 현재 사용자를 조회합니다.
+    JWT 토큰 또는 X-Opengraph-User-Id 헤더로부터 현재 사용자를 조회합니다.
+    테스트 목적으로 X-Opengraph-User-Id 헤더를 우선적으로 확인합니다.
     
     Args:
+        request: FastAPI Request 객체
         credentials: JWT 토큰
         db: 데이터베이스 세션
         
@@ -42,19 +45,33 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    try:
-        # JWT 토큰 디코딩
-        payload = jwt.decode(
-            credentials.credentials, 
-            settings.jwt_secret_key, 
-            algorithms=[settings.jwt_algorithm]
-        )
-        user_id: str = payload.get("sub")
-        if user_id is None:
+    user_id = None
+    
+    # 1. 우선적으로 X-Opengraph-User-Id 헤더 확인 (테스트용)
+    opengraph_user_id = request.headers.get("X-Opengraph-User-Id")
+    if opengraph_user_id:
+        try:
+            user_id = str(int(opengraph_user_id))  # 숫자 유효성 검증
+            print(f"[DEBUG] Using X-Opengraph-User-Id: {user_id}")
+        except ValueError:
+            print(f"[DEBUG] Invalid X-Opengraph-User-Id format: {opengraph_user_id}")
+    
+    # 2. X-Opengraph-User-Id가 없거나 유효하지 않으면 JWT 토큰 확인
+    if not user_id:
+        try:
+            # JWT 토큰 디코딩
+            payload = jwt.decode(
+                credentials.credentials, 
+                settings.jwt_secret_key, 
+                algorithms=[settings.jwt_algorithm]
+            )
+            user_id = payload.get("sub")
+            if user_id is None:
+                raise credentials_exception
+            print(f"[DEBUG] Using JWT user_id: {user_id}")
+                
+        except JWTError:
             raise credentials_exception
-            
-    except JWTError:
-        raise credentials_exception
     
     # 사용자 조회
     user_service = UserService(db)
@@ -75,6 +92,7 @@ async def get_current_user(
 
 
 async def get_current_user_optional(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> Optional[User]:
@@ -82,17 +100,32 @@ async def get_current_user_optional(
     선택적으로 현재 사용자를 조회합니다. (토큰이 없어도 에러 없음)
     
     Args:
+        request: FastAPI Request 객체
         credentials: JWT 토큰 (선택)
         db: 데이터베이스 세션
         
     Returns:
         Optional[User]: 현재 사용자 또는 None
     """
+    # X-Opengraph-User-Id 헤더가 있으면 사용자 조회 시도
+    opengraph_user_id = request.headers.get("X-Opengraph-User-Id")
+    if opengraph_user_id:
+        try:
+            user_service = UserService(db)
+            user_id = int(opengraph_user_id)
+            user = await user_service.get_user_by_id(user_id)
+            if user:
+                from sqlalchemy import select
+                result = await db.execute(select(User).where(User.id == user_id))
+                return result.scalar_one_or_none()
+        except (ValueError, Exception):
+            pass
+    
     if not credentials:
         return None
         
     try:
-        return await get_current_user(credentials, db)
+        return await get_current_user(request, credentials, db)
     except HTTPException:
         return None
 
