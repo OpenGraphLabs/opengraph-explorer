@@ -23,6 +23,10 @@ interface HomePageContextValue {
   isLoading: boolean;
   error: any;
   isTransitioning: boolean;
+  
+  // Search states
+  hasSearchFilter: boolean;
+  isSearching: boolean;
 
   // Page control
   handlePageChange: (page: number) => void;
@@ -52,6 +56,10 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
   const { imageMap, isLoading: imagesLoading, error: imagesError, isPlaceholderDataShowing: imagesPreviousData } = useImagesContext();
 
   const { categoryMap, selectedCategory, isLoading: categoriesLoading } = useCategories();
+
+  // Track search state
+  const hasSearchFilter = !!selectedCategory;
+  const isSearching = categoriesLoading && hasSearchFilter;
 
   // Combine annotations with their images and category names with progressive loading
   const annotationsWithImages = useMemo(() => {
@@ -99,19 +107,29 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
       return true;
     }
 
+    // If we have a search filter and loading is complete, show empty state instead of loading
+    if (hasSearchFilter && !annotationsLoading && !imagesLoading) {
+      return true; // Ready to show empty state
+    }
+
     // Show loading if annotations are loading for the first time
-    if (annotationsLoading && annotations.length === 0) {
+    if (annotationsLoading && annotations.length === 0 && !hasSearchFilter) {
       return false;
     }
 
     // Show loading if images are loading for the first time
-    if (imagesLoading && imageMap.size === 0) {
+    if (imagesLoading && imageMap.size === 0 && !hasSearchFilter) {
       return false;
     }
 
-    // Check if we have annotations but no corresponding images
-    if (annotations.length > 0 && annotationsWithImages.length === 0) {
+    // Check if we have annotations but no corresponding images (only when not searching)
+    if (annotations.length > 0 && annotationsWithImages.length === 0 && !hasSearchFilter) {
       return false;
+    }
+
+    // If searching and data loading is complete, we're ready (might show empty search results)
+    if (hasSearchFilter && !annotationsLoading && !imagesLoading) {
+      return true;
     }
 
     // Default to ready if we have any data
@@ -122,6 +140,7 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
     annotations.length,
     imagesLoading,
     imageMap.size,
+    hasSearchFilter,
   ]);
 
   // Simplified loading state
@@ -170,6 +189,8 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
         isLoading,
         error,
         isTransitioning,
+        hasSearchFilter,
+        isSearching,
         handlePageChange,
         handleAnnotationClick,
         handleCloseSidebar,

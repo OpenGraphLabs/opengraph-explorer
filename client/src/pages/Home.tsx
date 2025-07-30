@@ -12,11 +12,12 @@ import { HomePagination } from "@/components/home/HomePagination";
 import { HomeLoadingState } from "@/components/home/HomeLoadingState";
 import { HomeGallerySkeleton } from "@/components/home/HomeGallerySkeleton";
 import { HomeEmptyState } from "@/components/home/HomeEmptyState";
+import { SearchEmptyState } from "@/components/home/SearchEmptyState";
 import { HomeErrorState } from "@/components/home/HomeErrorState";
 
 function HomeContent() {
   const { theme } = useTheme();
-  const { isLoading, error, annotationsWithImages, selectedAnnotation, handleCloseSidebar, isTransitioning } =
+  const { isLoading, error, annotationsWithImages, selectedAnnotation, handleCloseSidebar, isTransitioning, hasSearchFilter } =
     useHomePage();
 
   if (error) {
@@ -69,6 +70,8 @@ function HomeContent() {
               />
             )}
           </>
+        ) : hasSearchFilter ? (
+          <SearchEmptyState />
         ) : (
           <HomeEmptyState />
         )}

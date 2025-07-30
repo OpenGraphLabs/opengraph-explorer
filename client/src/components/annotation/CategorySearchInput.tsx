@@ -278,7 +278,7 @@ export function CategorySearchInput({
             border: `1px solid ${theme.colors.border.primary}`,
             borderRadius: theme.borders.radius.md,
             boxShadow: theme.shadows.semantic.card.high,
-            zIndex: 50,
+            zIndex: 1000,
             maxHeight: "280px",
             overflowY: "auto",
             opacity: isOpen ? 1 : 0,
