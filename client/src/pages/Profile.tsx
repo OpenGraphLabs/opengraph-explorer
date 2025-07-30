@@ -13,6 +13,8 @@ import {
   TokensIcon,
 } from "@radix-ui/react-icons";
 import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
+import openLogoUrl from "@/assets/logo/logo.png";
+import usdcLogoUrl from "@/assets/logo/usdc_logo.png";
 
 interface UserProfile {
   id: number;
@@ -32,6 +34,8 @@ export function Profile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  // Token selection state - 모든 Hook을 컴포넌트 최상단에 위치
+  const [selectedToken, setSelectedToken] = useState<'OPEN' | 'SUI' | 'USDC'>('OPEN');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -178,10 +182,35 @@ export function Profile() {
     datasetsCreated: profile?.dataset_count || 23,
     weeklyAnnotations: 89,
     accuracy: 94.2,
-    totalRewards: 12.47,
-    pendingRewards: 3.25,
     contributionStreak: 14,
-    rank: "Advanced Contributor"
+    rank: "Advanced Contributor",
+    // Multi-token wallet data
+    tokens: {
+      OPEN: {
+        balance: 2847.5,
+        pending: 156.25,
+        symbol: "OPEN",
+        name: "OpenGraph Token",
+        logo: openLogoUrl,
+        primary: true
+      },
+      SUI: {
+        balance: 12.47,
+        pending: 3.25,
+        symbol: "SUI",
+        name: "Sui Token",
+        logo: suiLogoUrl,
+        primary: false
+      },
+      USDC: {
+        balance: 28.90,
+        pending: 4.50,
+        symbol: "USDC",
+        name: "USD Coin",
+        logo: usdcLogoUrl,
+        primary: false
+      }
+    }
   };
 
   return (
@@ -514,7 +543,7 @@ export function Profile() {
             </Flex>
           </Box>
 
-          {/* SUI Wallet & Rewards */}
+          {/* Multi-Token Wallet */}
           <Box
             style={{
               flex: 1,
@@ -525,6 +554,7 @@ export function Profile() {
               boxShadow: theme.shadows.semantic.overlay.dropdown,
             }}
           >
+            {/* Header */}
             <Flex
               align="center"
               gap="3"
@@ -535,17 +565,17 @@ export function Profile() {
                   width: "48px",
                   height: "48px",
                   borderRadius: "50%",
-                  background: `${theme.colors.status.success}15`,
-                  border: `1px solid ${theme.colors.status.success}30`,
+                  background: `${theme.colors.interactive.primary}15`,
+                  border: `1px solid ${theme.colors.interactive.primary}30`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  padding: "8px",
+                  padding: "6px",
                 }}
               >
                 <img
-                  src={suiLogoUrl}
-                  alt="Sui"
+                  src={mockData.tokens[selectedToken].logo}
+                  alt={mockData.tokens[selectedToken].name}
                   style={{
                     width: "100%",
                     height: "100%",
@@ -556,66 +586,130 @@ export function Profile() {
               </Box>
               <Box>
                 <Heading size="4" style={{ color: theme.colors.text.primary }}>
-                  SUI Wallet & Rewards
+                  OpenGraph Wallet
                 </Heading>
                 <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Your earnings and wallet information
+                  Multi-token rewards & earnings
                 </Text>
               </Box>
             </Flex>
 
-            <Flex direction="column" gap="4">
-              {/* Wallet Address */}
-              {userSuiAddress ? (
-                <Box>
+            {/* Token Selector */}
+            <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  marginBottom: theme.spacing.semantic.component.sm,
+                }}
+              >
+                Select Token
+              </Text>
+              <Flex gap="2">
+                {(Object.keys(mockData.tokens) as Array<keyof typeof mockData.tokens>).map((tokenKey) => {
+                  const token = mockData.tokens[tokenKey];
+                  const isSelected = selectedToken === tokenKey;
+                  
+                  return (
+                    <button
+                      key={tokenKey}
+                      onClick={() => setSelectedToken(tokenKey)}
+                      style={{
+                        flex: 1,
+                        padding: theme.spacing.semantic.component.sm,
+                        background: isSelected 
+                          ? theme.colors.interactive.primary 
+                          : theme.colors.background.secondary,
+                        border: `1px solid ${isSelected 
+                          ? theme.colors.interactive.primary 
+                          : theme.colors.border.secondary}`,
+                        borderRadius: theme.borders.radius.sm,
+                        cursor: "pointer",
+                        transition: "all 150ms ease",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: theme.spacing.base[1],
+                      }}
+                    >
+                      <img
+                        src={token.logo}
+                        alt={token.symbol}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          objectFit: "contain",
+                        }}
+                      />
+                      <Text
+                        size="2"
+                        style={{
+                          color: isSelected ? "white" : theme.colors.text.primary,
+                          fontWeight: isSelected ? "600" : "500",
+                        }}
+                      >
+                        {token.symbol}
+                      </Text>
+                    </button>
+                  );
+                })}
+              </Flex>
+            </Box>
+
+            {/* Wallet Connection Status */}
+            {userSuiAddress ? (
+              <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+                <Text
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    marginBottom: theme.spacing.semantic.component.sm,
+                  }}
+                >
+                  Connected Wallet
+                </Text>
+                <Box
+                  style={{
+                    background: theme.colors.background.secondary,
+                    borderRadius: theme.borders.radius.sm,
+                    padding: theme.spacing.semantic.component.md,
+                    border: `1px solid ${theme.colors.border.secondary}`,
+                  }}
+                >
                   <Text
                     size="2"
                     style={{
-                      color: theme.colors.text.secondary,
-                      marginBottom: theme.spacing.semantic.component.sm,
+                      fontFamily: "monospace",
+                      color: theme.colors.text.primary,
+                      wordBreak: "break-all",
+                      lineHeight: 1.4,
+                      fontSize: "12px",
                     }}
                   >
-                    Connected Wallet
-                  </Text>
-                  <Box
-                    style={{
-                      background: theme.colors.background.secondary,
-                      borderRadius: theme.borders.radius.sm,
-                      padding: theme.spacing.semantic.component.md,
-                      border: `1px solid ${theme.colors.border.secondary}`,
-                    }}
-                  >
-                    <Text
-                      size="2"
-                      style={{
-                        fontFamily: "monospace",
-                        color: theme.colors.text.primary,
-                        wordBreak: "break-all",
-                        lineHeight: 1.4,
-                        fontSize: "12px",
-                      }}
-                    >
-                      {userSuiAddress}
-                    </Text>
-                  </Box>
-                </Box>
-              ) : (
-                <Box
-                  style={{
-                    textAlign: "center",
-                    padding: theme.spacing.semantic.component.lg,
-                    background: `${theme.colors.status.info}08`,
-                    borderRadius: theme.borders.radius.sm,
-                    border: `1px dashed ${theme.colors.status.info}40`,
-                  }}
-                >
-                  <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                    Connect your SUI wallet to earn rewards
+                    {userSuiAddress}
                   </Text>
                 </Box>
-              )}
+              </Box>
+            ) : (
+              <Box
+                style={{
+                  textAlign: "center",
+                  padding: theme.spacing.semantic.component.lg,
+                  background: `${theme.colors.status.info}08`,
+                  borderRadius: theme.borders.radius.sm,
+                  border: `1px dashed ${theme.colors.status.info}40`,
+                  marginBottom: theme.spacing.semantic.component.lg,
+                }}
+              >
+                <Text size="2" style={{ color: theme.colors.text.secondary }}>
+                  Connect wallet to claim rewards
+                </Text>
+              </Box>
+            )}
 
-              {/* Total Rewards */}
+            {/* Token Balance Display */}
+            <Flex direction="column" gap="4">
+              {/* Current Balance */}
               <Flex justify="between" align="center">
                 <Flex align="center" gap="2">
                   <TokensIcon
@@ -626,7 +720,7 @@ export function Profile() {
                     }}
                   />
                   <Text size="3" style={{ color: theme.colors.text.secondary }}>
-                    Total Earned
+                    Available Balance
                   </Text>
                 </Flex>
                 <Flex align="center" gap="2">
@@ -637,10 +731,13 @@ export function Profile() {
                       fontWeight: "700",
                     }}
                   >
-                    {mockData.totalRewards.toFixed(2)}
+                    {mockData.tokens[selectedToken].balance.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })}
                   </Text>
                   <Text size="2" style={{ color: theme.colors.text.tertiary }}>
-                    SUI
+                    {mockData.tokens[selectedToken].symbol}
                   </Text>
                 </Flex>
               </Flex>
@@ -658,60 +755,39 @@ export function Profile() {
                       fontWeight: "700",
                     }}
                   >
-                    {mockData.pendingRewards.toFixed(2)}
+                    +{mockData.tokens[selectedToken].pending.toFixed(2)}
                   </Text>
                   <Text size="2" style={{ color: theme.colors.text.tertiary }}>
-                    SUI
-                  </Text>
-                </Flex>
-              </Flex>
-
-              {/* Reward Rate */}
-              <Flex justify="between" align="center">
-                <Text size="3" style={{ color: theme.colors.text.secondary }}>
-                  Avg. per Annotation
-                </Text>
-                <Flex align="center" gap="2">
-                  <Text
-                    size="3"
-                    style={{
-                      color: theme.colors.status.info,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {(mockData.totalRewards / mockData.totalAnnotations).toFixed(4)}
-                  </Text>
-                  <Text size="2" style={{ color: theme.colors.text.tertiary }}>
-                    SUI
+                    {mockData.tokens[selectedToken].symbol}
                   </Text>
                 </Flex>
               </Flex>
 
               {/* Claim Button */}
               <button
-                disabled={mockData.pendingRewards === 0}
+                disabled={mockData.tokens[selectedToken].pending === 0}
                 style={{
                   width: "100%",
                   padding: theme.spacing.semantic.component.md,
-                  background: mockData.pendingRewards > 0 
+                  background: mockData.tokens[selectedToken].pending > 0 
                     ? theme.colors.interactive.primary 
                     : theme.colors.background.secondary,
-                  border: `1px solid ${mockData.pendingRewards > 0 
+                  border: `1px solid ${mockData.tokens[selectedToken].pending > 0 
                     ? theme.colors.interactive.primary 
                     : theme.colors.border.secondary}`,
                   borderRadius: theme.borders.radius.sm,
-                  color: mockData.pendingRewards > 0 
+                  color: mockData.tokens[selectedToken].pending > 0 
                     ? "white" 
                     : theme.colors.text.tertiary,
                   fontSize: "14px",
                   fontWeight: "600",
-                  cursor: mockData.pendingRewards > 0 ? "pointer" : "not-allowed",
+                  cursor: mockData.tokens[selectedToken].pending > 0 ? "pointer" : "not-allowed",
                   marginTop: theme.spacing.semantic.component.sm,
                   transition: "all 150ms ease",
                 }}
               >
-                {mockData.pendingRewards > 0 
-                  ? `Claim ${mockData.pendingRewards.toFixed(2)} SUI` 
+                {mockData.tokens[selectedToken].pending > 0 
+                  ? `Claim ${mockData.tokens[selectedToken].pending.toFixed(2)} ${mockData.tokens[selectedToken].symbol}` 
                   : "No rewards to claim"}
               </button>
             </Flex>
