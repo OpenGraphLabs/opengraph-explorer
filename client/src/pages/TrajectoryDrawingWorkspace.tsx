@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { AnnotationsProvider } from "@/contexts/data/AnnotationsContext";
@@ -135,9 +135,11 @@ function TrajectoryWorkspaceInner() {
   );
 }
 
+
 export function TrajectoryDrawingWorkspace() {
   const { id: datasetIdParam } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Ensure we have a dataset ID
   if (!datasetIdParam) {
@@ -146,10 +148,12 @@ export function TrajectoryDrawingWorkspace() {
   }
 
   const datasetId = parseInt(datasetIdParam);
+  const imageIdParam = searchParams.get('imageId');
+  const specificImageId = imageIdParam ? parseInt(imageIdParam) : undefined;
 
   return (
     <DatasetsProvider config={{ datasetId }}>
-      <ImagesProvider config={{ datasetId, limit: 100 }}>
+      <ImagesProvider config={{ datasetId, limit: 100, specificImageId }}>
         <TrajectoryWorkspaceInner />
       </ImagesProvider>
     </DatasetsProvider>

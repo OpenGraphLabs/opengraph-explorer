@@ -404,7 +404,7 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
             className="task-button"
             onClick={() => {
               if (task.id === "trajectory-drawing") {
-                navigate(`/datasets/${task.datasetId}/trajectory`);
+                navigate(`/datasets/${task.datasetId}/trajectory?imageId=1017`);
               } else {
                 navigate(`/datasets/${task.datasetId}/annotate`);
               }

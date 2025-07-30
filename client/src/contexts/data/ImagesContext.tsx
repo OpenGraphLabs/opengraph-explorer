@@ -11,6 +11,7 @@ interface ImagesConfig {
   randomSeed?: number;
   fetchAnnotationCounts?: boolean; // For DatasetDetail pages
   useAnnotationImages?: boolean; // For Home page - fetch images based on annotations
+  specificImageId?: number; // Force selection of a specific image ID
 }
 
 interface ImagesContextValue {
@@ -258,6 +259,18 @@ export function ImagesProvider({
   const selectedImage = useMemo(() => {
     if (!config.datasetId || images.length === 0) return null;
 
+    // If a specific image ID is requested, try to find it
+    if (config.specificImageId) {
+      const specificImage = images.find(
+        (image: ImageRead) => image.id === config.specificImageId && image.dataset_id === config.datasetId
+      );
+      if (specificImage) {
+        return specificImage;
+      }
+      // If specific image not found, fall back to random selection
+      console.warn(`Specific image ID ${config.specificImageId} not found in dataset ${config.datasetId}`);
+    }
+
     const datasetFilteredImages = images.filter(
       (image: ImageRead) => image.dataset_id === config.datasetId
     );
@@ -266,7 +279,7 @@ export function ImagesProvider({
 
     const randomIndex = randomSeed % datasetFilteredImages.length;
     return datasetFilteredImages[randomIndex];
-  }, [images, config.datasetId, randomSeed]);
+  }, [images, config.datasetId, randomSeed, config.specificImageId]);
 
   // Transform images for dataset detail view
   const datasetImages = useMemo(() => {
