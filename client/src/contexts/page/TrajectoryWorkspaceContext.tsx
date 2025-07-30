@@ -95,76 +95,74 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
   const [endPoint, setEndPoint] = useState<TrajectoryPoint | null>(null);
   const [trajectoryPath, setTrajectoryPath] = useState<Point[]>([]);
 
-  // Sample trajectory tasks - in real app, these would come from API
-  const availableTasks: TrajectoryTask[] = useMemo(() => [
-    {
-      id: "grab-trash-from-sofa",
-      description: "Grab trash which is on sofa",
-      startMaskCategories: [1], // robot hand
-      endMaskCategories: [3, 4], // trash categories
-      difficulty: "Easy",
-      reward: "5 $OPEN"
-    },
-    {
-      id: "place-trash-in-bin",
-      description: "Place the trash in the trash bin", 
-      startMaskCategories: [3, 4], // trash categories
-      endMaskCategories: [2], // trash bin
-      difficulty: "Medium",
-      reward: "8 $OPEN"
-    },
-    {
-      id: "clean-table-surface",
-      description: "Clean all items from table surface",
-      startMaskCategories: [1], // robot hand
-      endMaskCategories: [5, 6, 7], // various objects
-      difficulty: "Hard",
-      reward: "12 $OPEN"
-    },
-    {
-      id: "organize-desk-items",
-      description: "Organize scattered items on desk",
-      startMaskCategories: [1], // robot hand  
-      endMaskCategories: [8, 9, 10], // desk items
-      difficulty: "Medium",
-      reward: "10 $OPEN"
-    },
-    {
-      id: "fetch-water-bottle",
-      description: "Fetch water bottle from shelf",
-      startMaskCategories: [1], // robot hand
-      endMaskCategories: [11], // water bottle
-      difficulty: "Easy", 
-      reward: "6 $OPEN"
-    }
-  ], []);
+  // Hardcoded tasks and mask mappings per image - in real app, these would come from API
+  const hardcodedImageTasks = useMemo(() => {
+    if (!selectedImage) return { tasks: [], maskMappings: {} };
+    
+    const imageId = selectedImage.id;
+    
+    // Create tasks specific to this image based on available annotations
+    const imageTasks: TrajectoryTask[] = [
+      {
+        id: `image-${imageId}-task-1`,
+        description: `Draw trajectory from first object to second object (Image ${imageId})`,
+        startMaskCategories: [], // Will be filled dynamically
+        endMaskCategories: [], // Will be filled dynamically
+        difficulty: "Easy",
+        reward: "5 $OPEN"
+      },
+      {
+        id: `image-${imageId}-task-2`, 
+        description: `Plan robot path for object manipulation task (Image ${imageId})`,
+        startMaskCategories: [], // Will be filled dynamically
+        endMaskCategories: [], // Will be filled dynamically
+        difficulty: "Medium",
+        reward: "8 $OPEN"
+      }
+    ];
 
-  // Get active trajectory masks based on selected task
+    // Create mask mappings for each task
+    const maskMappings: { [taskId: string]: { startMask: number; endMask: number } } = {};
+    
+    if (approvedAnnotations.length >= 2) {
+      // Assign first two annotations to first task
+      maskMappings[imageTasks[0].id] = {
+        startMask: approvedAnnotations[0].id,
+        endMask: approvedAnnotations[1].id
+      };
+      
+      // Assign second and third annotations to second task (with fallback)
+      const secondTaskStart = approvedAnnotations.length > 2 ? approvedAnnotations[1].id : approvedAnnotations[0].id;
+      const secondTaskEnd = approvedAnnotations.length > 2 ? approvedAnnotations[2].id : approvedAnnotations[1].id;
+      
+      maskMappings[imageTasks[1].id] = {
+        startMask: secondTaskStart,
+        endMask: secondTaskEnd
+      };
+    }
+    
+    return { tasks: imageTasks, maskMappings };
+  }, [selectedImage, approvedAnnotations]);
+
+  const availableTasks = approvedAnnotations.length >= 2 ? hardcodedImageTasks.tasks : [];
+
+  // Get active trajectory masks based on selected task (hardcoded mapping)
   const activeTrajectoryMasks = useMemo(() => {
     if (!selectedTask || !approvedAnnotations.length) return [];
     
-    const relevantMasks: number[] = [];
+    const taskMapping = hardcodedImageTasks.maskMappings[selectedTask.id];
+    if (!taskMapping) return [];
     
-    console.log('Computing active masks for task:', selectedTask.id, {
-      startCategories: selectedTask.startMaskCategories,
-      endCategories: selectedTask.endMaskCategories,
-      availableAnnotations: approvedAnnotations.length
+    const selectedMasks = [taskMapping.startMask, taskMapping.endMask];
+    
+    console.log(`Task ${selectedTask.id} - Selected masks:`, {
+      startMask: taskMapping.startMask,
+      endMask: taskMapping.endMask,
+      selectedMasks
     });
     
-    // Add masks that match start or end categories
-    approvedAnnotations.forEach((annotation: AnnotationClientRead) => {
-      if (annotation.category_id && (
-        selectedTask.startMaskCategories.includes(annotation.category_id) ||
-        selectedTask.endMaskCategories.includes(annotation.category_id)
-      )) {
-        console.log(`Adding annotation ${annotation.id} (category ${annotation.category_id}) to active masks`);
-        relevantMasks.push(annotation.id);
-      }
-    });
-    
-    console.log('Active trajectory masks:', relevantMasks);
-    return relevantMasks;
-  }, [selectedTask, approvedAnnotations]);
+    return selectedMasks;
+  }, [selectedTask, approvedAnnotations, hardcodedImageTasks.maskMappings]);
 
   // Initialize robot hand position when image or task changes
   useEffect(() => {

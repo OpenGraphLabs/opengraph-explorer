@@ -1,7 +1,6 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
 import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
 import { 
   Play, 
@@ -9,125 +8,29 @@ import {
   CheckCircle, 
   Circle, 
   Robot, 
-  Path,
-  Target,
-  ArrowRight,
   Sparkle
 } from "phosphor-react";
-import type { Annotation, MaskInfo } from "@/components/annotation/types/annotation";
-import type { AnnotationRead } from "@/shared/api/generated/models";
-
-interface TrajectoryTask {
-  id: string;
-  description: string;
-  startMaskCategories: number[];
-  endMaskCategories: number[];
-  difficulty: "Easy" | "Medium" | "Hard";
-  reward: string;
-}
-
-// Sample trajectory tasks - in real app, these would come from API
-const TRAJECTORY_TASKS: TrajectoryTask[] = [
-  {
-    id: "grab-trash-from-sofa",
-    description: "Grab trash which is on sofa",
-    startMaskCategories: [1], // robot hand
-    endMaskCategories: [3, 4], // trash categories
-    difficulty: "Easy",
-    reward: "5 $OPEN"
-  },
-  {
-    id: "place-trash-in-bin",
-    description: "Place the trash in the trash bin", 
-    startMaskCategories: [3, 4], // trash categories
-    endMaskCategories: [2], // trash bin
-    difficulty: "Medium",
-    reward: "8 $OPEN"
-  },
-  {
-    id: "clean-table-surface",
-    description: "Clean all items from table surface",
-    startMaskCategories: [1], // robot hand
-    endMaskCategories: [5, 6, 7], // various objects
-    difficulty: "Hard",
-    reward: "12 $OPEN"
-  },
-  {
-    id: "organize-desk-items",
-    description: "Organize scattered items on desk",
-    startMaskCategories: [1], // robot hand  
-    endMaskCategories: [8, 9, 10], // desk items
-    difficulty: "Medium",
-    reward: "10 $OPEN"
-  },
-  {
-    id: "fetch-water-bottle",
-    description: "Fetch water bottle from shelf",
-    startMaskCategories: [1], // robot hand
-    endMaskCategories: [11], // water bottle
-    difficulty: "Easy", 
-    reward: "6 $OPEN"
-  }
-];
 
 export function TrajectoryTaskSidebar() {
   const { theme } = useTheme();
-  const { annotations } = useAnnotations();
   const { 
     selectedTask,
+    availableTasks,
     isDrawingMode,
     robotHandPosition,
     startPoint,
     endPoint,
     trajectoryPath,
     activeTrajectoryMasks,
+    approvedAnnotations,
     handleTaskSelect,
     handleStartDrawing,
     handleStopDrawing,
     handleResetTrajectory
   } = useTrajectoryWorkspace();
 
-  // Convert AnnotationRead to Annotation format
-  const convertedAnnotations = useMemo(() => {
-    return annotations
-      .filter(annotation => annotation.status === 'APPROVED')
-      .map((annotation: AnnotationRead): Annotation => ({
-        ...annotation,
-        bbox: annotation.bbox.length >= 4
-          ? ([annotation.bbox[0], annotation.bbox[1], annotation.bbox[2], annotation.bbox[3]] as [number, number, number, number])
-          : ([0, 0, 0, 0] as [number, number, number, number]),
-        segmentation_size: annotation.segmentation_size
-          ? ([annotation.segmentation_size[0] || 0, annotation.segmentation_size[1] || 0] as [number, number])
-          : ([0, 0] as [number, number]),
-        segmentation_counts: annotation.segmentation_counts || "",
-        polygon: (annotation.polygon as MaskInfo) || {
-          has_segmentation: false,
-          polygons: [],
-          bbox_polygon: [],
-        },
-        status: annotation.status as "PENDING" | "APPROVED" | "REJECTED",
-        source_type: annotation.source_type as "AUTO" | "USER",
-        is_crowd: annotation.is_crowd || false,
-        predicted_iou: annotation.predicted_iou,
-        stability_score: annotation.stability_score || 0,
-        point_coords: annotation.point_coords,
-        category_id: annotation.category_id,
-        created_by: annotation.created_by,
-      }));
-  }, [annotations]);
-
-  // Filter available tasks based on available annotations
-  const availableTasks = useMemo(() => {
-    const availableCategories = new Set(
-      convertedAnnotations.map(annotation => annotation.category_id).filter(Boolean)
-    );
-
-    return TRAJECTORY_TASKS.filter(task => {
-      const hasStartCategories = task.startMaskCategories.some(cat => availableCategories.has(cat));
-      const hasEndCategories = task.endMaskCategories.some(cat => availableCategories.has(cat));
-      return hasStartCategories && hasEndCategories;
-    });
-  }, [convertedAnnotations]);
+  console.log('TrajectoryTaskSidebar - Available tasks:', availableTasks.length);
+  console.log('TrajectoryTaskSidebar - Approved annotations:', approvedAnnotations.length);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -463,7 +366,7 @@ export function TrajectoryTaskSidebar() {
       )}
 
       {/* Available masks info */}
-      {selectedTask && convertedAnnotations.length > 0 && (
+      {selectedTask && approvedAnnotations.length > 0 && (
         <Box
           style={{
             padding: theme.spacing.semantic.component.sm,
@@ -480,7 +383,7 @@ export function TrajectoryTaskSidebar() {
               lineHeight: 1.4,
             }}
           >
-            {convertedAnnotations.length} approved mask{convertedAnnotations.length !== 1 ? 's' : ''} available for trajectory drawing
+            {approvedAnnotations.length} approved mask{approvedAnnotations.length !== 1 ? 's' : ''} available for trajectory drawing
           </Text>
         </Box>
       )}

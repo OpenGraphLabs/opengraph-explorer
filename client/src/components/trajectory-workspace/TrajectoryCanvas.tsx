@@ -406,6 +406,29 @@ export function TrajectoryCanvas() {
             Fit
           </Button>
 
+          {/* Start Drawing button */}
+          {startPoint && endPoint && !isDrawingMode && trajectoryPath.length === 0 && (
+            <Button
+              onClick={handleStartDrawing}
+              style={{
+                background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}dd)`,
+                color: theme.colors.text.inverse,
+                border: "none",
+                borderRadius: theme.borders.radius.md,
+                padding: "8px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 600,
+              }}
+            >
+              <ArrowRight size={16} weight="fill" />
+              Start Drawing
+            </Button>
+          )}
+
           {/* Submit button */}
           {startPoint && endPoint && trajectoryPath.length > 1 && (
             <Button
@@ -510,8 +533,25 @@ export function TrajectoryCanvas() {
               
               // Check if this annotation is active based on selected task
               const isActive = activeTrajectoryMasks.includes(annotation.id);
-              const color = isActive ? ACTIVE_MASK_COLOR : INACTIVE_MASK_COLOR;
-              const opacity = isActive ? 0.4 : 0.2;
+              const maskIndex = activeTrajectoryMasks.indexOf(annotation.id);
+              
+              // Different colors for start vs end masks
+              let color = INACTIVE_MASK_COLOR;
+              let opacity = 0.2;
+              let label = "";
+              
+              if (isActive) {
+                opacity = 0.4;
+                if (maskIndex === 0) {
+                  color = "#00D4AA"; // Green for start mask
+                  label = "START";
+                } else if (maskIndex === 1) {
+                  color = "#FF6B35"; // Orange for end mask  
+                  label = "END";
+                } else {
+                  color = ACTIVE_MASK_COLOR; // Blue fallback
+                }
+              }
 
               // Get bbox for fallback and label positioning
               const bbox = annotation.bbox || [0, 0, 0, 0];
@@ -583,18 +623,31 @@ export function TrajectoryCanvas() {
                     });
                   })()}
                   
-                  {/* Category label for active masks */}
-                  {isActive && (
-                    <text
-                      x={bboxScreenCoords.x + 4}
-                      y={bboxScreenCoords.y + 16}
-                      fill={theme.colors.text.inverse}
-                      fontSize="12"
-                      fontWeight="600"
-                      style={{ pointerEvents: "none" }}
-                    >
-                      Category {annotation.category_id}
-                    </text>
+                  {/* Label for active masks */}
+                  {isActive && label && (
+                    <g>
+                      {/* Background for label */}
+                      <rect
+                        x={bboxScreenCoords.x + 4}
+                        y={bboxScreenCoords.y + 2}
+                        width={label.length * 7}
+                        height={16}
+                        fill={color}
+                        rx="2"
+                        style={{ pointerEvents: "none" }}
+                      />
+                      {/* Label text */}
+                      <text
+                        x={bboxScreenCoords.x + 8}
+                        y={bboxScreenCoords.y + 13}
+                        fill={theme.colors.text.inverse}
+                        fontSize="10"
+                        fontWeight="700"
+                        style={{ pointerEvents: "none" }}
+                      >
+                        {label}
+                      </text>
+                    </g>
                   )}
                 </g>
               );
@@ -607,20 +660,33 @@ export function TrajectoryCanvas() {
                   const screenCoords = imageToScreen(startPoint.x, startPoint.y);
                   return (
                     <>
+                      {/* Outer glow effect */}
                       <circle
                         cx={screenCoords.x}
                         cy={screenCoords.y}
-                        r="8"
+                        r="20"
+                        fill={theme.colors.status.success}
+                        fillOpacity="0.2"
+                        stroke="none"
+                      />
+                      {/* Main circle */}
+                      <circle
+                        cx={screenCoords.x}
+                        cy={screenCoords.y}
+                        r="16"
                         fill={theme.colors.status.success}
                         stroke={theme.colors.text.inverse}
-                        strokeWidth="2"
+                        strokeWidth="3"
+                        style={{
+                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))",
+                        }}
                       />
                       <text
                         x={screenCoords.x}
-                        y={screenCoords.y + 4}
+                        y={screenCoords.y + 6}
                         textAnchor="middle"
                         fill={theme.colors.text.inverse}
-                        fontSize="10"
+                        fontSize="14"
                         fontWeight="bold"
                       >
                         S
@@ -637,20 +703,33 @@ export function TrajectoryCanvas() {
                   const screenCoords = imageToScreen(endPoint.x, endPoint.y);
                   return (
                     <>
+                      {/* Outer glow effect */}
                       <circle
                         cx={screenCoords.x}
                         cy={screenCoords.y}
-                        r="8"
+                        r="20"
+                        fill={theme.colors.status.error}
+                        fillOpacity="0.2"
+                        stroke="none"
+                      />
+                      {/* Main circle */}
+                      <circle
+                        cx={screenCoords.x}
+                        cy={screenCoords.y}
+                        r="16"
                         fill={theme.colors.status.error}
                         stroke={theme.colors.text.inverse}
-                        strokeWidth="2"
+                        strokeWidth="3"
+                        style={{
+                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))",
+                        }}
                       />
                       <text
                         x={screenCoords.x}
-                        y={screenCoords.y + 4}
+                        y={screenCoords.y + 6}
                         textAnchor="middle"
                         fill={theme.colors.text.inverse}
-                        fontSize="10"
+                        fontSize="14"
                         fontWeight="bold"
                       >
                         E
@@ -695,20 +774,38 @@ export function TrajectoryCanvas() {
 
             {/* Render trajectory path */}
             {trajectoryPath.length > 1 && (
-              <polyline
-                points={trajectoryPath.map(point => {
-                  const screenCoords = imageToScreen(point.x, point.y);
-                  return `${screenCoords.x},${screenCoords.y}`;
-                }).join(' ')}
-                fill="none"
-                stroke={TRAJECTORY_COLOR}
-                strokeWidth="3"
-                strokeDasharray="10,5"
-                strokeOpacity="0.8"
-                style={{
-                  animation: "dashMove 2s linear infinite",
-                }}
-              />
+              <g>
+                {/* Shadow for depth */}
+                <polyline
+                  points={trajectoryPath.map(point => {
+                    const screenCoords = imageToScreen(point.x, point.y);
+                    return `${screenCoords.x},${screenCoords.y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke="rgba(0, 0, 0, 0.2)"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  transform="translate(2, 2)"
+                />
+                {/* Main trajectory line */}
+                <polyline
+                  points={trajectoryPath.map(point => {
+                    const screenCoords = imageToScreen(point.x, point.y);
+                    return `${screenCoords.x},${screenCoords.y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke={TRAJECTORY_COLOR}
+                  strokeWidth="5"
+                  strokeDasharray="15,8"
+                  strokeOpacity="0.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    animation: "dashMove 2s linear infinite",
+                  }}
+                />
+              </g>
             )}
 
             {/* Render current drawing path */}
@@ -717,9 +814,11 @@ export function TrajectoryCanvas() {
                 points={currentPath.map(point => `${point.x},${point.y}`).join(' ')}
                 fill="none"
                 stroke={theme.colors.interactive.accent}
-                strokeWidth="2"
-                strokeDasharray="5,3"
-                strokeOpacity="0.7"
+                strokeWidth="4"
+                strokeDasharray="8,4"
+                strokeOpacity="0.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             )}
           </svg>
@@ -738,8 +837,9 @@ export function TrajectoryCanvas() {
           {annotationsLoading && "Loading approved annotations..."}
           {!annotationsLoading && approvedAnnotations.length === 0 && "No approved annotations found for this image"}
           {!annotationsLoading && approvedAnnotations.length > 0 && !selectedTask && "Select a task from the sidebar to begin"}
-          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && !startPoint && "Click on the starting mask to set the start point"}
-          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && startPoint && !endPoint && "Click on the target mask to set the end point"}
+          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && activeTrajectoryMasks.length < 2 && `Selected task requires 2 masks, but only ${activeTrajectoryMasks.length} available`}
+          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && activeTrajectoryMasks.length >= 2 && !startPoint && "Click on the GREEN (START) mask to set the start point"}
+          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && startPoint && !endPoint && "Click on the ORANGE (END) mask to set the end point"}
           {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && startPoint && endPoint && !isDrawingMode && "Click 'Start Drawing' to draw the trajectory path"}
           {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && isDrawingMode && "Draw the trajectory path from start to end point"}
         </Text>
