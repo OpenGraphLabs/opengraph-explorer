@@ -13,6 +13,7 @@ import {
   Sparkle,
   Image
 } from "phosphor-react";
+import actionDemoVideo from "@/assets/thumbnail/earn_thumbnail_action_demonstration.mov";
 
 interface TaskType {
   id: string;
@@ -26,6 +27,7 @@ interface TaskType {
   category: string;
   featured?: boolean;
   thumbnailUrl?: string;
+  thumbnailVideo?: string;
   datasetId: number; // Dataset ID for annotation workspace
 }
 
@@ -81,7 +83,7 @@ const TASK_TYPES: TaskType[] = [
     estimatedTime: "~30 min",
     category: "Behavioral AI",
     requirements: ["Video recording capability", "Clear action demonstration"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
+    thumbnailVideo: actionDemoVideo,
     datasetId: 3 // OceanDAO dataset for demo
   }
 ];
@@ -192,20 +194,38 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
               cursor: "pointer",
             }}
           >
-            {task.thumbnailUrl ? (
+            {task.thumbnailUrl || task.thumbnailVideo ? (
               <>
-                <img
-                  src={task.thumbnailUrl}
-                  alt={task.title}
-                  className="task-thumbnail"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "center",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  }}
-                />
+                {task.thumbnailVideo ? (
+                  <video
+                    src={task.thumbnailVideo}
+                    className="task-thumbnail"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      objectPosition: "center",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={task.thumbnailUrl}
+                    alt={task.title}
+                    className="task-thumbnail"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      objectPosition: "center",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                  />
+                )}
                 {/* Overlay gradient for better text readability */}
                 <Box
                   style={{
