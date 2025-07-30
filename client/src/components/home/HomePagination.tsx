@@ -21,23 +21,33 @@ export function HomePagination() {
     <Flex 
       justify="center" 
       align="center" 
-      gap="2"
+      gap="3"
       style={{
-        opacity: isLoading ? 0.5 : 1,
+        marginTop: theme.spacing.semantic.layout.lg,
+        padding: theme.spacing.semantic.layout.md,
+        opacity: isLoading ? 0.6 : 1,
         transition: "opacity 300ms ease-out",
       }}
     >
       <Button
         variant="secondary"
-        size="md"
-        highContrast={true}
+        size="lg"
+        highContrast={false}
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage <= 1 || isLoading}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: theme.spacing.semantic.component.sm,
-          cursor: isLoading ? "not-allowed" : "pointer",
+          gap: theme.spacing[2],
+          borderRadius: "24px",
+          padding: `${theme.spacing[3]} ${theme.spacing[4]}`,
+          fontSize: "15px",
+          fontWeight: "500",
+          background: "transparent",
+          border: `1px solid ${theme.colors.border.subtle}60`,
+          color: theme.colors.text.secondary,
+          cursor: isLoading || currentPage <= 1 ? "not-allowed" : "pointer",
+          transition: "all 0.2s ease",
         }}
       >
         <ChevronLeftIcon width="16" height="16" />
@@ -46,11 +56,14 @@ export function HomePagination() {
 
       <Text
         style={{
-          margin: `0 ${theme.spacing.semantic.component.lg}`,
-          fontSize: theme.typography.bodySmall.fontSize,
-          color: theme.colors.text.secondary,
-          fontFamily:
-            "JetBrains Mono, SF Mono, Monaco, Inconsolata, Roboto Mono, Fira Code, Consolas, Liberation Mono, Menlo, Courier, monospace",
+          margin: `0 ${theme.spacing[6]}`,
+          fontSize: "15px",
+          color: theme.colors.text.primary,
+          fontWeight: "500",
+          background: theme.colors.background.secondary + "80",
+          padding: `${theme.spacing[2]} ${theme.spacing[4]}`,
+          borderRadius: "20px",
+          border: `1px solid ${theme.colors.border.subtle}40`,
         }}
       >
         {isLoading ? (
@@ -66,15 +79,23 @@ export function HomePagination() {
 
       <Button
         variant="secondary"
-        size="md"
-        highContrast={true}
+        size="lg"
+        highContrast={false}
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage >= totalPages || isLoading}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: theme.spacing.semantic.component.sm,
-          cursor: isLoading ? "not-allowed" : "pointer",
+          gap: theme.spacing[2],
+          borderRadius: "24px",
+          padding: `${theme.spacing[3]} ${theme.spacing[4]}`,
+          fontSize: "15px",
+          fontWeight: "500",
+          background: "transparent",
+          border: `1px solid ${theme.colors.border.subtle}60`,
+          color: theme.colors.text.secondary,
+          cursor: isLoading || currentPage >= totalPages ? "not-allowed" : "pointer",
+          transition: "all 0.2s ease",
         }}
       >
         Next

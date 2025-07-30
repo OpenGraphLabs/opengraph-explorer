@@ -4,19 +4,17 @@
 데이터셋 관련 API 엔드포인트들을 정의합니다.
 """
 
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
-from ..dependencies.auth import get_current_user, get_current_active_user
+from ..dependencies.auth import get_current_active_user
 from ..schemas.common import Pagination
 from ..schemas.dataset import (
     DatasetCreate,
     DatasetUpdate,
     DatasetRead,
     DatasetListResponse,
-    DatasetFilter,
 )
 from ..schemas.image import ImageListResponse
 from ..services import DatasetService, ImageService

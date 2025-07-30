@@ -16,6 +16,7 @@ export interface ImageWithSingleAnnotationProps {
   onClick?: () => void;
   className?: string;
   showMaskByDefault?: boolean;
+  priority?: boolean; // For eager loading of important images
 }
 
 export function ImageWithSingleAnnotation({
@@ -28,6 +29,7 @@ export function ImageWithSingleAnnotation({
   onClick,
   className,
   showMaskByDefault = true,
+  priority = false,
 }: ImageWithSingleAnnotationProps) {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -41,11 +43,32 @@ export function ImageWithSingleAnnotation({
   });
   const imgRef = useRef<HTMLImageElement>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   useEffect(() => {
     setShowMasks(showMaskByDefault);
     setDisplayOptions(prev => ({ ...prev, showMasks: showMaskByDefault }));
   }, [showMaskByDefault]);
+
+  // Set a timeout for image loading
+  useEffect(() => {
+    if (!isLoaded && !isError) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        if (!isLoaded && imgRef.current) {
+          // Force a retry by changing the src
+          const retryUrl = imageUrl + '?timeout_retry=' + Date.now();
+          imgRef.current.src = retryUrl;
+        }
+      }, 5000);
+    }
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, [isLoaded, isError, imageUrl]);
 
   const toggleMaskVisibility = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -181,8 +204,11 @@ export function ImageWithSingleAnnotation({
             display: isLoaded ? "block" : "none",
             transition: theme.animations.transitions.all,
           }}
-          loading="lazy"
+          loading="eager"
           onLoad={() => {
+            if (loadingTimeoutRef.current) {
+              clearTimeout(loadingTimeoutRef.current);
+            }
             setIsLoaded(true);
             setIsError(false);
             setRetryCount(0);
@@ -192,7 +218,8 @@ export function ImageWithSingleAnnotation({
               // Retry loading after delay
               setTimeout(() => {
                 if (imgRef.current) {
-                  imgRef.current.src = imageUrl + '?retry=' + (retryCount + 1);
+                  const retryUrl = imageUrl + '?retry=' + (retryCount + 1);
+                  imgRef.current.src = retryUrl;
                   setRetryCount(prev => prev + 1);
                 }
               }, 1000 * (retryCount + 1));

@@ -1,7 +1,7 @@
 import React from "react";
-import { Box, Flex, Heading, Text, Button } from "@/shared/ui/design-system/components";
+import { Box, Flex, Heading, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { EyeOpenIcon, EyeNoneIcon } from "@radix-ui/react-icons";
+import { EyeOpenIcon, EyeNoneIcon, CubeIcon } from "@radix-ui/react-icons";
 import { CategorySearchInput } from "@/components/annotation";
 import { useHomePage } from "@/contexts/page/HomePageContext";
 import { useAnnotations } from "@/contexts/data/AnnotationsContext";
@@ -16,99 +16,153 @@ export function HomeHeader() {
   return (
     <Box
       style={{
-        background: `${theme.colors.background.primary}F5`,
-        borderBottom: `1px solid ${theme.colors.border.subtle}20`,
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        backdropFilter: "blur(20px)",
-        transition: "all 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
+        background: `linear-gradient(to bottom, ${theme.colors.background.primary}, ${theme.colors.background.primary}95)`,
+        borderBottom: `1px solid ${theme.colors.border.subtle}30`,
+        position: "relative",
+        zIndex: 10,
+        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
       }}
     >
       <Box
         style={{
-          maxWidth: "1600px",
+          maxWidth: "1800px",
           margin: "0 auto",
-          padding: `${theme.spacing.semantic.layout.sm} ${theme.spacing.semantic.container.sm}`,
+          padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.md}`,
           transition: "max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         }}
       >
         <Flex direction="column" align="center" gap="4">
-          {/* OpenGraph Title */}
-          <Heading
-            style={{
-              fontSize: theme.typography.h2.fontSize,
-              fontWeight: theme.typography.h2.fontWeight,
-              color: theme.colors.text.primary,
-              letterSpacing: theme.typography.h2.letterSpacing,
-              marginBottom: theme.spacing.semantic.component.sm,
-            }}
-          >
-            OpenGraph
-          </Heading>
+          {/* Compact Title */}
+          <Flex align="center" gap="2">
+            <CubeIcon
+              width="24"
+              height="24"
+              style={{
+                color: theme.colors.interactive.primary,
+              }}
+            />
+            <Heading
+              style={{
+                fontSize: "24px",
+                fontWeight: "600",
+                color: theme.colors.text.primary,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              OpenGraph
+            </Heading>
+            <Text
+              style={{
+                fontSize: "16px",
+                color: theme.colors.text.secondary,
+                fontWeight: "400",
+              }}
+            >
+              Robotics AI Dataset
+            </Text>
+          </Flex>
 
-          {/* Category Search Bar */}
+          {/* Search Section */}
           <Box
             style={{
               width: "100%",
-              maxWidth: "620px",
+              maxWidth: "600px",
               transition: theme.animations.transitions.all,
-              transform: selectedCategory ? "scale(0.98)" : "scale(1)",
+              transform: selectedCategory ? "scale(0.99)" : "scale(1)",
             }}
           >
             <CategorySearchInput
-              placeholder="Search for categories, annotations, or image types..."
+              placeholder="Search categories, objects, or scenes in our robotics dataset..."
               selectedCategory={selectedCategory}
               onCategorySelect={setSelectedCategory}
             />
           </Box>
 
           {/* Stats and Controls */}
-          {!isLoading && (
-            <Flex
-              direction="column"
-              align="center"
-              gap="3"
-              style={{
-                opacity: isLoading ? 0.6 : 1,
-                transition: "opacity 200ms ease-out",
-              }}
-            >
-              <Text
+          <Flex
+            align="center"
+            gap="4"
+            style={{
+              opacity: isLoading ? 0.5 : 1,
+              transition: "opacity 200ms ease-out",
+            }}
+          >
+            {/* Dataset Stats */}
+            <Flex align="center" gap="3">
+              <Badge
+                size="2"
+                variant="secondary"
                 style={{
-                  fontSize: theme.typography.bodySmall.fontSize,
-                  color: theme.colors.text.secondary,
-                  textAlign: "center",
-                  transition: "all 200ms ease-out",
+                  fontSize: "14px",
+                  padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
+                  background: theme.colors.interactive.secondary + "20",
+                  color: theme.colors.text.primary,
+                  border: `1px solid ${theme.colors.border.subtle}50`,
                 }}
               >
                 {selectedCategory
-                  ? `${annotationsWithImages.length} result${annotationsWithImages.length === 1 ? "" : "s"} for "${selectedCategory.name}"`
-                  : `${totalAnnotations} verified annotations available`}
-              </Text>
-
-              {/* Global Mask Toggle */}
-              <Button
-                variant="secondary"
-                size="sm"
-                highContrast={true}
-                onClick={() => setShowGlobalMasks(!showGlobalMasks)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: theme.spacing.semantic.component.sm,
-                  padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
-                }}
-              >
-                {showGlobalMasks ? (
-                  <EyeNoneIcon width="14" height="14" />
-                ) : (
-                  <EyeOpenIcon width="14" height="14" />
-                )}
-                {showGlobalMasks ? "Hide Segmentation Masks" : "Show Segmentation Masks"}
-              </Button>
+                  ? `${annotationsWithImages.length} images`
+                  : `${totalAnnotations.toLocaleString()} annotations`}
+              </Badge>
+              
+              {selectedCategory && (
+                <Text
+                  style={{
+                    fontSize: theme.typography.bodySmall.fontSize,
+                    color: theme.colors.text.secondary,
+                  }}
+                >
+                  in "{selectedCategory.name}"
+                </Text>
+              )}
             </Flex>
-          )}
+
+            {/* Divider */}
+            <Box
+              style={{
+                width: "1px",
+                height: "24px",
+                background: theme.colors.border.subtle,
+                opacity: 0.5,
+              }}
+            />
+
+            {/* Global Mask Toggle */}
+            <Button
+              variant="secondary"
+              size="sm"
+              highContrast={false}
+              onClick={() => setShowGlobalMasks(!showGlobalMasks)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing[2],
+                padding: `${theme.spacing[2]} ${theme.spacing[3]}`,
+                borderRadius: "20px",
+                fontSize: "14px",
+                fontWeight: "500",
+                background: showGlobalMasks 
+                  ? theme.colors.interactive.primary + "15"
+                  : "transparent",
+                color: showGlobalMasks
+                  ? theme.colors.interactive.primary
+                  : theme.colors.text.secondary,
+                border: `1px solid ${
+                  showGlobalMasks 
+                    ? theme.colors.interactive.primary + "30"
+                    : theme.colors.border.subtle + "50"
+                }`,
+                transition: "all 0.2s ease",
+              }}
+            >
+              {showGlobalMasks ? (
+                <EyeOpenIcon width="16" height="16" />
+              ) : (
+                <EyeNoneIcon width="16" height="16" />
+              )}
+              {showGlobalMasks ? "Masks On" : "Masks Off"}
+            </Button>
+          </Flex>
         </Flex>
       </Box>
     </Box>

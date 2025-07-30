@@ -4,12 +4,12 @@ Category Router
 Category-related API endpoints.
 """
 
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
-from ..dependencies.auth import get_current_active_user
-from ..schemas.category import CategoryCreate, CategoryUpdate, CategoryRead
+from ..schemas.common import Pagination
+from ..schemas.category import CategoryCreate, CategoryUpdate, CategoryRead, CategoryListResponse
 from ..services import CategoryService
 
 router = APIRouter(
@@ -28,6 +28,20 @@ async def create_category(
     """
     category_service = CategoryService(db)
     return await category_service.create_category(category_data)
+
+@router.get("/", response_model=CategoryListResponse)
+async def get_categories(
+        page: int = Query(1, ge=1),
+        limit: int = Query(10, ge=1, le=100),
+        db: AsyncSession = Depends(get_db)
+):
+    """
+    List all categories.
+    """
+    category_service = CategoryService(db)
+    return await category_service.get_categories(
+        pagination=Pagination(page=page, limit=limit),
+    )
 
 @router.get("/{category_id}", response_model=CategoryRead)
 async def get_category(

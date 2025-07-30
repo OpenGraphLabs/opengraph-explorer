@@ -1,3 +1,7 @@
+### category - Read All
+GET {{http-host}}/api/v1/categories?page=1&limit=50
+X-Opengraph-User-Id: 1
+
 ### category - Read
 GET {{http-host}}/api/v1/categories/1
 X-Opengraph-User-Id: 1

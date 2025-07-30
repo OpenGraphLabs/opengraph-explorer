@@ -69,8 +69,14 @@ export function ImagesProvider({
   
   // Get unique image IDs from annotations
   const requiredImageIds = useMemo(() => {
-    if (!useAnnotationBasedImages || annotationsFromContext.length === 0) return [];
-    const imageIds = annotationsFromContext.map((annotation: any) => annotation.image_id);
+    if (!useAnnotationBasedImages || annotationsFromContext.length === 0) {
+      return [];
+    }
+    
+    const imageIds = annotationsFromContext
+      .map((annotation: any) => annotation.image_id)
+      .filter((id: number) => id && typeof id === 'number');
+    
     return Array.from(new Set(imageIds));
   }, [useAnnotationBasedImages, annotationsFromContext]);
   
@@ -92,20 +98,24 @@ export function ImagesProvider({
       try {
         const imagePromises = requiredImageIds.map(async (imageId: number) => {
           try {
-            return await imagesApiClient.getImageById(imageId);
+            const image = await imagesApiClient.getImageById(imageId);
+            return { success: true, imageId, image };
           } catch (error) {
-            console.warn(`Failed to fetch image ${imageId}:`, error);
-            return null;
+            return { success: false, imageId, error };
           }
         });
         
-        const results = await Promise.all(imagePromises);
-        const validImages = results.filter((image): image is ImageRead => Boolean(image));
+        const results = await Promise.allSettled(imagePromises);
+        const successfulImages: ImageRead[] = [];
         
-        console.log(`Fetched ${validImages.length}/${requiredImageIds.length} images for annotations`);
-        setAnnotationImages(validImages);
+        results.forEach((result) => {
+          if (result.status === 'fulfilled' && result.value.success) {
+            successfulImages.push(result.value.image);
+          }
+        });
+        
+        setAnnotationImages(successfulImages);
       } catch (error) {
-        console.error('Error fetching annotation images:', error);
         setAnnotationImagesError(error);
       } finally {
         setAnnotationImagesLoading(false);

@@ -61,21 +61,27 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
       return [];
     }
 
-    return annotations
-      .map(annotation => ({
-        ...annotation,
-        image: imageMap.get(annotation.image_id),
-        categoryName:
-          categoryMap.get(annotation.category_id) || `Category ${annotation.category_id}`,
-      }))
-      .filter(item => item.image) // Only include items with valid images
-      .filter(item => {
-        // Filter by selected category
-        if (selectedCategory) {
-          return item.category_id === selectedCategory.id;
-        }
-        return true;
-      });
+    // First filter by category if selected
+    const categoryFilteredAnnotations = selectedCategory 
+      ? annotations.filter(annotation => annotation.category_id === selectedCategory.id)
+      : annotations;
+
+    // Map annotations with their images and category names
+    const annotationsWithData = categoryFilteredAnnotations.map(annotation => ({
+      ...annotation,
+      image: imageMap.get(annotation.image_id),
+      categoryName:
+        categoryMap.get(annotation.category_id) || `Category ${annotation.category_id}`,
+    }));
+
+
+    // Only filter out items without images after loading is complete
+    // During loading, show all annotations to maintain count
+    if (!imagesLoading) {
+      return annotationsWithData.filter(item => item.image);
+    }
+    
+    return annotationsWithData;
   }, [annotations, imageMap, categoryMap, selectedCategory, annotationsLoading, imagesLoading]);
 
   // Track when annotations with images are successfully created

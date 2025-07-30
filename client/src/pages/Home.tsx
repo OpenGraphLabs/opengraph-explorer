@@ -27,9 +27,10 @@ function HomeContent() {
     <Box
       style={{
         minHeight: "100vh",
-        background: theme.colors.background.primary,
+        background: `linear-gradient(to bottom, ${theme.colors.background.secondary}40, ${theme.colors.background.primary})`,
         paddingRight: selectedAnnotation ? "420px" : "0",
         transition: "padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
+        position: "relative",
       }}
     >
       {/* Header */}
@@ -38,15 +39,15 @@ function HomeContent() {
       {/* Main Content */}
       <Box
         style={{
-          maxWidth: selectedAnnotation ? "1200px" : "1600px",
+          maxWidth: selectedAnnotation ? "1400px" : "1800px",
           margin: "0 auto",
-          padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.sm}`,
+          padding: `${theme.spacing.semantic.layout.lg} ${theme.spacing.semantic.container.md}`,
           transition: "max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         }}
       >
         {/* Progressive loading: show skeleton on initial load, content as soon as available */}
         {isLoading && annotationsWithImages.length === 0 ? (
-          <HomeGallerySkeleton count={24} />
+          <HomeGallerySkeleton count={25} />
         ) : annotationsWithImages.length > 0 ? (
           <>
             <HomeGallery />
@@ -59,11 +60,10 @@ function HomeContent() {
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: '2px',
-                  background: theme.colors.interactive.primary,
-                  opacity: 0.7,
-                  transform: isTransitioning ? 'translateX(0)' : 'translateX(-100%)',
-                  transition: 'transform 0.3s ease-out',
+                  height: '3px',
+                  background: `linear-gradient(90deg, transparent, ${theme.colors.interactive.primary}, transparent)`,
+                  opacity: 0.8,
+                  animation: 'slideProgress 1s ease-in-out infinite',
                   zIndex: 1000,
                 }}
               />
@@ -83,9 +83,28 @@ function HomeContent() {
             }
           }
           
+          @keyframes slideProgress {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
+          }
+          
           input::placeholder {
             color: ${theme.colors.text.tertiary};
-            opacity: 1;
+            opacity: 0.7;
+          }
+          
+          /* Professional hover effects */
+          .image-card {
+            transition: all 0.2s ease;
+          }
+          
+          .image-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
           }
         `}
       </style>
