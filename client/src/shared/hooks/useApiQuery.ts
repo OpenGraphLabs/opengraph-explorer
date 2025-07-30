@@ -1,38 +1,51 @@
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
-import { useApiClient, UseApiClientOptions } from './useApiClient';
-import type { DatasetCreate, DatasetUpdate, UserCreate, UserUpdate, AnnotationUserCreate, ImageCreate } from '../api';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  UseQueryOptions,
+  UseMutationOptions,
+} from "@tanstack/react-query";
+import { useApiClient, UseApiClientOptions } from "./useApiClient";
+import type {
+  DatasetCreate,
+  DatasetUpdate,
+  UserCreate,
+  UserUpdate,
+  AnnotationUserCreate,
+  ImageCreate,
+} from "../api";
 
 // Query Keys
 export const queryKeys = {
   datasets: {
-    all: ['datasets'] as const,
-    lists: () => [...queryKeys.datasets.all, 'list'] as const,
+    all: ["datasets"] as const,
+    lists: () => [...queryKeys.datasets.all, "list"] as const,
     list: (filters: any) => [...queryKeys.datasets.lists(), { filters }] as const,
-    details: () => [...queryKeys.datasets.all, 'detail'] as const,
+    details: () => [...queryKeys.datasets.all, "detail"] as const,
     detail: (id: number) => [...queryKeys.datasets.details(), id] as const,
-    stats: (id: number) => [...queryKeys.datasets.detail(id), 'stats'] as const,
+    stats: (id: number) => [...queryKeys.datasets.detail(id), "stats"] as const,
   },
   users: {
-    all: ['users'] as const,
-    current: () => [...queryKeys.users.all, 'current'] as const,
-    details: () => [...queryKeys.users.all, 'detail'] as const,
+    all: ["users"] as const,
+    current: () => [...queryKeys.users.all, "current"] as const,
+    details: () => [...queryKeys.users.all, "detail"] as const,
     detail: (id: number) => [...queryKeys.users.details(), id] as const,
-    datasets: (id: number) => [...queryKeys.users.detail(id), 'datasets'] as const,
-    annotations: (id: number) => [...queryKeys.users.detail(id), 'annotations'] as const,
+    datasets: (id: number) => [...queryKeys.users.detail(id), "datasets"] as const,
+    annotations: (id: number) => [...queryKeys.users.detail(id), "annotations"] as const,
   },
   annotations: {
-    all: ['annotations'] as const,
-    lists: () => [...queryKeys.annotations.all, 'list'] as const,
+    all: ["annotations"] as const,
+    lists: () => [...queryKeys.annotations.all, "list"] as const,
     list: (filters: any) => [...queryKeys.annotations.lists(), { filters }] as const,
-    details: () => [...queryKeys.annotations.all, 'detail'] as const,
+    details: () => [...queryKeys.annotations.all, "detail"] as const,
     detail: (id: number) => [...queryKeys.annotations.details(), id] as const,
-    byImage: (imageId: number) => [...queryKeys.annotations.all, 'byImage', imageId] as const,
+    byImage: (imageId: number) => [...queryKeys.annotations.all, "byImage", imageId] as const,
   },
   images: {
-    all: ['images'] as const,
-    lists: () => [...queryKeys.images.all, 'list'] as const,
+    all: ["images"] as const,
+    lists: () => [...queryKeys.images.all, "list"] as const,
     list: (filters: any) => [...queryKeys.images.lists(), { filters }] as const,
-    details: () => [...queryKeys.images.all, 'detail'] as const,
+    details: () => [...queryKeys.images.all, "detail"] as const,
     detail: (id: number) => [...queryKeys.images.details(), id] as const,
   },
 } as const;
@@ -46,7 +59,7 @@ export function useDatasets(
   return useQuery({
     queryKey: queryKeys.datasets.list(filters),
     queryFn: () => datasets.getDatasets(filters),
-    ...options
+    ...options,
   });
 }
 
@@ -60,7 +73,7 @@ export function useDataset(
     queryKey: queryKeys.datasets.detail(datasetId),
     queryFn: () => datasets.getDatasetById(datasetId),
     enabled: !!datasetId,
-    ...options
+    ...options,
   });
 }
 
@@ -74,13 +87,15 @@ export function useDatasetStats(
     queryKey: queryKeys.datasets.stats(datasetId),
     queryFn: () => datasets.getDatasetStats(datasetId),
     enabled: !!datasetId,
-    ...options
+    ...options,
   });
 }
 
 // Dataset Mutations
 export function useCreateDataset(
-  options?: UseMutationOptions<any, Error, DatasetCreate> & { apiClientOptions?: UseApiClientOptions }
+  options?: UseMutationOptions<any, Error, DatasetCreate> & {
+    apiClientOptions?: UseApiClientOptions;
+  }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
   const queryClient = useQueryClient();
@@ -90,23 +105,26 @@ export function useCreateDataset(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.datasets.lists() });
     },
-    ...options
+    ...options,
   });
 }
 
 export function useUpdateDataset(
-  options?: UseMutationOptions<any, Error, { id: number; data: DatasetUpdate }> & { apiClientOptions?: UseApiClientOptions }
+  options?: UseMutationOptions<any, Error, { id: number; data: DatasetUpdate }> & {
+    apiClientOptions?: UseApiClientOptions;
+  }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: DatasetUpdate }) => datasets.updateDataset(id, data),
+    mutationFn: ({ id, data }: { id: number; data: DatasetUpdate }) =>
+      datasets.updateDataset(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.datasets.detail(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.datasets.lists() });
     },
-    ...options
+    ...options,
   });
 }
 
@@ -121,24 +139,26 @@ export function useDeleteDataset(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.datasets.lists() });
     },
-    ...options
+    ...options,
   });
 }
 
 export function useUploadDatasetFiles(
-  options?: UseMutationOptions<any, Error, { datasetId: number; files: File[] }> & { apiClientOptions?: UseApiClientOptions }
+  options?: UseMutationOptions<any, Error, { datasetId: number; files: File[] }> & {
+    apiClientOptions?: UseApiClientOptions;
+  }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ datasetId, files }: { datasetId: number; files: File[] }) => 
+    mutationFn: ({ datasetId, files }: { datasetId: number; files: File[] }) =>
       datasets.uploadFiles(datasetId, files),
     onSuccess: (_, { datasetId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.datasets.detail(datasetId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.datasets.stats(datasetId) });
     },
-    ...options
+    ...options,
   });
 }
 
@@ -151,7 +171,7 @@ export function useCurrentUser(
   return useQuery({
     queryKey: queryKeys.users.current(),
     queryFn: () => users.getCurrentUser(),
-    ...options
+    ...options,
   });
 }
 
@@ -161,9 +181,9 @@ export function useCurrentUserProfile(
   const { users } = useApiClient(options?.apiClientOptions);
 
   return useQuery({
-    queryKey: [...queryKeys.users.current(), 'profile'],
+    queryKey: [...queryKeys.users.current(), "profile"],
     queryFn: () => users.getCurrentUserProfile(),
-    ...options
+    ...options,
   });
 }
 
@@ -177,7 +197,7 @@ export function useUser(
     queryKey: queryKeys.users.detail(userId),
     queryFn: () => users.getUserById(userId),
     enabled: !!userId,
-    ...options
+    ...options,
   });
 }
 
@@ -192,7 +212,7 @@ export function useUserDatasets(
     queryKey: queryKeys.users.datasets(userId),
     queryFn: () => users.getUserDatasets(userId, filters),
     enabled: !!userId,
-    ...options
+    ...options,
   });
 }
 
@@ -208,7 +228,7 @@ export function useCreateUser(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
     },
-    ...options
+    ...options,
   });
 }
 
@@ -223,7 +243,7 @@ export function useUpdateUserProfile(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
     },
-    ...options
+    ...options,
   });
 }
 
@@ -237,7 +257,7 @@ export function useAnnotations(
   return useQuery({
     queryKey: queryKeys.annotations.list(filters),
     queryFn: () => annotations.getAnnotations(filters),
-    ...options
+    ...options,
   });
 }
 
@@ -248,9 +268,9 @@ export function useApprovedAnnotations(
   const { annotations } = useApiClient(options?.apiClientOptions);
 
   return useQuery({
-    queryKey: [...queryKeys.annotations.all, 'approved', filters],
+    queryKey: [...queryKeys.annotations.all, "approved", filters],
     queryFn: () => annotations.getApprovedAnnotations(filters),
-    ...options
+    ...options,
   });
 }
 
@@ -264,7 +284,7 @@ export function useAnnotation(
     queryKey: queryKeys.annotations.detail(annotationId),
     queryFn: () => annotations.getAnnotationById(annotationId),
     enabled: !!annotationId,
-    ...options
+    ...options,
   });
 }
 
@@ -279,7 +299,7 @@ export function useAnnotationsByImage(
     queryKey: queryKeys.annotations.byImage(imageId),
     queryFn: () => annotations.getAnnotationsByImage(imageId, filters),
     enabled: !!imageId,
-    ...options
+    ...options,
   });
 }
 
@@ -290,16 +310,18 @@ export function useApprovedAnnotationsByImage(
   const { annotations } = useApiClient(options?.apiClientOptions);
 
   return useQuery({
-    queryKey: [...queryKeys.annotations.byImage(imageId), 'approved'],
+    queryKey: [...queryKeys.annotations.byImage(imageId), "approved"],
     queryFn: () => annotations.getApprovedAnnotationsByImage(imageId),
     enabled: !!imageId,
-    ...options
+    ...options,
   });
 }
 
 // Annotation Mutations
 export function useCreateAnnotation(
-  options?: UseMutationOptions<any, Error, AnnotationUserCreate> & { apiClientOptions?: UseApiClientOptions }
+  options?: UseMutationOptions<any, Error, AnnotationUserCreate> & {
+    apiClientOptions?: UseApiClientOptions;
+  }
 ) {
   const { annotations } = useApiClient(options?.apiClientOptions);
   const queryClient = useQueryClient();
@@ -309,12 +331,14 @@ export function useCreateAnnotation(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.annotations.lists() });
     },
-    ...options
+    ...options,
   });
 }
 
 export function useBulkCreateAnnotations(
-  options?: UseMutationOptions<any, Error, AnnotationUserCreate[]> & { apiClientOptions?: UseApiClientOptions }
+  options?: UseMutationOptions<any, Error, AnnotationUserCreate[]> & {
+    apiClientOptions?: UseApiClientOptions;
+  }
 ) {
   const { annotations } = useApiClient(options?.apiClientOptions);
   const queryClient = useQueryClient();
@@ -324,20 +348,22 @@ export function useBulkCreateAnnotations(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.annotations.lists() });
     },
-    ...options
+    ...options,
   });
-} 
+}
 
 // Image Hooks
 export function useImages(
   filters: { page?: number; limit?: number } = {},
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'> & { apiClientOptions?: UseApiClientOptions }
+  options?: Omit<UseQueryOptions<any, Error>, "queryKey" | "queryFn"> & {
+    apiClientOptions?: UseApiClientOptions;
+  }
 ) {
   const { images } = useApiClient(options?.apiClientOptions);
   return useQuery({
     queryKey: queryKeys.images.list(filters),
     queryFn: () => images.getImages(filters),
-    ...options
+    ...options,
   });
 }
 
@@ -350,7 +376,7 @@ export function useImageById(
     queryKey: queryKeys.images.detail(imageId),
     queryFn: () => images.getImageById(imageId),
     enabled: !!imageId,
-    ...options
+    ...options,
   });
 }
 
@@ -361,13 +387,14 @@ export function useDatasetImages(
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
   return useQuery({
-    queryKey: [...queryKeys.datasets.detail(datasetId), 'images', filters],
-    queryFn: () => datasets.getDatasetImages(datasetId, {
-      page: filters.page || 1,
-      limit: filters.limit || 100
-    }),
+    queryKey: [...queryKeys.datasets.detail(datasetId), "images", filters],
+    queryFn: () =>
+      datasets.getDatasetImages(datasetId, {
+        page: filters.page || 1,
+        limit: filters.limit || 100,
+      }),
     enabled: !!datasetId,
-    ...options
+    ...options,
   });
 }
 
@@ -381,7 +408,7 @@ export function useCreateImage(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.images.lists() });
     },
-    ...options
+    ...options,
   });
 }
 
@@ -395,6 +422,6 @@ export function useDeleteImage(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.images.lists() });
     },
-    ...options
+    ...options,
   });
-} 
+}

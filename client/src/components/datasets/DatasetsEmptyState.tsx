@@ -1,8 +1,8 @@
-import React from 'react';
-import { Box, Flex, Text } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { Database } from 'phosphor-react';
-import { useDatasetsPage } from '@/contexts/page/DatasetsPageContext';
+import React from "react";
+import { Box, Flex, Text } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { Database } from "phosphor-react";
+import { useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
 
 export function DatasetsEmptyState() {
   const { theme } = useTheme();
@@ -54,8 +54,8 @@ export function DatasetsEmptyState() {
             lineHeight: 1.5,
           }}
         >
-          {filters.searchQuery || filters.selectedTags.length > 0 
-            ? "Try adjusting your filters or search terms" 
+          {filters.searchQuery || filters.selectedTags.length > 0
+            ? "Try adjusting your filters or search terms"
             : "No datasets have been uploaded yet"}
         </Text>
       </Box>

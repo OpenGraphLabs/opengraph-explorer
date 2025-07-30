@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from 'react';
-import { useDatasetsList } from '../data/DatasetsListContext';
+import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from "react";
+import { useDatasetsList } from "../data/DatasetsListContext";
 
 interface DatasetFilters {
   searchQuery: string;
@@ -10,19 +10,19 @@ interface DatasetFilters {
 interface DatasetsPageContextValue {
   // Filtered data
   filteredDatasets: any[];
-  
+
   // Filters
   filters: DatasetFilters;
   updateFilter: (key: keyof DatasetFilters, value: any) => void;
   toggleTag: (tag: string) => void;
   clearTags: () => void;
-  
+
   // UI state
   isLoaded: boolean;
-  
+
   // Tags
   allUniqueTags: string[];
-  
+
   // Pagination
   handlePageChange: (newPage: number) => void;
 }
@@ -37,14 +37,7 @@ export function DatasetsPageProvider({ children }: { children: ReactNode }) {
     selectedSort: "newest",
   });
 
-  const { 
-    datasets, 
-    totalPages,
-    currentPage,
-    setCurrentPage,
-    isLoading,
-    error 
-  } = useDatasetsList();
+  const { datasets, totalPages, currentPage, setCurrentPage, isLoading, error } = useDatasetsList();
 
   // Set loaded state after data is fetched
   useEffect(() => {
@@ -89,8 +82,7 @@ export function DatasetsPageProvider({ children }: { children: ReactNode }) {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         if (filters.selectedSort === "oldest")
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        if (filters.selectedSort === "name") 
-          return a.name.localeCompare(b.name);
+        if (filters.selectedSort === "name") return a.name.localeCompare(b.name);
         return 0;
       });
   }, [datasets, filters]);
@@ -117,7 +109,7 @@ export function DatasetsPageProvider({ children }: { children: ReactNode }) {
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -142,7 +134,7 @@ export function DatasetsPageProvider({ children }: { children: ReactNode }) {
 export function useDatasetsPage() {
   const context = useContext(DatasetsPageContext);
   if (!context) {
-    throw new Error('useDatasetsPage must be used within DatasetsPageProvider');
+    throw new Error("useDatasetsPage must be used within DatasetsPageProvider");
   }
   return context;
 }

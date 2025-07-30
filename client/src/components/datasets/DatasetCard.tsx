@@ -28,10 +28,10 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
   const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -93,7 +93,7 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
               >
                 {dataset.name}
               </Text>
-              
+
               {/* Description */}
               {dataset.description && (
                 <Text
@@ -116,7 +116,11 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
 
             {/* Tags */}
             {dataset.tags && dataset.tags.length > 0 && (
-              <Flex gap="1" wrap="wrap" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+              <Flex
+                gap="1"
+                wrap="wrap"
+                style={{ marginBottom: theme.spacing.semantic.component.xs }}
+              >
                 {dataset.tags.slice(0, 3).map((tag, tagIndex) => (
                   <Badge
                     key={tagIndex}
@@ -155,7 +159,11 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
             )}
 
             {/* Stats */}
-            <Flex justify="between" align="center" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Flex
+              justify="between"
+              align="center"
+              style={{ marginBottom: theme.spacing.semantic.component.sm }}
+            >
               <Flex gap="3" align="center">
                 <Flex align="center" gap="1">
                   <FileText width="12" height="12" style={{ color: theme.colors.text.tertiary }} />

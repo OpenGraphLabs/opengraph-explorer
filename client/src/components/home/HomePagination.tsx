@@ -1,10 +1,10 @@
-import React from 'react';
-import { Flex, Button, Text } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
-import { useAnnotations } from '@/contexts/data/AnnotationsContext';
-import { useCategories } from '@/contexts/data/CategoriesContext';
-import { useHomePage } from '@/contexts/page/HomePageContext';
+import React from "react";
+import { Flex, Button, Text } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
+import { useAnnotations } from "@/contexts/data/AnnotationsContext";
+import { useCategories } from "@/contexts/data/CategoriesContext";
+import { useHomePage } from "@/contexts/page/HomePageContext";
 
 export function HomePagination() {
   const { theme } = useTheme();
@@ -26,21 +26,22 @@ export function HomePagination() {
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage <= 1}
         style={{
-          display: 'flex',
-          alignItems: 'center',
+          display: "flex",
+          alignItems: "center",
           gap: theme.spacing.semantic.component.sm,
         }}
       >
         <ChevronLeftIcon width="16" height="16" />
         Previous
       </Button>
-      
+
       <Text
         style={{
           margin: `0 ${theme.spacing.semantic.component.lg}`,
           fontSize: theme.typography.bodySmall.fontSize,
           color: theme.colors.text.secondary,
-          fontFamily: 'JetBrains Mono, SF Mono, Monaco, Inconsolata, Roboto Mono, Fira Code, Consolas, Liberation Mono, Menlo, Courier, monospace',
+          fontFamily:
+            "JetBrains Mono, SF Mono, Monaco, Inconsolata, Roboto Mono, Fira Code, Consolas, Liberation Mono, Menlo, Courier, monospace",
         }}
       >
         Page {currentPage} of {totalPages}
@@ -53,8 +54,8 @@ export function HomePagination() {
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
         style={{
-          display: 'flex',
-          alignItems: 'center',
+          display: "flex",
+          alignItems: "center",
           gap: theme.spacing.semantic.component.sm,
         }}
       >

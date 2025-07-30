@@ -28,6 +28,10 @@ class User(Base):
     profile_image_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     sui_address: Mapped[Optional[str]] = mapped_column(String, unique=True, nullable=True, index=True)
     
+    # zkLogin 관련 필드
+    zklogin_salt: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    google_sub: Mapped[Optional[str]] = mapped_column(String, unique=True, nullable=True, index=True)
+    
     # 타임스탬프
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 

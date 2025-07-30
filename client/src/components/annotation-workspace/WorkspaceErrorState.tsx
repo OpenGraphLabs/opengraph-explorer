@@ -1,8 +1,8 @@
-import React from 'react';
-import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { Database } from 'phosphor-react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { Database } from "phosphor-react";
+import { useNavigate } from "react-router-dom";
 
 interface WorkspaceErrorStateProps {
   error: any;
@@ -11,22 +11,22 @@ interface WorkspaceErrorStateProps {
   hasNoImages?: boolean;
 }
 
-export function WorkspaceErrorState({ 
-  error, 
-  imagesError, 
+export function WorkspaceErrorState({
+  error,
+  imagesError,
   datasetError,
-  hasNoImages 
+  hasNoImages,
 }: WorkspaceErrorStateProps) {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  const errorMessage = imagesError 
-    ? "Unable to load dataset images" 
-    : datasetError 
-    ? "Unable to load dataset information"
-    : hasNoImages
-    ? "No images found in this dataset"
-    : "An error occurred";
+  const errorMessage = imagesError
+    ? "Unable to load dataset images"
+    : datasetError
+      ? "Unable to load dataset information"
+      : hasNoImages
+        ? "No images found in this dataset"
+        : "An error occurred";
 
   return (
     <Box

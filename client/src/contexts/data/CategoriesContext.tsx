@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
-import { useDictionaryCategories } from '@/shared/hooks/useDictionaryCategories';
-import type { CategoryRead } from '@/shared/api/generated/models';
+import React, { createContext, useContext, useState, useMemo, ReactNode } from "react";
+import { useDictionaryCategories } from "@/shared/hooks/useDictionaryCategories";
+import type { CategoryRead } from "@/shared/api/generated/models";
 
 interface CategoriesConfig {
   dictionaryId?: number;
@@ -23,13 +23,15 @@ const CategoriesContext = createContext<CategoriesContextValue | undefined>(unde
 
 export function CategoriesProvider({
   children,
-  config = {}
+  config = {},
 }: {
   children: ReactNode;
   config?: CategoriesConfig;
 }) {
-  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(
+    null
+  );
+  const [searchQuery, setSearchQuery] = useState("");
 
   // If useDictionaryFromDataset is true, the dictionaryId will be provided by the parent context
   const dictionaryId = config.dictionaryId || 1; // Default to dictionary 1
@@ -37,7 +39,7 @@ export function CategoriesProvider({
   const {
     data: categoriesResponse,
     isLoading,
-    error
+    error,
   } = useDictionaryCategories({
     dictionaryId,
     limit: config.limit || 100,
@@ -57,7 +59,7 @@ export function CategoriesProvider({
 
   const handleCategorySelect = (category: { id: number; name: string } | null) => {
     setSelectedCategory(category);
-    setSearchQuery(category?.name || '');
+    setSearchQuery(category?.name || "");
   };
 
   return (
@@ -81,7 +83,7 @@ export function CategoriesProvider({
 export function useCategories() {
   const context = useContext(CategoriesContext);
   if (!context) {
-    throw new Error('useCategories must be used within CategoriesProvider');
+    throw new Error("useCategories must be used within CategoriesProvider");
   }
   return context;
 }

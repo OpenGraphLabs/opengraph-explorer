@@ -30,12 +30,8 @@ export function DatasetDetailTabs() {
             style={{
               cursor: "pointer",
               fontWeight: 500,
-              color:
-                activeTab === "all"
-                  ? theme.colors.text.primary
-                  : theme.colors.text.tertiary,
-              background:
-                activeTab === "all" ? theme.colors.background.primary : "transparent",
+              color: activeTab === "all" ? theme.colors.text.primary : theme.colors.text.tertiary,
+              background: activeTab === "all" ? theme.colors.background.primary : "transparent",
               border: `1px solid ${
                 activeTab === "all" ? theme.colors.border.primary : "transparent"
               }`,
@@ -71,9 +67,7 @@ export function DatasetDetailTabs() {
               cursor: "pointer",
               fontWeight: 500,
               color:
-                activeTab === "confirmed"
-                  ? theme.colors.text.primary
-                  : theme.colors.text.tertiary,
+                activeTab === "confirmed" ? theme.colors.text.primary : theme.colors.text.tertiary,
               background:
                 activeTab === "confirmed" ? theme.colors.background.primary : "transparent",
               border: `1px solid ${
@@ -111,11 +105,8 @@ export function DatasetDetailTabs() {
               cursor: "pointer",
               fontWeight: 500,
               color:
-                activeTab === "pending"
-                  ? theme.colors.text.primary
-                  : theme.colors.text.tertiary,
-              background:
-                activeTab === "pending" ? theme.colors.background.primary : "transparent",
+                activeTab === "pending" ? theme.colors.text.primary : theme.colors.text.tertiary,
+              background: activeTab === "pending" ? theme.colors.background.primary : "transparent",
               border: `1px solid ${
                 activeTab === "pending" ? theme.colors.border.primary : "transparent"
               }`,

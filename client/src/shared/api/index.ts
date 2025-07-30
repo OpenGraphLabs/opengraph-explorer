@@ -1,17 +1,17 @@
 // Export services and client
-export * from './services';
+export * from "./services";
 
 // Export generated types and APIs
-export * from './generated';
+export * from "./generated";
 
 // Service instances with default client
-import { apiClient } from './client';
-import { DatasetService } from './services/DatasetService';
-import { UserService } from './services/UserService';
-import { AnnotationService } from './services/AnnotationService';
-import { ImageService } from './services/ImageService';
+import { apiClient } from "./client";
+import { DatasetService } from "./services/DatasetService";
+import { UserService } from "./services/UserService";
+import { AnnotationService } from "./services/AnnotationService";
+import { ImageService } from "./services/ImageService";
 
 export const datasetService = new DatasetService(apiClient);
 export const userService = new UserService(apiClient);
 export const annotationService = new AnnotationService(apiClient);
-export const imageService = new ImageService(apiClient); 
+export const imageService = new ImageService(apiClient);

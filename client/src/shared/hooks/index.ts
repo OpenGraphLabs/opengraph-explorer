@@ -1,1 +1,1 @@
-export { useDictionaryCategories, useSearchCategories } from './useDictionaryCategories'; 
+export { useDictionaryCategories, useSearchCategories } from "./useDictionaryCategories";

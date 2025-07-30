@@ -15,13 +15,8 @@ import { HomeErrorState } from "@/components/home/HomeErrorState";
 
 function HomeContent() {
   const { theme } = useTheme();
-  const { 
-    isLoading, 
-    error, 
-    annotationsWithImages,
-    selectedAnnotation,
-    handleCloseSidebar 
-  } = useHomePage();
+  const { isLoading, error, annotationsWithImages, selectedAnnotation, handleCloseSidebar } =
+    useHomePage();
 
   if (error) {
     return <HomeErrorState />;
@@ -30,10 +25,10 @@ function HomeContent() {
   return (
     <Box
       style={{
-        minHeight: '100vh',
+        minHeight: "100vh",
         background: theme.colors.background.primary,
-        paddingRight: selectedAnnotation ? '420px' : '0',
-        transition: 'padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+        paddingRight: selectedAnnotation ? "420px" : "0",
+        transition: "padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
       }}
     >
       {/* Header */}
@@ -42,10 +37,10 @@ function HomeContent() {
       {/* Main Content */}
       <Box
         style={{
-          maxWidth: selectedAnnotation ? '1200px' : '1600px',
-          margin: '0 auto',
+          maxWidth: selectedAnnotation ? "1200px" : "1600px",
+          margin: "0 auto",
           padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.sm}`,
-          transition: 'max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+          transition: "max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         }}
       >
         {isLoading ? (
@@ -92,7 +87,7 @@ function HomeContent() {
 
 export function Home() {
   return (
-    <AnnotationsProvider config={{ mode: 'approved', limit: 24 }}>
+    <AnnotationsProvider config={{ mode: "approved", limit: 24 }}>
       <ImagesProvider config={{ limit: 100 }}>
         <CategoriesProvider config={{ dictionaryId: 1, limit: 100 }}>
           <HomePageProvider>

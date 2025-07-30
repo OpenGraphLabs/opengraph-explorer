@@ -1,9 +1,9 @@
-import React from 'react';
-import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { Target, Trash, FloppyDisk, Check, X } from 'phosphor-react';
-import { useAnnotationWorkspace } from '@/contexts/page/AnnotationWorkspaceContext';
-import { useAnnotations } from '@/contexts/data/AnnotationsContext';
+import React from "react";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { Target, Trash, FloppyDisk, Check, X } from "phosphor-react";
+import { useAnnotationWorkspace } from "@/contexts/page/AnnotationWorkspaceContext";
+import { useAnnotations } from "@/contexts/data/AnnotationsContext";
 
 export function EntityList() {
   const { theme } = useTheme();
@@ -36,7 +36,13 @@ export function EntityList() {
             opacity: 0.6,
           }}
         >
-          <Target size={24} style={{ color: theme.colors.text.tertiary, marginBottom: theme.spacing.semantic.component.sm }} />
+          <Target
+            size={24}
+            style={{
+              color: theme.colors.text.tertiary,
+              marginBottom: theme.spacing.semantic.component.sm,
+            }}
+          />
           <Text
             size="2"
             style={{
@@ -46,12 +52,14 @@ export function EntityList() {
           >
             {isMovingToNext ? (
               <>
-                Loading next image...<br />
+                Loading next image...
+                <br />
                 Continue annotating to help improve the dataset!
               </>
             ) : (
               <>
-                No entities created yet.<br />
+                No entities created yet.
+                <br />
                 Select masks on the image and choose a category, or draw a bounding box to start.
               </>
             )}
@@ -64,12 +72,13 @@ export function EntityList() {
               key={entity.id}
               onClick={() => handleEntitySelect(entity.id)}
               style={{
-                background: selectedEntityId === entity.id 
-                  ? `${theme.colors.interactive.primary}20` 
-                  : theme.colors.background.secondary,
+                background:
+                  selectedEntityId === entity.id
+                    ? `${theme.colors.interactive.primary}20`
+                    : theme.colors.background.secondary,
                 border: `2px solid ${
-                  selectedEntityId === entity.id 
-                    ? theme.colors.interactive.primary 
+                  selectedEntityId === entity.id
+                    ? theme.colors.interactive.primary
                     : theme.colors.border.subtle
                 }`,
                 borderRadius: theme.borders.radius.md,
@@ -78,14 +87,19 @@ export function EntityList() {
                 transition: theme.animations.transitions.all,
                 position: "relative",
                 transform: selectedEntityId === entity.id ? "scale(1.02)" : "scale(1)",
-                boxShadow: selectedEntityId === entity.id 
-                  ? `0 4px 12px ${theme.colors.interactive.primary}20` 
-                  : "none",
+                boxShadow:
+                  selectedEntityId === entity.id
+                    ? `0 4px 12px ${theme.colors.interactive.primary}20`
+                    : "none",
               }}
             >
               <Flex justify="between" align="center">
                 <Box style={{ flex: 1 }}>
-                  <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+                  <Flex
+                    align="center"
+                    gap="2"
+                    style={{ marginBottom: theme.spacing.semantic.component.xs }}
+                  >
                     <Flex align="center" gap="1">
                       <Text
                         size="2"
@@ -148,9 +162,9 @@ export function EntityList() {
                     )}
                   </Flex>
                 </Box>
-                
+
                 <Button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleEntityDelete(entity.id);
                   }}
@@ -172,7 +186,7 @@ export function EntityList() {
           ))}
         </Flex>
       )}
-      
+
       {/* Save Button */}
       {entities.length > 0 && (
         <Box
@@ -187,11 +201,11 @@ export function EntityList() {
             disabled={isSaving}
             style={{
               width: "100%",
-              background: saveSuccess 
-                ? theme.colors.status.success 
+              background: saveSuccess
+                ? theme.colors.status.success
                 : saveError
-                ? theme.colors.status.error
-                : theme.colors.interactive.primary,
+                  ? theme.colors.status.error
+                  : theme.colors.interactive.primary,
               color: theme.colors.text.inverse,
               border: "none",
               borderRadius: theme.borders.radius.md,
@@ -216,7 +230,7 @@ export function EntityList() {
                     border: `2px solid transparent`,
                     borderTopColor: theme.colors.text.inverse,
                     borderRadius: "50%",
-                    animation: 'spin 1s linear infinite',
+                    animation: "spin 1s linear infinite",
                   }}
                 />
                 Saving...
@@ -238,7 +252,7 @@ export function EntityList() {
               </>
             )}
           </Button>
-          
+
           {saveError && (
             <Text
               size="1"
@@ -253,7 +267,7 @@ export function EntityList() {
               {saveError}
             </Text>
           )}
-          
+
           <Text
             size="1"
             style={{

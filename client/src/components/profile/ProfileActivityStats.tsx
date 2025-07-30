@@ -142,7 +142,8 @@ export function ProfileActivityStats() {
                   fontWeight: 500,
                 }}
               >
-                Total Contributions: {(userProfile?.dataset_count || 0) + (userProfile?.annotation_count || 0)}
+                Total Contributions:{" "}
+                {(userProfile?.dataset_count || 0) + (userProfile?.annotation_count || 0)}
               </Text>
             </Flex>
           </Box>

@@ -1,20 +1,16 @@
-import { ApiClient } from '../client';
-import type {
-  ImageCreate,
-  ImageRead,
-  ImageListResponse
-} from '../generated/models';
+import { ApiClient } from "../client";
+import type { ImageCreate, ImageRead, ImageListResponse } from "../generated/models";
 
 export class ImageService {
   constructor(private apiClient: ApiClient) {}
 
   // Get images list
   async getImages(params: { page?: number; limit?: number } = {}) {
-    const response = await this.apiClient.getAxiosInstance().get('/api/v1/images/', {
+    const response = await this.apiClient.getAxiosInstance().get("/api/v1/images/", {
       params: {
         page: params.page || 1,
-        limit: params.limit || 20
-      }
+        limit: params.limit || 20,
+      },
     });
     return response.data as ImageListResponse;
   }
@@ -27,7 +23,7 @@ export class ImageService {
 
   // Create new image
   async createImage(data: ImageCreate) {
-    const response = await this.apiClient.getAxiosInstance().post('/api/v1/images/', data);
+    const response = await this.apiClient.getAxiosInstance().post("/api/v1/images/", data);
     return response.data as ImageRead;
   }
 
@@ -42,4 +38,4 @@ export class ImageService {
     const response = await this.apiClient.getAxiosInstance().delete(`/api/v1/images/${imageId}`);
     return response.data;
   }
-} 
+}

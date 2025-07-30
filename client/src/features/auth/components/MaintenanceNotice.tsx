@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Text } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { Wrench, Clock } from 'phosphor-react';
+import React from "react";
+import { Box, Text } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { Wrench, Clock } from "phosphor-react";
 
 export const MaintenanceNotice: React.FC = () => {
   const { theme } = useTheme();
@@ -13,47 +13,47 @@ export const MaintenanceNotice: React.FC = () => {
         border: `2px solid ${theme.colors.status.warning}40`,
         borderRadius: theme.borders.radius.lg,
         padding: theme.spacing.semantic.layout.xl,
-        textAlign: 'center',
-        position: 'relative',
+        textAlign: "center",
+        position: "relative",
         boxShadow: `0 12px 48px ${theme.colors.status.warning}15`,
-        width: '100%',
+        width: "100%",
       }}
     >
       {/* Prominent Icon */}
       <Box
         style={{
-          width: '80px',
-          height: '80px',
-          borderRadius: '20px',
+          width: "80px",
+          height: "80px",
+          borderRadius: "20px",
           background: `linear-gradient(135deg, ${theme.colors.status.warning}, ${theme.colors.status.info})`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto",
           marginBottom: theme.spacing.semantic.component.xl,
           border: `2px solid ${theme.colors.status.warning}60`,
           boxShadow: `0 8px 24px ${theme.colors.status.warning}30`,
-          position: 'relative',
+          position: "relative",
         }}
       >
-        <Wrench size={32} style={{ color: 'white' }} />
-        
+        <Wrench size={32} style={{ color: "white" }} />
+
         {/* Pulsing indicator */}
         <Box
           style={{
-            position: 'absolute',
-            top: '-4px',
-            right: '-4px',
-            width: '16px',
-            height: '16px',
-            borderRadius: '50%',
+            position: "absolute",
+            top: "-4px",
+            right: "-4px",
+            width: "16px",
+            height: "16px",
+            borderRadius: "50%",
             background: theme.colors.status.error,
-            animation: 'pulse 2s infinite',
+            animation: "pulse 2s infinite",
             boxShadow: `0 0 8px ${theme.colors.status.error}`,
           }}
         />
       </Box>
-      
+
       {/* Add pulse animation */}
       <style>
         {`
@@ -69,15 +69,15 @@ export const MaintenanceNotice: React.FC = () => {
       <Box
         style={{
           background: theme.colors.status.warning,
-          color: 'white',
+          color: "white",
           padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
           borderRadius: theme.borders.radius.full,
           fontSize: theme.typography.bodySmall.fontSize,
           fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
           marginBottom: theme.spacing.semantic.component.lg,
-          display: 'inline-block',
+          display: "inline-block",
         }}
       >
         🚨 SYSTEM MAINTENANCE
@@ -91,7 +91,7 @@ export const MaintenanceNotice: React.FC = () => {
           fontWeight: 700,
           marginBottom: theme.spacing.semantic.component.md,
           lineHeight: 1.2,
-          display: 'block',
+          display: "block",
         }}
       >
         Platform Update in Progress
@@ -107,14 +107,14 @@ export const MaintenanceNotice: React.FC = () => {
           marginBottom: theme.spacing.semantic.component.md,
         }}
       >
-        We're enhancing our platform with new features and improvements. 
+        We're enhancing our platform with new features and improvements.
       </Text>
 
       {/* Status */}
       <Box
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
+          display: "inline-flex",
+          alignItems: "center",
           gap: theme.spacing.semantic.component.sm,
           background: theme.colors.background.secondary,
           padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
@@ -124,9 +124,9 @@ export const MaintenanceNotice: React.FC = () => {
       >
         <Box
           style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
+            width: "8px",
+            height: "8px",
+            borderRadius: "50%",
             background: theme.colors.status.info,
           }}
         />

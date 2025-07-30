@@ -1,6 +1,6 @@
-import React from 'react';
-import { Box, Flex, Text, Spinner } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
+import React from "react";
+import { Box, Flex, Text, Spinner } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
 
 export function DatasetsLoadingState() {
   const { theme } = useTheme();

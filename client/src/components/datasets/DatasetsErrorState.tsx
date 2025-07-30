@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { Database } from 'phosphor-react';
+import React from "react";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { Database } from "phosphor-react";
 
 interface DatasetsErrorStateProps {
   error: any;

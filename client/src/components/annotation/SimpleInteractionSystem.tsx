@@ -18,10 +18,7 @@ interface SimpleInteractionSystemProps {
   canvasHeight: number;
   selectedMaskIds: number[];
   onStateChange: (state: Partial<SimpleInteractionState>) => void;
-  children: (
-    state: SimpleInteractionState, 
-    handlers: SimpleInteractionHandlers
-  ) => React.ReactNode;
+  children: (state: SimpleInteractionState, handlers: SimpleInteractionHandlers) => React.ReactNode;
 }
 
 export interface SimpleInteractionHandlers {
@@ -47,7 +44,7 @@ export function SimpleInteractionSystem({
 }: SimpleInteractionSystemProps) {
   const interactionRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
-  
+
   const [interactionState, setInteractionState] = useState<SimpleInteractionState>({
     hoveredMaskId: null,
     selectedMaskIds,
@@ -63,81 +60,93 @@ export function SimpleInteractionSystem({
   }, [selectedMaskIds]);
 
   // 화면 좌표를 이미지 좌표로 변환
-  const screenToImage = useCallback((screenX: number, screenY: number): Point => {
-    return {
-      x: Math.max(0, Math.min(imageWidth, (screenX - panOffset.x) / zoom)),
-      y: Math.max(0, Math.min(imageHeight, (screenY - panOffset.y) / zoom)),
-    };
-  }, [zoom, panOffset, imageWidth, imageHeight]);
+  const screenToImage = useCallback(
+    (screenX: number, screenY: number): Point => {
+      return {
+        x: Math.max(0, Math.min(imageWidth, (screenX - panOffset.x) / zoom)),
+        y: Math.max(0, Math.min(imageHeight, (screenY - panOffset.y) / zoom)),
+      };
+    },
+    [zoom, panOffset, imageWidth, imageHeight]
+  );
 
   // 점이 폴리곤 내부에 있는지 확인 (레이 캐스팅 알고리즘)
   const isPointInPolygon = useCallback((point: Point, polygon: number[][]): boolean => {
     let inside = false;
     const x = point.x;
     const y = point.y;
-    
+
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
       const xi = polygon[i][0];
       const yi = polygon[i][1];
       const xj = polygon[j][0];
       const yj = polygon[j][1];
-      
-      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
         inside = !inside;
       }
     }
-    
+
     return inside;
   }, []);
 
   // 특정 점에서 마스크 찾기 (가장 작은 마스크 우선)
-  const getMaskAtPoint = useCallback((point: Point): Annotation | null => {
-    let bestMask: Annotation | null = null;
-    let smallestArea = Infinity;
-    
-    for (const annotation of annotations) {
-      if (!annotation.polygon.has_segmentation) continue;
-      
-      // 폴리곤 내부에 점이 있는지 확인
-      const isInside = annotation.polygon.polygons.some(polygon => 
-        isPointInPolygon(point, polygon)
-      );
-      
-      if (isInside) {
-        // 바운딩 박스 면적으로 크기 비교 (더 작은 마스크가 우선)
-        const [, , width, height] = annotation.bbox;
-        const area = width * height;
-        
-        if (area < smallestArea) {
-          bestMask = annotation;
-          smallestArea = area;
+  const getMaskAtPoint = useCallback(
+    (point: Point): Annotation | null => {
+      let bestMask: Annotation | null = null;
+      let smallestArea = Infinity;
+
+      for (const annotation of annotations) {
+        if (!annotation.polygon.has_segmentation) continue;
+
+        // 폴리곤 내부에 점이 있는지 확인
+        const isInside = annotation.polygon.polygons.some(polygon =>
+          isPointInPolygon(point, polygon)
+        );
+
+        if (isInside) {
+          // 바운딩 박스 면적으로 크기 비교 (더 작은 마스크가 우선)
+          const [, , width, height] = annotation.bbox;
+          const area = width * height;
+
+          if (area < smallestArea) {
+            bestMask = annotation;
+            smallestArea = area;
+          }
         }
       }
-    }
-    
-    return bestMask;
-  }, [annotations, isPointInPolygon]);
+
+      return bestMask;
+    },
+    [annotations, isPointInPolygon]
+  );
 
   // 상태 업데이트 및 부모 컴포넌트에 알림
-  const updateState = useCallback((updates: Partial<SimpleInteractionState>) => {
-    setInteractionState(prev => {
-      const newState = { ...prev, ...updates };
-      onStateChange(updates);
-      return newState;
-    });
-  }, [onStateChange]);
+  const updateState = useCallback(
+    (updates: Partial<SimpleInteractionState>) => {
+      setInteractionState(prev => {
+        const newState = { ...prev, ...updates };
+        onStateChange(updates);
+        return newState;
+      });
+    },
+    [onStateChange]
+  );
 
   // 마스크 선택 토글
-  const toggleMaskSelection = useCallback((maskId: number) => {
-    const newSelectedMaskIds = selectedMaskIds.includes(maskId)
-      ? selectedMaskIds.filter(id => id !== maskId)
-      : [...selectedMaskIds, maskId];
-    
-    updateState({
-      selectedMaskIds: newSelectedMaskIds,
-      lastClickedMaskId: maskId,
-    });
-  }, [selectedMaskIds, updateState]);
+  const toggleMaskSelection = useCallback(
+    (maskId: number) => {
+      const newSelectedMaskIds = selectedMaskIds.includes(maskId)
+        ? selectedMaskIds.filter(id => id !== maskId)
+        : [...selectedMaskIds, maskId];
+
+      updateState({
+        selectedMaskIds: newSelectedMaskIds,
+        lastClickedMaskId: maskId,
+      });
+    },
+    [selectedMaskIds, updateState]
+  );
 
   // 전체 선택 해제
   const clearSelection = useCallback(() => {
@@ -148,67 +157,75 @@ export function SimpleInteractionSystem({
   }, [updateState]);
 
   // 특정 마스크 제거
-  const removeMask = useCallback((maskId: number) => {
-    const newSelectedMaskIds = selectedMaskIds.filter(id => id !== maskId);
-    updateState({
-      selectedMaskIds: newSelectedMaskIds,
-    });
-  }, [selectedMaskIds, updateState]);
+  const removeMask = useCallback(
+    (maskId: number) => {
+      const newSelectedMaskIds = selectedMaskIds.filter(id => id !== maskId);
+      updateState({
+        selectedMaskIds: newSelectedMaskIds,
+      });
+    },
+    [selectedMaskIds, updateState]
+  );
 
   // 마우스 이동 처리 (부드러운 호버 효과)
-  const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    const rect = interactionRef.current?.getBoundingClientRect();
-    if (!rect) return;
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent) => {
+      const rect = interactionRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const screenPoint = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    };
-    
-    const imagePoint = screenToImage(screenPoint.x, screenPoint.y);
-    const maskAtPoint = getMaskAtPoint(imagePoint);
-    
-    // 호버 디바운싱으로 부드러운 전환
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    
-    hoverTimeoutRef.current = setTimeout(() => {
-      const newHoveredMaskId = maskAtPoint?.id || null;
-      
-      if (newHoveredMaskId !== interactionState.hoveredMaskId) {
-        updateState({
-          hoveredMaskId: newHoveredMaskId,
-        });
+      const screenPoint = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+
+      const imagePoint = screenToImage(screenPoint.x, screenPoint.y);
+      const maskAtPoint = getMaskAtPoint(imagePoint);
+
+      // 호버 디바운싱으로 부드러운 전환
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
       }
-    }, 50); // 50ms 디바운스
-    
-  }, [screenToImage, getMaskAtPoint, updateState, interactionState.hoveredMaskId]);
+
+      hoverTimeoutRef.current = setTimeout(() => {
+        const newHoveredMaskId = maskAtPoint?.id || null;
+
+        if (newHoveredMaskId !== interactionState.hoveredMaskId) {
+          updateState({
+            hoveredMaskId: newHoveredMaskId,
+          });
+        }
+      }, 50); // 50ms 디바운스
+    },
+    [screenToImage, getMaskAtPoint, updateState, interactionState.hoveredMaskId]
+  );
 
   // 클릭 처리
-  const handleClick = useCallback((event: React.MouseEvent) => {
-    const rect = interactionRef.current?.getBoundingClientRect();
-    if (!rect) return;
+  const handleClick = useCallback(
+    (event: React.MouseEvent) => {
+      const rect = interactionRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const screenPoint = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    };
-    
-    const imagePoint = screenToImage(screenPoint.x, screenPoint.y);
-    const maskAtPoint = getMaskAtPoint(imagePoint);
-    
-    if (maskAtPoint) {
-      toggleMaskSelection(maskAtPoint.id);
-    }
-  }, [screenToImage, getMaskAtPoint, toggleMaskSelection]);
+      const screenPoint = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+
+      const imagePoint = screenToImage(screenPoint.x, screenPoint.y);
+      const maskAtPoint = getMaskAtPoint(imagePoint);
+
+      if (maskAtPoint) {
+        toggleMaskSelection(maskAtPoint.id);
+      }
+    },
+    [screenToImage, getMaskAtPoint, toggleMaskSelection]
+  );
 
   // 마우스 나감 처리
   const handleMouseLeave = useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
-    
+
     updateState({
       hoveredMaskId: null,
     });
@@ -239,7 +256,7 @@ export function SimpleInteractionSystem({
         position: "relative",
         width: "100%",
         height: "100%",
-        cursor: interactionState.hoveredMaskId ? 'pointer' : 'default',
+        cursor: interactionState.hoveredMaskId ? "pointer" : "default",
       }}
       onMouseMove={handleMouseMove}
       onClick={handleClick}
@@ -267,7 +284,7 @@ export function useSimpleInteraction() {
       const newSelectedMaskIds = prev.selectedMaskIds.includes(maskId)
         ? prev.selectedMaskIds.filter(id => id !== maskId)
         : [...prev.selectedMaskIds, maskId];
-      
+
       return {
         ...prev,
         selectedMaskIds: newSelectedMaskIds,

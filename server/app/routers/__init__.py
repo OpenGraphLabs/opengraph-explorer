@@ -4,6 +4,7 @@ API Routers Package
 HTTP endpoint definitions and management.
 """
 
+from .auth_router import router as auth_router
 from .user_router import router as user_router
 from .dataset_router import router as dataset_router
 from .image_router import router as image_router
@@ -13,6 +14,7 @@ from .dictionary_category_router import router as dictionary_category_router
 from .annotation_router import router as annotation_router
 
 __all__ = [
+    "auth_router",
     "user_router",
     "dataset_router",
     "image_router",

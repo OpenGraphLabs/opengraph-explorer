@@ -22,6 +22,214 @@
         }
       }
     },
+    "/api/v1/auth/zklogin/init": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Zklogin Init",
+        "description": "zkLogin 초기화\n\n1. Ephemeral public key를 받아서 nonce 생성\n2. Google OAuth URL 생성 및 반환",
+        "operationId": "zklogin_init_api_v1_auth_zklogin_init_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZkLoginInitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZkLoginInitResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/callback": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Google Callback",
+        "description": "Google OAuth 콜백 처리\n\n1. Authorization code를 access token으로 교환\n2. Google 사용자 정보 조회\n3. 사용자 생성 또는 업데이트\n4. JWT 토큰 생성 및 클라이언트로 리다이렉트",
+        "operationId": "google_callback_api_v1_auth_google_callback_get",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/zklogin/prove": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Generate Zk Proof",
+        "description": "ZK proof를 생성하고 Sui 주소를 도출합니다.\n\n1. JWT 토큰 검증\n2. 사용자 salt 조회\n3. ZK proof 생성\n4. Sui 주소 도출\n5. 사용자 계정에 Sui 주소 연결",
+        "operationId": "generate_zk_proof_api_v1_auth_zklogin_prove_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZkProofRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZkProofResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get Me",
+        "description": "현재 로그인한 사용자 정보 조회",
+        "operationId": "get_me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/sui-address": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Update Sui Address",
+        "description": "클라이언트에서 생성한 Sui 주소를 사용자 계정에 업데이트합니다.\n\nArgs:\n    request: Sui 주소 업데이트 요청\n    current_user: 현재 인증된 사용자\n    db: 데이터베이스 세션\n    \nReturns:\n    UpdateSuiAddressResponse: 업데이트 결과",
+        "operationId": "update_sui_address_api_v1_auth_sui_address_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSuiAddressRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSuiAddressResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/users/": {
       "post": {
         "tags": [
@@ -2583,6 +2791,85 @@
         "type": "object",
         "title": "CategoryUpdate"
       },
+      "CurrentUserResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "profile_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Image Url"
+          },
+          "sui_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sui Address"
+          },
+          "google_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Id"
+          },
+          "zklogin_salt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zklogin Salt"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "created_at"
+        ],
+        "title": "CurrentUserResponse",
+        "description": "현재 사용자 응답"
+      },
       "DatasetCreate": {
         "properties": {
           "name": {
@@ -3180,6 +3467,39 @@
         "title": "ImageRead",
         "description": "Image read schema"
       },
+      "UpdateSuiAddressRequest": {
+        "properties": {
+          "sui_address": {
+            "type": "string",
+            "title": "Sui Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sui_address"
+        ],
+        "title": "UpdateSuiAddressRequest",
+        "description": "Sui 주소 업데이트 요청"
+      },
+      "UpdateSuiAddressResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "sui_address": {
+            "type": "string",
+            "title": "Sui Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "sui_address"
+        ],
+        "title": "UpdateSuiAddressResponse",
+        "description": "Sui 주소 업데이트 응답"
+      },
       "UserAnnotationSelectionBatchCreate": {
         "properties": {
           "selections": {
@@ -3711,6 +4031,92 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "ZkLoginInitRequest": {
+        "properties": {
+          "nonce": {
+            "type": "string",
+            "title": "Nonce"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nonce"
+        ],
+        "title": "ZkLoginInitRequest",
+        "description": "zkLogin 초기화 요청"
+      },
+      "ZkLoginInitResponse": {
+        "properties": {
+          "nonce": {
+            "type": "string",
+            "title": "Nonce"
+          },
+          "oauth_url": {
+            "type": "string",
+            "title": "Oauth Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nonce",
+          "oauth_url"
+        ],
+        "title": "ZkLoginInitResponse",
+        "description": "zkLogin 초기화 응답"
+      },
+      "ZkProofRequest": {
+        "properties": {
+          "jwt_token": {
+            "type": "string",
+            "title": "Jwt Token"
+          },
+          "ephemeral_public_key": {
+            "type": "string",
+            "title": "Ephemeral Public Key"
+          },
+          "max_epoch": {
+            "type": "integer",
+            "title": "Max Epoch"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jwt_token",
+          "ephemeral_public_key",
+          "max_epoch"
+        ],
+        "title": "ZkProofRequest",
+        "description": "ZK proof 생성 요청"
+      },
+      "ZkProofResponse": {
+        "properties": {
+          "sui_address": {
+            "type": "string",
+            "title": "Sui Address"
+          },
+          "user_salt": {
+            "type": "string",
+            "title": "User Salt"
+          },
+          "zk_proof": {
+            "type": "object",
+            "title": "Zk Proof"
+          },
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "sui_address",
+          "user_salt",
+          "zk_proof"
+        ],
+        "title": "ZkProofResponse",
+        "description": "ZK proof 생성 응답"
       }
     },
     "securitySchemes": {

@@ -1,9 +1,9 @@
-import React from 'react';
-import { Box, Text } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { MaintenanceNotice } from '@/features/auth/components/MaintenanceNotice';
-import { DemoLoginForm } from '@/features/auth/components/DemoLoginForm';
-import { Users } from 'phosphor-react';
+import React from "react";
+import { Box, Text } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { MaintenanceNotice } from "@/features/auth/components/MaintenanceNotice";
+import { DemoLoginForm } from "@/features/auth/components/DemoLoginForm";
+import { Users } from "phosphor-react";
 
 interface DemoLoginPageProps {
   onSuccess?: () => void;
@@ -17,18 +17,18 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
       style={{
         background: theme.colors.background.primary,
         minHeight: `calc(100vh - 56px)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         padding: theme.spacing.semantic.layout.md,
-        position: 'relative',
-        overflow: 'hidden',
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       {/* Enhanced Background Pattern */}
       <Box
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
@@ -45,7 +45,7 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
       {/* Grid Pattern Overlay */}
       <Box
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
@@ -54,7 +54,7 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
             linear-gradient(${theme.colors.border.primary}20 1px, transparent 1px),
             linear-gradient(90deg, ${theme.colors.border.primary}20 1px, transparent 1px)
           `,
-          backgroundSize: '32px 32px',
+          backgroundSize: "32px 32px",
           opacity: 0.3,
         }}
       />
@@ -62,31 +62,31 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
       {/* Main Content Container */}
       <Box
         style={{
-          position: 'relative',
+          position: "relative",
           zIndex: 1,
-          width: '100%',
-          maxWidth: '1000px', // Increased from 480px
-          display: 'flex',
-          flexDirection: 'column',
+          width: "100%",
+          maxWidth: "1000px", // Increased from 480px
+          display: "flex",
+          flexDirection: "column",
           gap: theme.spacing.semantic.layout.lg,
         }}
       >
         {/* Horizontal Layout */}
         <Box
           style={{
-            width: '100%',
-            maxWidth: '900px',
-            margin: '0 auto',
-            display: 'flex',
+            width: "100%",
+            maxWidth: "900px",
+            margin: "0 auto",
+            display: "flex",
             gap: theme.spacing.semantic.layout.xl,
-            alignItems: 'flex-start',
+            alignItems: "flex-start",
           }}
         >
           {/* Left Column - Prominent Update Notice */}
           <Box
             style={{
-              flex: '1',
-              minWidth: '380px',
+              flex: "1",
+              minWidth: "380px",
             }}
           >
             <MaintenanceNotice />
@@ -95,13 +95,13 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
           {/* Right Column - Login Form */}
           <Box
             style={{
-              flex: '0 0 400px',
-              width: '400px',
+              flex: "0 0 400px",
+              width: "400px",
             }}
           >
             <Box
               style={{
-                width: '100%',
+                width: "100%",
                 background: theme.colors.background.card,
                 borderRadius: theme.borders.radius.lg,
                 border: `1px solid ${theme.colors.border.primary}`,
@@ -112,20 +112,20 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
               {/* Login Header */}
               <Box
                 style={{
-                  textAlign: 'center',
+                  textAlign: "center",
                   marginBottom: theme.spacing.semantic.component.lg,
                 }}
               >
                 <Box
                   style={{
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '14px',
+                    width: "56px",
+                    height: "56px",
+                    borderRadius: "14px",
                     background: `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.accent}15)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto',
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto",
                     marginBottom: theme.spacing.semantic.component.lg,
                     border: `1px solid ${theme.colors.interactive.primary}20`,
                   }}
@@ -140,7 +140,7 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
                     fontWeight: 600,
                     marginBottom: theme.spacing.semantic.component.sm,
                     lineHeight: 1.3,
-                    display: 'block',
+                    display: "block",
                   }}
                 >
                   Team Access
@@ -166,7 +166,7 @@ export const DemoLoginPage: React.FC<DemoLoginPageProps> = ({ onSuccess }) => {
               <Box
                 style={{
                   marginTop: theme.spacing.semantic.component.xl,
-                  textAlign: 'center',
+                  textAlign: "center",
                   padding: theme.spacing.semantic.component.sm,
                   borderTop: `1px solid ${theme.colors.border.secondary}`,
                 }}

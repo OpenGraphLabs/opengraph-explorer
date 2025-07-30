@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/shared/api/client';
-import type { CategoryListResponse, CategoryRead } from '@/shared/api/generated/models';
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/shared/api/client";
+import type { CategoryListResponse, CategoryRead } from "@/shared/api/generated/models";
 
 interface UseDictionaryCategoriesParams {
   dictionaryId: number;
@@ -16,13 +16,16 @@ export function useDictionaryCategories({
   enabled = true,
 }: UseDictionaryCategoriesParams) {
   return useQuery({
-    queryKey: ['dictionary-categories', dictionaryId, page, limit],
+    queryKey: ["dictionary-categories", dictionaryId, page, limit],
     queryFn: async (): Promise<CategoryListResponse> => {
-      const response = await apiClient.dictionaryCategories.getDictionaryCategoriesApiV1DictionaryCategoriesDictionaryIdGet({
-        dictionaryId,
-        page,
-        limit,
-      });
+      const response =
+        await apiClient.dictionaryCategories.getDictionaryCategoriesApiV1DictionaryCategoriesDictionaryIdGet(
+          {
+            dictionaryId,
+            page,
+            limit,
+          }
+        );
       return response.data;
     },
     enabled: enabled && !!dictionaryId,
@@ -40,7 +43,7 @@ export function useSearchCategories(searchTerm: string, dictionaryId: number = 1
     enabled: true, // Always enabled now
   });
 
-  const filteredCategories = searchTerm 
+  const filteredCategories = searchTerm
     ? data?.items?.filter(category =>
         category.name.toLowerCase().includes(searchTerm.toLowerCase())
       ) || []
@@ -53,4 +56,4 @@ export function useSearchCategories(searchTerm: string, dictionaryId: number = 1
     total: searchTerm ? filteredCategories.length : data?.total || 0,
     hasSearch: !!searchTerm,
   };
-} 
+}

@@ -15,8 +15,14 @@ interface SimpleSelectionUIProps {
 
 // 더 선명하고 대비가 좋은 색상 팔레트 (SimpleMaskOverlay와 동일)
 const INTUITIVE_COLORS = [
-  "#0066FF", "#00CC44", "#FF8800", "#9933FF", 
-  "#FF1177", "#00AAFF", "#FFD700", "#FF4455",
+  "#0066FF",
+  "#00CC44",
+  "#FF8800",
+  "#9933FF",
+  "#FF1177",
+  "#00AAFF",
+  "#FFD700",
+  "#FF4455",
 ];
 
 export function SimpleSelectionUI({
@@ -33,7 +39,7 @@ export function SimpleSelectionUI({
   const { selectedAnnotations, hoveredAnnotation } = useMemo(() => {
     const selected = annotations.filter(ann => selectedMaskIds.includes(ann.id));
     const hovered = hoveredMaskId ? annotations.find(ann => ann.id === hoveredMaskId) : null;
-    
+
     return {
       selectedAnnotations: selected,
       hoveredAnnotation: hovered,
@@ -58,12 +64,12 @@ export function SimpleSelectionUI({
           textAlign: "center",
         }}
       >
-        <Target 
-          size={24} 
-          style={{ 
-            color: theme.colors.text.tertiary, 
-            marginBottom: theme.spacing.semantic.component.xs 
-          }} 
+        <Target
+          size={24}
+          style={{
+            color: theme.colors.text.tertiary,
+            marginBottom: theme.spacing.semantic.component.xs,
+          }}
         />
         <Text
           size="2"
@@ -93,7 +99,11 @@ export function SimpleSelectionUI({
       {/* 선택된 마스크들 */}
       {selectedMaskIds.length > 0 && (
         <Box style={{ marginBottom: hoveredAnnotation ? theme.spacing.semantic.component.sm : 0 }}>
-          <Flex align="center" justify="between" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+          <Flex
+            align="center"
+            justify="between"
+            style={{ marginBottom: theme.spacing.semantic.component.sm }}
+          >
             <Text
               size="3"
               style={{
@@ -103,7 +113,7 @@ export function SimpleSelectionUI({
             >
               Selected Masks ({selectedMaskIds.length})
             </Text>
-            
+
             {selectedMaskIds.length > 1 && (
               <Button
                 onClick={onClearSelection}
@@ -134,7 +144,7 @@ export function SimpleSelectionUI({
               const colorIndex = getMaskColorIndex(annotation.id);
               const color = INTUITIVE_COLORS[colorIndex % INTUITIVE_COLORS.length];
               const confidence = annotation.stability_score || 0.8;
-              
+
               return (
                 <Flex
                   key={annotation.id}
@@ -161,7 +171,7 @@ export function SimpleSelectionUI({
                         flexShrink: 0,
                       }}
                     />
-                    
+
                     {/* 마스크 정보 */}
                     <Box>
                       <Text
@@ -223,12 +233,12 @@ export function SimpleSelectionUI({
                 textAlign: "center",
               }}
             >
-              <Check 
-                size={16} 
-                style={{ 
-                  color: theme.colors.status.success, 
-                  marginRight: "6px" 
-                }} 
+              <Check
+                size={16}
+                style={{
+                  color: theme.colors.status.success,
+                  marginRight: "6px",
+                }}
               />
               <Text
                 size="2"
@@ -261,7 +271,10 @@ export function SimpleSelectionUI({
                 width: "12px",
                 height: "12px",
                 borderRadius: "50%",
-                background: INTUITIVE_COLORS[getMaskColorIndex(hoveredAnnotation.id) % INTUITIVE_COLORS.length],
+                background:
+                  INTUITIVE_COLORS[
+                    getMaskColorIndex(hoveredAnnotation.id) % INTUITIVE_COLORS.length
+                  ],
                 opacity: 0.7,
               }}
             />

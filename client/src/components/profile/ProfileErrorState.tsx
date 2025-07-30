@@ -46,7 +46,8 @@ export function ProfileErrorState() {
               lineHeight: 1.5,
             }}
           >
-            There was an error loading your profile information. Some features may not work correctly.
+            There was an error loading your profile information. Some features may not work
+            correctly.
           </Text>
         </Box>
       </Flex>

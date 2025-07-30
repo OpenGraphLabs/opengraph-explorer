@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { useDatasetsPage } from '@/contexts/page/DatasetsPageContext';
+import React from "react";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
 
 export function DatasetsSidebar() {
   const { theme } = useTheme();
@@ -11,10 +11,10 @@ export function DatasetsSidebar() {
     <Box style={{ padding: theme.spacing.semantic.component.md }}>
       {/* Search Input */}
       <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
-        <Text 
-          size="2" 
-          weight="bold" 
-          style={{ 
+        <Text
+          size="2"
+          weight="bold"
+          style={{
             color: theme.colors.text.primary,
             marginBottom: theme.spacing.semantic.component.sm,
           }}
@@ -25,7 +25,7 @@ export function DatasetsSidebar() {
           type="text"
           placeholder="Search datasets..."
           value={filters.searchQuery}
-          onChange={(e) => updateFilter("searchQuery", e.target.value)}
+          onChange={e => updateFilter("searchQuery", e.target.value)}
           style={{
             width: "100%",
             padding: "8px 12px",
@@ -42,10 +42,10 @@ export function DatasetsSidebar() {
       {/* Tags */}
       {allUniqueTags.length > 0 && (
         <Box>
-          <Text 
-            size="2" 
-            weight="bold" 
-            style={{ 
+          <Text
+            size="2"
+            weight="bold"
+            style={{
               color: theme.colors.text.primary,
               marginBottom: theme.spacing.semantic.component.sm,
             }}
@@ -53,7 +53,7 @@ export function DatasetsSidebar() {
             Tags
           </Text>
           <Flex direction="column" gap="1">
-            {allUniqueTags.slice(0, 10).map((tag) => (
+            {allUniqueTags.slice(0, 10).map(tag => (
               <label
                 key={tag}
                 style={{

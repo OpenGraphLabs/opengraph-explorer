@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { useDataset, useDatasetImages, useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
+import {
+  useDataset,
+  useDatasetImages,
+  useApprovedAnnotationsByImage,
+} from "@/shared/hooks/useApiQuery";
 import { useApiClient } from "@/shared/hooks/useApiClient";
 import { ActiveTab, TotalCounts, ConfirmationStatus } from "../types";
 import { DEFAULT_PAGE_SIZE } from "../constants";
@@ -20,21 +24,18 @@ export const useDatasetDetailServer = (id: string | undefined) => {
     data: dataset,
     isLoading: loading,
     error: queryError,
-    refetch
-  } = useDataset(
-    id ? parseInt(id) : 0,
-    {
-      enabled: !!id && !isNaN(parseInt(id)),
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,
-    } as any
-  );
+    refetch,
+  } = useDataset(id ? parseInt(id) : 0, {
+    enabled: !!id && !isNaN(parseInt(id)),
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  } as any);
 
   // Fetch images for the dataset
   const {
     data: imagesResponse,
     isLoading: imagesLoading,
-    error: imagesError
+    error: imagesError,
   } = useDatasetImages(
     dataset?.id || 0,
     { page: 1, limit: 100 }, // Fetch first 100 images for now
@@ -86,10 +87,10 @@ export const useDatasetDetailServer = (id: string | undefined) => {
   // Fetch annotation counts for all images
   const fetchAnnotationCounts = async (images: ImageRead[]) => {
     const counts = new Map<number, number>();
-    
+
     // Fetch real approved annotation counts for each image using API client
     try {
-      const promises = images.map(async (image) => {
+      const promises = images.map(async image => {
         try {
           const annotationsData = await annotations.getApprovedAnnotationsByImage(image.id);
           const count = Array.isArray(annotationsData) ? annotationsData.length : 0;
@@ -100,22 +101,22 @@ export const useDatasetDetailServer = (id: string | undefined) => {
           return { imageId: image.id, count: 0 };
         }
       });
-      
+
       const results = await Promise.all(promises);
       results.forEach(({ imageId, count }) => {
         counts.set(imageId, count);
       });
-      
-      console.log('Annotation counts fetched:', counts);
+
+      console.log("Annotation counts fetched:", counts);
     } catch (error) {
-      console.error('Error fetching annotation counts:', error);
+      console.error("Error fetching annotation counts:", error);
       // Fallback to simulated data with some annotations
       for (const image of images) {
         const count = Math.floor(Math.random() * 3) + 1; // 1-3 annotations per image for testing
         counts.set(image.id, count);
       }
     }
-    
+
     setAnnotationCounts(counts);
     return counts;
   };
@@ -123,9 +124,9 @@ export const useDatasetDetailServer = (id: string | undefined) => {
   useEffect(() => {
     if (dataset && imagesResponse?.items) {
       const images = imagesResponse.items;
-      
+
       // Fetch annotation counts for all images
-      fetchAnnotationCounts(images).then((counts) => {
+      fetchAnnotationCounts(images).then(counts => {
         // Transform images with annotation counts
         const transformedItems = images.map((image: ImageRead) => ({
           id: image.id.toString(),
@@ -139,11 +140,11 @@ export const useDatasetDetailServer = (id: string | undefined) => {
           metadata: {
             index: image.id,
             datasetId: image.dataset_id,
-          }
+          },
         }));
-        
+
         setCachedItems(transformedItems);
-        
+
         // Calculate counts based on actual data
         const confirmed = transformedItems.filter(item => hasConfirmedAnnotations(item));
         setTotalCounts({
@@ -173,14 +174,14 @@ export const useDatasetDetailServer = (id: string | undefined) => {
     return Array.from({ length: itemCount }, (_, i) => ({
       id: `${dataset.id}_${i}`,
       path: `image_${i}.jpg`,
-      image_url: `https://via.placeholder.com/300x200?text=Image+${i+1}`,
+      image_url: `https://via.placeholder.com/300x200?text=Image+${i + 1}`,
       imageId: 1000 + i, // Fake image ID
       annotations: [],
       approvedAnnotationsCount: i % 3 === 0 ? Math.floor(Math.random() * 3) + 1 : 0,
       metadata: {
         index: i,
         datasetId: dataset.id,
-      }
+      },
     }));
   };
 
@@ -263,16 +264,18 @@ export const useDatasetDetailServer = (id: string | undefined) => {
   };
 
   // Transform backend dataset to match expected format
-  const transformedDataset = dataset ? {
-    ...dataset,
-    dataType: dataset.tags?.[0] || "image", // Use first tag as dataType or default to "image"
-    pageInfo: {
-      hasNextPage: false, // Will be updated when backend supports pagination
-      hasPreviousPage: false,
-      startCursor: "",
-      endCursor: "",
-    }
-  } : null;
+  const transformedDataset = dataset
+    ? {
+        ...dataset,
+        dataType: dataset.tags?.[0] || "image", // Use first tag as dataType or default to "image"
+        pageInfo: {
+          hasNextPage: false, // Will be updated when backend supports pagination
+          hasPreviousPage: false,
+          startCursor: "",
+          endCursor: "",
+        },
+      }
+    : null;
 
   return {
     // Basic state

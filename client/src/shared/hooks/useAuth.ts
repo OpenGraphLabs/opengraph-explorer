@@ -2,11 +2,11 @@ import { useCurrentWallet } from "@mysten/dapp-kit";
 import { useLocation } from "react-router-dom";
 import { getRouteConfig, requiresAuth } from "../config/routePermissions";
 import { AuthState } from "../types/auth";
-import { useDemoAuth, DEMO_LOGIN_ENABLED } from "../../features/auth";
+import { useAuth as useNewAuth } from "../../contexts/data/AuthContext";
 
 export const useAuth = (): AuthState => {
   const { isConnected, currentWallet } = useCurrentWallet();
-  const demoAuth = useDemoAuth();
+  const newAuth = useNewAuth();
   const location = useLocation();
 
   const isWalletConnected = isConnected && !!currentWallet?.accounts[0]?.address;
@@ -15,10 +15,16 @@ export const useAuth = (): AuthState => {
   return {
     isWalletConnected,
     walletAddress,
-    isLoading: demoAuth.isLoading, // Include demo auth loading state
-    // Demo auth integration
-    isDemoAuthenticated: DEMO_LOGIN_ENABLED ? demoAuth.isAuthenticated : false,
-    demoUser: demoAuth.user,
+    isLoading: newAuth.isLoading,
+    // New auth integration
+    isDemoAuthenticated: newAuth.isAuthenticated,
+    demoUser: newAuth.user
+      ? {
+          id: newAuth.user.id,
+          username: newAuth.user.email || newAuth.user.id,
+          displayName: newAuth.user.name || newAuth.user.email || "User",
+        }
+      : undefined,
   };
 };
 
@@ -29,16 +35,16 @@ export const useRoutePermission = () => {
 
   const routeConfig = getRouteConfig(currentPath);
   const needsAuth = requiresAuth(currentPath);
-  
-  // Allow access if wallet is connected OR demo is authenticated (when enabled)
-  const hasPermission = !needsAuth || isWalletConnected || (DEMO_LOGIN_ENABLED && isDemoAuthenticated);
+
+  // Allow access if wallet is connected OR user is authenticated with new auth system
+  const hasPermission = !needsAuth || isWalletConnected || isDemoAuthenticated;
 
   return {
     hasPermission,
     needsAuth,
     routeConfig,
     currentPath,
-    isDemoMode: DEMO_LOGIN_ENABLED && isDemoAuthenticated,
+    isDemoMode: isDemoAuthenticated,
     // Keep legacy prop for backward compatibility
     needsWallet: needsAuth,
   };

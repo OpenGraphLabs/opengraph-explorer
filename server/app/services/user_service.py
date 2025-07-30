@@ -254,4 +254,69 @@ class UserService:
             query = query.where(User.email.contains(email_filter))
         
         result = await self.db.execute(query)
-        return result.scalar() or 0 
+        return result.scalar() or 0
+    
+    async def get_or_create_google_user(
+        self,
+        google_id: str,
+        email: str,
+        name: Optional[str] = None,
+        picture: Optional[str] = None
+    ) -> User:
+        """
+        Google OAuth를 통해 사용자를 생성하거나 조회합니다.
+        
+        Args:
+            google_id: Google OAuth ID (sub claim)
+            email: 사용자 이메일
+            name: 사용자 이름
+            picture: 프로필 이미지 URL
+            
+        Returns:
+            User: 생성되거나 조회된 사용자 정보
+        """
+        # 먼저 google_sub로 사용자 조회
+        result = await self.db.execute(
+            select(User).where(User.google_sub == google_id)
+        )
+        user = result.scalar_one_or_none()
+        
+        if user:
+            # 기존 사용자 정보 업데이트
+            user.email = email
+            user.display_name = name
+            user.profile_image_url = picture
+            await self.db.commit()
+            await self.db.refresh(user)
+            return user
+        
+        # 이메일로도 조회 시도 (기존 사용자가 Google 계정 연동하는 경우)
+        result = await self.db.execute(
+            select(User).where(User.email == email)
+        )
+        user = result.scalar_one_or_none()
+        
+        if user:
+            # 기존 사용자에 Google 정보 연동
+            user.google_sub = google_id
+            user.google_id = google_id  # 기존 필드와 호환성
+            user.display_name = name or user.display_name
+            user.profile_image_url = picture or user.profile_image_url
+            await self.db.commit()
+            await self.db.refresh(user)
+            return user
+        
+        # 새 사용자 생성
+        new_user = User(
+            email=email,
+            google_id=google_id,  # 기존 필드
+            google_sub=google_id,  # 새 필드
+            display_name=name,
+            profile_image_url=picture
+        )
+        
+        self.db.add(new_user)
+        await self.db.commit()
+        await self.db.refresh(new_user)
+        
+        return new_user 

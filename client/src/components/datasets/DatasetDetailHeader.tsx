@@ -160,10 +160,7 @@ export function DatasetDetailHeader() {
                         animation: "pulse 1.5s ease-in-out infinite",
                       }}
                     />
-                    <Text
-                      size="2"
-                      style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
-                    >
+                    <Text size="2" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
                       Syncing
                     </Text>
                   </Flex>
@@ -177,10 +174,7 @@ export function DatasetDetailHeader() {
                         borderRadius: "50%",
                       }}
                     />
-                    <Text
-                      size="2"
-                      style={{ color: theme.colors.text.primary, fontWeight: 500 }}
-                    >
+                    <Text size="2" style={{ color: theme.colors.text.primary, fontWeight: 500 }}>
                       Ready
                     </Text>
                   </Flex>

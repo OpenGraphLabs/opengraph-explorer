@@ -29,7 +29,7 @@ function ProfileContent() {
   }
 
   // Debug: Log profile data
-  console.log('Profile Debug:', {
+  console.log("Profile Debug:", {
     isAuthenticated,
     profileLoading,
     profileError,
