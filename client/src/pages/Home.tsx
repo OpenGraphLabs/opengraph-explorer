@@ -127,7 +127,7 @@ export function Home() {
   return (
     <AnnotationsProvider config={{ mode: "approved", limit: 25 }}>
       <ImagesProvider config={{ useAnnotationImages: true }}>
-        <CategoriesProvider config={{ dictionaryId: 1, limit: 100 }}>
+        <CategoriesProvider config={{ useGlobalCategories: true, limit: 100 }}>
           <HomePageProvider>
             <HomeContent />
           </HomePageProvider>

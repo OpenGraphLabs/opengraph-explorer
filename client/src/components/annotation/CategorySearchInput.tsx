@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { useSearchCategories } from "@/shared/hooks/useDictionaryCategories";
+import { useSearchCategories, useSearchGlobalCategories } from "@/shared/hooks/useDictionaryCategories";
 
 export interface CategorySearchInputProps {
   placeholder?: string;
@@ -11,6 +11,7 @@ export interface CategorySearchInputProps {
   onSearchChange?: (query: string) => void;
   className?: string;
   dictionaryId?: number;
+  useGlobalCategories?: boolean; // New prop to use global categories
 }
 
 export function CategorySearchInput({
@@ -20,6 +21,7 @@ export function CategorySearchInput({
   onSearchChange,
   className,
   dictionaryId = 1,
+  useGlobalCategories = false,
 }: CategorySearchInputProps) {
   const { theme } = useTheme();
   const [query, setQuery] = useState("");
@@ -30,7 +32,11 @@ export function CategorySearchInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { categories, isLoading } = useSearchCategories(query, dictionaryId);
+  // Use global categories or dictionary categories based on prop
+  const dictionaryResult = useSearchCategories(query, dictionaryId);
+  const globalResult = useSearchGlobalCategories(query);
+  
+  const { categories, isLoading } = useGlobalCategories ? globalResult : dictionaryResult;
 
   // Smooth transitions for dropdown visibility
   useEffect(() => {

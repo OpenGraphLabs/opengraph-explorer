@@ -75,6 +75,7 @@ export function HomeHeader() {
               placeholder="Search categories, objects, or scenes in our robotics dataset..."
               selectedCategory={selectedCategory}
               onCategorySelect={setSelectedCategory}
+              useGlobalCategories={true}
             />
           </Box>
 

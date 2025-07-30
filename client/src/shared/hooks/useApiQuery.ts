@@ -41,6 +41,11 @@ export const queryKeys = {
     detail: (id: number) => [...queryKeys.annotations.details(), id] as const,
     byImage: (imageId: number) => [...queryKeys.annotations.all, "byImage", imageId] as const,
   },
+  categories: {
+    all: ["categories"] as const,
+    lists: () => [...queryKeys.categories.all, "list"] as const,
+    list: (filters: any) => [...queryKeys.categories.lists(), { filters }] as const,
+  },
   images: {
     all: ["images"] as const,
     lists: () => [...queryKeys.images.all, "list"] as const,
@@ -347,6 +352,29 @@ export function useBulkCreateAnnotations(
     mutationFn: (data: AnnotationUserCreate[]) => annotations.bulkCreateAnnotations(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.annotations.lists() });
+    },
+    ...options,
+  });
+}
+
+// Categories Hooks
+export function useCategories(
+  filters: { page?: number; limit?: number } = {},
+  options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { client } = useApiClient(options?.apiClientOptions);
+
+  return useQuery({
+    queryKey: [...queryKeys.categories.all, "list", filters],
+    queryFn: async () => {
+      const { CategoriesApi } = await import('../api/generated');
+      const baseURL = options?.apiClientOptions?.baseURL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const categoriesApi = new CategoriesApi(undefined, baseURL, client.axios);
+      const response = await categoriesApi.getCategoriesApiV1CategoriesGet({ 
+        page: filters.page || 1, 
+        limit: filters.limit || 100 
+      });
+      return response.data;
     },
     ...options,
   });
