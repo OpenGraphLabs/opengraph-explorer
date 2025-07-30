@@ -91,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const serverUser = await response.json();
+      console.log("serverUser: ", serverUser);
 
       const user: User = {
         id: decoded.sub,
