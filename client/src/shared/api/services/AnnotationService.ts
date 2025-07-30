@@ -36,11 +36,11 @@ export class AnnotationService {
     return response.data as AnnotationRead;
   }
 
-  // Create annotation
+  // Create annotation (direct axios call)
   async createAnnotation(data: AnnotationUserCreate) {
-    const response = await this.apiClient.annotations.createUserAnnotationApiV1AnnotationsPost({
-      annotationUserCreate: data,
-    });
+    const response = await this.apiClient
+      .getAxiosInstance()
+      .post("/api/v1/annotations", data);
     return response.data as AnnotationRead;
   }
 

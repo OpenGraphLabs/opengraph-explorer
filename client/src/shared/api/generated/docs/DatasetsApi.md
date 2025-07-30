@@ -48,7 +48,7 @@ const { status, data } = await apiInstance.createDatasetApiV1DatasetsPost(
 
 ### Authorization
 
-No authorization required
+[HTTPBearer](../README.md#HTTPBearer)
 
 ### HTTP request headers
 

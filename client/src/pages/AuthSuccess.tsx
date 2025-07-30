@@ -33,12 +33,12 @@ export function AuthSuccess() {
           throw new Error("Missing authentication tokens");
         }
 
-        // Store access token for API calls
-        sessionStorage.setItem("access_token", accessToken);
+        // Process server JWT through AuthContext (for API calls)
+        setStep("Processing server authentication...");
+        await handleGoogleCallback(accessToken);
 
-        // Process Google JWT through AuthContext
-        setStep("Processing Google authentication...");
-        await handleGoogleCallback(googleJwt);
+        // Store Google JWT separately (for zkLogin)
+        sessionStorage.setItem("google-jwt", googleJwt);
 
         // Process zkLogin if we have the required parameters
         if (zkLoginSalt) {

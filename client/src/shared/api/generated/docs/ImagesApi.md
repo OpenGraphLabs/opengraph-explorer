@@ -45,7 +45,7 @@ const { status, data } = await apiInstance.addImageApiV1ImagesPost(
 
 ### Authorization
 
-No authorization required
+[HTTPBearer](../README.md#HTTPBearer)
 
 ### HTTP request headers
 

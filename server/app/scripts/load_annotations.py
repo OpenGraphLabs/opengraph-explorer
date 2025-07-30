@@ -185,7 +185,7 @@ def prepare_data_from_files(image_files: List[Path], annotation_files: List[Path
         # 이미지 데이터 준비
         image_data = ImageCreate(
             file_name=image_info["file_name"],
-            image_url=f"https://ik.imagekit.io/opengraphv1/val2017/{image_info['file_name']}",
+            image_url=f"https://ik.imagekit.io/opengraphv1/first_person/{image_info['file_name']}",
             width=image_info["width"],
             height=image_info["height"],
             dataset_id=dataset_id
@@ -337,8 +337,8 @@ async def main():
     
     # 스크립트 디렉토리 경로
     script_dir = Path(__file__).parent
-    images_dir = script_dir / "images_coco"
-    annotations_dir = script_dir / "annotations_coco"
+    images_dir = script_dir / "images_first_person"
+    annotations_dir = script_dir / "annotations_first_person"
 
     # annotation 파일 기준으로 매칭
     annotation_files = sorted(annotations_dir.glob("*_relations_*.json"))

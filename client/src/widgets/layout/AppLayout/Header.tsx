@@ -193,6 +193,7 @@ export function Header() {
               {/* User Info */}
               <Text
                 size="2"
+                className="hidden sm:block"
                 style={{
                   color: theme.colors.text.primary,
                   fontWeight: 500,
@@ -200,7 +201,6 @@ export function Header() {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  display: { initial: "none", sm: "block" },
                 }}
               >
                 {user.name || user.email?.split("@")[0] || "User"}

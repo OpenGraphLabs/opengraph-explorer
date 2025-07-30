@@ -72,18 +72,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      // Decode JWT to get user info
+      // Store JWT first (needed for API calls)
+      sessionStorage.setItem("zklogin-jwt", jwt);
+
+      // Decode JWT to get basic user info
       const decoded = zkLoginService.decodeJwt(jwt);
+
+      // Fetch full user info from server using the JWT
+      const response = await fetch("/api/v1/auth/me", {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get user info from server");
+      }
+
+      const serverUser = await response.json();
 
       const user: User = {
         id: decoded.sub,
-        email: (decoded as any).email,
-        name: (decoded as any).name,
-        picture: (decoded as any).picture,
+        email: serverUser.email || decoded.email,
+        name: serverUser.display_name,
+        picture: serverUser.profile_image_url,
       };
-
-      // Store JWT in session storage
-      sessionStorage.setItem("zklogin-jwt", jwt);
 
       setState(prev => ({
         ...prev,
@@ -95,7 +109,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log("Authentication successful:", user);
     } catch (error) {
-      console.error("Failed to handle Google callback:", error);
+      console.error("Failed to handle callback:", error);
+      // Clear JWT on error
+      sessionStorage.removeItem("zklogin-jwt");
       setState(prev => ({
         ...prev,
         isLoading: false,

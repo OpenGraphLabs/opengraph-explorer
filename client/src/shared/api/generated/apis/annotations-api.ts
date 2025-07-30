@@ -47,10 +47,6 @@ import type { AnnotationRead } from "../models";
 // @ts-ignore
 import type { AnnotationSelectionStats } from "../models";
 // @ts-ignore
-import type { AnnotationSelectionSummary } from "../models";
-// @ts-ignore
-import type { AnnotationUserCreate } from "../models";
-// @ts-ignore
 import type { HTTPValidationError } from "../models";
 // @ts-ignore
 import type { UserAnnotationSelectionBatchCreate } from "../models";
@@ -68,55 +64,6 @@ import type { UserAnnotationSelectionUpdate } from "../models";
  */
 export const AnnotationsApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
-    /**
-     * Bulk-approves annotation selections.  Used by administrators to process selections that are eligible for approval in bulk.
-     * @summary Approve Selections Batch
-     * @param {Array<object>} requestBody
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost: async (
-      requestBody: Array<object>,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'requestBody' is not null or undefined
-      assertParamExists(
-        "approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost",
-        "requestBody",
-        requestBody
-      );
-      const localVarPath = `/api/v1/annotations/selections/approve-batch`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        requestBody,
-        localVarRequestOptions,
-        configuration
-      );
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
     /**
      * Create a new annotation selection  Records user selections that combine multiple AUTO annotations to form a meaningful entity. If the same selection is made by five or more users, it is automatically marked as APPROVED.
      * @summary Create Annotation Selection
@@ -214,55 +161,6 @@ export const AnnotationsApiAxiosParamCreator = function (configuration?: Configu
       };
       localVarRequestOptions.data = serializeDataIfNeeded(
         userAnnotationSelectionBatchCreate,
-        localVarRequestOptions,
-        configuration
-      );
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     * Create a new annotation
-     * @summary Create User Annotation
-     * @param {AnnotationUserCreate} annotationUserCreate
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createUserAnnotationApiV1AnnotationsPost: async (
-      annotationUserCreate: AnnotationUserCreate,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'annotationUserCreate' is not null or undefined
-      assertParamExists(
-        "createUserAnnotationApiV1AnnotationsPost",
-        "annotationUserCreate",
-        annotationUserCreate
-      );
-      const localVarPath = `/api/v1/annotations/`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        annotationUserCreate,
         localVarRequestOptions,
         configuration
       );
@@ -651,80 +549,6 @@ export const AnnotationsApiAxiosParamCreator = function (configuration?: Configu
       };
     },
     /**
-     * Get annotation selection summary  Provides summary information such as total number of selections, distribution by status, and number of selections pending approval.
-     * @summary Get Selection Summary
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet: async (
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/api/v1/annotations/selections/summary`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     * Get annotation selections ready for approval  Returns items that have the same selection made by at least the specified minimum number of users.
-     * @summary Get Selections Ready For Approval
-     * @param {number} [minSelectionCount] 승인을 위한 최소 선택 수
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet: async (
-      minSelectionCount?: number,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/api/v1/annotations/selections/ready-for-approval`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      if (minSelectionCount !== undefined) {
-        localVarQueryParameter["min_selection_count"] = minSelectionCount;
-      }
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
      * Update a annotation selection  Mainly used for category update or status change by administrator
      * @summary Update Annotation Selection
      * @param {number} selectionId
@@ -795,35 +619,6 @@ export const AnnotationsApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = AnnotationsApiAxiosParamCreator(configuration);
   return {
     /**
-     * Bulk-approves annotation selections.  Used by administrators to process selections that are eligible for approval in bulk.
-     * @summary Approve Selections Batch
-     * @param {Array<object>} requestBody
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-      requestBody: Array<object>,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-          requestBody,
-          options
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "AnnotationsApi.approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
      * Create a new annotation selection  Records user selections that combine multiple AUTO annotations to form a meaningful entity. If the same selection is made by five or more users, it is automatically marked as APPROVED.
      * @summary Create Annotation Selection
      * @param {UserAnnotationSelectionCreate} userAnnotationSelectionCreate
@@ -880,35 +675,6 @@ export const AnnotationsApiFp = function (configuration?: Configuration) {
         operationServerMap[
           "AnnotationsApi.createAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPost"
         ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     * Create a new annotation
-     * @summary Create User Annotation
-     * @param {AnnotationUserCreate} annotationUserCreate
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async createUserAnnotationApiV1AnnotationsPost(
-      annotationUserCreate: AnnotationUserCreate,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AnnotationRead>> {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.createUserAnnotationApiV1AnnotationsPost(
-          annotationUserCreate,
-          options
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap["AnnotationsApi.createUserAnnotationApiV1AnnotationsPost"]?.[
-          localVarOperationServerIndex
-        ]?.url;
       return (axios, basePath) =>
         createRequestFunction(
           localVarAxiosArgs,
@@ -1172,65 +938,6 @@ export const AnnotationsApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath);
     },
     /**
-     * Get annotation selection summary  Provides summary information such as total number of selections, distribution by status, and number of selections pending approval.
-     * @summary Get Selection Summary
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet(
-      options?: RawAxiosRequestConfig
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<AnnotationSelectionSummary>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet(
-          options
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "AnnotationsApi.getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     * Get annotation selections ready for approval  Returns items that have the same selection made by at least the specified minimum number of users.
-     * @summary Get Selections Ready For Approval
-     * @param {number} [minSelectionCount] 승인을 위한 최소 선택 수
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-      minSelectionCount?: number,
-      options?: RawAxiosRequestConfig
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AnnotationSelectionStats>>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-          minSelectionCount,
-          options
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "AnnotationsApi.getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
      * Update a annotation selection  Mainly used for category update or status change by administrator
      * @summary Update Annotation Selection
      * @param {number} selectionId
@@ -1279,24 +986,6 @@ export const AnnotationsApiFactory = function (
   const localVarFp = AnnotationsApiFp(configuration);
   return {
     /**
-     * Bulk-approves annotation selections.  Used by administrators to process selections that are eligible for approval in bulk.
-     * @summary Approve Selections Batch
-     * @param {AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-      requestParameters: AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<any> {
-      return localVarFp
-        .approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-          requestParameters.requestBody,
-          options
-        )
-        .then(request => request(axios, basePath));
-    },
-    /**
      * Create a new annotation selection  Records user selections that combine multiple AUTO annotations to form a meaningful entity. If the same selection is made by five or more users, it is automatically marked as APPROVED.
      * @summary Create Annotation Selection
      * @param {AnnotationsApiCreateAnnotationSelectionApiV1AnnotationsSelectionsPostRequest} requestParameters Request parameters.
@@ -1330,21 +1019,6 @@ export const AnnotationsApiFactory = function (
           requestParameters.userAnnotationSelectionBatchCreate,
           options
         )
-        .then(request => request(axios, basePath));
-    },
-    /**
-     * Create a new annotation
-     * @summary Create User Annotation
-     * @param {AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createUserAnnotationApiV1AnnotationsPost(
-      requestParameters: AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<AnnotationRead> {
-      return localVarFp
-        .createUserAnnotationApiV1AnnotationsPost(requestParameters.annotationUserCreate, options)
         .then(request => request(axios, basePath));
     },
     /**
@@ -1490,37 +1164,6 @@ export const AnnotationsApiFactory = function (
         .then(request => request(axios, basePath));
     },
     /**
-     * Get annotation selection summary  Provides summary information such as total number of selections, distribution by status, and number of selections pending approval.
-     * @summary Get Selection Summary
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet(
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<AnnotationSelectionSummary> {
-      return localVarFp
-        .getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet(options)
-        .then(request => request(axios, basePath));
-    },
-    /**
-     * Get annotation selections ready for approval  Returns items that have the same selection made by at least the specified minimum number of users.
-     * @summary Get Selections Ready For Approval
-     * @param {AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-      requestParameters: AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest = {},
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<Array<AnnotationSelectionStats>> {
-      return localVarFp
-        .getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-          requestParameters.minSelectionCount,
-          options
-        )
-        .then(request => request(axios, basePath));
-    },
-    /**
      * Update a annotation selection  Mainly used for category update or status change by administrator
      * @summary Update Annotation Selection
      * @param {AnnotationsApiUpdateAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdPutRequest} requestParameters Request parameters.
@@ -1549,19 +1192,6 @@ export const AnnotationsApiFactory = function (
  */
 export interface AnnotationsApiInterface {
   /**
-   * Bulk-approves annotation selections.  Used by administrators to process selections that are eligible for approval in bulk.
-   * @summary Approve Selections Batch
-   * @param {AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApiInterface
-   */
-  approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-    requestParameters: AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest,
-    options?: RawAxiosRequestConfig
-  ): AxiosPromise<any>;
-
-  /**
    * Create a new annotation selection  Records user selections that combine multiple AUTO annotations to form a meaningful entity. If the same selection is made by five or more users, it is automatically marked as APPROVED.
    * @summary Create Annotation Selection
    * @param {AnnotationsApiCreateAnnotationSelectionApiV1AnnotationsSelectionsPostRequest} requestParameters Request parameters.
@@ -1586,19 +1216,6 @@ export interface AnnotationsApiInterface {
     requestParameters: AnnotationsApiCreateAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPostRequest,
     options?: RawAxiosRequestConfig
   ): AxiosPromise<UserAnnotationSelectionBatchResponse>;
-
-  /**
-   * Create a new annotation
-   * @summary Create User Annotation
-   * @param {AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApiInterface
-   */
-  createUserAnnotationApiV1AnnotationsPost(
-    requestParameters: AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest,
-    options?: RawAxiosRequestConfig
-  ): AxiosPromise<AnnotationRead>;
 
   /**
    * Delete a annotation selection (only available for that annotator)
@@ -1705,30 +1322,6 @@ export interface AnnotationsApiInterface {
   ): AxiosPromise<Array<UserAnnotationSelectionRead>>;
 
   /**
-   * Get annotation selection summary  Provides summary information such as total number of selections, distribution by status, and number of selections pending approval.
-   * @summary Get Selection Summary
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApiInterface
-   */
-  getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet(
-    options?: RawAxiosRequestConfig
-  ): AxiosPromise<AnnotationSelectionSummary>;
-
-  /**
-   * Get annotation selections ready for approval  Returns items that have the same selection made by at least the specified minimum number of users.
-   * @summary Get Selections Ready For Approval
-   * @param {AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApiInterface
-   */
-  getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-    requestParameters?: AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest,
-    options?: RawAxiosRequestConfig
-  ): AxiosPromise<Array<AnnotationSelectionStats>>;
-
-  /**
    * Update a annotation selection  Mainly used for category update or status change by administrator
    * @summary Update Annotation Selection
    * @param {AnnotationsApiUpdateAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdPutRequest} requestParameters Request parameters.
@@ -1740,20 +1333,6 @@ export interface AnnotationsApiInterface {
     requestParameters: AnnotationsApiUpdateAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdPutRequest,
     options?: RawAxiosRequestConfig
   ): AxiosPromise<UserAnnotationSelectionRead>;
-}
-
-/**
- * Request parameters for approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost operation in AnnotationsApi.
- * @export
- * @interface AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest
- */
-export interface AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest {
-  /**
-   *
-   * @type {Array<object>}
-   * @memberof AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost
-   */
-  readonly requestBody: Array<object>;
 }
 
 /**
@@ -1782,20 +1361,6 @@ export interface AnnotationsApiCreateAnnotationSelectionsBatchApiV1AnnotationsSe
    * @memberof AnnotationsApiCreateAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPost
    */
   readonly userAnnotationSelectionBatchCreate: UserAnnotationSelectionBatchCreate;
-}
-
-/**
- * Request parameters for createUserAnnotationApiV1AnnotationsPost operation in AnnotationsApi.
- * @export
- * @interface AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest
- */
-export interface AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest {
-  /**
-   *
-   * @type {AnnotationUserCreate}
-   * @memberof AnnotationsApiCreateUserAnnotationApiV1AnnotationsPost
-   */
-  readonly annotationUserCreate: AnnotationUserCreate;
 }
 
 /**
@@ -1939,20 +1504,6 @@ export interface AnnotationsApiGetMyAnnotationSelectionsApiV1AnnotationsSelectio
 }
 
 /**
- * Request parameters for getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet operation in AnnotationsApi.
- * @export
- * @interface AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest
- */
-export interface AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest {
-  /**
-   * 승인을 위한 최소 선택 수
-   * @type {number}
-   * @memberof AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet
-   */
-  readonly minSelectionCount?: number;
-}
-
-/**
  * Request parameters for updateAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdPut operation in AnnotationsApi.
  * @export
  * @interface AnnotationsApiUpdateAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdPutRequest
@@ -1980,26 +1531,6 @@ export interface AnnotationsApiUpdateAnnotationSelectionApiV1AnnotationsSelectio
  * @extends {BaseAPI}
  */
 export class AnnotationsApi extends BaseAPI implements AnnotationsApiInterface {
-  /**
-   * Bulk-approves annotation selections.  Used by administrators to process selections that are eligible for approval in bulk.
-   * @summary Approve Selections Batch
-   * @param {AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApi
-   */
-  public approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-    requestParameters: AnnotationsApiApproveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPostRequest,
-    options?: RawAxiosRequestConfig
-  ) {
-    return AnnotationsApiFp(this.configuration)
-      .approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-        requestParameters.requestBody,
-        options
-      )
-      .then(request => request(this.axios, this.basePath));
-  }
-
   /**
    * Create a new annotation selection  Records user selections that combine multiple AUTO annotations to form a meaningful entity. If the same selection is made by five or more users, it is automatically marked as APPROVED.
    * @summary Create Annotation Selection
@@ -2037,23 +1568,6 @@ export class AnnotationsApi extends BaseAPI implements AnnotationsApiInterface {
         requestParameters.userAnnotationSelectionBatchCreate,
         options
       )
-      .then(request => request(this.axios, this.basePath));
-  }
-
-  /**
-   * Create a new annotation
-   * @summary Create User Annotation
-   * @param {AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApi
-   */
-  public createUserAnnotationApiV1AnnotationsPost(
-    requestParameters: AnnotationsApiCreateUserAnnotationApiV1AnnotationsPostRequest,
-    options?: RawAxiosRequestConfig
-  ) {
-    return AnnotationsApiFp(this.configuration)
-      .createUserAnnotationApiV1AnnotationsPost(requestParameters.annotationUserCreate, options)
       .then(request => request(this.axios, this.basePath));
   }
 
@@ -2210,39 +1724,6 @@ export class AnnotationsApi extends BaseAPI implements AnnotationsApiInterface {
         requestParameters.selectionStatus,
         requestParameters.limit,
         requestParameters.offset,
-        options
-      )
-      .then(request => request(this.axios, this.basePath));
-  }
-
-  /**
-   * Get annotation selection summary  Provides summary information such as total number of selections, distribution by status, and number of selections pending approval.
-   * @summary Get Selection Summary
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApi
-   */
-  public getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet(options?: RawAxiosRequestConfig) {
-    return AnnotationsApiFp(this.configuration)
-      .getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet(options)
-      .then(request => request(this.axios, this.basePath));
-  }
-
-  /**
-   * Get annotation selections ready for approval  Returns items that have the same selection made by at least the specified minimum number of users.
-   * @summary Get Selections Ready For Approval
-   * @param {AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AnnotationsApi
-   */
-  public getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-    requestParameters: AnnotationsApiGetSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGetRequest = {},
-    options?: RawAxiosRequestConfig
-  ) {
-    return AnnotationsApiFp(this.configuration)
-      .getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-        requestParameters.minSelectionCount,
         options
       )
       .then(request => request(this.axios, this.basePath));

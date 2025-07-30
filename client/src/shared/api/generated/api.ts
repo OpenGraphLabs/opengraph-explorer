@@ -13,6 +13,7 @@
  */
 
 export * from "./apis/annotations-api";
+export * from "./apis/authentication-api";
 export * from "./apis/categories-api";
 export * from "./apis/datasets-api";
 export * from "./apis/default-api";

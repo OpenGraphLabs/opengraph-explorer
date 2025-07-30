@@ -48,10 +48,19 @@ export class ApiClient {
       },
     });
 
-    // Request interceptor to add user ID header
+    // Request interceptor to add auth token and user ID header
     this.axiosInstance.interceptors.request.use(config => {
-      const userId = localStorage.getItem("opengraph-user-id") || "1"; // Default to user ID 1 for testing
-      config.headers["X-Opengraph-User-Id"] = userId;
+      // Add JWT token from session storage
+      const jwt = sessionStorage.getItem("zklogin-jwt");
+
+      if (jwt) {
+        config.headers.Authorization = `Bearer ${jwt}`;
+      } else {
+        // Add user ID header (fallback for testing)
+        const userId = localStorage.getItem("opengraph-user-id") || "1";
+        config.headers["X-Opengraph-User-Id"] = userId;
+      }
+      
       return config;
     });
 
@@ -61,9 +70,11 @@ export class ApiClient {
       error => {
         console.error("API Error:", error);
         if (error.response?.status === 401) {
-          // Handle unauthorized access
+          // Handle unauthorized access - clear session data
+          sessionStorage.removeItem("zklogin-jwt");
           localStorage.removeItem("opengraph-user-id");
-          // You can add redirect to login here
+          // Reload to show login screen
+          window.location.reload();
         }
         return Promise.reject(error);
       }

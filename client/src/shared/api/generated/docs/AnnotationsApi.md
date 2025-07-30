@@ -4,10 +4,8 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost**](#approveselectionsbatchapiv1annotationsselectionsapprovebatchpost) | **POST** /api/v1/annotations/selections/approve-batch | Approve Selections Batch|
 |[**createAnnotationSelectionApiV1AnnotationsSelectionsPost**](#createannotationselectionapiv1annotationsselectionspost) | **POST** /api/v1/annotations/selections | Create Annotation Selection|
 |[**createAnnotationSelectionsBatchApiV1AnnotationsSelectionsBatchPost**](#createannotationselectionsbatchapiv1annotationsselectionsbatchpost) | **POST** /api/v1/annotations/selections/batch | Create Annotation Selections Batch|
-|[**createUserAnnotationApiV1AnnotationsPost**](#createuserannotationapiv1annotationspost) | **POST** /api/v1/annotations/ | Create User Annotation|
 |[**deleteAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdDelete**](#deleteannotationselectionapiv1annotationsselectionsselectioniddelete) | **DELETE** /api/v1/annotations/selections/{selection_id} | Delete Annotation Selection|
 |[**getAnnotationApiV1AnnotationsAnnotationIdGet**](#getannotationapiv1annotationsannotationidget) | **GET** /api/v1/annotations/{annotation_id} | Get Annotation|
 |[**getAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdGet**](#getannotationselectionapiv1annotationsselectionsselectionidget) | **GET** /api/v1/annotations/selections/{selection_id} | Get Annotation Selection|
@@ -16,61 +14,7 @@ All URIs are relative to *http://localhost*
 |[**getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet**](#getapprovedannotationsbyimageapiv1annotationsimageimageidapprovedget) | **GET** /api/v1/annotations/image/{image_id}/approved | Get Approved Annotations By Image|
 |[**getImageSelectionStatsApiV1AnnotationsSelectionsImageImageIdStatsGet**](#getimageselectionstatsapiv1annotationsselectionsimageimageidstatsget) | **GET** /api/v1/annotations/selections/image/{image_id}/stats | Get Image Selection Stats|
 |[**getMyAnnotationSelectionsApiV1AnnotationsSelectionsMeGet**](#getmyannotationselectionsapiv1annotationsselectionsmeget) | **GET** /api/v1/annotations/selections/me | Get My Annotation Selections|
-|[**getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet**](#getselectionsummaryapiv1annotationsselectionssummaryget) | **GET** /api/v1/annotations/selections/summary | Get Selection Summary|
-|[**getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet**](#getselectionsreadyforapprovalapiv1annotationsselectionsreadyforapprovalget) | **GET** /api/v1/annotations/selections/ready-for-approval | Get Selections Ready For Approval|
 |[**updateAnnotationSelectionApiV1AnnotationsSelectionsSelectionIdPut**](#updateannotationselectionapiv1annotationsselectionsselectionidput) | **PUT** /api/v1/annotations/selections/{selection_id} | Update Annotation Selection|
-
-# **approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost**
-> any approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(requestBody)
-
-Bulk-approves annotation selections.  Used by administrators to process selections that are eligible for approval in bulk.
-
-### Example
-
-```typescript
-import {
-    AnnotationsApi,
-    Configuration
-} from 'opengraph-api-client';
-
-const configuration = new Configuration();
-const apiInstance = new AnnotationsApi(configuration);
-
-let requestBody: Array<object>; //
-
-const { status, data } = await apiInstance.approveSelectionsBatchApiV1AnnotationsSelectionsApproveBatchPost(
-    requestBody
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **requestBody** | **Array<object>**|  | |
-
-
-### Return type
-
-**any**
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Successful Response |  -  |
-|**422** | Validation Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **createAnnotationSelectionApiV1AnnotationsSelectionsPost**
 > UserAnnotationSelectionRead createAnnotationSelectionApiV1AnnotationsSelectionsPost(userAnnotationSelectionCreate)
@@ -163,59 +107,6 @@ const { status, data } = await apiInstance.createAnnotationSelectionsBatchApiV1A
 ### Authorization
 
 [HTTPBearer](../README.md#HTTPBearer)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**201** | Successful Response |  -  |
-|**422** | Validation Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **createUserAnnotationApiV1AnnotationsPost**
-> AnnotationRead createUserAnnotationApiV1AnnotationsPost(annotationUserCreate)
-
-Create a new annotation
-
-### Example
-
-```typescript
-import {
-    AnnotationsApi,
-    Configuration,
-    AnnotationUserCreate
-} from 'opengraph-api-client';
-
-const configuration = new Configuration();
-const apiInstance = new AnnotationsApi(configuration);
-
-let annotationUserCreate: AnnotationUserCreate; //
-
-const { status, data } = await apiInstance.createUserAnnotationApiV1AnnotationsPost(
-    annotationUserCreate
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **annotationUserCreate** | **AnnotationUserCreate**|  | |
-
-
-### Return type
-
-**AnnotationRead**
-
-### Authorization
-
-No authorization required
 
 ### HTTP request headers
 
@@ -644,102 +535,6 @@ const { status, data } = await apiInstance.getMyAnnotationSelectionsApiV1Annotat
 ### Authorization
 
 [HTTPBearer](../README.md#HTTPBearer)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Successful Response |  -  |
-|**422** | Validation Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet**
-> AnnotationSelectionSummary getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet()
-
-Get annotation selection summary  Provides summary information such as total number of selections, distribution by status, and number of selections pending approval.
-
-### Example
-
-```typescript
-import {
-    AnnotationsApi,
-    Configuration
-} from 'opengraph-api-client';
-
-const configuration = new Configuration();
-const apiInstance = new AnnotationsApi(configuration);
-
-const { status, data } = await apiInstance.getSelectionSummaryApiV1AnnotationsSelectionsSummaryGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**AnnotationSelectionSummary**
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Successful Response |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet**
-> Array<AnnotationSelectionStats> getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet()
-
-Get annotation selections ready for approval  Returns items that have the same selection made by at least the specified minimum number of users.
-
-### Example
-
-```typescript
-import {
-    AnnotationsApi,
-    Configuration
-} from 'opengraph-api-client';
-
-const configuration = new Configuration();
-const apiInstance = new AnnotationsApi(configuration);
-
-let minSelectionCount: number; //승인을 위한 최소 선택 수 (optional) (default to 5)
-
-const { status, data } = await apiInstance.getSelectionsReadyForApprovalApiV1AnnotationsSelectionsReadyForApprovalGet(
-    minSelectionCount
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **minSelectionCount** | [**number**] | 승인을 위한 최소 선택 수 | (optional) defaults to 5|
-
-
-### Return type
-
-**Array<AnnotationSelectionStats>**
-
-### Authorization
-
-No authorization required
 
 ### HTTP request headers
 

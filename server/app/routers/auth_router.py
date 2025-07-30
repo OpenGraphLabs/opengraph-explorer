@@ -91,7 +91,6 @@ async def zklogin_init(
     2. Google OAuth URL 생성 및 반환
     """
     nonce = request.nonce
-    print("nonce:", nonce)
     
     # Store ephemeral key and nonce in state parameter
     state_data = {
@@ -145,7 +144,6 @@ async def google_callback(
         # Decode state to get ephemeral key and nonce
         state_data = jwt.decode(state, settings.jwt_secret_key, algorithms=["HS256"])
         nonce = state_data.get("nonce")
-        print("decoded nonce:", nonce)
 
         if not nonce:
             raise HTTPException(
