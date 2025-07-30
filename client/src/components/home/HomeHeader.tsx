@@ -31,68 +31,61 @@ export function HomeHeader() {
           transition: "max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         }}
       >
-        <Flex direction="column" align="center" gap="4">
-          {/* Compact Title */}
-          <Flex align="center" gap="2">
-            <CubeIcon
-              width="24"
-              height="24"
+        <Flex direction="column" align="center" gap="5">
+          {/* Top Row: Title and Controls */}
+          <Flex align="center" justify="between" style={{ width: "100%", position: "relative" }}>
+            {/* Left: Spacer */}
+            <Box style={{ flex: 1 }} />
+            
+            {/* Center: Title */}
+            <Flex direction="column" align="center" gap="2">
+              <Flex align="center" gap="2">
+                <CubeIcon
+                  width="24"
+                  height="24"
+                  style={{
+                    color: theme.colors.interactive.primary,
+                  }}
+                />
+                <Heading
+                  style={{
+                    fontSize: "24px",
+                    fontWeight: "600",
+                    color: theme.colors.text.primary,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  OpenGraph
+                </Heading>
+              </Flex>
+
+              <Text
+                style={{
+                  fontSize: "16px",
+                  color: theme.colors.text.secondary,
+                  fontWeight: "400",
+                }}
+              >
+                Robotics AI Data Engine
+              </Text>
+            </Flex>
+
+            {/* Right: Stats and Controls */}
+            <Flex
+              align="center"
+              gap="4"
               style={{
-                color: theme.colors.interactive.primary,
-              }}
-            />
-            <Heading
-              style={{
-                fontSize: "24px",
-                fontWeight: "600",
-                color: theme.colors.text.primary,
-                letterSpacing: "-0.01em",
+                flex: 1,
+                justifyContent: "flex-end",
+                opacity: isLoading ? 0.5 : 1,
+                transition: "opacity 200ms ease-out",
               }}
             >
-              OpenGraph
-            </Heading>
-            <Text
-              style={{
-                fontSize: "16px",
-                color: theme.colors.text.secondary,
-                fontWeight: "400",
-              }}
-            >
-              Robotics AI Dataset
-            </Text>
-          </Flex>
-
-          {/* Search Section */}
-          <Box
-            style={{
-              width: "100%",
-              maxWidth: "600px",
-              transition: theme.animations.transitions.all,
-              transform: selectedCategory ? "scale(0.99)" : "scale(1)",
-            }}
-          >
-            <CategorySearchInput
-              placeholder="Search categories, objects, or scenes in our robotics dataset..."
-              selectedCategory={selectedCategory}
-              onCategorySelect={setSelectedCategory}
-              useGlobalCategories={true}
-            />
-          </Box>
-
-          {/* Stats and Controls */}
-          <Flex
-            align="center"
-            gap="4"
-            style={{
-              opacity: isLoading ? 0.5 : 1,
-              transition: "opacity 200ms ease-out",
-            }}
-          >
             {/* Dataset Stats */}
             <Flex align="center" gap="3">
               <Badge
                 size="2"
-                variant="secondary"
+                variant="solid"
                 style={{
                   fontSize: "14px",
                   padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
@@ -163,7 +156,25 @@ export function HomeHeader() {
               )}
               {showGlobalMasks ? "Masks On" : "Masks Off"}
             </Button>
+            </Flex>
           </Flex>
+
+          {/* Bottom Row: Search Bar */}
+          <Box
+            style={{
+              width: "100%",
+              maxWidth: "600px",
+              transition: theme.animations.transitions.all,
+              transform: selectedCategory ? "scale(0.99)" : "scale(1)",
+            }}
+          >
+            <CategorySearchInput
+              placeholder="Search categories, objects, or scenes in our robotics dataset..."
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+              useGlobalCategories={true}
+            />
+          </Box>
         </Flex>
       </Box>
     </Box>
