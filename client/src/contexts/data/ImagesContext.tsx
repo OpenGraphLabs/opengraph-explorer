@@ -64,8 +64,8 @@ export function ImagesProvider({
 
   // Determine fetching strategy
   const useAnnotationBasedImages = config.useAnnotationImages && annotationsFromContext.length > 0;
-  const useGeneralImages = !config.datasetId && !config.fetchAnnotationCounts && !useAnnotationBasedImages;
-  const shouldUseDatasetImages = config.datasetId && !useAnnotationBasedImages;
+  const useGeneralImages = !config.datasetId && !config.fetchAnnotationCounts && !useAnnotationBasedImages && !config.useAnnotationImages;
+  const shouldUseDatasetImages = !!config.datasetId && config.datasetId > 0 && !config.useAnnotationImages;
   
   // Get unique image IDs from annotations
   const requiredImageIds = useMemo(() => {
@@ -132,19 +132,22 @@ export function ImagesProvider({
     }
   );
 
+  // Skip the dataset images query entirely if we're using annotation-based images
+  const skipDatasetQuery = config.useAnnotationImages === true;
+  
   const {
     data: datasetImagesResponse,
     isLoading: datasetLoading,
     error: datasetError,
     isPlaceholderData: datasetIsPlaceholderData,
   } = useDatasetImages(
-    config.datasetId || 0,
+    config.datasetId || 999999, // Use a very high number that won't exist
     { page: config.page || 1, limit: config.limit || 100 },
     {
-      enabled: shouldUseDatasetImages && !!config.datasetId,
+      enabled: !skipDatasetQuery && shouldUseDatasetImages,
       refetchOnWindowFocus: false,
       staleTime: 10 * 60 * 1000, // 10 minutes - images don't change frequently
-      retry: 3,
+      retry: false, // Disable retries for invalid dataset IDs
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       placeholderData: (previousData) => previousData, // Show previous data immediately
     } as any

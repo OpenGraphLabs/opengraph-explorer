@@ -386,14 +386,19 @@ export function useDatasetImages(
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
+  
+  // Explicitly check if we should skip this query
+  const shouldSkip = !datasetId || datasetId <= 0 || options?.enabled === false;
+  
   return useQuery({
     queryKey: [...queryKeys.datasets.detail(datasetId), "images", filters],
-    queryFn: () =>
-      datasets.getDatasetImages(datasetId, {
-        page: filters.page || 1,
-        limit: filters.limit || 100,
-      }),
-    enabled: !!datasetId,
+    queryFn: shouldSkip 
+      ? () => Promise.resolve({ items: [], total: 0 }) // Return empty result without API call
+      : () => datasets.getDatasetImages(datasetId, {
+          page: filters.page || 1,
+          limit: filters.limit || 100,
+        }),
+    enabled: !shouldSkip,
     ...options,
   });
 }
