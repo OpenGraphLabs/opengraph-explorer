@@ -21,6 +21,9 @@ interface TrajectoryTask {
   endMaskCategories: number[];
   difficulty: "Easy" | "Medium" | "Hard";
   reward: string;
+  // Direct annotation ID mappings (optional - use these instead of categories)
+  startAnnotationId?: number;
+  endAnnotationId?: number;
 }
 
 interface TrajectoryWorkspaceContextType {
@@ -102,44 +105,93 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
     const imageId = selectedImage.id;
     
     // Create tasks specific to this image based on available annotations
-    const imageTasks: TrajectoryTask[] = [
-      {
-        id: `image-${imageId}-task-1`,
-        description: `Draw trajectory from first object to second object (Image ${imageId})`,
-        startMaskCategories: [], // Will be filled dynamically
-        endMaskCategories: [], // Will be filled dynamically
-        difficulty: "Easy",
-        reward: "5 $OPEN"
-      },
-      {
-        id: `image-${imageId}-task-2`, 
-        description: `Plan robot path for object manipulation task (Image ${imageId})`,
-        startMaskCategories: [], // Will be filled dynamically
-        endMaskCategories: [], // Will be filled dynamically
-        difficulty: "Medium",
-        reward: "8 $OPEN"
-      }
-    ];
+    let imageTasks: TrajectoryTask[] = [];
+
+    // HARDCODED: Different annotation IDs per image
+    if (imageId === 1017) {
+      imageTasks = [
+        {
+          id: `image-${imageId}-task-1`,
+          description: `Move the sauce onto the shelf`,
+          startMaskCategories: [],
+          endMaskCategories: [],
+          difficulty: "Easy",
+          reward: "5 $OPEN",
+          startAnnotationId: 152337,
+          endAnnotationId: 152365
+        },
+        {
+          id: `image-${imageId}-task-2`, 
+          description: `Navigate around obstacle to reach target`,
+          startMaskCategories: [],
+          endMaskCategories: [],
+          difficulty: "Medium",
+          reward: "8 $OPEN",
+          startAnnotationId: 20,
+          endAnnotationId: 25
+        }
+      ];
+    } else if (imageId === 1016) {
+      imageTasks = [
+        {
+          id: `image-${imageId}-task-1`,
+          description: `Grab item from table`,
+          startMaskCategories: [],
+          endMaskCategories: [],
+          difficulty: "Easy",
+          reward: "5 $OPEN",
+          startAnnotationId: 30,
+          endAnnotationId: 35
+        },
+        {
+          id: `image-${imageId}-task-2`, 
+          description: `Place item in container`,
+          startMaskCategories: [],
+          endMaskCategories: [],
+          difficulty: "Medium",
+          reward: "8 $OPEN",
+          startAnnotationId: 40,
+          endAnnotationId: 45
+        }
+      ];
+    } else {
+      // Default tasks for other images
+      imageTasks = [
+        {
+          id: `image-${imageId}-task-1`,
+          description: `Draw trajectory from first object to second object (Image ${imageId})`,
+          startMaskCategories: [],
+          endMaskCategories: [],
+          difficulty: "Easy",
+          reward: "5 $OPEN",
+          startAnnotationId: 1,
+          endAnnotationId: 2
+        },
+        {
+          id: `image-${imageId}-task-2`, 
+          description: `Plan robot path for object manipulation task (Image ${imageId})`,
+          startMaskCategories: [],
+          endMaskCategories: [],
+          difficulty: "Medium",
+          reward: "8 $OPEN",
+          startAnnotationId: 3,
+          endAnnotationId: 4
+        }
+      ];
+    }
 
     // Create mask mappings for each task
     const maskMappings: { [taskId: string]: { startMask: number; endMask: number } } = {};
     
-    if (approvedAnnotations.length >= 2) {
-      // Assign first two annotations to first task
-      maskMappings[imageTasks[0].id] = {
-        startMask: approvedAnnotations[0].id,
-        endMask: approvedAnnotations[1].id
-      };
-      
-      // Assign second and third annotations to second task (with fallback)
-      const secondTaskStart = approvedAnnotations.length > 2 ? approvedAnnotations[1].id : approvedAnnotations[0].id;
-      const secondTaskEnd = approvedAnnotations.length > 2 ? approvedAnnotations[2].id : approvedAnnotations[1].id;
-      
-      maskMappings[imageTasks[1].id] = {
-        startMask: secondTaskStart,
-        endMask: secondTaskEnd
-      };
-    }
+    // Use hardcoded annotation IDs from tasks
+    imageTasks.forEach(task => {
+      if (task.startAnnotationId && task.endAnnotationId) {
+        maskMappings[task.id] = {
+          startMask: task.startAnnotationId,
+          endMask: task.endAnnotationId
+        };
+      }
+    });
     
     return { tasks: imageTasks, maskMappings };
   }, [selectedImage, approvedAnnotations]);
