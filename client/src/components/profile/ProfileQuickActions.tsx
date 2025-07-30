@@ -14,7 +14,7 @@ export function ProfileQuickActions() {
     },
     {
       icon: <Database size={16} style={{ color: theme.colors.status.info }} />,
-      text: "Browse Datasets", 
+      text: "Browse Datasets",
       href: "/datasets",
     },
     {

@@ -35,7 +35,7 @@ export function ProfileLoadingState() {
             border: `2px solid ${theme.colors.border.primary}`,
             borderTopColor: theme.colors.interactive.primary,
             borderRadius: "50%",
-            animation: 'spin 1s linear infinite',
+            animation: "spin 1s linear infinite",
           }}
         />
         <Text

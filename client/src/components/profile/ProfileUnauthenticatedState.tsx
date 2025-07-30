@@ -63,7 +63,7 @@ export function ProfileUnauthenticatedState() {
           Please sign in to view your profile information.
         </Text>
         <Button
-          onClick={() => window.location.href = '/'}
+          onClick={() => (window.location.href = "/")}
           style={{
             background: theme.colors.interactive.primary,
             color: theme.colors.text.inverse,

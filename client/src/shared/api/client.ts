@@ -1,4 +1,4 @@
-import { Configuration, ConfigurationParameters } from './generated';
+import { Configuration, ConfigurationParameters } from "./generated";
 import {
   DatasetsApi,
   UsersApi,
@@ -7,9 +7,9 @@ import {
   CategoriesApi,
   DictionariesApi,
   DictionaryCategoriesApi,
-  DefaultApi
-} from './generated';
-import axios, { AxiosInstance } from 'axios';
+  DefaultApi,
+} from "./generated";
+import axios, { AxiosInstance } from "axios";
 
 export interface ApiClientConfig {
   baseURL?: string;
@@ -33,9 +33,9 @@ export class ApiClient {
 
   constructor(config: ApiClientConfig = {}) {
     const {
-      baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+      baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
       timeout = 10000,
-      headers = {}
+      headers = {},
     } = config;
 
     // Create axios instance
@@ -43,27 +43,38 @@ export class ApiClient {
       baseURL,
       timeout,
       headers: {
-        'Content-Type': 'application/json',
-        ...headers
-      }
+        "Content-Type": "application/json",
+        ...headers,
+      },
     });
 
-    // Request interceptor to add user ID header
-    this.axiosInstance.interceptors.request.use((config) => {
-      const userId = localStorage.getItem('opengraph-user-id') || '1'; // Default to user ID 1 for testing
-      config.headers['X-Opengraph-User-Id'] = userId;
+    // Request interceptor to add auth token and user ID header
+    this.axiosInstance.interceptors.request.use(config => {
+      // Add JWT token from session storage
+      const jwt = sessionStorage.getItem("zklogin-jwt");
+
+      if (jwt) {
+        config.headers.Authorization = `Bearer ${jwt}`;
+      } else {
+        // Add user ID header (fallback for testing)
+        const userId = localStorage.getItem("opengraph-user-id") || "1";
+        config.headers["X-Opengraph-User-Id"] = userId;
+      }
+      
       return config;
     });
 
     // Response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        console.error('API Error:', error);
+      response => response,
+      error => {
+        console.error("API Error:", error);
         if (error.response?.status === 401) {
-          // Handle unauthorized access
-          localStorage.removeItem('opengraph-user-id');
-          // You can add redirect to login here
+          // Handle unauthorized access - clear session data
+          sessionStorage.removeItem("zklogin-jwt");
+          localStorage.removeItem("opengraph-user-id");
+          // Reload to show login screen
+          window.location.reload();
         }
         return Promise.reject(error);
       }
@@ -83,7 +94,11 @@ export class ApiClient {
     this.images = new ImagesApi(this.configuration, baseURL, this.axiosInstance);
     this.categories = new CategoriesApi(this.configuration, baseURL, this.axiosInstance);
     this.dictionaries = new DictionariesApi(this.configuration, baseURL, this.axiosInstance);
-    this.dictionaryCategories = new DictionaryCategoriesApi(this.configuration, baseURL, this.axiosInstance);
+    this.dictionaryCategories = new DictionaryCategoriesApi(
+      this.configuration,
+      baseURL,
+      this.axiosInstance
+    );
     this.default = new DefaultApi(this.configuration, baseURL, this.axiosInstance);
   }
 
@@ -99,21 +114,21 @@ export class ApiClient {
 
   // Utility methods
   setAuthHeader(token: string) {
-    this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    this.axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
 
   removeAuthHeader() {
-    delete this.axiosInstance.defaults.headers.common['Authorization'];
+    delete this.axiosInstance.defaults.headers.common["Authorization"];
   }
 
   setUserId(userId: string) {
-    localStorage.setItem('opengraph-user-id', userId);
+    localStorage.setItem("opengraph-user-id", userId);
   }
 
   getUserId(): string | null {
-    return localStorage.getItem('opengraph-user-id');
+    return localStorage.getItem("opengraph-user-id");
   }
 }
 
 // Default API client instance
-export const apiClient = new ApiClient(); 
+export const apiClient = new ApiClient();

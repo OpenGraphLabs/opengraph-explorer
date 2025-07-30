@@ -1,10 +1,5 @@
-import { ApiClient } from '../client';
-import type {
-  UserCreate,
-  UserUpdate,
-  UserRead,
-  UserProfile
-} from '../generated/models';
+import { ApiClient } from "../client";
+import type { UserCreate, UserUpdate, UserRead, UserProfile } from "../generated/models";
 
 export class UserService {
   constructor(private apiClient: ApiClient) {}
@@ -24,7 +19,7 @@ export class UserService {
   // Get user by ID
   async getUserById(userId: number) {
     const response = await this.apiClient.users.getUserApiV1UsersUserIdGet({
-      userId
+      userId,
     });
     return response.data as UserRead;
   }
@@ -32,7 +27,7 @@ export class UserService {
   // Create user
   async createUser(data: UserCreate) {
     const response = await this.apiClient.users.createUserApiV1UsersPost({
-      userCreate: data
+      userCreate: data,
     });
     return response.data as UserRead;
   }
@@ -41,7 +36,7 @@ export class UserService {
   async updateUser(userId: number, data: UserUpdate) {
     const response = await this.apiClient.users.updateUserApiV1UsersUserIdPut({
       userId,
-      userUpdate: data
+      userUpdate: data,
     });
     return response.data as UserRead;
   }
@@ -49,7 +44,7 @@ export class UserService {
   // Delete user
   async deleteUser(userId: number) {
     const response = await this.apiClient.users.deleteUserApiV1UsersUserIdDelete({
-      userId
+      userId,
     });
     return response.data;
   }
@@ -57,26 +52,24 @@ export class UserService {
   // Update user profile
   async updateProfile(data: UserUpdate) {
     const response = await this.apiClient.users.updateCurrentUserApiV1UsersMePut({
-      userUpdate: data
+      userUpdate: data,
     });
     return response.data as UserRead;
   }
 
   // Get user datasets
   async getUserDatasets(userId: number, params: { skip?: number; limit?: number } = {}) {
-    const response = await this.apiClient.getAxiosInstance().get(
-      `/api/v1/users/${userId}/datasets`,
-      { params }
-    );
+    const response = await this.apiClient
+      .getAxiosInstance()
+      .get(`/api/v1/users/${userId}/datasets`, { params });
     return response.data;
   }
 
   // Get user annotations
   async getUserAnnotations(userId: number, params: { skip?: number; limit?: number } = {}) {
-    const response = await this.apiClient.getAxiosInstance().get(
-      `/api/v1/users/${userId}/annotations`,
-      { params }
-    );
+    const response = await this.apiClient
+      .getAxiosInstance()
+      .get(`/api/v1/users/${userId}/annotations`, { params });
     return response.data;
   }
-} 
+}

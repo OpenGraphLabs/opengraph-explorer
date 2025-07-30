@@ -96,7 +96,7 @@ export function ProfileAccountOverview() {
                 fontWeight: 500,
               }}
             >
-              {userProfile?.created_at ? formatDate(userProfile.created_at) : 'Unknown'}
+              {userProfile?.created_at ? formatDate(userProfile.created_at) : "Unknown"}
             </Text>
           </Flex>
 

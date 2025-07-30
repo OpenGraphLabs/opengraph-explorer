@@ -41,10 +41,18 @@ class Settings(BaseSettings):
         )
     
     # Authentication
-    secret_key: str = "your-secret-key-change-this-in-production"
     jwt_secret_key: str = "your-jwt-secret-key-change-this-in-production"
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
+    
+    # Google OAuth
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:5173/auth/callback"
+    
+    # zkLogin
+    zklogin_prover_url: str = "https://prover-dev.mystenlabs.com/v1"
+    zklogin_salt_service: str = "https://salt.api.mystenlabs.com/get_salt"
     
     # CORS
     allowed_origins: List[str] = [

@@ -1,35 +1,39 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { useDatasets } from '@/contexts/data/DatasetsContext';
-import { useImagesContext } from '@/contexts/data/ImagesContext';
-import { DEFAULT_PAGE_SIZE } from '@/shared/utils/dataset';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { useDatasets } from "@/contexts/data/DatasetsContext";
+import { useImagesContext } from "@/contexts/data/ImagesContext";
+import { DEFAULT_PAGE_SIZE } from "@/shared/utils/dataset";
 
 interface DatasetDetailPageContextValue {
   // Pagination state
   confirmedPage: number;
   pendingPage: number;
   allPage: number;
-  activeTab: 'all' | 'confirmed' | 'pending';
+  activeTab: "all" | "confirmed" | "pending";
   paginationLoading: boolean;
-  
+
   // Modal state
   selectedImage: string | null;
   selectedImageData: any | null;
   selectedImageIndex: number;
   selectedPendingLabels: Set<string>;
   confirmationStatus: {
-    status: 'idle' | 'pending' | 'success' | 'failed';
+    status: "idle" | "pending" | "success" | "failed";
     message: string;
     confirmedLabels?: string[];
   };
-  
+
   // Actions
-  setActiveTab: (tab: 'all' | 'confirmed' | 'pending') => void;
+  setActiveTab: (tab: "all" | "confirmed" | "pending") => void;
   getPaginatedItems: (page: number) => any[];
-  loadPage: (direction: 'next' | 'prev') => Promise<void>;
-  handleImageClick: (item: any, index: number, getImageUrl: (item: any, index: number) => string) => void;
+  loadPage: (direction: "next" | "prev") => Promise<void>;
+  handleImageClick: (
+    item: any,
+    index: number,
+    getImageUrl: (item: any, index: number) => string
+  ) => void;
   handleCloseModal: () => void;
   setConfirmationStatus: (status: any) => void;
-  
+
   // Utility functions
   getImageUrl: (item: any) => string;
   isItemLoading: (item: any) => boolean;
@@ -38,31 +42,33 @@ interface DatasetDetailPageContextValue {
   handleConfirmSelectedAnnotations: () => Promise<void>;
 }
 
-const DatasetDetailPageContext = createContext<DatasetDetailPageContextValue | undefined>(undefined);
+const DatasetDetailPageContext = createContext<DatasetDetailPageContextValue | undefined>(
+  undefined
+);
 
 export function DatasetDetailPageProvider({ children }: { children: ReactNode }) {
   const { dataset } = useDatasets();
   const { datasetImages, totalCounts } = useImagesContext();
-  
+
   // Pagination state
   const [confirmedPage, setConfirmedPage] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
   const [allPage, setAllPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'all' | 'confirmed' | 'pending'>('all');
+  const [activeTab, setActiveTab] = useState<"all" | "confirmed" | "pending">("all");
   const [paginationLoading, setPaginationLoading] = useState(false);
-  
+
   // Modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageData, setSelectedImageData] = useState<any | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [selectedPendingLabels, setSelectedPendingLabels] = useState<Set<string>>(new Set());
   const [confirmationStatus, setConfirmationStatus] = useState<{
-    status: 'idle' | 'pending' | 'success' | 'failed';
+    status: "idle" | "pending" | "success" | "failed";
     message: string;
     confirmedLabels?: string[];
   }>({
-    status: 'idle',
-    message: '',
+    status: "idle",
+    message: "",
   });
 
   // Utility functions
@@ -237,7 +243,7 @@ export function DatasetDetailPageProvider({ children }: { children: ReactNode })
 export function useDatasetDetailPage() {
   const context = useContext(DatasetDetailPageContext);
   if (!context) {
-    throw new Error('useDatasetDetailPage must be used within DatasetDetailPageProvider');
+    throw new Error("useDatasetDetailPage must be used within DatasetDetailPageProvider");
   }
   return context;
 }

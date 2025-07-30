@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { useApprovedAnnotations, useAnnotationsByImage } from '@/shared/hooks/useApiQuery';
-import type { AnnotationListResponse, AnnotationRead } from '@/shared/api/generated/models';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { useApprovedAnnotations, useAnnotationsByImage } from "@/shared/hooks/useApiQuery";
+import type { AnnotationListResponse, AnnotationRead } from "@/shared/api/generated/models";
 
 interface AnnotationsConfig {
   limit?: number;
   page?: number;
   imageId?: number;
-  mode?: 'approved' | 'byImage';
+  mode?: "approved" | "byImage";
 }
 
 interface AnnotationsContextValue {
@@ -23,7 +23,7 @@ const AnnotationsContext = createContext<AnnotationsContextValue | undefined>(un
 
 export function AnnotationsProvider({
   children,
-  config = {}
+  config = {},
 }: {
   children: ReactNode;
   config?: AnnotationsConfig;
@@ -32,28 +32,21 @@ export function AnnotationsProvider({
   const limit = config.limit || 24;
 
   // Use approved annotations for Home page
-  const approvedQuery = useApprovedAnnotations(
-    { page: currentPage, limit },
-    {
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,
-      enabled: config.mode === 'approved' || !config.mode,
-    } as any
-  );
+  const approvedQuery = useApprovedAnnotations({ page: currentPage, limit }, {
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+    enabled: config.mode === "approved" || !config.mode,
+  } as any);
 
   // Use annotations by image for AnnotationWorkspace
-  const byImageQuery = useAnnotationsByImage(
-    config.imageId || 0,
-    {},
-    {
-      enabled: config.mode === 'byImage' && !!config.imageId,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,
-    } as any
-  );
+  const byImageQuery = useAnnotationsByImage(config.imageId || 0, {}, {
+    enabled: config.mode === "byImage" && !!config.imageId,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  } as any);
 
   // Select the appropriate query based on mode
-  const activeQuery = config.mode === 'byImage' ? byImageQuery : approvedQuery;
+  const activeQuery = config.mode === "byImage" ? byImageQuery : approvedQuery;
   const data = activeQuery.data as AnnotationListResponse | AnnotationRead[] | undefined;
 
   // Handle different response formats
@@ -94,7 +87,7 @@ export function AnnotationsProvider({
 export function useAnnotations() {
   const context = useContext(AnnotationsContext);
   if (!context) {
-    throw new Error('useAnnotations must be used within AnnotationsProvider');
+    throw new Error("useAnnotations must be used within AnnotationsProvider");
   }
   return context;
 }

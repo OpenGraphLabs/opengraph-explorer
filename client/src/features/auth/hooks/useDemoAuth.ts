@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { DEMO_ACCOUNTS } from '../constants/demo';
-import { DemoLoginState, LoginCredentials, LoginResponse } from '../types';
+import { useState, useEffect } from "react";
+import { DEMO_ACCOUNTS } from "../constants/demo";
+import { DemoLoginState, LoginCredentials, LoginResponse } from "../types";
 
-const STORAGE_KEY = 'opengraph-demo-auth';
+const STORAGE_KEY = "opengraph-demo-auth";
 
 export const useDemoAuth = (): DemoLoginState & {
   login: (credentials: LoginCredentials) => Promise<LoginResponse>;
@@ -42,7 +42,7 @@ export const useDemoAuth = (): DemoLoginState & {
     if (!account) {
       return {
         success: false,
-        error: 'Invalid credentials. Please check your username and password.',
+        error: "Invalid credentials. Please check your username and password.",
       };
     }
 
@@ -54,7 +54,7 @@ export const useDemoAuth = (): DemoLoginState & {
 
     // Save to localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ user }));
-    localStorage.setItem('opengraph-user-id', account.userId);
+    localStorage.setItem("opengraph-user-id", account.userId);
 
     setState({
       isAuthenticated: true,
@@ -70,7 +70,7 @@ export const useDemoAuth = (): DemoLoginState & {
 
   const logout = () => {
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem('opengraph-user-id');
+    localStorage.removeItem("opengraph-user-id");
     setState({
       isAuthenticated: false,
       user: null,

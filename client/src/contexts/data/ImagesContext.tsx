@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from 'react';
-import { useImages, useDatasetImages } from '@/shared/hooks/useApiQuery';
-import { useApiClient } from '@/shared/hooks/useApiClient';
-import type { ImageRead } from '@/shared/api/generated/models';
+import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from "react";
+import { useImages, useDatasetImages } from "@/shared/hooks/useApiQuery";
+import { useApiClient } from "@/shared/hooks/useApiClient";
+import type { ImageRead } from "@/shared/api/generated/models";
 
 interface ImagesConfig {
   limit?: number;
@@ -33,22 +33,24 @@ const ImagesContext = createContext<ImagesContextValue | undefined>(undefined);
 
 export function ImagesProvider({
   children,
-  config = {}
+  config = {},
 }: {
   children: ReactNode;
   config?: ImagesConfig;
 }) {
-  const [randomSeed, setRandomSeed] = useState(config.randomSeed || Math.floor(Math.random() * 1000));
+  const [randomSeed, setRandomSeed] = useState(
+    config.randomSeed || Math.floor(Math.random() * 1000)
+  );
   const [annotationCounts, setAnnotationCounts] = useState<Map<number, number>>(new Map());
   const { annotations } = useApiClient();
 
   // Use different queries based on whether we need dataset-specific images
   const useGeneralImages = !config.datasetId || !config.fetchAnnotationCounts;
-  
+
   const {
     data: generalImagesResponse,
     isLoading: generalLoading,
-    error: generalError
+    error: generalError,
   } = useImages(
     { page: config.page || 1, limit: config.limit || 100 },
     {
@@ -61,7 +63,7 @@ export function ImagesProvider({
   const {
     data: datasetImagesResponse,
     isLoading: datasetLoading,
-    error: datasetError
+    error: datasetError,
   } = useDatasetImages(
     config.datasetId || 0,
     { page: config.page || 1, limit: config.limit || 100 },
@@ -80,9 +82,9 @@ export function ImagesProvider({
   // Fetch annotation counts for dataset images
   const fetchAnnotationCounts = async (imagesToProcess: ImageRead[]) => {
     if (!config.fetchAnnotationCounts) return new Map();
-    
+
     const counts = new Map<number, number>();
-    
+
     try {
       const promises = imagesToProcess.map(async (image: ImageRead) => {
         try {
@@ -94,20 +96,20 @@ export function ImagesProvider({
           return { imageId: image.id, count: 0 };
         }
       });
-      
+
       const results = await Promise.all(promises);
       results.forEach(({ imageId, count }) => {
         counts.set(imageId, count);
       });
     } catch (error) {
-      console.error('Error fetching annotation counts:', error);
+      console.error("Error fetching annotation counts:", error);
       // Fallback to simulated data
       for (const image of imagesToProcess) {
         const count = Math.floor(Math.random() * 3) + 1;
         counts.set(image.id, count);
       }
     }
-    
+
     setAnnotationCounts(counts);
     return counts;
   };
@@ -157,7 +159,7 @@ export function ImagesProvider({
       metadata: {
         index: image.id,
         datasetId: image.dataset_id,
-      }
+      },
     }));
   }, [images, annotationCounts, config.fetchAnnotationCounts]);
 
@@ -197,7 +199,7 @@ export function ImagesProvider({
 export function useImagesContext() {
   const context = useContext(ImagesContext);
   if (!context) {
-    throw new Error('useImagesContext must be used within ImagesProvider');
+    throw new Error("useImagesContext must be used within ImagesProvider");
   }
   return context;
 }

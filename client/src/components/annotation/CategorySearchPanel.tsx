@@ -33,10 +33,13 @@ export function CategorySearchPanel({
   }, []);
 
   // Handle category selection
-  const handleCategorySelect = useCallback((category: CategoryRead) => {
-    onCategorySelect?.(category);
-    setHighlightedIndex(-1);
-  }, [onCategorySelect]);
+  const handleCategorySelect = useCallback(
+    (category: CategoryRead) => {
+      onCategorySelect?.(category);
+      setHighlightedIndex(-1);
+    },
+    [onCategorySelect]
+  );
 
   // Handle clear selection
   const handleClear = useCallback(() => {
@@ -46,62 +49,64 @@ export function CategorySearchPanel({
   }, [onCategorySelect]);
 
   // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (categories.length === 0) return;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (categories.length === 0) return;
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev < categories.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : categories.length - 1
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (highlightedIndex >= 0 && categories[highlightedIndex]) {
-          handleCategorySelect(categories[highlightedIndex]);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setHighlightedIndex(-1);
-        inputRef.current?.blur();
-        break;
-    }
-  }, [categories, highlightedIndex, handleCategorySelect]);
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setHighlightedIndex(prev => (prev < categories.length - 1 ? prev + 1 : 0));
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setHighlightedIndex(prev => (prev > 0 ? prev - 1 : categories.length - 1));
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (highlightedIndex >= 0 && categories[highlightedIndex]) {
+            handleCategorySelect(categories[highlightedIndex]);
+          }
+          break;
+        case "Escape":
+          e.preventDefault();
+          setHighlightedIndex(-1);
+          inputRef.current?.blur();
+          break;
+      }
+    },
+    [categories, highlightedIndex, handleCategorySelect]
+  );
 
   // Highlight matching text
-  const highlightMatch = useCallback((text: string, searchTerm: string) => {
-    if (!searchTerm) return text;
-    
-    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) => 
-      regex.test(part) ? (
-        <span
-          key={index}
-          style={{
-            background: theme.colors.interactive.primary,
-            color: theme.colors.text.inverse,
-            fontWeight: 600,
-            borderRadius: "3px",
-            padding: "1px 3px",
-          }}
-        >
-          {part}
-        </span>
-      ) : (
-        part
-      )
-    );
-  }, [theme, searchTerm]);
+  const highlightMatch = useCallback(
+    (text: string, searchTerm: string) => {
+      if (!searchTerm) return text;
+
+      const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+      const parts = text.split(regex);
+
+      return parts.map((part, index) =>
+        regex.test(part) ? (
+          <span
+            key={index}
+            style={{
+              background: theme.colors.interactive.primary,
+              color: theme.colors.text.inverse,
+              fontWeight: 600,
+              borderRadius: "3px",
+              padding: "1px 3px",
+            }}
+          >
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      );
+    },
+    [theme, searchTerm]
+  );
 
   return (
     <Box style={{ width: "100%" }}>
@@ -134,7 +139,7 @@ export function CategorySearchPanel({
               pointerEvents: "none",
             }}
           />
-          
+
           <Flex align="center" gap="3">
             <Box
               style={{
@@ -150,7 +155,7 @@ export function CategorySearchPanel({
             >
               <Sparkle size={16} style={{ color: theme.colors.text.inverse }} />
             </Box>
-            
+
             <Box>
               <Text
                 size="3"
@@ -162,10 +167,9 @@ export function CategorySearchPanel({
               >
                 {selectedCategory.name}
               </Text>
-
             </Box>
           </Flex>
-          
+
           <Button
             onClick={handleClear}
             style={{
@@ -222,7 +226,7 @@ export function CategorySearchPanel({
               fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             }}
           />
-          
+
           {/* Search Icon */}
           <Box
             style={{
@@ -296,7 +300,7 @@ export function CategorySearchPanel({
                   border: `2px solid ${theme.colors.border.primary}`,
                   borderTopColor: theme.colors.interactive.primary,
                   borderRadius: "50%",
-                  animation: 'spin 1s linear infinite',
+                  animation: "spin 1s linear infinite",
                 }}
               />
               <Text
@@ -352,8 +356,6 @@ export function CategorySearchPanel({
 
         {!isLoading && !error && categories.length > 0 && (
           <>
-
-
             {/* Categories */}
             <Box style={{ padding: `${theme.spacing.semantic.component.xs} 0` }}>
               {categories.map((category, index) => (
@@ -363,16 +365,18 @@ export function CategorySearchPanel({
                   style={{
                     padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.lg}`,
                     cursor: "pointer",
-                    background: highlightedIndex === index 
-                      ? `${theme.colors.interactive.primary}12` 
-                      : selectedCategory?.id === category.id
-                      ? `${theme.colors.interactive.primary}08`
-                      : "transparent",
-                    borderLeft: highlightedIndex === index 
-                      ? `3px solid ${theme.colors.interactive.primary}` 
-                      : selectedCategory?.id === category.id
-                      ? `3px solid ${theme.colors.interactive.primary}60`
-                      : "3px solid transparent",
+                    background:
+                      highlightedIndex === index
+                        ? `${theme.colors.interactive.primary}12`
+                        : selectedCategory?.id === category.id
+                          ? `${theme.colors.interactive.primary}08`
+                          : "transparent",
+                    borderLeft:
+                      highlightedIndex === index
+                        ? `3px solid ${theme.colors.interactive.primary}`
+                        : selectedCategory?.id === category.id
+                          ? `3px solid ${theme.colors.interactive.primary}60`
+                          : "3px solid transparent",
                     transition: "all 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
                     display: "flex",
                     alignItems: "center",
@@ -384,29 +388,30 @@ export function CategorySearchPanel({
                       width: "6px",
                       height: "6px",
                       borderRadius: "50%",
-                      background: selectedCategory?.id === category.id 
-                        ? theme.colors.interactive.primary
-                        : theme.colors.text.tertiary,
+                      background:
+                        selectedCategory?.id === category.id
+                          ? theme.colors.interactive.primary
+                          : theme.colors.text.tertiary,
                       opacity: selectedCategory?.id === category.id ? 1 : 0.6,
                       flexShrink: 0,
                       transition: theme.animations.transitions.all,
                     }}
                   />
-                  
-                                     <Box style={{ flex: 1, minWidth: 0 }}>
-                     <Text
-                       size="2"
-                       style={{
-                         fontWeight: selectedCategory?.id === category.id ? 600 : 500,
-                         color: theme.colors.text.primary,
-                         overflow: "hidden",
-                         textOverflow: "ellipsis",
-                         whiteSpace: "nowrap",
-                       }}
-                     >
-                       {highlightMatch(category.name, searchTerm)}
-                     </Text>
-                   </Box>
+
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      size="2"
+                      style={{
+                        fontWeight: selectedCategory?.id === category.id ? 600 : 500,
+                        color: theme.colors.text.primary,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {highlightMatch(category.name, searchTerm)}
+                    </Text>
+                  </Box>
                 </Box>
               ))}
             </Box>
@@ -415,4 +420,4 @@ export function CategorySearchPanel({
       </Box>
     </Box>
   );
-} 
+}

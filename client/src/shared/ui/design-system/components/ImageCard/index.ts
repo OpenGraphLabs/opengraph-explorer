@@ -1,2 +1,2 @@
-export { ImageCard } from './ImageCard';
-export type { ImageCardProps } from './ImageCard'; 
+export { ImageCard } from "./ImageCard";
+export type { ImageCardProps } from "./ImageCard";

@@ -82,14 +82,18 @@ function WorkspaceInner() {
   const { selectedImage } = useImagesContext();
 
   return (
-    <AnnotationsProvider config={{ 
-      mode: 'byImage', 
-      imageId: selectedImage?.id || 0 
-    }}>
-      <CategoriesProvider config={{ 
-        dictionaryId: dataset?.dictionary_id,
-        useDictionaryFromDataset: false 
-      }}>
+    <AnnotationsProvider
+      config={{
+        mode: "byImage",
+        imageId: selectedImage?.id || 0,
+      }}
+    >
+      <CategoriesProvider
+        config={{
+          dictionaryId: dataset?.dictionary_id,
+          useDictionaryFromDataset: false,
+        }}
+      >
         <AnnotationWorkspaceProvider>
           <WorkspaceContent />
         </AnnotationWorkspaceProvider>
@@ -104,7 +108,7 @@ export function AnnotationWorkspace() {
 
   // Ensure we have a dataset ID
   if (!datasetIdParam) {
-    navigate('/datasets');
+    navigate("/datasets");
     return null;
   }
 

@@ -1,9 +1,9 @@
-import React from 'react';
-import { Box, Grid } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { DatasetCard } from './DatasetCard';
-import { useDatasetsPage } from '@/contexts/page/DatasetsPageContext';
-import { useDatasetsList } from '@/contexts/data/DatasetsListContext';
+import React from "react";
+import { Box, Grid } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { DatasetCard } from "./DatasetCard";
+import { useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
+import { useDatasetsList } from "@/contexts/data/DatasetsListContext";
 
 export function DatasetsGrid() {
   const { theme } = useTheme();

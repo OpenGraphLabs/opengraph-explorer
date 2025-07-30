@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Box, Flex, Text, Button } from '@/shared/ui/design-system/components';
-import { useTheme } from '@/shared/ui/design-system';
-import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
-import { useSearchCategories } from '@/shared/hooks/useDictionaryCategories';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
+import { useTheme } from "@/shared/ui/design-system";
+import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { useSearchCategories } from "@/shared/hooks/useDictionaryCategories";
 
 export interface CategorySearchInputProps {
   placeholder?: string;
@@ -22,7 +22,7 @@ export function CategorySearchInput({
   dictionaryId = 1,
 }: CategorySearchInputProps) {
   const { theme } = useTheme();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -59,26 +59,29 @@ export function CategorySearchInput({
         if (isEditingSelected) {
           // If editing and clicking outside, cancel edit mode
           setIsEditingSelected(false);
-          setQuery('');
+          setQuery("");
         }
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isEditingSelected]);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    
-    if (isEditingSelected || !selectedCategory) {
-      setIsOpen(true);
-    }
-    
-    setFocusedIndex(-1);
-  }, [selectedCategory, isEditingSelected]);
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setQuery(value);
+
+      if (isEditingSelected || !selectedCategory) {
+        setIsOpen(true);
+      }
+
+      setFocusedIndex(-1);
+    },
+    [selectedCategory, isEditingSelected]
+  );
 
   const handleInputFocus = useCallback(() => {
     if (selectedCategory && !isEditingSelected) {
@@ -95,27 +98,25 @@ export function CategorySearchInput({
     if (!isOpen) return;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setFocusedIndex(prev => 
-          prev < categories.length - 1 ? prev + 1 : prev
-        );
+        setFocusedIndex(prev => (prev < categories.length - 1 ? prev + 1 : prev));
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        setFocusedIndex(prev => prev > 0 ? prev - 1 : 0);
+        setFocusedIndex(prev => (prev > 0 ? prev - 1 : 0));
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (focusedIndex >= 0 && categories[focusedIndex]) {
           handleCategorySelect(categories[focusedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         if (isEditingSelected) {
           // Cancel editing, revert to selected category
           setIsEditingSelected(false);
-          setQuery('');
+          setQuery("");
         }
         setIsOpen(false);
         setFocusedIndex(-1);
@@ -124,36 +125,42 @@ export function CategorySearchInput({
     }
   };
 
-  const handleCategorySelect = useCallback((category: { id: number; name: string }) => {
-    setQuery('');
-    setIsOpen(false);
-    setFocusedIndex(-1);
-    setIsEditingSelected(false);
-    onCategorySelect(category);
-    inputRef.current?.blur();
-  }, [onCategorySelect]);
+  const handleCategorySelect = useCallback(
+    (category: { id: number; name: string }) => {
+      setQuery("");
+      setIsOpen(false);
+      setFocusedIndex(-1);
+      setIsEditingSelected(false);
+      onCategorySelect(category);
+      inputRef.current?.blur();
+    },
+    [onCategorySelect]
+  );
 
-  const handleClearSelection = useCallback((e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    setQuery('');
-    setIsEditingSelected(false);
-    onCategorySelect(null);
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
-  }, [onCategorySelect]);
+  const handleClearSelection = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.preventDefault();
+      e?.stopPropagation();
+      setQuery("");
+      setIsEditingSelected(false);
+      onCategorySelect(null);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    },
+    [onCategorySelect]
+  );
 
   const displayValue = selectedCategory ? selectedCategory.name : query;
 
   return (
-    <Box className={className} style={{ position: 'relative', width: '100%' }}>
+    <Box className={className} style={{ position: "relative", width: "100%" }}>
       {/* Input Container */}
       <Box
         style={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
           background: theme.colors.background.card,
           border: `1px solid ${theme.colors.border.primary}`,
           borderRadius: theme.borders.radius.full,
@@ -161,30 +168,30 @@ export function CategorySearchInput({
           boxShadow: theme.shadows.base.sm,
           padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
         }}
-        onFocusCapture={(e) => {
+        onFocusCapture={e => {
           e.currentTarget.style.boxShadow = theme.shadows.semantic.interactive.focus;
           e.currentTarget.style.borderColor = theme.colors.interactive.primary;
         }}
-        onBlurCapture={(e) => {
+        onBlurCapture={e => {
           if (!isOpen) {
             e.currentTarget.style.boxShadow = theme.shadows.base.sm;
             e.currentTarget.style.borderColor = theme.colors.border.primary;
           }
         }}
       >
-        <MagnifyingGlassIcon 
-          width="20" 
-          height="20" 
-          style={{ 
+        <MagnifyingGlassIcon
+          width="20"
+          height="20"
+          style={{
             color: theme.colors.text.tertiary,
             marginRight: theme.spacing.semantic.component.md,
-          }} 
+          }}
         />
-        
+
         <input
           ref={inputRef}
           type="text"
-          placeholder={selectedCategory && !isEditingSelected ? '' : placeholder}
+          placeholder={selectedCategory && !isEditingSelected ? "" : placeholder}
           value={isEditingSelected || !selectedCategory ? query : selectedCategory.name}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
@@ -192,13 +199,17 @@ export function CategorySearchInput({
           readOnly={selectedCategory && !isEditingSelected}
           style={{
             flex: 1,
-            border: 'none',
-            outline: 'none',
-            background: 'transparent',
+            border: "none",
+            outline: "none",
+            background: "transparent",
             fontSize: theme.typography.body.fontSize,
-            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI Variable, Segoe UI, system-ui, Roboto, Helvetica Neue, Arial, sans-serif',
-            color: (selectedCategory && !isEditingSelected) ? theme.colors.text.secondary : theme.colors.text.primary,
-            cursor: (selectedCategory && !isEditingSelected) ? 'pointer' : 'text',
+            fontFamily:
+              "Inter, -apple-system, BlinkMacSystemFont, Segoe UI Variable, Segoe UI, system-ui, Roboto, Helvetica Neue, Arial, sans-serif",
+            color:
+              selectedCategory && !isEditingSelected
+                ? theme.colors.text.secondary
+                : theme.colors.text.primary,
+            cursor: selectedCategory && !isEditingSelected ? "pointer" : "text",
             transition: theme.animations.transitions.all,
           }}
         />
@@ -209,24 +220,24 @@ export function CategorySearchInput({
             onClick={handleClearSelection}
             style={{
               padding: theme.spacing[1],
-              minWidth: 'auto',
+              minWidth: "auto",
               borderRadius: theme.borders.radius.full,
               marginRight: theme.spacing[1],
               opacity: 0.7,
               transition: theme.animations.transitions.all,
               border: `1px solid ${theme.colors.border.primary}`,
               background: theme.colors.background.card,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '1';
+            onMouseEnter={e => {
+              e.currentTarget.style.opacity = "1";
               e.currentTarget.style.background = theme.colors.background.secondary;
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '0.7';
+            onMouseLeave={e => {
+              e.currentTarget.style.opacity = "0.7";
               e.currentTarget.style.background = theme.colors.background.card;
             }}
           >
@@ -235,14 +246,14 @@ export function CategorySearchInput({
         )}
 
         {!selectedCategory && (
-          <ChevronDownIcon 
-            width="16" 
-            height="16" 
-            style={{ 
+          <ChevronDownIcon
+            width="16"
+            height="16"
+            style={{
               color: theme.colors.text.tertiary,
-              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
               transition: theme.animations.transitions.all,
-            }} 
+            }}
           />
         )}
       </Box>
@@ -252,8 +263,8 @@ export function CategorySearchInput({
         <Box
           ref={dropdownRef}
           style={{
-            position: 'absolute',
-            top: '100%',
+            position: "absolute",
+            top: "100%",
             left: 0,
             right: 0,
             marginTop: theme.spacing[1],
@@ -262,12 +273,12 @@ export function CategorySearchInput({
             borderRadius: theme.borders.radius.md,
             boxShadow: theme.shadows.semantic.card.high,
             zIndex: 50,
-            maxHeight: '280px',
-            overflowY: 'auto',
+            maxHeight: "280px",
+            overflowY: "auto",
             opacity: isOpen ? 1 : 0,
-            transform: isOpen ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.95)',
-            transition: 'opacity 150ms ease-out, transform 150ms ease-out',
-            transformOrigin: 'top center',
+            transform: isOpen ? "translateY(0) scale(1)" : "translateY(-8px) scale(0.95)",
+            transition: "opacity 150ms ease-out, transform 150ms ease-out",
+            transformOrigin: "top center",
           }}
         >
           {isLoading && (
@@ -280,12 +291,12 @@ export function CategorySearchInput({
             >
               <Box
                 style={{
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
+                  width: "16px",
+                  height: "16px",
+                  borderRadius: "50%",
                   border: `2px solid ${theme.colors.border.primary}`,
                   borderTopColor: theme.colors.interactive.primary,
-                  animation: 'spin 1s linear infinite',
+                  animation: "spin 1s linear infinite",
                 }}
               />
             </Flex>
@@ -305,57 +316,58 @@ export function CategorySearchInput({
                   fontSize: theme.typography.bodySmall.fontSize,
                 }}
               >
-                {query ? 'No categories found' : 'Type to search categories'}
+                {query ? "No categories found" : "Type to search categories"}
               </Text>
             </Flex>
           )}
 
-          {!isLoading && categories.length > 0 && categories.map((category, index) => (
-            <Box
-              key={category.id}
-              style={{
-                padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-                cursor: 'pointer',
-                background: index === focusedIndex 
-                  ? theme.colors.interactive.primary 
-                  : 'transparent',
-                borderBottom: index < categories.length - 1 ? `1px solid ${theme.colors.border.subtle}` : 'none',
-                transition: 'all 120ms ease-out',
-                borderRadius: index === focusedIndex ? theme.borders.radius.sm : '0',
-                margin: index === focusedIndex ? `0 ${theme.spacing[1]}` : '0',
-              }}
-              onClick={() => handleCategorySelect(category)}
-              onMouseEnter={() => setFocusedIndex(index)}
-              onMouseLeave={() => setFocusedIndex(-1)}
-            >
-              <Flex align="center" gap="2">
-                <MagnifyingGlassIcon 
-                  width="14" 
-                  height="14" 
-                  style={{ 
-                    color: index === focusedIndex 
-                      ? 'white'
-                      : theme.colors.text.tertiary,
-                    transition: 'color 120ms ease-out',
-                  }} 
-                />
-                <Text
-                  style={{
-                    color: index === focusedIndex 
-                      ? 'white'
-                      : theme.colors.text.primary,
-                    fontSize: theme.typography.body.fontSize,
-                    fontWeight: index === focusedIndex 
-                      ? theme.typography.labelLarge.fontWeight
-                      : theme.typography.body.fontWeight,
-                    transition: 'all 120ms ease-out',
-                  }}
-                >
-                  {category.name}
-                </Text>
-              </Flex>
-            </Box>
-          ))}
+          {!isLoading &&
+            categories.length > 0 &&
+            categories.map((category, index) => (
+              <Box
+                key={category.id}
+                style={{
+                  padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+                  cursor: "pointer",
+                  background:
+                    index === focusedIndex ? theme.colors.interactive.primary : "transparent",
+                  borderBottom:
+                    index < categories.length - 1
+                      ? `1px solid ${theme.colors.border.subtle}`
+                      : "none",
+                  transition: "all 120ms ease-out",
+                  borderRadius: index === focusedIndex ? theme.borders.radius.sm : "0",
+                  margin: index === focusedIndex ? `0 ${theme.spacing[1]}` : "0",
+                }}
+                onClick={() => handleCategorySelect(category)}
+                onMouseEnter={() => setFocusedIndex(index)}
+                onMouseLeave={() => setFocusedIndex(-1)}
+              >
+                <Flex align="center" gap="2">
+                  <MagnifyingGlassIcon
+                    width="14"
+                    height="14"
+                    style={{
+                      color: index === focusedIndex ? "white" : theme.colors.text.tertiary,
+                      transition: "color 120ms ease-out",
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color: index === focusedIndex ? "white" : theme.colors.text.primary,
+                      fontSize: theme.typography.body.fontSize,
+                      fontWeight:
+                        index === focusedIndex
+                          ? theme.typography.labelLarge.fontWeight
+                          : theme.typography.body.fontWeight,
+                      transition: "all 120ms ease-out",
+                    }}
+                  >
+                    {category.name}
+                  </Text>
+                </Flex>
+              </Box>
+            ))}
         </Box>
       )}
 
@@ -371,4 +383,4 @@ export function CategorySearchInput({
       </style>
     </Box>
   );
-} 
+}

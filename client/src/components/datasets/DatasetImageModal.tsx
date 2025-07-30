@@ -25,7 +25,7 @@ import {
 } from "phosphor-react";
 // ConfirmationStatus type definition
 interface ConfirmationStatus {
-  status: 'idle' | 'pending' | 'success' | 'failed';
+  status: "idle" | "pending" | "success" | "failed";
   message: string;
   confirmedLabels?: string[];
 }
@@ -60,19 +60,14 @@ export function DatasetImageModal({
   const overlayRef = useRef<SVGSVGElement>(null);
 
   // Get all approved annotations for this image if imageId is available
-  const { data: allApprovedAnnotations, isLoading: annotationsLoading } = useApprovedAnnotationsByImage(
-    selectedImageData?.imageId || 0,
-    {
+  const { data: allApprovedAnnotations, isLoading: annotationsLoading } =
+    useApprovedAnnotationsByImage(selectedImageData?.imageId || 0, {
       enabled: isOpen && !!selectedImageData?.imageId,
       refetchOnWindowFocus: false,
-    } as any
-  );
+    } as any);
 
   // Fetch categories to get actual category names
-  const { 
-    data: categoriesResponse, 
-    isLoading: categoriesLoading 
-  } = useDictionaryCategories({
+  const { data: categoriesResponse, isLoading: categoriesLoading } = useDictionaryCategories({
     dictionaryId: 1, // Default dictionary ID
     limit: 100,
     enabled: isOpen,
@@ -96,7 +91,7 @@ export function DatasetImageModal({
   // Image loading and canvas drawing
   useEffect(() => {
     if (!isOpen || !selectedImage) return;
-    
+
     const img = new Image();
     img.onload = () => {
       setImageLoaded(true);
@@ -106,49 +101,55 @@ export function DatasetImageModal({
   }, [isOpen, selectedImage]);
 
   // Draw image on canvas
-  const drawImageOnCanvas = useCallback((img: HTMLImageElement) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const drawImageOnCanvas = useCallback(
+    (img: HTMLImageElement) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-    // Adjust canvas size to fit modal (max 600px width)
-    const containerWidth = Math.min(600, img.width);
-    const aspectRatio = img.height / img.width;
-    const containerHeight = containerWidth * aspectRatio;
-    
-    canvas.width = containerWidth;
-    canvas.height = containerHeight;
-    canvas.style.width = `${containerWidth}px`;
-    canvas.style.height = `${containerHeight}px`;
+      // Adjust canvas size to fit modal (max 600px width)
+      const containerWidth = Math.min(600, img.width);
+      const aspectRatio = img.height / img.width;
+      const containerHeight = containerWidth * aspectRatio;
 
-    // Draw image
-    ctx.clearRect(0, 0, containerWidth, containerHeight);
-    ctx.drawImage(img, 0, 0, containerWidth, containerHeight);
-  }, [selectedImageData]);
+      canvas.width = containerWidth;
+      canvas.height = containerHeight;
+      canvas.style.width = `${containerWidth}px`;
+      canvas.style.height = `${containerHeight}px`;
+
+      // Draw image
+      ctx.clearRect(0, 0, containerWidth, containerHeight);
+      ctx.drawImage(img, 0, 0, containerWidth, containerHeight);
+    },
+    [selectedImageData]
+  );
 
   // Polygon to SVG path conversion (following ImageDetailSidebar pattern)
-  const polygonToPath = useCallback((polygon: number[][]): string => {
-    if (polygon.length < 3) return "";
-    
-    const canvas = canvasRef.current;
-    if (!canvas || !selectedImageData) return "";
-    
-    const transformedPoints = polygon.map(([x, y]) => {
-      const scaledX = (x / selectedImageData.width) * canvas.width;
-      const scaledY = (y / selectedImageData.height) * canvas.height;
-      return { x: scaledX, y: scaledY };
-    });
-    
-    let path = `M ${transformedPoints[0].x} ${transformedPoints[0].y}`;
-    for (let i = 1; i < transformedPoints.length; i++) {
-      path += ` L ${transformedPoints[i].x} ${transformedPoints[i].y}`;
-    }
-    path += " Z";
-    
-    return path;
-  }, [selectedImageData]);
+  const polygonToPath = useCallback(
+    (polygon: number[][]): string => {
+      if (polygon.length < 3) return "";
+
+      const canvas = canvasRef.current;
+      if (!canvas || !selectedImageData) return "";
+
+      const transformedPoints = polygon.map(([x, y]) => {
+        const scaledX = (x / selectedImageData.width) * canvas.width;
+        const scaledY = (y / selectedImageData.height) * canvas.height;
+        return { x: scaledX, y: scaledY };
+      });
+
+      let path = `M ${transformedPoints[0].x} ${transformedPoints[0].y}`;
+      for (let i = 1; i < transformedPoints.length; i++) {
+        path += ` L ${transformedPoints[i].x} ${transformedPoints[i].y}`;
+      }
+      path += " Z";
+
+      return path;
+    },
+    [selectedImageData]
+  );
 
   // Render annotation overlays as React elements
   const renderAnnotationOverlays = useCallback(() => {
@@ -158,7 +159,7 @@ export function DatasetImageModal({
       const color = index === 0 ? HIGHLIGHT_COLOR : OTHER_COLOR;
       const opacity = index === 0 ? 0.4 : 0.2;
       const strokeWidth = index === 0 ? 2.5 : 1.5;
-      
+
       // Check if annotation has polygon data
       if (annotation.polygon && (annotation.polygon as any).has_segmentation) {
         const polygons = (annotation.polygon as any).polygons;
@@ -173,7 +174,9 @@ export function DatasetImageModal({
                   <path
                     key={`${annotation.id}-${polygonIndex}`}
                     d={pathData}
-                    fill={`${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`}
+                    fill={`${color}${Math.round(opacity * 255)
+                      .toString(16)
+                      .padStart(2, "0")}`}
                     stroke={color}
                     strokeWidth={strokeWidth}
                     filter={index === 0 ? "url(#maskGlow)" : undefined}
@@ -187,7 +190,7 @@ export function DatasetImageModal({
           );
         }
       }
-      
+
       return null;
     });
   }, [approvedAnnotations, showMask, imageLoaded, polygonToPath]);
@@ -234,9 +237,12 @@ export function DatasetImageModal({
                   <Text size="1" style={{ color: theme.colors.text.secondary }}>
                     {selectedImageData.width} × {selectedImageData.height}
                   </Text>
-                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>•</Text>
+                  <Text size="1" style={{ color: theme.colors.text.tertiary }}>
+                    •
+                  </Text>
                   <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                    {selectedImageData.approvedAnnotationsCount} annotation{selectedImageData.approvedAnnotationsCount !== 1 ? 's' : ''}
+                    {selectedImageData.approvedAnnotationsCount} annotation
+                    {selectedImageData.approvedAnnotationsCount !== 1 ? "s" : ""}
                   </Text>
                 </Flex>
               </Box>
@@ -249,18 +255,18 @@ export function DatasetImageModal({
                 size="sm"
                 onClick={() => setShowMask(!showMask)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
+                  display: "flex",
+                  alignItems: "center",
                   gap: theme.spacing.semantic.component.xs,
                 }}
               >
                 {showMask ? <EyeSlash size={14} /> : <Eye size={14} />}
-                {showMask ? 'Hide Masks' : 'Show Masks'}
+                {showMask ? "Hide Masks" : "Show Masks"}
               </Button>
 
               {/* Close Button */}
               <Button
-                variant="secondary" 
+                variant="secondary"
                 size="sm"
                 onClick={onClose}
                 style={{
@@ -299,7 +305,7 @@ export function DatasetImageModal({
                   borderRadius: theme.borders.radius.sm,
                 }}
               />
-              
+
               {/* SVG overlay for annotations */}
               {imageLoaded && (
                 <svg
@@ -317,14 +323,14 @@ export function DatasetImageModal({
                   <defs>
                     {/* Mask glow effect */}
                     <filter id="maskGlow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur" />
                       <feMerge>
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
                       </feMerge>
                     </filter>
                   </defs>
-                  
+
                   {/* Render annotation overlays */}
                   {renderAnnotationOverlays()}
                 </svg>
@@ -345,7 +351,11 @@ export function DatasetImageModal({
             <Box style={{ padding: theme.spacing.semantic.component.lg }}>
               {/* Image Metadata */}
               <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
-                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.md }}
+                >
                   <Info size={16} style={{ color: theme.colors.text.secondary }} />
                   <Heading size="3" style={{ color: theme.colors.text.primary, margin: 0 }}>
                     Image Details
@@ -365,50 +375,61 @@ export function DatasetImageModal({
                       <Text size="2" style={{ color: theme.colors.text.secondary }}>
                         Filename
                       </Text>
-                      <Text size="2" style={{ color: theme.colors.text.primary, fontFamily: 'monospace' }}>
-                        {selectedImageData.path?.split("/").pop() || 'Unknown'}
+                      <Text
+                        size="2"
+                        style={{ color: theme.colors.text.primary, fontFamily: "monospace" }}
+                      >
+                        {selectedImageData.path?.split("/").pop() || "Unknown"}
                       </Text>
                     </Flex>
-                    
+
                     <Flex justify="between">
                       <Text size="2" style={{ color: theme.colors.text.secondary }}>
                         Dimensions
                       </Text>
-                      <Text size="2" style={{ color: theme.colors.text.primary, fontFamily: 'monospace' }}>
+                      <Text
+                        size="2"
+                        style={{ color: theme.colors.text.primary, fontFamily: "monospace" }}
+                      >
                         {selectedImageData.width} × {selectedImageData.height}
                       </Text>
                     </Flex>
-                    
+
                     <Flex justify="between">
                       <Text size="2" style={{ color: theme.colors.text.secondary }}>
                         Dataset ID
                       </Text>
-                      <Text size="2" style={{ color: theme.colors.text.primary, fontFamily: 'monospace' }}>
-                        #{selectedImageData.metadata?.datasetId || 'Unknown'}
+                      <Text
+                        size="2"
+                        style={{ color: theme.colors.text.primary, fontFamily: "monospace" }}
+                      >
+                        #{selectedImageData.metadata?.datasetId || "Unknown"}
                       </Text>
                     </Flex>
-                    
+
                     <Flex justify="between">
                       <Text size="2" style={{ color: theme.colors.text.secondary }}>
                         Status
                       </Text>
                       <Badge
                         style={{
-                          background: hasConfirmedAnnotations 
-                            ? `${theme.colors.status.success}20` 
+                          background: hasConfirmedAnnotations
+                            ? `${theme.colors.status.success}20`
                             : `${theme.colors.status.warning}20`,
-                          color: hasConfirmedAnnotations 
-                            ? theme.colors.status.success 
+                          color: hasConfirmedAnnotations
+                            ? theme.colors.status.success
                             : theme.colors.status.warning,
-                          border: `1px solid ${hasConfirmedAnnotations 
-                            ? theme.colors.status.success 
-                            : theme.colors.status.warning}40`,
+                          border: `1px solid ${
+                            hasConfirmedAnnotations
+                              ? theme.colors.status.success
+                              : theme.colors.status.warning
+                          }40`,
                           fontSize: "11px",
                           fontWeight: 500,
                           padding: "2px 6px",
                         }}
                       >
-                        {hasConfirmedAnnotations ? 'Approved' : 'Pending'}
+                        {hasConfirmedAnnotations ? "Approved" : "Pending"}
                       </Badge>
                     </Flex>
                   </Flex>
@@ -417,7 +438,11 @@ export function DatasetImageModal({
 
               {/* Approved Annotations */}
               <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
-                <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                <Flex
+                  align="center"
+                  gap="2"
+                  style={{ marginBottom: theme.spacing.semantic.component.md }}
+                >
                   <Target size={16} style={{ color: theme.colors.status.success }} />
                   <Heading size="3" style={{ color: theme.colors.text.primary, margin: 0 }}>
                     Approved Annotations
@@ -500,12 +525,12 @@ export function DatasetImageModal({
                   <Button
                     variant="secondary"
                     size="md"
-                    onClick={() => window.open(selectedImage!, '_blank')}
+                    onClick={() => window.open(selectedImage!, "_blank")}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
+                      display: "flex",
+                      alignItems: "center",
                       gap: theme.spacing.semantic.component.sm,
-                      justifyContent: 'center',
+                      justifyContent: "center",
                     }}
                   >
                     <ArrowsOut size={14} />

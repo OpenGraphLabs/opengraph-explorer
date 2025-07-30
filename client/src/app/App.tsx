@@ -11,6 +11,10 @@ import { Profile } from "@/pages/Profile";
 import { Datasets } from "@/pages/Datasets";
 import { DatasetDetail } from "@/pages/DatasetDetail";
 import { AnnotationWorkspace } from "@/pages/AnnotationWorkspace";
+import { AuthCallback } from "@/components/auth";
+import { AuthSuccess } from "@/pages/AuthSuccess";
+import { AuthError } from "@/pages/AuthError";
+import { Login } from "@/pages/Login.tsx";
 
 export default function App() {
   return (
@@ -18,7 +22,10 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         {/* Public routes - no wallet required */}
-
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/success" element={<AuthSuccess />} />
+        <Route path="/auth/error" element={<AuthError />} />
+        <Route path="/login" element={<Login />} />
 
         {/* Protected routes - wallet required */}
         <Route

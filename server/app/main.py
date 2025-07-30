@@ -23,7 +23,8 @@ from .routers import (
     dictionary_router,
     category_router,
     dictionary_category_router,
-    annotation_router
+    annotation_router,
+    auth_router
 )
 
 
@@ -150,6 +151,7 @@ async def health_check():
     }
 
 
+app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(image_router, prefix="/api/v1")

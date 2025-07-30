@@ -1,11 +1,11 @@
-import { ApiClient } from '../client';
+import { ApiClient } from "../client";
 import type {
   DatasetCreate,
   DatasetUpdate,
   DatasetRead,
   DatasetListResponse,
-  ImageListResponse
-} from '../generated/models';
+  ImageListResponse,
+} from "../generated/models";
 
 export class DatasetService {
   constructor(private apiClient: ApiClient) {}
@@ -13,10 +13,11 @@ export class DatasetService {
   // Get datasets list
   async getDatasets(params: { page?: number; skip?: number; limit?: number } = {}) {
     // Support both page-based and skip-based pagination
-    const page = params.page || (params.skip ? Math.floor(params.skip / (params.limit || 10)) + 1 : 1);
+    const page =
+      params.page || (params.skip ? Math.floor(params.skip / (params.limit || 10)) + 1 : 1);
     const response = await this.apiClient.datasets.getDatasetsApiV1DatasetsGet({
       page,
-      limit: params.limit || 10
+      limit: params.limit || 10,
     });
     return response.data as DatasetListResponse;
   }
@@ -24,7 +25,7 @@ export class DatasetService {
   // Get dataset by ID
   async getDatasetById(datasetId: number) {
     const response = await this.apiClient.datasets.getDatasetApiV1DatasetsDatasetIdGet({
-      datasetId
+      datasetId,
     });
     return response.data as DatasetRead;
   }
@@ -32,7 +33,7 @@ export class DatasetService {
   // Create new dataset
   async createDataset(data: DatasetCreate) {
     const response = await this.apiClient.datasets.createDatasetApiV1DatasetsPost({
-      datasetCreate: data
+      datasetCreate: data,
     });
     return response.data as DatasetRead;
   }
@@ -41,7 +42,7 @@ export class DatasetService {
   async updateDataset(datasetId: number, data: DatasetUpdate) {
     const response = await this.apiClient.datasets.updateDatasetApiV1DatasetsDatasetIdPut({
       datasetId,
-      datasetUpdate: data
+      datasetUpdate: data,
     });
     return response.data as DatasetRead;
   }
@@ -49,7 +50,7 @@ export class DatasetService {
   // Delete dataset
   async deleteDataset(datasetId: number) {
     const response = await this.apiClient.datasets.deleteDatasetApiV1DatasetsDatasetIdDelete({
-      datasetId
+      datasetId,
     });
     return response.data;
   }
@@ -57,38 +58,39 @@ export class DatasetService {
   // Upload files to dataset (if available)
   async uploadFiles(datasetId: number, files: File[]) {
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('files', file);
+    files.forEach(file => {
+      formData.append("files", file);
     });
 
-    const response = await this.apiClient.getAxiosInstance().post(
-      `/api/v1/datasets/${datasetId}/upload`,
-      formData,
-      {
+    const response = await this.apiClient
+      .getAxiosInstance()
+      .post(`/api/v1/datasets/${datasetId}/upload`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
-      }
-    );
-    
+      });
+
     return response.data;
   }
 
   // Get dataset statistics (if available)
   async getDatasetStats(datasetId: number) {
-    const response = await this.apiClient.getAxiosInstance().get(
-      `/api/v1/datasets/${datasetId}/stats`
-    );
+    const response = await this.apiClient
+      .getAxiosInstance()
+      .get(`/api/v1/datasets/${datasetId}/stats`);
     return response.data;
   }
 
   // Get images for a dataset
-  async getDatasetImages(datasetId: number, params: { page?: number; limit?: number } = {}): Promise<ImageListResponse> {
+  async getDatasetImages(
+    datasetId: number,
+    params: { page?: number; limit?: number } = {}
+  ): Promise<ImageListResponse> {
     const response = await this.apiClient.datasets.getDatasetImagesApiV1DatasetsDatasetIdImagesGet({
       datasetId,
       page: params.page || 1,
-      limit: params.limit || 100
+      limit: params.limit || 100,
     });
     return response.data as ImageListResponse;
   }
-} 
+}

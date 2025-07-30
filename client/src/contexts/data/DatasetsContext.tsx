@@ -1,6 +1,6 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useDataset } from '@/shared/hooks/useApiQuery';
-import type { DatasetRead } from '@/shared/api/generated/models';
+import React, { createContext, useContext, ReactNode } from "react";
+import { useDataset } from "@/shared/hooks/useApiQuery";
+import type { DatasetRead } from "@/shared/api/generated/models";
 
 interface DatasetsConfig {
   datasetId: number;
@@ -16,7 +16,7 @@ const DatasetsContext = createContext<DatasetsContextValue | undefined>(undefine
 
 export function DatasetsProvider({
   children,
-  config
+  config,
 }: {
   children: ReactNode;
   config: DatasetsConfig;
@@ -24,7 +24,7 @@ export function DatasetsProvider({
   const {
     data: dataset,
     isLoading,
-    error
+    error,
   } = useDataset(config.datasetId, {
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
@@ -46,7 +46,7 @@ export function DatasetsProvider({
 export function useDatasets() {
   const context = useContext(DatasetsContext);
   if (!context) {
-    throw new Error('useDatasets must be used within DatasetsProvider');
+    throw new Error("useDatasets must be used within DatasetsProvider");
   }
   return context;
 }

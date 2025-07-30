@@ -1,5 +1,5 @@
-import React from 'react';
-import { Annotation, SegmentationDisplayOptions } from './types/annotation';
+import React from "react";
+import { Annotation, SegmentationDisplayOptions } from "./types/annotation";
 
 interface SegmentationMaskOverlayProps {
   annotations: Annotation[];
@@ -12,8 +12,8 @@ interface SegmentationMaskOverlayProps {
 const DEFAULT_DISPLAY_OPTIONS: SegmentationDisplayOptions = {
   showMasks: true,
   maskOpacity: 0.5,
-  maskColor: '#3B82F6', // Blue
-  strokeColor: '#1D4ED8', // Darker blue
+  maskColor: "#3B82F6", // Blue
+  strokeColor: "#1D4ED8", // Darker blue
   strokeWidth: 2,
   showBoundingBoxes: false,
   showLabels: false,
@@ -21,16 +21,16 @@ const DEFAULT_DISPLAY_OPTIONS: SegmentationDisplayOptions = {
 
 // Color palette for different annotations
 const COLOR_PALETTE = [
-  '#3B82F6', // Blue
-  '#EF4444', // Red
-  '#10B981', // Green
-  '#F59E0B', // Yellow
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
-  '#F97316', // Orange
-  '#6366F1', // Indigo
+  "#3B82F6", // Blue
+  "#EF4444", // Red
+  "#10B981", // Green
+  "#F59E0B", // Yellow
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
+  "#06B6D4", // Cyan
+  "#84CC16", // Lime
+  "#F97316", // Orange
+  "#6366F1", // Indigo
 ];
 
 export function SegmentationMaskOverlay({
@@ -38,7 +38,7 @@ export function SegmentationMaskOverlay({
   imageWidth,
   imageHeight,
   displayOptions = {},
-  className = '',
+  className = "",
 }: SegmentationMaskOverlayProps) {
   const options = { ...DEFAULT_DISPLAY_OPTIONS, ...displayOptions };
 
@@ -48,7 +48,7 @@ export function SegmentationMaskOverlay({
 
   const renderPolygon = (annotation: Annotation, index: number) => {
     const { polygon } = annotation;
-    
+
     if (!polygon.has_segmentation || !polygon.polygons.length) {
       return null;
     }
@@ -59,26 +59,22 @@ export function SegmentationMaskOverlay({
 
     return polygon.polygons.map((polygon, polygonIndex) => {
       if (polygon.length < 3) return null; // Need at least 3 points for a polygon
-      
+
       // Convert points to SVG path
-      const pathData = polygon
-        .map((point, pointIndex) => {
-          const [x, y] = point;
-          const command = pointIndex === 0 ? 'M' : 'L';
-          return `${command} ${x} ${y}`;
-        })
-        .join(' ') + ' Z'; // Close the path
+      const pathData =
+        polygon
+          .map((point, pointIndex) => {
+            const [x, y] = point;
+            const command = pointIndex === 0 ? "M" : "L";
+            return `${command} ${x} ${y}`;
+          })
+          .join(" ") + " Z"; // Close the path
 
       return (
         <g key={`${annotation.id}-${polygonIndex}`}>
           {/* Fill */}
-          <path
-            d={pathData}
-            fill={baseColor}
-            fillOpacity={opacity}
-            stroke="none"
-          />
-          
+          <path d={pathData} fill={baseColor} fillOpacity={opacity} stroke="none" />
+
           {/* Stroke */}
           <path
             d={pathData}
@@ -125,16 +121,8 @@ export function SegmentationMaskOverlay({
     return (
       <g key={`label-${annotation.id}`}>
         {/* Background */}
-        <rect
-          x={x}
-          y={y - 20}
-          width={40}
-          height={18}
-          fill={baseColor}
-          fillOpacity={0.9}
-          rx={2}
-        />
-        
+        <rect x={x} y={y - 20} width={40} height={18} fill={baseColor} fillOpacity={0.9} rx={2} />
+
         {/* Text */}
         <text
           x={x + 4}
@@ -156,12 +144,12 @@ export function SegmentationMaskOverlay({
       width="100%"
       height="100%"
       style={{
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         left: 0,
-        pointerEvents: 'none',
+        pointerEvents: "none",
         zIndex: 1,
-        objectFit: 'cover',
+        objectFit: "cover",
       }}
       viewBox={`0 0 ${imageWidth} ${imageHeight}`}
       preserveAspectRatio="xMidYMid slice"
@@ -175,4 +163,4 @@ export function SegmentationMaskOverlay({
       ))}
     </svg>
   );
-} 
+}

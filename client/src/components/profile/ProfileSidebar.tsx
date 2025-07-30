@@ -4,7 +4,7 @@ import { User, UploadSimple, Circle, Lightning } from "phosphor-react";
 
 export function useProfileSidebarConfig() {
   const { theme } = useTheme();
-  
+
   return {
     section: {
       icon: <User size={16} style={{ color: theme.colors.text.inverse }} />,

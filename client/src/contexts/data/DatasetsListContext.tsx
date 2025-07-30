@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { useDatasets } from '@/shared/hooks/useApiQuery';
-import type { DatasetRead } from '@/shared/api/generated/models';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { useDatasets } from "@/shared/hooks/useApiQuery";
+import type { DatasetRead } from "@/shared/api/generated/models";
 
 interface DatasetsListConfig {
   pageSize?: number;
@@ -29,7 +29,7 @@ const DatasetsListContext = createContext<DatasetsListContextValue | undefined>(
 
 export function DatasetsListProvider({
   children,
-  config = {}
+  config = {},
 }: {
   children: ReactNode;
   config?: DatasetsListConfig;
@@ -41,14 +41,11 @@ export function DatasetsListProvider({
     data: datasetsResponse,
     isLoading,
     error,
-    refetch
-  } = useDatasets(
-    { page: currentPage, limit: pageSize },
-    {
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,
-    } as any
-  );
+    refetch,
+  } = useDatasets({ page: currentPage, limit: pageSize }, {
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  } as any);
 
   const response = datasetsResponse as DatasetListResponse;
   const datasets = response?.items || [];
@@ -76,7 +73,7 @@ export function DatasetsListProvider({
 export function useDatasetsList() {
   const context = useContext(DatasetsListContext);
   if (!context) {
-    throw new Error('useDatasetsList must be used within DatasetsListProvider');
+    throw new Error("useDatasetsList must be used within DatasetsListProvider");
   }
   return context;
 }

@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAnnotations } from '../data/AnnotationsContext';
-import { useImagesContext } from '../data/ImagesContext';
-import { useDatasets } from '../data/DatasetsContext';
-import { annotationService } from '@/shared/api';
-import type { CategoryRead } from '@/shared/api/generated/models';
-import { BoundingBox } from '@/components/annotation/types/workspace';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAnnotations } from "../data/AnnotationsContext";
+import { useImagesContext } from "../data/ImagesContext";
+import { useDatasets } from "../data/DatasetsContext";
+import { annotationService } from "@/shared/api";
+import type { CategoryRead } from "@/shared/api/generated/models";
+import { BoundingBox } from "@/components/annotation/types/workspace";
 
 export interface EntityAnnotation {
   id: string;
@@ -20,33 +20,35 @@ interface AnnotationWorkspaceContextValue {
   entities: EntityAnnotation[];
   selectedEntityId: string | null;
   currentSelectedMasks: number[];
-  
+
   // Entity actions
   handleBboxComplete: (bbox: BoundingBox) => void;
   handleMaskSelectionChange: (selectedMaskIds: number[]) => void;
   handleEntitySelect: (entityId: string) => void;
   handleEntityDelete: (entityId: string) => void;
   handleCategorySelect: (category: CategoryRead) => void;
-  
+
   // Save state
   isSaving: boolean;
   saveError: string | null;
   saveSuccess: boolean;
   isMovingToNext: boolean;
   handleSaveAnnotations: () => Promise<void>;
-  
+
   // Navigation
   moveToNextImage: () => void;
 }
 
-const AnnotationWorkspaceContext = createContext<AnnotationWorkspaceContextValue | undefined>(undefined);
+const AnnotationWorkspaceContext = createContext<AnnotationWorkspaceContextValue | undefined>(
+  undefined
+);
 
 export function AnnotationWorkspaceProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { annotations } = useAnnotations();
   const { selectedImage, setRandomSeed } = useImagesContext();
   const { dataset } = useDatasets();
-  
+
   // Annotation states
   const [entities, setEntities] = useState<EntityAnnotation[]>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
@@ -57,92 +59,101 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
   const [isMovingToNext, setIsMovingToNext] = useState(false);
 
   // Handle bbox completion
-  const handleBboxComplete = useCallback((bbox: BoundingBox) => {
-    const newEntity: EntityAnnotation = {
-      id: `entity_${Date.now()}`,
-      bbox,
-      selectedMaskIds: currentSelectedMasks,
-      createdAt: new Date(),
-    };
-    
-    setEntities(prev => [...prev, newEntity]);
-    setSelectedEntityId(newEntity.id);
-  }, [currentSelectedMasks]);
-
-  // Handle mask selection change
-  const handleMaskSelectionChange = useCallback((selectedMaskIds: number[]) => {
-    setCurrentSelectedMasks(selectedMaskIds);
-    
-    // If there's a selected entity, update its mask selection
-    if (selectedEntityId) {
-      setEntities(prev => 
-        prev.map(entity => 
-          entity.id === selectedEntityId
-            ? { ...entity, selectedMaskIds }
-            : entity
-        )
-      );
-    }
-  }, [selectedEntityId]);
-
-  // Handle entity selection
-  const handleEntitySelect = useCallback((entityId: string) => {
-    if (selectedEntityId === entityId) {
-      // If clicking the same entity, deselect it and clear masks
-      setSelectedEntityId(null);
-      setCurrentSelectedMasks([]);
-    } else {
-      // Select the entity and show its masks
-      setSelectedEntityId(entityId);
-      const entity = entities.find(e => e.id === entityId);
-      if (entity) {
-        setCurrentSelectedMasks(entity.selectedMaskIds);
-      }
-    }
-  }, [entities, selectedEntityId]);
-
-  // Handle entity deletion
-  const handleEntityDelete = useCallback((entityId: string) => {
-    setEntities(prev => prev.filter(e => e.id !== entityId));
-    if (selectedEntityId === entityId) {
-      setSelectedEntityId(null);
-      setCurrentSelectedMasks([]);
-    }
-  }, [selectedEntityId]);
-
-  // Handle category selection for entity
-  const handleCategorySelect = useCallback((category: CategoryRead) => {
-    if (selectedEntityId) {
-      // Update existing entity
-      setEntities(prev => 
-        prev.map(entity => 
-          entity.id === selectedEntityId
-            ? { ...entity, category }
-            : entity
-        )
-      );
-    } else if (currentSelectedMasks.length > 0) {
-      // Create new entity if no entity is selected but masks are selected
+  const handleBboxComplete = useCallback(
+    (bbox: BoundingBox) => {
       const newEntity: EntityAnnotation = {
         id: `entity_${Date.now()}`,
-        bbox: { 
-          id: `bbox_${Date.now()}`,
-          x: 0, 
-          y: 0, 
-          width: 0, 
-          height: 0,
-          label: category.name
-        }, // Empty bbox since created from mask selection
+        bbox,
         selectedMaskIds: currentSelectedMasks,
-        category,
         createdAt: new Date(),
       };
-      
+
       setEntities(prev => [...prev, newEntity]);
       setSelectedEntityId(newEntity.id);
-      setCurrentSelectedMasks([]); // Clear mask selection after entity creation
-    }
-  }, [selectedEntityId, currentSelectedMasks]);
+    },
+    [currentSelectedMasks]
+  );
+
+  // Handle mask selection change
+  const handleMaskSelectionChange = useCallback(
+    (selectedMaskIds: number[]) => {
+      setCurrentSelectedMasks(selectedMaskIds);
+
+      // If there's a selected entity, update its mask selection
+      if (selectedEntityId) {
+        setEntities(prev =>
+          prev.map(entity =>
+            entity.id === selectedEntityId ? { ...entity, selectedMaskIds } : entity
+          )
+        );
+      }
+    },
+    [selectedEntityId]
+  );
+
+  // Handle entity selection
+  const handleEntitySelect = useCallback(
+    (entityId: string) => {
+      if (selectedEntityId === entityId) {
+        // If clicking the same entity, deselect it and clear masks
+        setSelectedEntityId(null);
+        setCurrentSelectedMasks([]);
+      } else {
+        // Select the entity and show its masks
+        setSelectedEntityId(entityId);
+        const entity = entities.find(e => e.id === entityId);
+        if (entity) {
+          setCurrentSelectedMasks(entity.selectedMaskIds);
+        }
+      }
+    },
+    [entities, selectedEntityId]
+  );
+
+  // Handle entity deletion
+  const handleEntityDelete = useCallback(
+    (entityId: string) => {
+      setEntities(prev => prev.filter(e => e.id !== entityId));
+      if (selectedEntityId === entityId) {
+        setSelectedEntityId(null);
+        setCurrentSelectedMasks([]);
+      }
+    },
+    [selectedEntityId]
+  );
+
+  // Handle category selection for entity
+  const handleCategorySelect = useCallback(
+    (category: CategoryRead) => {
+      if (selectedEntityId) {
+        // Update existing entity
+        setEntities(prev =>
+          prev.map(entity => (entity.id === selectedEntityId ? { ...entity, category } : entity))
+        );
+      } else if (currentSelectedMasks.length > 0) {
+        // Create new entity if no entity is selected but masks are selected
+        const newEntity: EntityAnnotation = {
+          id: `entity_${Date.now()}`,
+          bbox: {
+            id: `bbox_${Date.now()}`,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            label: category.name,
+          }, // Empty bbox since created from mask selection
+          selectedMaskIds: currentSelectedMasks,
+          category,
+          createdAt: new Date(),
+        };
+
+        setEntities(prev => [...prev, newEntity]);
+        setSelectedEntityId(newEntity.id);
+        setCurrentSelectedMasks([]); // Clear mask selection after entity creation
+      }
+    },
+    [selectedEntityId, currentSelectedMasks]
+  );
 
   // Move to next image
   const moveToNextImage = useCallback(() => {
@@ -150,7 +161,7 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
     setEntities([]);
     setSelectedEntityId(null);
     setCurrentSelectedMasks([]);
-    
+
     // Generate new random seed to get different image
     setRandomSeed(Math.floor(Math.random() * 1000));
   }, [setRandomSeed]);
@@ -165,12 +176,14 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
 
     try {
       // Filter entities that have both masks and categories
-      const validEntities = entities.filter(entity => 
-        entity.selectedMaskIds.length > 0 && entity.category?.id
+      const validEntities = entities.filter(
+        entity => entity.selectedMaskIds.length > 0 && entity.category?.id
       );
 
       if (validEntities.length === 0) {
-        throw new Error("No valid entities to save. Each entity must have selected masks and a category.");
+        throw new Error(
+          "No valid entities to save. Each entity must have selected masks and a category."
+        );
       }
 
       // Create batch data using the helper method
@@ -179,35 +192,34 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
         validEntities
       );
 
-      console.log('Saving annotation selections:', batchData);
+      console.log("Saving annotation selections:", batchData);
 
       // Call the batch API
       const result = await annotationService.createAnnotationSelectionsBatch(batchData);
 
-      console.log('Save successful:', result);
-      
+      console.log("Save successful:", result);
+
       // Show success state
       setSaveSuccess(true);
-      
+
       // Auto-hide success message and move to next image after 1.5 seconds
       setTimeout(() => {
         setSaveSuccess(false);
         setIsMovingToNext(true);
-        
+
         // Small delay to show "moving to next" state
         setTimeout(() => {
           moveToNextImage();
           setIsMovingToNext(false);
-          
-          console.log('Moved to next image for continued annotation');
+
+          console.log("Moved to next image for continued annotation");
         }, 800);
       }, 1500);
-
     } catch (error) {
-      console.error('Error saving annotations:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save annotations';
+      console.error("Error saving annotations:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save annotations";
       setSaveError(errorMessage);
-      
+
       // Auto-hide error message after 5 seconds
       setTimeout(() => {
         setSaveError(null);
@@ -244,7 +256,7 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
 export function useAnnotationWorkspace() {
   const context = useContext(AnnotationWorkspaceContext);
   if (!context) {
-    throw new Error('useAnnotationWorkspace must be used within AnnotationWorkspaceProvider');
+    throw new Error("useAnnotationWorkspace must be used within AnnotationWorkspaceProvider");
   }
   return context;
 }
