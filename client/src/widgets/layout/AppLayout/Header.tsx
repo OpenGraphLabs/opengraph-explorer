@@ -1,21 +1,37 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { ConnectButton, useCurrentWallet } from "@mysten/dapp-kit";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Box, Flex, Text, Avatar, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { HamburgerMenuIcon, GitHubLogoIcon, SunIcon, MoonIcon } from "@radix-ui/react-icons";
+import {
+  HamburgerMenuIcon,
+  GitHubLogoIcon,
+  SunIcon,
+  MoonIcon,
+  ExitIcon,
+  EnterIcon,
+} from "@radix-ui/react-icons";
 import { requiresAuth } from "@/shared/config/routePermissions";
-import { useAuth } from "@/shared/hooks/useAuth";
-import { useDemoAuth, DEMO_LOGIN_ENABLED } from "@/features/auth";
+import { useAuth } from "@/contexts/data/AuthContext";
+import { useZkLogin } from "@/contexts/data/ZkLoginContext";
 import logoImage from "@/assets/logo/logo.png";
 
 export function Header() {
   const location = useLocation();
-  const { isConnected, currentWallet } = useCurrentWallet();
-  const { isDemoAuthenticated, demoUser } = useAuth();
-  const { logout } = useDemoAuth();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
+  const { clearSession } = useZkLogin();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { mode, toggleTheme, theme } = useTheme();
+
+  const handleLogout = () => {
+    // Clear auth contexts
+    logout();
+    clearSession();
+    // Clear any other session data
+    sessionStorage.removeItem("access_token");
+    // Reload to show login screen
+    window.location.reload();
+  };
 
   return (
     <>
@@ -74,7 +90,7 @@ export function Header() {
             <NavLink
               to="/datasets"
               current={location.pathname === "/datasets"}
-              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/datasets")}
+              disabled={!isAuthenticated && requiresAuth("/datasets")}
             >
               Datasets
             </NavLink>
@@ -150,14 +166,19 @@ export function Header() {
           >
             <GitHubLogoIcon width="16" height="16" />
           </a>
-          {/* Demo User Display or Connect Button */}
-          {DEMO_LOGIN_ENABLED && isDemoAuthenticated && demoUser ? (
+          {/* User Display */}
+          {isAuthenticated && user ? (
             <Flex align="center" gap="2">
-              {/* Profile Avatar Link for Demo User */}
+              {/* Profile Avatar Link */}
               <Link to="/profile" style={{ textDecoration: "none" }}>
                 <Avatar
                   size="1"
-                  fallback={demoUser.displayName.substring(0, 2).toUpperCase()}
+                  src={user.picture}
+                  fallback={
+                    user.name?.substring(0, 2).toUpperCase() ||
+                    user.email?.substring(0, 2).toUpperCase() ||
+                    "U"
+                  }
                   style={{
                     background: theme.colors.interactive.primary,
                     cursor: "pointer",
@@ -169,97 +190,83 @@ export function Header() {
                   }}
                 />
               </Link>
-              <Box
+              {/* User Info */}
+              <Text
+                size="2"
                 style={{
-                  background: theme.colors.background.card,
-                  border: `1px solid ${theme.colors.border.primary}`,
+                  color: theme.colors.text.primary,
+                  fontWeight: 500,
+                  maxWidth: "120px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: { initial: "none", sm: "block" },
+                }}
+              >
+                {user.name || user.email?.split("@")[0] || "User"}
+              </Text>
+
+              {/* Logout Button - Minimal */}
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: "transparent",
+                  border: `1px solid ${theme.colors.border.secondary}`,
                   borderRadius: theme.borders.radius.sm,
                   padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: theme.colors.text.secondary,
+                  cursor: "pointer",
                   height: "32px",
                   display: "flex",
                   alignItems: "center",
-                  gap: theme.spacing.base[2],
+                  transition: "all 150ms ease",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = theme.colors.border.primary;
+                  e.currentTarget.style.color = theme.colors.text.primary;
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = theme.colors.border.secondary;
+                  e.currentTarget.style.color = theme.colors.text.secondary;
                 }}
               >
-                <Text
-                  size="2"
-                  style={{
-                    color: theme.colors.text.primary,
-                    fontWeight: theme.typography.label.fontWeight,
-                  }}
-                >
-                  {demoUser.displayName}
-                </Text>
-                <Button
-                  variant="tertiary"
-                  onClick={logout}
-                  style={{
-                    padding: `${theme.spacing.base[0]} ${theme.spacing.base[1]}`,
-                    fontSize: theme.typography.bodySmall.fontSize,
-                    height: "20px",
-                    minHeight: "20px",
-                    color: theme.colors.text.tertiary,
-                  }}
-                >
-                  Logout
-                </Button>
-              </Box>
+                <ExitIcon width="14" height="14" style={{ marginRight: "4px" }} />
+                Sign out
+              </button>
             </Flex>
           ) : (
-            // <>
-            //   {/* Compact Connect Button */}
-            //   <ConnectButton
-            //     connectText="Connect"
-            //     data-testid="connect-button"
-            //     style={{
-            //       borderRadius: theme.borders.radius.sm,
-            //       background: isConnected
-            //         ? theme.colors.background.card
-            //         : theme.colors.interactive.primary,
-            //       color: isConnected ? theme.colors.text.primary : theme.colors.text.inverse,
-            //       border: isConnected ? `1px solid ${theme.colors.border.primary}` : "none",
-            //       fontWeight: theme.typography.label.fontWeight,
-            //       padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`, // Compact padding
-            //       fontSize: theme.typography.bodySmall.fontSize,
-            //       height: "32px",
-            //     }}
-            //   />
-            //   {/* Compact Profile (when connected) */}
-            //   {isConnected && (
-            //     <Link to="/profile" style={{ textDecoration: "none" }}>
-            //       <Avatar
-            //         size="1" // Smaller avatar
-            //         fallback={currentWallet?.accounts[0]?.address.slice(0, 2) || "0x"}
-            //         style={{
-            //           background: theme.colors.interactive.primary,
-            //           cursor: "pointer",
-            //           width: "32px",
-            //           height: "32px",
-            //           fontSize: "12px",
-            //         }}
-            //       />
-            //     </Link>
-            //   )}
-            // </>
             <>
-              {/* Profile Avatar Link */}
-              {isConnected && (
-                <Link to="/profile" style={{ textDecoration: "none" }}>
-                  <Avatar
-                    size="1"
-                    fallback={currentWallet?.accounts[0]?.address.slice(0, 2).toUpperCase() || "0x"}
-                    style={{
-                      background: theme.colors.interactive.primary,
-                      cursor: "pointer",
-                      width: "32px",
-                      height: "32px",
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      color: theme.colors.text.inverse,
-                    }}
-                  />
-                </Link>
-              )}
+              {/* Login Button - Minimal and Professional */}
+              <button
+                onClick={() => navigate("/login")}
+                style={{
+                  background: theme.colors.interactive.primary,
+                  border: "none",
+                  borderRadius: theme.borders.radius.sm,
+                  padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`,
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "white",
+                  cursor: "pointer",
+                  height: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  transition: "all 150ms ease",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.opacity = "0.9";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                Sign in
+                <EnterIcon width="14" height="14" style={{ marginLeft: "4px" }} />
+              </button>
             </>
           )}
         </Flex>
@@ -296,7 +303,7 @@ export function Header() {
               to="/models"
               current={location.pathname === "/models"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/models")}
+              disabled={!isAuthenticated && requiresAuth("/models")}
             >
               Models
             </MobileNavLink>
@@ -304,7 +311,7 @@ export function Header() {
               to="/datasets"
               current={location.pathname === "/datasets"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/datasets")}
+              disabled={!isAuthenticated && requiresAuth("/datasets")}
             >
               Datasets
             </MobileNavLink>
@@ -312,7 +319,7 @@ export function Header() {
               to="/models/upload"
               current={location.pathname === "/models/upload"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/models/upload")}
+              disabled={!isAuthenticated && requiresAuth("/models/upload")}
             >
               Upload Model
             </MobileNavLink>
@@ -320,7 +327,7 @@ export function Header() {
               to="/annotator"
               current={location.pathname === "/annotator"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/annotator")}
+              disabled={!isAuthenticated && requiresAuth("/annotator")}
             >
               Annotator
             </MobileNavLink>
@@ -328,7 +335,7 @@ export function Header() {
               to="/profile"
               current={location.pathname === "/profile"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isConnected && !isDemoAuthenticated && requiresAuth("/profile")}
+              disabled={!isAuthenticated && requiresAuth("/profile")}
             >
               Profile
             </MobileNavLink>

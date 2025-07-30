@@ -1,5 +1,4 @@
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
 import { useRoutePermission } from "../hooks/useAuth";
 import { Login } from "@/pages/Login";
 
