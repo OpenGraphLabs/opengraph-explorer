@@ -77,7 +77,6 @@ export function InteractiveAnnotationCanvas({
   // Mask states
   const [maskStates, setMaskStates] = useState<Record<number, MaskState>>({});
   const [showMasks, setShowMasks] = useState(true);
-  const [showColorControls, setShowColorControls] = useState(false);
   const [interactionState, setInteractionState] = useState<SimpleInteractionState>({
     hoveredMaskId: null,
     selectedMaskIds: [],
@@ -203,35 +202,17 @@ export function InteractiveAnnotationCanvas({
     setPanOffset({ x: offsetX, y: offsetY });
   }, [imageLoaded, imageWidth, imageHeight]);
 
-  // Auto-zoom to fill when image loads or container resizes
+  // Initialize with zoomToFit when image loads
   useEffect(() => {
     if (!imageLoaded) return;
 
     // Wait for container to be properly sized
     const timeoutId = setTimeout(() => {
-      zoomToFill();
-    }, 300);
+      zoomToFit();
+    }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [imageLoaded, zoomToFill]);
-
-  // Handle container resize
-  useEffect(() => {
-    if (!containerRef.current || !imageLoaded) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      // Debounce the resize calls
-      setTimeout(() => {
-        zoomToFill();
-      }, 100);
-    });
-
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [imageLoaded, zoomToFill]);
+  }, [imageLoaded, zoomToFit]);
 
   // Zoom functions
   const zoomIn = useCallback(() => {

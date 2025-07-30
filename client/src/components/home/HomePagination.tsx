@@ -10,7 +10,7 @@ export function HomePagination() {
   const { theme } = useTheme();
   const { currentPage, totalPages } = useAnnotations();
   const { selectedCategory } = useCategories();
-  const { handlePageChange } = useHomePage();
+  const { handlePageChange, isLoading } = useHomePage();
 
   // Don't show pagination when category is selected or there's only one page
   if (selectedCategory || totalPages <= 1) {
@@ -18,17 +18,26 @@ export function HomePagination() {
   }
 
   return (
-    <Flex justify="center" align="center" gap="2">
+    <Flex 
+      justify="center" 
+      align="center" 
+      gap="2"
+      style={{
+        opacity: isLoading ? 0.5 : 1,
+        transition: "opacity 300ms ease-out",
+      }}
+    >
       <Button
         variant="secondary"
         size="md"
         highContrast={true}
         onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage <= 1}
+        disabled={currentPage <= 1 || isLoading}
         style={{
           display: "flex",
           alignItems: "center",
           gap: theme.spacing.semantic.component.sm,
+          cursor: isLoading ? "not-allowed" : "pointer",
         }}
       >
         <ChevronLeftIcon width="16" height="16" />
@@ -44,7 +53,15 @@ export function HomePagination() {
             "JetBrains Mono, SF Mono, Monaco, Inconsolata, Roboto Mono, Fira Code, Consolas, Liberation Mono, Menlo, Courier, monospace",
         }}
       >
-        Page {currentPage} of {totalPages}
+        {isLoading ? (
+          <>
+            Loading page {currentPage}...
+          </>
+        ) : (
+          <>
+            Page {currentPage} of {totalPages}
+          </>
+        )}
       </Text>
 
       <Button
@@ -52,11 +69,12 @@ export function HomePagination() {
         size="md"
         highContrast={true}
         onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage >= totalPages}
+        disabled={currentPage >= totalPages || isLoading}
         style={{
           display: "flex",
           alignItems: "center",
           gap: theme.spacing.semantic.component.sm,
+          cursor: isLoading ? "not-allowed" : "pointer",
         }}
       >
         Next

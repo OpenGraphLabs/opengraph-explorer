@@ -6,7 +6,7 @@ import { useHomePage } from "@/contexts/page/HomePageContext";
 
 export function HomeGallery() {
   const { theme } = useTheme();
-  const { annotationsWithImages, showGlobalMasks, handleAnnotationClick, isLoading } =
+  const { annotationsWithImages, showGlobalMasks, handleAnnotationClick, isLoading, isTransitioning } =
     useHomePage();
 
   if (annotationsWithImages.length === 0) {
@@ -25,9 +25,10 @@ export function HomeGallery() {
       gap="4"
       style={{
         marginBottom: theme.spacing.semantic.layout.lg,
-        opacity: isLoading ? 0.6 : 1,
-        transform: isLoading ? "translateY(8px)" : "translateY(0)",
+        opacity: isTransitioning ? 0.7 : 1,
+        transform: isTransitioning ? "translateY(4px)" : "translateY(0)",
         transition: "opacity 300ms ease-out, transform 300ms ease-out",
+        pointerEvents: isLoading ? "none" : "auto",
       }}
     >
       {annotationsWithImages.map(annotationWithImage => {

@@ -29,20 +29,27 @@ export function AnnotationsProvider({
   config?: AnnotationsConfig;
 }) {
   const [currentPage, setCurrentPage] = useState(config.page || 1);
-  const limit = config.limit || 24;
+  const limit = config.limit || 25;
 
   // Use approved annotations for Home page
   const approvedQuery = useApprovedAnnotations({ page: currentPage, limit }, {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - annotations don't change frequently
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: config.mode === "approved" || !config.mode,
+    placeholderData: (previousData) => previousData, // Show previous data immediately
   } as any);
 
   // Use annotations by image for AnnotationWorkspace
   const byImageQuery = useAnnotationsByImage(config.imageId || 0, {}, {
     enabled: config.mode === "byImage" && !!config.imageId,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes in cache (renamed from cacheTime in v5)
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    placeholderData: (previousData) => previousData, // Show previous data immediately
   } as any);
 
   // Select the appropriate query based on mode

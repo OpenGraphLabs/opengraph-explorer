@@ -94,13 +94,13 @@ export function Header() {
             >
               Datasets
             </NavLink>
-            {/* <NavLink
-              to="/annotator"
-              current={location.pathname === "/annotator"}
-              disabled={!isConnected && requiresWallet("/annotator")}
+            <NavLink
+              to="/earn"
+              current={location.pathname === "/earn"}
+              disabled={!isAuthenticated && requiresAuth("/earn")}
             >
-              Annotator
-            </NavLink> */}
+              Earn
+            </NavLink>
           </Flex>
         </Flex>
 

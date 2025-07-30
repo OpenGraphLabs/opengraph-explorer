@@ -55,9 +55,11 @@ export class ApiClient {
 
       if (jwt) {
         config.headers.Authorization = `Bearer ${jwt}`;
-      } else {
-        // Add user ID header (fallback for testing)
-        const userId = localStorage.getItem("opengraph-user-id") || "1";
+      }
+
+      if (localStorage.getItem("opengraph-user-id")) {
+        // Add user ID header (for internal use)
+        const userId = localStorage.getItem("opengraph-user-id");
         config.headers["X-Opengraph-User-Id"] = userId;
       }
       
