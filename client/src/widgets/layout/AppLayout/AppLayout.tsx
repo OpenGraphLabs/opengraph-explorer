@@ -23,7 +23,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     >
       <Box
         style={{
-          maxWidth: "1400px",
+          maxWidth: "95vw",
           margin: "0 auto",
           padding: `0 ${theme.spacing.base[4]}`,
           minHeight: "100vh",

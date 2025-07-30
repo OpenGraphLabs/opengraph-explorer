@@ -30,12 +30,12 @@ interface TaskType {
 const TASK_TYPES: TaskType[] = [
   {
     id: "segmentation-mask",
-    title: "Segmentation Mask Annotation",
-    description: "Create precise object segmentation masks for robotic vision training datasets",
-    icon: <MaskHappy size={24} weight="duotone" />,
+    title: "Image Segmentation Mask",
+    description: "Create precise object boundaries for computer vision training datasets.",
+    icon: <MaskHappy size={22} weight="duotone" />,
     reward: "5-15 $OPEN",
     difficulty: "Intermediate",
-    estimatedTime: "10-20 min",
+    estimatedTime: "~15 min",
     category: "Computer Vision",
     featured: true,
     requirements: ["Basic image editing skills", "Understanding of object boundaries"],
@@ -44,37 +44,37 @@ const TASK_TYPES: TaskType[] = [
   {
     id: "trajectory-drawing",
     title: "Robot Trajectory Drawing",
-    description: "Draw accurate robot motion paths for navigation and manipulation tasks",
-    icon: <Path size={24} weight="duotone" />,
+    description: "Draw accurate robot motion paths for navigation and manipulation tasks.",
+    icon: <Path size={22} weight="duotone" />,
     reward: "8-20 $OPEN",
     difficulty: "Advanced",
-    estimatedTime: "15-30 min",
-    category: "Robotics",
+    estimatedTime: "~25 min",
+    category: "Robotics AI",
     featured: true,
-    requirements: ["Spatial reasoning", "Understanding of robot kinematics"],
+    requirements: ["Spatial reasoning skills", "Understanding of robot kinematics"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_trajectory.jpg"
   },
   {
     id: "picture-upload",
-    title: "First-person View Collection",
-    description: "Contribute high-quality first-person view images for embodied AI training",
-    icon: <Camera size={24} weight="duotone" />,
+    title: "First-person View Image",
+    description: "Contribute first-person perspective images for embodied AI training.",
+    icon: <Camera size={22} weight="duotone" />,
     reward: "2-8 $OPEN",
     difficulty: "Beginner",
-    estimatedTime: "2-5 min",
+    estimatedTime: "~5 min",
     category: "Data Collection",
     requirements: ["Camera or smartphone", "Good lighting conditions"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg"
   },
   {
     id: "video-upload",
-    title: "Action Demonstration Videos",
-    description: "Record and upload action demonstration videos for robotic learning algorithms",
-    icon: <PlayCircle size={24} weight="duotone" />,
+    title: "Action Demonstration Video",
+    description: "Record demonstration videos for robotic learning algorithms.",
+    icon: <PlayCircle size={22} weight="duotone" />,
     reward: "10-25 $OPEN",
     difficulty: "Intermediate",
-    estimatedTime: "20-45 min",
-    category: "Data Collection",
+    estimatedTime: "~30 min",
+    category: "Behavioral AI",
     requirements: ["Video recording capability", "Clear action demonstration"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg"
   }
@@ -126,7 +126,7 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           backgroundColor: theme.colors.background.card,
           display: "flex",
           flexDirection: "column",
-          minHeight: "440px",
+          height: "520px",
           height: "auto",
           transition: theme.animations.transitions.hover,
           cursor: "pointer",
@@ -168,12 +168,12 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           </Box>
         )}
 
-        <Flex direction="column" gap="4" style={{ height: "100%" }}>
+        <Flex direction="column" gap="4" style={{ height: "100%", minHeight: "520px" }}>
           {/* Thumbnail Image */}
           <Box
             style={{
               width: "100%",
-              height: "220px",
+              height: "260px",
               borderRadius: theme.borders.radius.lg,
               backgroundColor: theme.colors.background.secondary,
               border: `1px solid ${theme.colors.border.primary}`,
@@ -183,6 +183,7 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
               overflow: "hidden",
               position: "relative",
               boxShadow: `inset 0 1px 2px rgba(0, 0, 0, 0.1)`,
+              cursor: "pointer",
             }}
           >
             {task.thumbnailUrl ? (
@@ -190,12 +191,13 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
                 <img
                   src={task.thumbnailUrl}
                   alt={task.title}
+                  className="task-thumbnail"
                   style={{
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
                     objectPosition: "center",
-                    transition: theme.animations.transitions.all,
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                 />
                 {/* Overlay gradient for better text readability */}
@@ -227,7 +229,10 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
                     border: `1px solid rgba(255, 255, 255, 0.2)`,
                   }}
                 >
-                  <Box style={{ color: theme.colors.interactive.primary }}>
+                  <Box className="task-icon" style={{ 
+                    color: theme.colors.interactive.primary,
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                  }}>
                     {task.icon}
                   </Box>
                 </Box>
@@ -250,42 +255,26 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
             )}
           </Box>
 
-          {/* Header with Category */}
-          <Flex align="center" justify="between">
-            <Badge
-              style={{
-                backgroundColor: `${theme.colors.interactive.accent}15`,
-                color: theme.colors.interactive.accent,
-                border: `1px solid ${theme.colors.interactive.accent}30`,
-                borderRadius: theme.borders.radius.sm,
-                padding: "4px 10px",
-                fontSize: "11px",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {task.category}
-            </Badge>
-            {/* Reward display moved to header */}
+          {/* Header with Reward */}
+          <Flex align="center" justify="center" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
             <Box
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "4px",
-                padding: "4px 10px",
+                gap: "6px",
+                padding: "6px 12px",
                 borderRadius: theme.borders.radius.full,
-                backgroundColor: `${theme.colors.interactive.primary}15`,
+                background: `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.accent}15)`,
                 border: `1px solid ${theme.colors.interactive.primary}30`,
               }}
             >
-              <Coins size={14} color={theme.colors.interactive.primary} weight="fill" />
+              <Coins size={16} color={theme.colors.interactive.primary} weight="fill" />
               <Text
-                size="1"
+                size="2"
                 style={{
                   color: theme.colors.interactive.primary,
                   fontWeight: 700,
-                  fontSize: "12px",
+                  fontSize: "14px",
                 }}
               >
                 {task.reward}
@@ -294,19 +283,14 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           </Flex>
 
           {/* Title and Description */}
-          <Box style={{ flex: 1 }}>
+          <Box style={{ textAlign: "center", marginBottom: theme.spacing.semantic.component.sm, flex: "1" }}>
             <Text
               as="p"
               size="4"
               weight="bold"
               style={{
                 color: theme.colors.text.primary,
-                marginBottom: theme.spacing.semantic.component.sm,
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                marginBottom: "8px",
                 lineHeight: "1.3",
               }}
             >
@@ -317,20 +301,53 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
               size="2"
               style={{
                 color: theme.colors.text.secondary,
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
                 lineHeight: "1.4",
+                fontSize: "13px",
+                textAlign: "left",
+                padding: "0 8px",
               }}
             >
               {task.description}
             </Text>
           </Box>
 
-          {/* Difficulty and Time */}
-          <Flex justify="between" align="center" gap="2">
+          {/* Requirements */}
+          <Box style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                fontWeight: 600,
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                marginBottom: "6px",
+                textAlign: "center",
+              }}
+            >
+              Requirements
+            </Text>
+            <Flex direction="column" gap="2" style={{ padding: "0 8px" }}>
+              {task.requirements.map((requirement, index) => (
+                <Flex key={index} align="center" gap="2">
+                  <CheckCircle size={12} color={theme.colors.status.success} weight="fill" />
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      fontSize: "12px",
+                      lineHeight: "1.3",
+                    }}
+                  >
+                    {requirement}
+                  </Text>
+                </Flex>
+              ))}
+            </Flex>
+          </Box>
+
+          {/* Difficulty and Time - Compact */}
+          <Flex justify="center" align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
             <Badge
               style={{
                 backgroundColor: difficultyStyle.background,
@@ -345,7 +362,7 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
               {task.difficulty}
             </Badge>
             <Text
-              size="2"
+              size="1"
               style={{
                 color: theme.colors.text.secondary,
                 fontSize: "12px",
@@ -356,63 +373,32 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
             </Text>
           </Flex>
 
-          {/* Requirements */}
-          <Box>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                fontWeight: 600,
-                fontSize: "10px",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: theme.spacing.semantic.component.xs,
-              }}
-            >
-              Requirements
-            </Text>
-            <Flex direction="column" gap="1">
-              {task.requirements.slice(0, 2).map((requirement, index) => (
-                <Flex key={index} align="center" gap="2">
-                  <CheckCircle size={10} color={theme.colors.status.success} weight="fill" />
-                  <Text
-                    size="1"
-                    style={{
-                      color: theme.colors.text.tertiary,
-                      fontSize: "11px",
-                      lineHeight: "1.2",
-                    }}
-                  >
-                    {requirement}
-                  </Text>
-                </Flex>
-              ))}
-            </Flex>
-          </Box>
-
           {/* Action Button */}
           <Button
+            className="task-button"
             style={{
               width: "100%",
               background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
               color: theme.colors.text.inverse,
               border: "none",
-              borderRadius: theme.borders.radius.md,
-              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              borderRadius: theme.borders.radius.lg,
+              padding: "12px",
               fontSize: "13px",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: theme.spacing.semantic.component.sm,
+              gap: "6px",
               marginTop: "auto",
-              transition: theme.animations.transitions.all,
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               boxShadow: theme.shadows.semantic.interactive.default,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
             }}
           >
-            Start Task
-            <ArrowRight size={14} weight="bold" />
+            Start
+            <ArrowRight size={12} weight="bold" />
           </Button>
         </Flex>
       </Box>
@@ -460,14 +446,14 @@ function EarnContent() {
             lineHeight: 1.5,
           }}
         >
-          Earn OPEN tokens by completing AI training tasks
+          Earn $OPEN tokens by completing AI training tasks
         </Text>
       </Box>
 
       {/* Tasks Grid */}
       <Grid
         columns={{ initial: "1", sm: "2" }}
-        gap="6"
+        gap="25px"
         style={{
           gridTemplateColumns: "1fr 1fr 1fr 1fr",
           marginBottom: theme.spacing.semantic.layout.lg,
@@ -478,56 +464,6 @@ function EarnContent() {
           <TaskCard key={task.id} task={task} index={index} isLoaded={isLoaded} />
         ))}
       </Grid>
-
-      {/* Call to Action */}
-      <Box
-        style={{
-          textAlign: "center",
-          padding: theme.spacing.semantic.component.lg,
-          borderRadius: theme.borders.radius.lg,
-          background: `linear-gradient(135deg, ${theme.colors.background.secondary}, ${theme.colors.background.accent})`,
-          border: `1px solid ${theme.colors.border.primary}`,
-          marginTop: theme.spacing.semantic.layout.md,
-        }}
-      >
-        <Text
-          as="p"
-          size="5"
-          weight="bold"
-          style={{
-            color: theme.colors.text.primary,
-            marginBottom: theme.spacing.semantic.component.md,
-          }}
-        >
-          Ready to Get Started?
-        </Text>
-        <Text
-          as="p"
-          size="3"
-          style={{
-            color: theme.colors.text.secondary,
-            marginBottom: theme.spacing.semantic.component.lg,
-            maxWidth: "500px",
-            margin: `0 auto ${theme.spacing.semantic.component.lg} auto`,
-          }}
-        >
-          Join our community of contributors and help advance the field of robotics AI while earning rewards.
-        </Text>
-        <Button
-          style={{
-            background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-            color: theme.colors.text.inverse,
-            border: "none",
-            borderRadius: theme.borders.radius.md,
-            padding: `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
-            fontSize: "14px",
-            fontWeight: 600,
-            boxShadow: theme.shadows.semantic.interactive.default,
-          }}
-        >
-          View Documentation
-        </Button>
-      </Box>
 
       {/* Animations */}
       <style>
@@ -547,10 +483,29 @@ function EarnContent() {
             animation: cardSlideIn 0.6s ease forwards;
           }
           
+          .task-card {
+            transition: all 0.25s ease;
+          }
+          
           .task-card:hover {
             transform: translateY(-4px);
-            box-shadow: ${theme.shadows.semantic.card.high};
+            box-shadow: 
+              0 12px 24px rgba(0, 0, 0, 0.12),
+              0 0 0 1px ${theme.colors.interactive.primary}30;
             border-color: ${theme.colors.interactive.primary}60;
+          }
+          
+          .task-card:hover .task-thumbnail {
+            transform: scale(1.02);
+          }
+          
+          .task-card:hover .task-button {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px ${theme.colors.interactive.primary}30;
+          }
+          
+          .task-card:hover .task-icon {
+            transform: scale(1.1);
           }
         `}
       </style>
@@ -562,9 +517,9 @@ export function Earn() {
   return (
     <Box
       style={{
-        maxWidth: "1200px",
+        maxWidth: "100%",
         margin: "0 auto",
-        padding: "0 24px",
+        padding: "0 20px",
       }}
     >
       <EarnContent />

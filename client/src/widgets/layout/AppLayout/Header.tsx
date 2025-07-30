@@ -88,18 +88,18 @@ export function Header() {
               Models
             </NavLink> */}
             <NavLink
-              to="/datasets"
-              current={location.pathname === "/datasets"}
-              disabled={!isAuthenticated && requiresAuth("/datasets")}
-            >
-              Datasets
-            </NavLink>
-            <NavLink
               to="/earn"
               current={location.pathname === "/earn"}
               disabled={!isAuthenticated && requiresAuth("/earn")}
             >
               Earn
+            </NavLink>
+            <NavLink
+              to="/datasets"
+              current={location.pathname === "/datasets"}
+              disabled={!isAuthenticated && requiresAuth("/datasets")}
+            >
+              Dataset
             </NavLink>
           </Flex>
         </Flex>
