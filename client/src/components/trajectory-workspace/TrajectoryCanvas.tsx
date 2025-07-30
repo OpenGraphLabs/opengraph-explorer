@@ -4,7 +4,7 @@ import { useTheme } from "@/shared/ui/design-system";
 import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
 import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
-import { Hand, ArrowRight, CheckCircle, Eye, EyeSlash, CornersOut } from "phosphor-react";
+import { HandGrabbing, ArrowRight, CheckCircle, Eye, EyeSlash, CornersOut } from "phosphor-react";
 import type { Annotation, MaskInfo } from "@/components/annotation/types/annotation";
 import type { AnnotationClientRead } from "@/shared/api/generated/models";
 
@@ -746,27 +746,39 @@ export function TrajectoryCanvas() {
                 {(() => {
                   const screenCoords = imageToScreen(robotHandPosition.x, robotHandPosition.y);
                   return (
-                    <>
+                    <g transform={`translate(${screenCoords.x}, ${screenCoords.y})`}>
+                      {/* Shadow circle for depth */}
                       <circle
-                        cx={screenCoords.x}
-                        cy={screenCoords.y}
-                        r="20"
+                        cx="0"
+                        cy="0"
+                        r="24"
+                        fill="rgba(0, 0, 0, 0.1)"
+                        stroke="none"
+                      />
+                      {/* Main circle background */}
+                      <circle
+                        cx="0"
+                        cy="0"
+                        r="22"
                         fill={theme.colors.background.card}
                         stroke={ROBOT_HAND_COLOR}
                         strokeWidth="3"
                         style={{
-                          filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15))",
+                          filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2))",
                         }}
                       />
-                      <text
-                        x={screenCoords.x}
-                        y={screenCoords.y + 5}
-                        textAnchor="middle"
-                        fontSize="16"
-                      >
-                        🤖
-                      </text>
-                    </>
+                      {/* HandGrabbing icon */}
+                      <foreignObject x="-14" y="-14" width="28" height="28">
+                        <HandGrabbing 
+                          size={28} 
+                          color={ROBOT_HAND_COLOR} 
+                          weight="fill"
+                          style={{
+                            display: "block"
+                          }}
+                        />
+                      </foreignObject>
+                    </g>
                   );
                 })()}
               </g>

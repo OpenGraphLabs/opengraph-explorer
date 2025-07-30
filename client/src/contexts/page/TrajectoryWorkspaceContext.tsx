@@ -164,16 +164,22 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
     return selectedMasks;
   }, [selectedTask, approvedAnnotations, hardcodedImageTasks.maskMappings]);
 
-  // Initialize robot hand position when image or task changes
+  // Initialize robot hand position to start point when available
   useEffect(() => {
-    if (selectedImage && selectedTask) {
+    if (startPoint) {
+      // Move robot hand to start point
+      setRobotHandPosition({
+        x: startPoint.x,
+        y: startPoint.y
+      });
+    } else if (selectedImage && selectedTask) {
       // Default robot hand position at bottom center of image
       setRobotHandPosition({
         x: selectedImage.width / 2,
         y: selectedImage.height * 0.8
       });
     }
-  }, [selectedImage, selectedTask]);
+  }, [selectedImage, selectedTask, startPoint]);
 
   // Reset state when task changes
   useEffect(() => {
@@ -201,7 +207,15 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
   const handleEndDrawing = useCallback((path: Point[]) => {
     setTrajectoryPath(path);
     setIsDrawingMode(false);
-  }, []);
+    
+    // Move robot hand to end point when trajectory is completed
+    if (endPoint) {
+      setRobotHandPosition({
+        x: endPoint.x,
+        y: endPoint.y
+      });
+    }
+  }, [endPoint]);
 
   // Trajectory point management
   const handleTrajectoryPointAdd = useCallback((point: TrajectoryPoint) => {
