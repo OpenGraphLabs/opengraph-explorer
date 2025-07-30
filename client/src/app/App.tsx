@@ -11,6 +11,7 @@ import { Profile } from "@/pages/Profile";
 import { Datasets } from "@/pages/Datasets";
 import { DatasetDetail } from "@/pages/DatasetDetail";
 import { AnnotationWorkspace } from "@/pages/AnnotationWorkspace";
+import { TrajectoryDrawingWorkspace } from "@/pages/TrajectoryDrawingWorkspace";
 import { AuthCallback } from "@/components/auth";
 import { AuthSuccess } from "@/pages/AuthSuccess";
 import { AuthError } from "@/pages/AuthError";
@@ -91,6 +92,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AnnotationWorkspace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/datasets/:id/trajectory"
+          element={
+            <ProtectedRoute>
+              <TrajectoryDrawingWorkspace />
             </ProtectedRoute>
           }
         />

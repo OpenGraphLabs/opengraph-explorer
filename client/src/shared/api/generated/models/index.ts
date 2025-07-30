@@ -2,6 +2,7 @@ export * from './annotation-client-read';
 export * from './annotation-list-response';
 export * from './annotation-read';
 export * from './annotation-selection-stats';
+export * from './annotation-user-create';
 export * from './category-create';
 export * from './category-list-response';
 export * from './category-read';

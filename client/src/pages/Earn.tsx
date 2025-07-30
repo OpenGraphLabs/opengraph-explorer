@@ -42,7 +42,7 @@ const TASK_TYPES: TaskType[] = [
     featured: true,
     requirements: ["Basic image editing skills", "Understanding of object boundaries"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_mask.jpg",
-    datasetId: 3 // COCO dataset for segmentation tasks
+    datasetId: 3 // OceanDAO dataset for demo
   },
   {
     id: "trajectory-drawing",
@@ -56,7 +56,7 @@ const TASK_TYPES: TaskType[] = [
     featured: true,
     requirements: ["Spatial reasoning skills", "Understanding of robot kinematics"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_trajectory.jpg",
-    datasetId: 4 // Robot navigation dataset
+    datasetId: 3 // OceanDAO dataset for demo
   },
   {
     id: "picture-upload",
@@ -69,7 +69,7 @@ const TASK_TYPES: TaskType[] = [
     category: "Data Collection",
     requirements: ["Camera or smartphone", "Good lighting conditions"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
-    datasetId: 5 // First-person view dataset
+    datasetId: 3 // OceanDAO dataset for demo
   },
   {
     id: "video-upload",
@@ -82,7 +82,7 @@ const TASK_TYPES: TaskType[] = [
     category: "Behavioral AI",
     requirements: ["Video recording capability", "Clear action demonstration"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
-    datasetId: 6 // Action demonstration dataset
+    datasetId: 3 // OceanDAO dataset for demo
   }
 ];
 
@@ -382,7 +382,13 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           {/* Action Button */}
           <Button
             className="task-button"
-            onClick={() => navigate(`/datasets/${task.datasetId}/annotate`)}
+            onClick={() => {
+              if (task.id === "trajectory-drawing") {
+                navigate(`/datasets/${task.datasetId}/trajectory`);
+              } else {
+                navigate(`/datasets/${task.datasetId}/annotate`);
+              }
+            }}
             style={{
               width: "100%",
               background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,

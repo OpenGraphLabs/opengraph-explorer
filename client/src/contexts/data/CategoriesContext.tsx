@@ -42,7 +42,10 @@ export function CategoriesProvider({
     error: globalCategoriesError,
   } = useGlobalCategories(
     { limit: config.limit || 100 },
-    { enabled: config.useGlobalCategories === true }
+    { 
+      queryKey: ['categories', 'global', config.limit || 100],
+      enabled: config.useGlobalCategories === true 
+    }
   );
 
   // If useDictionaryFromDataset is true, the dictionaryId will be provided by the parent context

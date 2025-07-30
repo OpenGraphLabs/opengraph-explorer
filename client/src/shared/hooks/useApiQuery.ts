@@ -312,11 +312,16 @@ export function useApprovedAnnotationsByImage(
   imageId: number,
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
 ) {
-  const { annotations } = useApiClient(options?.apiClientOptions);
+  const { client } = useApiClient(options?.apiClientOptions);
 
   return useQuery({
     queryKey: [...queryKeys.annotations.byImage(imageId), "approved"],
-    queryFn: () => annotations.getApprovedAnnotationsByImage(imageId),
+    queryFn: async () => {
+      const response = await client.annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet({
+        imageId
+      });
+      return response.data;
+    },
     enabled: !!imageId,
     ...options,
   });
@@ -369,7 +374,7 @@ export function useCategories(
     queryFn: async () => {
       const { CategoriesApi } = await import('../api/generated');
       const baseURL = options?.apiClientOptions?.baseURL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-      const categoriesApi = new CategoriesApi(undefined, baseURL, client.axios);
+      const categoriesApi = new CategoriesApi(undefined, baseURL, client.getAxiosInstance());
       const response = await categoriesApi.getCategoriesApiV1CategoriesGet({ 
         page: filters.page || 1, 
         limit: filters.limit || 100 
