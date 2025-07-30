@@ -126,7 +126,6 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           backgroundColor: theme.colors.background.card,
           display: "flex",
           flexDirection: "column",
-          height: "520px",
           height: "auto",
           transition: theme.animations.transitions.hover,
           cursor: "pointer",
