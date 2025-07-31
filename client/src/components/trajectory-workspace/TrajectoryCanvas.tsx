@@ -3,7 +3,7 @@ import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
-import { HandGrabbing, ArrowRight, CheckCircle, Eye, EyeSlash, CornersOut, Target } from "phosphor-react";
+import { HandGrabbing, ArrowRight, CheckCircle, Eye, EyeSlash, CornersOut, CrosshairSimple } from "phosphor-react";
 import type { AnnotationClientRead } from "@/shared/api/generated/models";
 
 interface Point {
@@ -375,11 +375,11 @@ export function TrajectoryCanvas() {
         }}
       >
         <Box>
-          <Text size="3" weight="bold" style={{ color: theme.colors.text.primary }}>
+          <Text as="p" size="3" weight="bold" style={{ color: theme.colors.text.primary }}>
             Robot Trajectory Drawing
           </Text>
           {selectedTask && (
-            <Text size="2" style={{ color: theme.colors.text.secondary, marginTop: "4px" }}>
+            <Text as="p" size="2" style={{ color: theme.colors.text.secondary, marginTop: "4px" }}>
               Task: {selectedTask.description}
             </Text>
           )}
@@ -702,9 +702,9 @@ export function TrajectoryCanvas() {
                         }}
                       />
                       {/* HandGrabbing icon */}
-                      <foreignObject x="-16" y="-16" width="32" height="32">
+                      <foreignObject x="-14" y="-14" width="28" height="28">
                         <HandGrabbing 
-                          size={32} 
+                          size={28} 
                           color={theme.colors.status.success} 
                           weight="fill"
                           style={{
@@ -729,7 +729,7 @@ export function TrajectoryCanvas() {
                         cx="0"
                         cy="0"
                         r="24"
-                        fill={theme.colors.status.error}
+                        fill={theme.colors.interactive.primary}
                         fillOpacity="0.2"
                         stroke="none"
                       />
@@ -739,17 +739,17 @@ export function TrajectoryCanvas() {
                         cy="0"
                         r="20"
                         fill={theme.colors.background.card}
-                        stroke={theme.colors.status.error}
+                        stroke={theme.colors.interactive.primary}
                         strokeWidth="3"
                         style={{
                           filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2))",
                         }}
                       />
-                      {/* Target icon */}
+                      {/* CrosshairSimple icon */}
                       <foreignObject x="-14" y="-14" width="28" height="28">
-                        <Target
+                        <CrosshairSimple
                           size={28}
-                          color={theme.colors.status.error}
+                          color={theme.colors.interactive.primary}
                           weight="fill"
                           style={{
                             display: "block"

@@ -118,7 +118,7 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
       imageTasks = [
         {
           id: `image-${imageId}-task-1`,
-          description: `Move the sauce onto the shelf`,
+          description: `Put the sauce on the shelf`,
           startMaskCategories: [],
           endMaskCategories: [],
           difficulty: "Easy",
@@ -128,7 +128,7 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
         },
         {
           id: `image-${imageId}-task-2`, 
-          description: `Navigate around obstacle to reach target`,
+          description: `Tidy up the table`,
           startMaskCategories: [],
           endMaskCategories: [],
           difficulty: "Medium",
