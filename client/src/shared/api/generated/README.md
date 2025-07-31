@@ -69,6 +69,7 @@ Class | Method | HTTP request | Description
 *AuthenticationApi* | [**zkloginInitApiV1AuthZkloginInitPost**](docs/AuthenticationApi.md#zklogininitapiv1authzklogininitpost) | **POST** /api/v1/auth/zklogin/init | Zklogin Init
 *CategoriesApi* | [**createCategoryApiV1CategoriesPost**](docs/CategoriesApi.md#createcategoryapiv1categoriespost) | **POST** /api/v1/categories/ | Create Category
 *CategoriesApi* | [**deleteCategoryApiV1CategoriesCategoryIdDelete**](docs/CategoriesApi.md#deletecategoryapiv1categoriescategoryiddelete) | **DELETE** /api/v1/categories/{category_id} | Delete Category
+*CategoriesApi* | [**getCategoriesApiV1CategoriesGet**](docs/CategoriesApi.md#getcategoriesapiv1categoriesget) | **GET** /api/v1/categories/ | Get Categories
 *CategoriesApi* | [**getCategoryApiV1CategoriesCategoryIdGet**](docs/CategoriesApi.md#getcategoryapiv1categoriescategoryidget) | **GET** /api/v1/categories/{category_id} | Get Category
 *CategoriesApi* | [**updateCategoryApiV1CategoriesCategoryIdPut**](docs/CategoriesApi.md#updatecategoryapiv1categoriescategoryidput) | **PUT** /api/v1/categories/{category_id} | Update Category
 *DatasetsApi* | [**createDatasetApiV1DatasetsPost**](docs/DatasetsApi.md#createdatasetapiv1datasetspost) | **POST** /api/v1/datasets/ | Create Dataset

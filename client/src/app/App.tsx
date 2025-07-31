@@ -11,10 +11,12 @@ import { Profile } from "@/pages/Profile";
 import { Datasets } from "@/pages/Datasets";
 import { DatasetDetail } from "@/pages/DatasetDetail";
 import { AnnotationWorkspace } from "@/pages/AnnotationWorkspace";
+import { TrajectoryDrawingWorkspace } from "@/pages/TrajectoryDrawingWorkspace";
 import { AuthCallback } from "@/components/auth";
 import { AuthSuccess } from "@/pages/AuthSuccess";
 import { AuthError } from "@/pages/AuthError";
 import { Login } from "@/pages/Login.tsx";
+import { Earn } from "@/pages/Earn";
 
 export default function App() {
   return (
@@ -94,10 +96,26 @@ export default function App() {
           }
         />
         <Route
+          path="/datasets/:id/trajectory"
+          element={
+            <ProtectedRoute>
+              <TrajectoryDrawingWorkspace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/earn"
+          element={
+            <ProtectedRoute>
+              <Earn />
             </ProtectedRoute>
           }
         />

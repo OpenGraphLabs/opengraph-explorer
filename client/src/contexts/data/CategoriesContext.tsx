@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from "react";
 import { useDictionaryCategories } from "@/shared/hooks/useDictionaryCategories";
+import { useCategories as useGlobalCategories } from "@/shared/hooks/useApiQuery";
 import type { CategoryRead } from "@/shared/api/generated/models";
 
 interface CategoriesConfig {
   dictionaryId?: number;
   limit?: number;
   useDictionaryFromDataset?: boolean;
+  useGlobalCategories?: boolean; // New option to use global categories instead of dictionary-specific ones
 }
 
 interface CategoriesContextValue {
@@ -33,20 +35,44 @@ export function CategoriesProvider({
   );
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Use global categories if requested, otherwise use dictionary-specific categories
+  const {
+    data: globalCategoriesResponse,
+    isLoading: globalCategoriesLoading,
+    error: globalCategoriesError,
+  } = useGlobalCategories(
+    { limit: config.limit || 100 },
+    { 
+      queryKey: ['categories', 'global', config.limit || 100],
+      enabled: config.useGlobalCategories === true 
+    }
+  );
+
   // If useDictionaryFromDataset is true, the dictionaryId will be provided by the parent context
   const dictionaryId = config.dictionaryId || 1; // Default to dictionary 1
 
   const {
-    data: categoriesResponse,
-    isLoading,
-    error,
+    data: dictionaryCategoriesResponse,
+    isLoading: dictionaryCategoriesLoading,
+    error: dictionaryCategoriesError,
   } = useDictionaryCategories({
     dictionaryId,
     limit: config.limit || 100,
-    enabled: !config.useDictionaryFromDataset || !!config.dictionaryId,
+    enabled: !config.useGlobalCategories && (!config.useDictionaryFromDataset || !!config.dictionaryId),
   });
 
-  const categories = categoriesResponse?.items || [];
+  // Select the appropriate data source
+  const categories = config.useGlobalCategories 
+    ? (globalCategoriesResponse?.items || [])
+    : (dictionaryCategoriesResponse?.items || []);
+  
+  const isLoading = config.useGlobalCategories 
+    ? globalCategoriesLoading 
+    : dictionaryCategoriesLoading;
+    
+  const error = config.useGlobalCategories 
+    ? globalCategoriesError 
+    : dictionaryCategoriesError;
 
   // Create category map for quick lookup
   const categoryMap = useMemo(() => {

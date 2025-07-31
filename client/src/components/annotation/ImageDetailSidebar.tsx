@@ -248,6 +248,7 @@ A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an ora
         transform: isOpen ? "translateX(0)" : "translateX(100%)",
         transition: "transform 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         backdropFilter: "blur(20px)",
+        overflowY: "auto",
       }}
     >
       {/* 헤더 */}
@@ -588,9 +589,7 @@ A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an ora
       {/* 메타데이터 */}
       <Box
         style={{
-          flex: 1,
           padding: theme.spacing.semantic.component.lg,
-          overflowY: "auto",
         }}
       >
         <Heading

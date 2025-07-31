@@ -41,6 +41,11 @@ export const queryKeys = {
     detail: (id: number) => [...queryKeys.annotations.details(), id] as const,
     byImage: (imageId: number) => [...queryKeys.annotations.all, "byImage", imageId] as const,
   },
+  categories: {
+    all: ["categories"] as const,
+    lists: () => [...queryKeys.categories.all, "list"] as const,
+    list: (filters: any) => [...queryKeys.categories.lists(), { filters }] as const,
+  },
   images: {
     all: ["images"] as const,
     lists: () => [...queryKeys.images.all, "list"] as const,
@@ -307,11 +312,16 @@ export function useApprovedAnnotationsByImage(
   imageId: number,
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
 ) {
-  const { annotations } = useApiClient(options?.apiClientOptions);
+  const { client } = useApiClient(options?.apiClientOptions);
 
   return useQuery({
     queryKey: [...queryKeys.annotations.byImage(imageId), "approved"],
-    queryFn: () => annotations.getApprovedAnnotationsByImage(imageId),
+    queryFn: async () => {
+      const response = await client.annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet({
+        imageId
+      });
+      return response.data;
+    },
     enabled: !!imageId,
     ...options,
   });
@@ -352,6 +362,29 @@ export function useBulkCreateAnnotations(
   });
 }
 
+// Categories Hooks
+export function useCategories(
+  filters: { page?: number; limit?: number } = {},
+  options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
+) {
+  const { client } = useApiClient(options?.apiClientOptions);
+
+  return useQuery({
+    queryKey: [...queryKeys.categories.all, "list", filters],
+    queryFn: async () => {
+      const { CategoriesApi } = await import('../api/generated');
+      const baseURL = options?.apiClientOptions?.baseURL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const categoriesApi = new CategoriesApi(undefined, baseURL, client.getAxiosInstance());
+      const response = await categoriesApi.getCategoriesApiV1CategoriesGet({ 
+        page: filters.page || 1, 
+        limit: filters.limit || 100 
+      });
+      return response.data;
+    },
+    ...options,
+  });
+}
+
 // Image Hooks
 export function useImages(
   filters: { page?: number; limit?: number } = {},
@@ -386,14 +419,19 @@ export function useDatasetImages(
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
+  
+  // Explicitly check if we should skip this query
+  const shouldSkip = !datasetId || datasetId <= 0 || options?.enabled === false;
+  
   return useQuery({
     queryKey: [...queryKeys.datasets.detail(datasetId), "images", filters],
-    queryFn: () =>
-      datasets.getDatasetImages(datasetId, {
-        page: filters.page || 1,
-        limit: filters.limit || 100,
-      }),
-    enabled: !!datasetId,
+    queryFn: shouldSkip 
+      ? () => Promise.resolve({ items: [], total: 0 }) // Return empty result without API call
+      : () => datasets.getDatasetImages(datasetId, {
+          page: filters.page || 1,
+          limit: filters.limit || 100,
+        }),
+    enabled: !shouldSkip,
     ...options,
   });
 }

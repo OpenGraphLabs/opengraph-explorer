@@ -5,11 +5,12 @@ Business logic for category-related operations
 """
 
 from typing import Optional
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.category import Category
-from ..schemas.category import CategoryCreate, CategoryUpdate, CategoryRead
+from ..schemas.category import CategoryCreate, CategoryUpdate, CategoryRead, CategoryListResponse
+from ..schemas.common import Pagination
 
 
 class CategoryService:
@@ -37,6 +38,50 @@ class CategoryService:
         await self.db.refresh(db_category)
 
         return CategoryRead.model_validate(db_category)
+
+
+    async def get_categories(
+        self,
+        pagination: Pagination,
+    ) -> CategoryListResponse:
+        """
+        List all categories with pagination.
+
+        Args:
+            pagination: Pagination
+
+        Returns:
+            CategoryListResponse: List of categories with pagination info.
+        """
+        # Count total items
+        count_query = select(func.count(Category.id))
+
+        total_result = await self.db.execute(count_query)
+        total = total_result.scalar() or 0
+
+        # Apply pagination
+        query = select(Category).order_by(Category.created_at.desc())
+
+        offset = (pagination.page - 1) * pagination.limit
+        query = query.offset(offset).limit(pagination.limit)
+
+        result = await self.db.execute(query)
+        categories = result.scalars().all()
+
+        items = []
+        for category in categories:
+            items.append(CategoryRead.model_validate(category))
+
+        pages = (total + pagination.limit - 1) // pagination.limit
+
+        return CategoryListResponse(
+            items=items,
+            total=total,
+            page=pagination.page,
+            limit=pagination.limit,
+            pages=pages
+        )
+
     
     async def get_category_by_id(self, category_id: int) -> Optional[CategoryRead]:
         """

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { EyeOpenIcon, EyeNoneIcon, BookmarkIcon } from "@radix-ui/react-icons";
@@ -16,6 +16,7 @@ export interface ImageWithSingleAnnotationProps {
   onClick?: () => void;
   className?: string;
   showMaskByDefault?: boolean;
+  priority?: boolean; // For eager loading of important images
 }
 
 export function ImageWithSingleAnnotation({
@@ -28,6 +29,7 @@ export function ImageWithSingleAnnotation({
   onClick,
   className,
   showMaskByDefault = true,
+  priority = false,
 }: ImageWithSingleAnnotationProps) {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -39,11 +41,34 @@ export function ImageWithSingleAnnotation({
     showBoundingBoxes: false,
     showLabels: false,
   });
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   useEffect(() => {
     setShowMasks(showMaskByDefault);
     setDisplayOptions(prev => ({ ...prev, showMasks: showMaskByDefault }));
   }, [showMaskByDefault]);
+
+  // Set a timeout for image loading
+  useEffect(() => {
+    if (!isLoaded && !isError) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        if (!isLoaded && imgRef.current) {
+          // Force a retry by changing the src
+          const retryUrl = imageUrl + '?timeout_retry=' + Date.now();
+          imgRef.current.src = retryUrl;
+        }
+      }, 5000);
+    }
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, [isLoaded, isError, imageUrl]);
 
   const toggleMaskVisibility = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -129,12 +154,12 @@ export function ImageWithSingleAnnotation({
           >
             <Box
               style={{
-                width: "24px",
-                height: "24px",
+                width: "20px",
+                height: "20px",
                 borderRadius: "50%",
-                border: `2px solid ${theme.colors.border.primary}`,
+                border: `2px solid ${theme.colors.border.subtle}`,
                 borderTopColor: theme.colors.interactive.primary,
-                animation: "spin 1s linear infinite",
+                animation: "spin 0.8s linear infinite",
               }}
             />
           </Flex>
@@ -158,15 +183,18 @@ export function ImageWithSingleAnnotation({
               style={{
                 color: theme.colors.text.tertiary,
                 fontSize: theme.typography.caption.fontSize,
+                textAlign: "center",
+                padding: theme.spacing[2],
               }}
             >
-              Failed to load
+              {retryCount > 0 ? `Retrying... (${retryCount}/2)` : "Image failed to load"}
             </Text>
           </Flex>
         )}
 
         {/* Image */}
         <img
+          ref={imgRef}
           src={imageUrl}
           alt={fileName}
           style={{
@@ -176,9 +204,30 @@ export function ImageWithSingleAnnotation({
             display: isLoaded ? "block" : "none",
             transition: theme.animations.transitions.all,
           }}
-          loading="lazy"
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setIsError(true)}
+          loading="eager"
+          onLoad={() => {
+            if (loadingTimeoutRef.current) {
+              clearTimeout(loadingTimeoutRef.current);
+            }
+            setIsLoaded(true);
+            setIsError(false);
+            setRetryCount(0);
+          }}
+          onError={() => {
+            if (retryCount < 2) {
+              // Retry loading after delay
+              setTimeout(() => {
+                if (imgRef.current) {
+                  const retryUrl = imageUrl + '?retry=' + (retryCount + 1);
+                  imgRef.current.src = retryUrl;
+                  setRetryCount(prev => prev + 1);
+                }
+              }, 1000 * (retryCount + 1));
+            } else {
+              setIsError(true);
+            }
+          }}
+          decoding="async"
         />
 
         {/* Single Annotation Mask Overlay */}

@@ -130,6 +130,9 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
         setEntities(prev =>
           prev.map(entity => (entity.id === selectedEntityId ? { ...entity, category } : entity))
         );
+        // Auto-complete: deselect current entity and clear masks to prepare for next annotation
+        setSelectedEntityId(null);
+        setCurrentSelectedMasks([]);
       } else if (currentSelectedMasks.length > 0) {
         // Create new entity if no entity is selected but masks are selected
         const newEntity: EntityAnnotation = {
@@ -148,8 +151,9 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
         };
 
         setEntities(prev => [...prev, newEntity]);
-        setSelectedEntityId(newEntity.id);
-        setCurrentSelectedMasks([]); // Clear mask selection after entity creation
+        // Auto-complete: clear selection to prepare for next annotation
+        setSelectedEntityId(null);
+        setCurrentSelectedMasks([]);
       }
     },
     [selectedEntityId, currentSelectedMasks]

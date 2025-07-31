@@ -107,9 +107,6 @@ export class AnnotationService {
     const testUserIds = ["1", "2", "3", "4", "5"];
     const responses: any[] = [];
 
-    // Get original user ID from localStorage
-    const originalUserId = localStorage.getItem("opengraph-user-id");
-
     for (const userId of testUserIds) {
       // Temporarily set the user ID in localStorage (interceptor will use this)
       localStorage.setItem("opengraph-user-id", userId);
@@ -128,10 +125,8 @@ export class AnnotationService {
       console.log(`Test request completed for user ID: ${userId}`);
     }
 
-    // Restore original user ID
-    if (originalUserId) {
-      localStorage.setItem("opengraph-user-id", originalUserId);
-    }
+    // Remove test user ID from localStorage
+    localStorage.removeItem("opengraph-user-id");
 
     console.log("All 5 test requests completed sequentially");
 

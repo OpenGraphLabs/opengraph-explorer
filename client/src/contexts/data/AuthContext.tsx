@@ -91,10 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const serverUser = await response.json();
+      console.log("serverUser: ", serverUser);
 
       const user: User = {
         id: decoded.sub,
-        email: serverUser.email || decoded.email,
+        email: serverUser.email || (decoded as any).email,
         name: serverUser.display_name,
         picture: serverUser.profile_image_url,
       };

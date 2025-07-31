@@ -341,13 +341,13 @@ async def main():
     annotations_dir = script_dir / "annotations_first_person"
 
     # annotation 파일 기준으로 매칭
-    annotation_files = sorted(annotations_dir.glob("*_relations_*.json"))
+    annotation_files = sorted(annotations_dir.glob("*_coco.json"))
     matched_pairs = []
     processed_count = 0
 
     def get_image_file_from_annotation(annotation_file: Path, images_dir: Path) -> Path:
         # 예: kitchen_1_relations_16-8-4.json -> kitchen_1.jpg
-        base_name = annotation_file.name.split('_relations_')[0]
+        base_name = annotation_file.name.split('_coco')[0]
         image_file = images_dir / f"{base_name}.jpg"
         return image_file
 

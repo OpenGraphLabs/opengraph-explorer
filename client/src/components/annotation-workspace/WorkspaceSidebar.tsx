@@ -79,24 +79,8 @@ export function WorkspaceSidebar() {
         flexDirection: "column",
       }}
     >
-      {/* Simple Mask Selection UI */}
-      <Box
-        style={{
-          padding: theme.spacing.semantic.component.md,
-          borderBottom: `1px solid ${theme.colors.border.subtle}20`,
-          background: theme.colors.background.secondary,
-        }}
-      >
-        <SimpleSelectionUI
-          selectedMaskIds={currentSelectedMasks}
-          annotations={convertedAnnotations}
-          onClearSelection={handleClearSelection}
-          onRemoveMask={handleRemoveMask}
-        />
-      </Box>
-
-      {/* Category Search Panel */}
-      {currentSelectedMasks.length > 0 && (
+      {/* Category Search Panel - Only visible when masks are selected but no entity is selected */}
+      {currentSelectedMasks.length > 0 && !selectedEntityId && (
         <Box
           style={{
             padding: theme.spacing.semantic.component.md,
@@ -125,7 +109,23 @@ export function WorkspaceSidebar() {
         </Box>
       )}
 
-      {/* Entity List */}
+      {/* Simple Mask Selection UI - Below category search */}
+      <Box
+        style={{
+          padding: theme.spacing.semantic.component.md,
+          borderBottom: `1px solid ${theme.colors.border.subtle}20`,
+          background: theme.colors.background.secondary,
+        }}
+      >
+        <SimpleSelectionUI
+          selectedMaskIds={currentSelectedMasks}
+          annotations={convertedAnnotations}
+          onClearSelection={handleClearSelection}
+          onRemoveMask={handleRemoveMask}
+        />
+      </Box>
+
+      {/* Entity List - All entity-related content at the bottom */}
       <EntityList />
     </Box>
   );

@@ -203,6 +203,8 @@ async def google_callback(
         access_token_data = {
             "sub": str(user.id),
             "email": user.email,
+            "name": user.display_name,
+            "picture": user.profile_image_url,
             "exp": datetime.now(timezone.utc) + access_token_expires
         }
         access_token = jwt.encode(
