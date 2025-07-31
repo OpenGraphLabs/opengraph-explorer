@@ -30,7 +30,7 @@ function HomeContent() {
       style={{
         minHeight: "100vh",
         background: `linear-gradient(to bottom, ${theme.colors.background.secondary}40, ${theme.colors.background.primary})`,
-        paddingRight: selectedAnnotation ? "420px" : "0",
+        paddingRight: selectedAnnotation ? "480px" : "0",
         transition: "padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         position: "relative",
       }}
