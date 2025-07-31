@@ -17,6 +17,7 @@ import { AuthSuccess } from "@/pages/AuthSuccess";
 import { AuthError } from "@/pages/AuthError";
 import { Login } from "@/pages/Login.tsx";
 import { Earn } from "@/pages/Earn";
+import { FirstPersonCapture } from "@/pages/FirstPersonCapture";
 
 export default function App() {
   return (
@@ -116,6 +117,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Earn />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/datasets/:id/first-person-capture"
+          element={
+            <ProtectedRoute>
+              <FirstPersonCapture />
             </ProtectedRoute>
           }
         />
