@@ -261,35 +261,36 @@ export function FirstPersonCapture() {
                 right: 0,
                 bottom: 0,
                 background: `linear-gradient(135deg, ${theme.colors.background.primary}, ${theme.colors.background.secondary})`,
-                gap: isMobile ? theme.spacing.semantic.component.lg : theme.spacing.semantic.component.xl,
-                padding: theme.spacing.semantic.component.lg
+                gap: isMobile && isLandscape ? "16px" : isMobile ? theme.spacing.semantic.component.lg : theme.spacing.semantic.component.xl,
+                padding: isMobile && isLandscape ? "12px" : theme.spacing.semantic.component.lg
               }}
             >
               <Box
                 style={{
-                  padding: isMobile ? "24px" : "28px",
+                  padding: isMobile && isLandscape ? "16px" : isMobile ? "24px" : "28px",
                   borderRadius: theme.borders.radius.full,
                   backgroundColor: `${theme.colors.interactive.primary}15`,
                   border: `1px solid ${theme.colors.interactive.primary}30`,
                 }}
               >
-                <Camera size={isMobile ? 44 : 52} color={theme.colors.interactive.primary} weight="duotone" />
+                <Camera size={isMobile && isLandscape ? 32 : isMobile ? 44 : 52} color={theme.colors.interactive.primary} weight="duotone" />
               </Box>
               
-              <Box style={{ textAlign: "center", maxWidth: isMobile ? "280px" : "320px" }}>
-                <Text as="p" size={isMobile ? "3" : "4"} weight="bold" style={{
+              <Box style={{ textAlign: "center", maxWidth: isMobile && isLandscape ? "240px" : isMobile ? "280px" : "320px" }}>
+                <Text as="p" size={isMobile && isLandscape ? "2" : isMobile ? "3" : "4"} weight="bold" style={{
                   color: theme.colors.text.primary,
-                  marginBottom: "8px"
+                  marginBottom: isMobile && isLandscape ? "4px" : "8px",
+                  fontSize: isMobile && isLandscape ? "14px" : undefined
                 }}>
                   Ready to Start
                 </Text>
                 <Text as="p" size="2" style={{
                   color: theme.colors.text.secondary,
                   lineHeight: 1.4,
-                  fontSize: isMobile ? "14px" : "15px"
+                  fontSize: isMobile && isLandscape ? "12px" : isMobile ? "14px" : "15px"
                 }}>
                   Position your camera at arm's length from your desk
-                  {isMobile && (
+                  {isMobile && !isLandscape && (
                     <Text as="span" style={{ 
                       display: "block",
                       marginTop: "6px",
@@ -311,16 +312,16 @@ export function FirstPersonCapture() {
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.lg,
-                  padding: isMobile ? "16px 32px" : "18px 36px",
-                  fontSize: isMobile ? "15px" : "16px",
+                  padding: isMobile && isLandscape ? "12px 24px" : isMobile ? "16px 32px" : "18px 36px",
+                  fontSize: isMobile && isLandscape ? "13px" : isMobile ? "15px" : "16px",
                   fontWeight: 700,
                   display: "flex",
                   alignItems: "center",
-                  gap: "10px",
+                  gap: isMobile && isLandscape ? "6px" : "10px",
                   transition: "all 0.2s ease",
                 }}
               >
-                <Camera size={16} weight="bold" />
+                <Camera size={isMobile && isLandscape ? 14 : 16} weight="bold" />
                 {isLoading ? "Starting Camera..." : "Start Camera"}
               </Button>
 
