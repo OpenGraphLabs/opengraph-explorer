@@ -144,29 +144,30 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
         }}
         className="task-card"
       >
-        {/* Featured Badge */}
+        {/* Featured Badge - Positioned to avoid overlap with OPEN badge */}
         {task.featured && (
           <Box
             style={{
               position: "absolute",
               zIndex: 100,
-              top: theme.spacing.semantic.component.md,
-              right: theme.spacing.semantic.component.md,
+              top: isMobile ? "4px" : theme.spacing.semantic.component.md,
+              left: isMobile ? theme.spacing.semantic.component.md : "auto",
+              right: isMobile ? "auto" : theme.spacing.semantic.component.md,
               background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
               borderRadius: theme.borders.radius.full,
-              padding: "4px 8px",
+              padding: isMobile ? "2px 6px" : "4px 8px",
               display: "flex",
               alignItems: "center",
-              gap: "4px",
+              gap: isMobile ? "2px" : "4px",
             }}
           >
-            <Sparkle size={12} color={theme.colors.text.inverse} weight="fill" />
+            <Sparkle size={isMobile ? 10 : 12} color={theme.colors.text.inverse} weight="fill" />
             <Text
               size="1"
               style={{
                 color: theme.colors.text.inverse,
                 fontWeight: 600,
-                fontSize: "10px",
+                fontSize: isMobile ? "8px" : "10px",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}
@@ -248,12 +249,13 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
                     background: `rgba(255, 255, 255, 0.95)`,
                     backdropFilter: "blur(10px)",
                     borderRadius: theme.borders.radius.full,
-                    padding: "8px",
+                    padding: isMobile ? "6px" : "8px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     boxShadow: theme.shadows.semantic.card.medium,
                     border: `1px solid rgba(255, 255, 255, 0.2)`,
+                    transform: isMobile ? "scale(0.8)" : "none",
                   }}
                 >
                   <Box className="task-icon" style={{ 
