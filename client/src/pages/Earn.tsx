@@ -287,7 +287,7 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
           {/* Mobile: Content Area, Desktop: Same layout */}
           <Flex direction="column" gap={isMobile ? "2" : "4"} style={{ flex: 1 }}>
           {/* Header with Reward */}
-          <Flex align="center" justify={isMobile ? "flex-start" : "center"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.xs }}>
+          <Flex align="center" justify={isMobile ? "start" : "center"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.xs }}>
             <Box
               style={{
                 display: "flex",
@@ -383,7 +383,7 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
           )}
 
           {/* Difficulty and Time - Compact */}
-          <Flex justify={isMobile ? "flex-start" : "center"} align="center" gap={isMobile ? "2" : "3"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm }}>
+          <Flex justify={isMobile ? "start" : "center"} align="center" gap={isMobile ? "2" : "3"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm }}>
             <Badge
               style={{
                 backgroundColor: difficultyStyle.background,
