@@ -1,11 +1,9 @@
-import React, { useMemo, useRef, useCallback, useState, useEffect } from "react";
+import React, { useRef, useCallback, useState, useEffect } from "react";
 import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
-import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
-import { HandGrabbing, ArrowRight, CheckCircle, Eye, EyeSlash, CornersOut } from "phosphor-react";
-import type { Annotation, MaskInfo } from "@/components/annotation/types/annotation";
+import { HandGrabbing, ArrowRight, CheckCircle, Eye, EyeSlash, CornersOut, Target } from "phosphor-react";
 import type { AnnotationClientRead } from "@/shared/api/generated/models";
 
 interface Point {
@@ -239,7 +237,7 @@ export function TrajectoryCanvas() {
 
   // Handle SVG click for mask selection
   const handleSvgClick = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
-    if (!selectedTask || !overlayRef.current) return;
+    if (!selectedTask || !overlayRef.current || activeTrajectoryMasks.length < 2) return;
 
     const svg = overlayRef.current;
     const rect = svg.getBoundingClientRect();
@@ -249,11 +247,9 @@ export function TrajectoryCanvas() {
     // Convert to image coordinates
     const imageCoords = screenToImage(x, y);
 
-    // Check if clicking on an active mask
-    const clickedAnnotation = approvedAnnotations.find((annotation: AnnotationClientRead) => {
-      if (!activeTrajectoryMasks.includes(annotation.id)) return false;
-      
-      // Check polygon first if available - use same format as ImageDetailSidebar
+    // Helper function to check if point is inside annotation
+    const isPointInAnnotation = (annotation: AnnotationClientRead, point: Point) => {
+      // Check polygon first if available
       const polygonData = annotation.polygon as any;
       if (polygonData && polygonData.has_segmentation && polygonData.polygons && polygonData.polygons.length > 0) {
         return polygonData.polygons.some((polygon: number[][]) => {
@@ -265,8 +261,8 @@ export function TrajectoryCanvas() {
             const xj = polygon[j][0];
             const yj = polygon[j][1];
             
-            if (((yi > imageCoords.y) !== (yj > imageCoords.y)) &&
-                (imageCoords.x < (xj - xi) * (imageCoords.y - yi) / (yj - yi) + xi)) {
+            if (((yi > point.y) !== (yj > point.y)) &&
+                (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)) {
               inside = !inside;
             }
           }
@@ -277,20 +273,44 @@ export function TrajectoryCanvas() {
       // Fallback to bbox check
       const bbox = annotation.bbox || [0, 0, 0, 0];
       const [bx, by, bw, bh] = bbox;
-      return imageCoords.x >= bx && imageCoords.x <= bx + bw && 
-             imageCoords.y >= by && imageCoords.y <= by + bh;
-    });
+      return point.x >= bx && point.x <= bx + bw && 
+             point.y >= by && point.y <= by + bh;
+    };
 
-    if (clickedAnnotation) {
+    // Get start and end mask IDs
+    const startMaskId = activeTrajectoryMasks[0];
+    const endMaskId = activeTrajectoryMasks[1];
+    
+    // Find the annotations for start and end masks
+    const startMaskAnnotation = approvedAnnotations.find(ann => ann.id === startMaskId);
+    const endMaskAnnotation = approvedAnnotations.find(ann => ann.id === endMaskId);
+
+    // Check if clicking on start mask
+    if (startMaskAnnotation && isPointInAnnotation(startMaskAnnotation, imageCoords)) {
       handleTrajectoryPointAdd({
         x: imageCoords.x,
         y: imageCoords.y,
-        id: `point-${Date.now()}`,
-        type: startPoint ? 'end' : 'start',
-        maskId: clickedAnnotation.id
+        id: `start-${Date.now()}`,
+        type: 'start',
+        maskId: startMaskId
       });
+      return;
     }
-  }, [selectedTask, approvedAnnotations, activeTrajectoryMasks, startPoint, handleTrajectoryPointAdd, screenToImage]);
+
+    // Check if clicking on end mask
+    if (endMaskAnnotation && isPointInAnnotation(endMaskAnnotation, imageCoords)) {
+      handleTrajectoryPointAdd({
+        x: imageCoords.x,
+        y: imageCoords.y,
+        id: `end-${Date.now()}`,
+        type: 'end',
+        maskId: endMaskId
+      });
+      return;
+    }
+
+    // If clicking outside of masks, do nothing
+  }, [selectedTask, approvedAnnotations, activeTrajectoryMasks, handleTrajectoryPointAdd, screenToImage]);
 
   // Handle drawing
   const handleMouseDown = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
@@ -659,39 +679,40 @@ export function TrajectoryCanvas() {
                 {(() => {
                   const screenCoords = imageToScreen(startPoint.x, startPoint.y);
                   return (
-                    <>
+                    <g transform={`translate(${screenCoords.x}, ${screenCoords.y})`}>
                       {/* Outer glow effect */}
                       <circle
-                        cx={screenCoords.x}
-                        cy={screenCoords.y}
-                        r="20"
+                        cx="0"
+                        cy="0"
+                        r="24"
                         fill={theme.colors.status.success}
                         fillOpacity="0.2"
                         stroke="none"
                       />
-                      {/* Main circle */}
+                      {/* Main circle background */}
                       <circle
-                        cx={screenCoords.x}
-                        cy={screenCoords.y}
-                        r="16"
-                        fill={theme.colors.status.success}
-                        stroke={theme.colors.text.inverse}
+                        cx="0"
+                        cy="0"
+                        r="20"
+                        fill={theme.colors.background.card}
+                        stroke={theme.colors.status.success}
                         strokeWidth="3"
                         style={{
-                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))",
+                          filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2))",
                         }}
                       />
-                      <text
-                        x={screenCoords.x}
-                        y={screenCoords.y + 6}
-                        textAnchor="middle"
-                        fill={theme.colors.text.inverse}
-                        fontSize="14"
-                        fontWeight="bold"
-                      >
-                        S
-                      </text>
-                    </>
+                      {/* HandGrabbing icon */}
+                      <foreignObject x="-16" y="-16" width="32" height="32">
+                        <HandGrabbing 
+                          size={32} 
+                          color={theme.colors.status.success} 
+                          weight="fill"
+                          style={{
+                            display: "block"
+                          }}
+                        />
+                      </foreignObject>
+                    </g>
                   );
                 })()}
               </g>
@@ -702,39 +723,40 @@ export function TrajectoryCanvas() {
                 {(() => {
                   const screenCoords = imageToScreen(endPoint.x, endPoint.y);
                   return (
-                    <>
+                    <g transform={`translate(${screenCoords.x}, ${screenCoords.y})`}>
                       {/* Outer glow effect */}
                       <circle
-                        cx={screenCoords.x}
-                        cy={screenCoords.y}
-                        r="20"
+                        cx="0"
+                        cy="0"
+                        r="24"
                         fill={theme.colors.status.error}
                         fillOpacity="0.2"
                         stroke="none"
                       />
-                      {/* Main circle */}
+                      {/* Main circle background */}
                       <circle
-                        cx={screenCoords.x}
-                        cy={screenCoords.y}
-                        r="16"
-                        fill={theme.colors.status.error}
-                        stroke={theme.colors.text.inverse}
+                        cx="0"
+                        cy="0"
+                        r="20"
+                        fill={theme.colors.background.card}
+                        stroke={theme.colors.status.error}
                         strokeWidth="3"
                         style={{
-                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))",
+                          filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2))",
                         }}
                       />
-                      <text
-                        x={screenCoords.x}
-                        y={screenCoords.y + 6}
-                        textAnchor="middle"
-                        fill={theme.colors.text.inverse}
-                        fontSize="14"
-                        fontWeight="bold"
-                      >
-                        E
-                      </text>
-                    </>
+                      {/* Target icon */}
+                      <foreignObject x="-14" y="-14" width="28" height="28">
+                        <Target
+                          size={28}
+                          color={theme.colors.status.error}
+                          weight="fill"
+                          style={{
+                            display: "block"
+                          }}
+                        />
+                      </foreignObject>
+                    </g>
                   );
                 })()}
               </g>

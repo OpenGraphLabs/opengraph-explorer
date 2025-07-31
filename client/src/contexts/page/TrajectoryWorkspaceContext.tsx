@@ -239,13 +239,71 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
     }
   }, [selectedImage, selectedTask, startPoint]);
 
-  // Reset state when task changes
+  // Helper function to calculate mask center
+  const calculateMaskCenter = useCallback((annotation: AnnotationClientRead) => {
+    // Check for polygon first
+    const polygonData = annotation.polygon as any;
+    if (polygonData && polygonData.has_segmentation && polygonData.polygons && polygonData.polygons.length > 0) {
+      // Calculate centroid of the first polygon
+      const polygon = polygonData.polygons[0];
+      let cx = 0;
+      let cy = 0;
+      for (const [x, y] of polygon) {
+        cx += x;
+        cy += y;
+      }
+      cx /= polygon.length;
+      cy /= polygon.length;
+      return { x: cx, y: cy };
+    }
+    
+    // Fallback to bbox center
+    const bbox = annotation.bbox || [0, 0, 0, 0];
+    const [bx, by, bw, bh] = bbox;
+    return {
+      x: bx + bw / 2,
+      y: by + bh / 2
+    };
+  }, []);
+
+  // Reset state and initialize start/end points when task changes
   useEffect(() => {
     setStartPoint(null);
     setEndPoint(null);
     setTrajectoryPath([]);
     setIsDrawingMode(false);
-  }, [selectedTask]);
+
+    // Auto-initialize start and end points at mask centers
+    if (selectedTask && approvedAnnotations.length > 0) {
+      const taskMapping = hardcodedImageTasks.maskMappings[selectedTask.id];
+      if (taskMapping) {
+        const startAnnotation = approvedAnnotations.find(ann => ann.id === taskMapping.startMask);
+        const endAnnotation = approvedAnnotations.find(ann => ann.id === taskMapping.endMask);
+        
+        if (startAnnotation) {
+          const startCenter = calculateMaskCenter(startAnnotation);
+          setStartPoint({
+            x: startCenter.x,
+            y: startCenter.y,
+            id: `start-${startAnnotation.id}`,
+            type: 'start',
+            maskId: startAnnotation.id
+          });
+        }
+        
+        if (endAnnotation) {
+          const endCenter = calculateMaskCenter(endAnnotation);
+          setEndPoint({
+            x: endCenter.x,
+            y: endCenter.y,
+            id: `end-${endAnnotation.id}`,
+            type: 'end',
+            maskId: endAnnotation.id
+          });
+        }
+      }
+    }
+  }, [selectedTask, approvedAnnotations, hardcodedImageTasks.maskMappings, calculateMaskCenter]);
 
   // Task management
   const handleTaskSelect = useCallback((task: TrajectoryTask) => {
