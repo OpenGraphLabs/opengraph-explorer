@@ -15,6 +15,7 @@ export function FirstPersonCapture() {
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cameraFrameRef = useRef<HTMLDivElement>(null);
   
   const [isStreaming, setIsStreaming] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -85,6 +86,17 @@ export function FirstPersonCapture() {
         // Update state
         setIsStreaming(true);
         console.log('State updated');
+        
+        // Auto-scroll to center camera frame
+        setTimeout(() => {
+          if (cameraFrameRef.current) {
+            cameraFrameRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'center'
+            });
+          }
+        }, 100);
       }
 
     } catch (error) {
@@ -193,28 +205,31 @@ export function FirstPersonCapture() {
           flex: 1, 
           display: "flex", 
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: isMobile && isLandscape ? "flex-start" : "center",
+          justifyContent: "flex-start",
           position: "relative",
           backgroundColor: theme.colors.background.primary,
           height: isMobile ? "calc(100vh - 140px)" : "auto",
-          padding: isMobile ? "20px" : "40px",
+          padding: isMobile ? "16px" : "24px",
+          paddingTop: isMobile ? "8px" : "16px",
+          paddingLeft: isMobile && isLandscape ? "8px" : isMobile ? "16px" : "24px",
+          paddingRight: isMobile && isLandscape ? "120px" : isMobile ? "16px" : "24px", // 버튼 공간 확보
           overflow: "hidden"
         }}>
           {/* Camera Frame */}
           <Box
+            ref={cameraFrameRef}
             style={{
               position: "relative",
               width: isMobile 
-                ? (isLandscape ? "min(95vw, 800px)" : "min(90vw, 400px)")
+                ? (isLandscape ? "min(75vw, 600px)" : "min(90vw, 400px)")
                 : "min(85vw, 900px)",
               height: isMobile
-                ? (isLandscape ? "min(75vh, 500px)" : "min(60vh, 500px)")
+                ? (isLandscape ? "min(70vh, 420px)" : "min(60vh, 500px)")
                 : "min(70vh, 600px)",
               background: `linear-gradient(135deg, ${theme.colors.background.secondary}, ${theme.colors.background.card})`,
               borderRadius: theme.borders.radius.xl,
               overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
               border: `1px solid ${theme.colors.border.primary}`,
             }}
           >
@@ -256,7 +271,6 @@ export function FirstPersonCapture() {
                   borderRadius: theme.borders.radius.full,
                   backgroundColor: `${theme.colors.interactive.primary}15`,
                   border: `1px solid ${theme.colors.interactive.primary}30`,
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
                 }}
               >
                 <Camera size={isMobile ? 44 : 52} color={theme.colors.interactive.primary} weight="duotone" />
@@ -303,7 +317,6 @@ export function FirstPersonCapture() {
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
-                  boxShadow: "0 3px 12px rgba(0, 0, 0, 0.15)",
                   transition: "all 0.2s ease",
                 }}
               >
@@ -387,8 +400,8 @@ export function FirstPersonCapture() {
                   position: "absolute",
                   bottom: "-20px",
                   right: "-35px",
-                  width: isMobile ? (isLandscape ? "200px" : "160px") : "220px",
-                  height: isMobile ? (isLandscape ? "220px" : "180px") : "240px",
+                  width: isMobile ? (isLandscape ? "180px" : "160px") : "220px",
+                  height: isMobile ? (isLandscape ? "200px" : "180px") : "240px",
                   pointerEvents: "none",
                   display: "flex",
                   alignItems: "flex-end",
@@ -404,39 +417,9 @@ export function FirstPersonCapture() {
                     height: "100%",
                     objectFit: "contain",
                     opacity: 0.92,
-                    filter: "drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.3)) drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.15)) brightness(1.05) contrast(1.1)",
+                    filter: "drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.2))",
                     transform: "scale(1.1) rotate(-3deg)",
                     transformOrigin: "bottom right",
-                  }}
-                />
-                
-                {/* Enhanced realistic shadow */}
-                <Box
-                  style={{
-                    position: "absolute",
-                    bottom: "5px",
-                    right: isMobile ? "30px" : "35px",
-                    width: isMobile ? "130px" : "150px",
-                    height: "16px",
-                    background: "radial-gradient(ellipse, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 40%, transparent 70%)",
-                    borderRadius: "50%",
-                    filter: "blur(3px)",
-                    transform: "skewX(-12deg)",
-                  }}
-                />
-                
-                {/* Professional highlight effect */}
-                <Box
-                  style={{
-                    position: "absolute",
-                    top: "15%",
-                    right: "25%",
-                    width: "30px",
-                    height: "30px",
-                    background: "radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%)",
-                    borderRadius: "50%",
-                    filter: "blur(10px)",
-                    pointerEvents: "none",
                   }}
                 />
               </Box>
@@ -445,25 +428,29 @@ export function FirstPersonCapture() {
 
 
 
-          {/* Camera Controls */}
+          {/* Camera Controls - Responsive positioning */}
           {(isStreaming || capturedImage) && (
             <Box
               style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                padding: isMobile ? "16px" : theme.spacing.semantic.component.lg,
-                background: "linear-gradient(transparent, rgba(0, 0, 0, 0.85))",
-                paddingBottom: isMobile ? "max(20px, env(safe-area-inset-bottom))" : theme.spacing.semantic.component.lg,
+                position: isMobile && isLandscape ? "absolute" : "relative",
+                top: isMobile && isLandscape ? "50%" : "auto",
+                right: isMobile && isLandscape ? "16px" : "auto",
+                transform: isMobile && isLandscape ? "translateY(-50%)" : "none",
+                marginTop: isMobile && !isLandscape ? "12px" : !isMobile ? "16px" : "0",
+                padding: isMobile ? "12px" : "16px",
                 zIndex: 30,
                 pointerEvents: "auto",
-                minHeight: isMobile ? "100px" : "120px",
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Flex justify="center" gap={isMobile ? "3" : "4"} align="center">
+              <Flex 
+                justify="center" 
+                gap={isMobile ? "3" : "4"} 
+                align="center"
+                direction={isMobile && isLandscape ? "column" : "row"}
+              >
                 {isStreaming ? (
                   <>
                     <Button
@@ -471,14 +458,12 @@ export function FirstPersonCapture() {
                       style={{
                         padding: isMobile ? "12px" : "14px",
                         borderRadius: theme.borders.radius.full,
-                        backgroundColor: "rgba(255, 255, 255, 0.15)",
-                        backdropFilter: "blur(20px)",
-                        border: "2px solid rgba(255, 255, 255, 0.3)",
+                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        border: `1px solid ${theme.colors.border.secondary}`,
                         color: "white",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
                       }}
                     >
                       <X size={isMobile ? 16 : 18} weight="bold" />
@@ -490,13 +475,12 @@ export function FirstPersonCapture() {
                         width: isMobile ? "64px" : "72px",
                         height: isMobile ? "64px" : "72px",
                         borderRadius: "50%",
-                        border: "4px solid white",
+                        border: "3px solid white",
                         backgroundColor: theme.colors.interactive.primary,
                         color: "white",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.1)",
                         position: "relative",
                       }}
                     >
@@ -509,14 +493,12 @@ export function FirstPersonCapture() {
                       onClick={retakePhoto}
                       style={{
                         padding: isMobile ? "12px 24px" : "14px 28px",
-                        borderRadius: theme.borders.radius.xl,
-                        backgroundColor: "rgba(255, 255, 255, 0.15)",
-                        backdropFilter: "blur(20px)",
-                        border: "2px solid rgba(255, 255, 255, 0.3)",
+                        borderRadius: theme.borders.radius.lg,
+                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        border: `1px solid ${theme.colors.border.secondary}`,
                         color: "white",
                         fontSize: isMobile ? "14px" : "16px",
                         fontWeight: 600,
-                        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
                       }}
                     >
                       Retake
@@ -526,14 +508,12 @@ export function FirstPersonCapture() {
                       onClick={submitPhoto}
                       style={{
                         padding: isMobile ? "12px 32px" : "14px 36px",
-                        borderRadius: theme.borders.radius.xl,
+                        borderRadius: theme.borders.radius.lg,
                         background: `linear-gradient(135deg, ${theme.colors.status.success}, ${theme.colors.interactive.accent})`,
                         color: "white",
-                        border: "2px solid rgba(255, 255, 255, 0.2)",
+                        border: "none",
                         fontWeight: 700,
                         fontSize: isMobile ? "14px" : "16px",
-                        boxShadow: "0 6px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)",
-                        letterSpacing: "0.02em",
                       }}
                     >
                       Submit Photo
