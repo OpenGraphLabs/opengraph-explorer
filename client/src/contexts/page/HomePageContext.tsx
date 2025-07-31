@@ -9,6 +9,8 @@ export interface ApprovedAnnotationWithImage extends AnnotationRead {
   categoryName?: string;
 }
 
+export type DataType = "image" | "video";
+
 interface HomePageContextValue {
   // Combined data
   annotationsWithImages: ApprovedAnnotationWithImage[];
@@ -18,6 +20,10 @@ interface HomePageContextValue {
   setShowGlobalMasks: (show: boolean) => void;
   selectedAnnotation: ApprovedAnnotationWithImage | null;
   setSelectedAnnotation: (annotation: ApprovedAnnotationWithImage | null) => void;
+  
+  // Data type selection
+  dataType: DataType;
+  setDataType: (type: DataType) => void;
 
   // Loading states
   isLoading: boolean;
@@ -44,6 +50,7 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
   );
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   const [previousAnnotationsWithImages, setPreviousAnnotationsWithImages] = useState<ApprovedAnnotationWithImage[]>([]);
+  const [dataType, setDataType] = useState<DataType>("image");
 
   // Get data from providers
   const {
@@ -186,6 +193,8 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
         setShowGlobalMasks,
         selectedAnnotation,
         setSelectedAnnotation,
+        dataType,
+        setDataType,
         isLoading,
         error,
         isTransitioning,

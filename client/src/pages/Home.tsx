@@ -8,6 +8,7 @@ import { CategoriesProvider } from "@/contexts/data/CategoriesContext";
 import { HomePageProvider, useHomePage } from "@/contexts/page/HomePageContext";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { HomeGallery } from "@/components/home/HomeGallery";
+import { VideoGallery } from "@/components/home/VideoGallery";
 import { HomePagination } from "@/components/home/HomePagination";
 import { HomeLoadingState } from "@/components/home/HomeLoadingState";
 import { HomeGallerySkeleton } from "@/components/home/HomeGallerySkeleton";
@@ -17,7 +18,7 @@ import { HomeErrorState } from "@/components/home/HomeErrorState";
 
 function HomeContent() {
   const { theme } = useTheme();
-  const { isLoading, error, annotationsWithImages, selectedAnnotation, handleCloseSidebar, isTransitioning, hasSearchFilter } =
+  const { isLoading, error, annotationsWithImages, selectedAnnotation, handleCloseSidebar, isTransitioning, hasSearchFilter, dataType } =
     useHomePage();
 
   if (error) {
@@ -46,35 +47,60 @@ function HomeContent() {
           transition: "max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         }}
       >
-        {/* Progressive loading: show skeleton on initial load, content as soon as available */}
-        {isLoading && annotationsWithImages.length === 0 ? (
-          <HomeGallerySkeleton count={25} />
-        ) : annotationsWithImages.length > 0 ? (
-          <>
-            <HomeGallery />
-            <HomePagination />
-            {/* Show subtle transition indicator during pagination */}
-            {isTransitioning && (
-              <Box
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '3px',
-                  background: `linear-gradient(90deg, transparent, ${theme.colors.interactive.primary}, transparent)`,
-                  opacity: 0.8,
-                  animation: 'slideProgress 1s ease-in-out infinite',
-                  zIndex: 1000,
-                }}
-              />
-            )}
-          </>
-        ) : hasSearchFilter ? (
-          <SearchEmptyState />
-        ) : (
-          <HomeEmptyState />
-        )}
+        {/* Content with smooth transitions */}
+        <Box
+          style={{
+            opacity: isTransitioning ? 0.7 : 1,
+            transform: isTransitioning ? "translateY(4px)" : "translateY(0)",
+            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          {dataType === "video" ? (
+            <Box
+              style={{
+                animation: "contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            >
+              <VideoGallery />
+            </Box>
+          ) : (
+            <Box
+              style={{
+                animation: "contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            >
+              {/* Progressive loading: show skeleton on initial load, content as soon as available */}
+              {isLoading && annotationsWithImages.length === 0 ? (
+                <HomeGallerySkeleton count={25} />
+              ) : annotationsWithImages.length > 0 ? (
+                <>
+                  <HomeGallery />
+                  <HomePagination />
+                  {/* Show subtle transition indicator during pagination */}
+                  {isTransitioning && (
+                    <Box
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '3px',
+                        background: `linear-gradient(90deg, transparent, ${theme.colors.interactive.primary}, transparent)`,
+                        opacity: 0.8,
+                        animation: 'slideProgress 1s ease-in-out infinite',
+                        zIndex: 1000,
+                      }}
+                    />
+                  )}
+                </>
+              ) : hasSearchFilter ? (
+                <SearchEmptyState />
+              ) : (
+                <HomeEmptyState />
+              )}
+            </Box>
+          )}
+        </Box>
       </Box>
 
       {/* Global Styles */}
@@ -92,6 +118,20 @@ function HomeContent() {
             }
             100% {
               transform: translateX(100%);
+            }
+          }
+          
+          @keyframes contentFadeIn {
+            0% {
+              opacity: 0;
+              transform: translateY(12px) scale(0.98);
+            }
+            60% {
+              opacity: 0.8;
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0) scale(1);
             }
           }
           
