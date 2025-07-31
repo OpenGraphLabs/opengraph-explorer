@@ -26,8 +26,8 @@ export function VideoGallery() {
 
   return (
     <Grid
-      columns={{ initial: "1", xs: "1", sm: "2", md: "2", lg: "2", xl: "2" }}
-      gap="8"
+      columns={{ initial: "1", xs: "1", sm: "2", md: "3", lg: "3", xl: "3" }}
+      gap="6"
       style={{
         width: "100%",
         animation: "fadeIn 0.8s ease-out",
