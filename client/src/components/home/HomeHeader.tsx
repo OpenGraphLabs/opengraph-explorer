@@ -6,10 +6,11 @@ import { CategorySearchInput } from "@/components/annotation";
 import { useHomePage } from "@/contexts/page/HomePageContext";
 import { useAnnotations } from "@/contexts/data/AnnotationsContext";
 import { useCategories } from "@/contexts/data/CategoriesContext";
+import type { VideoTask } from "@/contexts/page/HomePageContext";
 
 export function HomeHeader() {
   const { theme } = useTheme();
-  const { showGlobalMasks, setShowGlobalMasks, annotationsWithImages, isLoading, dataType, setDataType } = useHomePage();
+  const { showGlobalMasks, setShowGlobalMasks, annotationsWithImages, isLoading, dataType, setDataType, selectedVideoTask, setSelectedVideoTask } = useHomePage();
   const { totalAnnotations } = useAnnotations();
   const { selectedCategory, setSelectedCategory } = useCategories();
 
@@ -163,27 +164,27 @@ export function HomeHeader() {
             )}
           </Flex>
 
-          {/* Clean Professional Data Type Tabs */}
+          {/* Sophisticated OpenGraph-Style Data Type Tabs */}
           <Box style={{ position: "relative", display: "inline-block" }}>
             <Tabs.Root value={dataType} onValueChange={(value) => setDataType(value as "image" | "video")}>
               <Tabs.List 
                 size="2" 
                 style={{ 
-                  background: `linear-gradient(145deg, ${theme.colors.background.card}, ${theme.colors.background.secondary}20)`,
-                  borderRadius: theme.borders.radius.xl,
-                  border: `1px solid ${theme.colors.border.primary}30`,
-                  backdropFilter: "blur(8px)",
-                  boxShadow: theme.shadows.semantic.card.low,
-                  padding: "4px",
+                  background: `linear-gradient(135deg, ${theme.colors.background.card}95, ${theme.colors.background.secondary}40)`,
+                  borderRadius: "24px",
+                  border: `1px solid ${theme.colors.border.primary}25`,
+                  backdropFilter: "blur(12px)",
+                  boxShadow: `0 8px 32px ${theme.colors.interactive.primary}08, 0 2px 8px rgba(0,0,0,0.04)`,
+                  padding: "6px",
                   position: "relative",
                   overflow: "visible",
                   display: "flex",
-                  gap: "4px",
+                  gap: "6px",
                   alignItems: "stretch",
                   width: "auto",
                   margin: "0 auto",
                 }}
-                className="clean-professional-tabs"
+                className="opengraph-tabs"
               >
                 <Tabs.Trigger 
                   value="image" 
@@ -191,34 +192,49 @@ export function HomeHeader() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px",
-                    color: dataType === "image" ? theme.colors.interactive.primary : theme.colors.text.secondary,
-                    fontWeight: dataType === "image" ? "600" : "400",
+                    gap: "10px",
+                    color: dataType === "image" ? theme.colors.text.primary : theme.colors.text.secondary,
+                    fontWeight: dataType === "image" ? "600" : "500",
                     fontSize: "14px",
-                    padding: "12px 20px",
-                    borderRadius: theme.borders.radius.lg,
-                    transition: "all 0.2s ease",
+                    padding: "14px 24px",
+                    borderRadius: "18px",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     position: "relative",
                     background: dataType === "image" 
-                      ? `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.primary}08)`
+                      ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
                       : "transparent",
                     border: dataType === "image" 
-                      ? `1px solid ${theme.colors.interactive.primary}30`
+                      ? `1px solid ${theme.colors.interactive.primary}40`
                       : "1px solid transparent",
                     boxShadow: dataType === "image" 
-                      ? `0 2px 8px ${theme.colors.interactive.primary}20`
-                      : "none",
-                    minHeight: "48px",
+                      ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
+                      : "0 2px 4px rgba(0,0,0,0.02)",
+                    minHeight: "52px",
                     whiteSpace: "nowrap",
                     cursor: "pointer",
+                    overflow: "hidden",
                   }}
-                  className="clean-tab-trigger"
+                  className="opengraph-tab-trigger"
                 >
+                  {dataType === "image" && (
+                    <Box
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)`,
+                        animation: "shimmer 2s infinite",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
                   <ImageIcon
-                    width="16"
-                    height="16"
+                    width="18"
+                    height="18"
                     style={{
-                     marginRight: "5px",
+                      marginRight: "5px"
                     }}
                   />
                   <span>Image Data</span>
@@ -229,34 +245,49 @@ export function HomeHeader() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px",
-                    color: dataType === "video" ? theme.colors.interactive.primary : theme.colors.text.secondary,
-                    fontWeight: dataType === "video" ? "600" : "400",
+                    gap: "10px",
+                    color: dataType === "video" ? theme.colors.text.primary : theme.colors.text.secondary,
+                    fontWeight: dataType === "video" ? "600" : "500",
                     fontSize: "14px",
-                    padding: "12px 20px",
-                    borderRadius: theme.borders.radius.lg,
-                    transition: "all 0.2s ease",
+                    padding: "14px 24px",
+                    borderRadius: "18px",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     position: "relative",
                     background: dataType === "video" 
-                      ? `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.primary}08)`
+                      ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
                       : "transparent",
                     border: dataType === "video" 
-                      ? `1px solid ${theme.colors.interactive.primary}30`
+                      ? `1px solid ${theme.colors.interactive.primary}40`
                       : "1px solid transparent",
                     boxShadow: dataType === "video" 
-                      ? `0 2px 8px ${theme.colors.interactive.primary}20`
-                      : "none",
-                    minHeight: "48px",
+                      ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
+                      : "0 2px 4px rgba(0,0,0,0.02)",
+                    minHeight: "52px",
                     whiteSpace: "nowrap",
                     cursor: "pointer",
+                    overflow: "hidden",
                   }}
-                  className="clean-tab-trigger"
+                  className="opengraph-tab-trigger"
                 >
+                  {dataType === "video" && (
+                    <Box
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)`,
+                        animation: "shimmer 2s infinite",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
                   <VideoIcon
-                    width="16"
-                    height="16"
+                    width="18"
+                    height="18"
                     style={{
-                      marginRight: "5px",
+                      marginRight: "5px"
                     }}
                   />
                   <span>Video Data</span>
@@ -264,6 +295,55 @@ export function HomeHeader() {
               </Tabs.List>
             </Tabs.Root>
           </Box>
+
+          {/* Video Task Filter - Only show for video data */}
+          {dataType === "video" && (
+            <Box
+              style={{
+                width: "100%",
+                maxWidth: "500px",
+                margin: "0 auto",
+                animation: "contentFadeIn 0.5s ease-out",
+              }}
+            >
+              <Flex justify="center" gap="3">
+                {[
+                  { value: "all" as VideoTask, label: "All Tasks" },
+                  { value: "wipe_spill" as VideoTask, label: "Wipe the spill" },
+                  { value: "fold_clothes" as VideoTask, label: "Fold clothes" }
+                ].map((task) => (
+                  <Button
+                    key={task.value}
+                    variant={selectedVideoTask === task.value ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={() => setSelectedVideoTask(task.value)}
+                    style={{
+                      borderRadius: "12px",
+                      padding: "8px 16px",
+                      fontSize: "13px",
+                      fontWeight: "500",
+                      transition: "all 0.2s ease",
+                      background: selectedVideoTask === task.value 
+                        ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
+                        : `${theme.colors.background.card}80`,
+                      color: selectedVideoTask === task.value 
+                        ? theme.colors.text.primary
+                        : theme.colors.text.secondary,
+                      border: selectedVideoTask === task.value 
+                        ? `1px solid ${theme.colors.interactive.primary}40`
+                        : `1px solid ${theme.colors.border.primary}30`,
+                      boxShadow: selectedVideoTask === task.value 
+                        ? `0 2px 8px ${theme.colors.interactive.primary}25`
+                        : "0 1px 3px rgba(0,0,0,0.05)",
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
+                    {task.label}
+                  </Button>
+                ))}
+              </Flex>
+            </Box>
+          )}
 
           {/* Bottom Row: Search Bar - Only show for image data */}
           {dataType === "image" && (
@@ -286,43 +366,59 @@ export function HomeHeader() {
         </Flex>
       </Box>
       
-      {/* Clean Professional Tab Styles */}
+      {/* Sophisticated OpenGraph Tab Styles */}
       <style>
         {`
-          .clean-professional-tabs {
+          .opengraph-tabs {
             position: relative;
             isolation: isolate;
           }
           
-          .clean-tab-trigger {
+          .opengraph-tab-trigger {
             user-select: none;
             outline: none;
             border: none !important;
             background: none !important;
           }
           
-          .clean-tab-trigger:hover {
-            transform: translateY(-1px);
+          .opengraph-tab-trigger:hover {
+            transform: translateY(-2px) scale(1.02);
             filter: brightness(1.05);
           }
           
-          .clean-tab-trigger:active {
-            transform: translateY(0);
+          .opengraph-tab-trigger:active {
+            transform: translateY(-1px) scale(1.01);
           }
           
-          /* Ensure text is never cut off */
-          .clean-professional-tabs [role="tab"] {
+          /* Shimmer animation for active tabs */
+          @keyframes shimmer {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
+          }
+          
+          /* Ensure perfect tab rendering */
+          .opengraph-tabs [role="tab"] {
             box-sizing: border-box;
             flex-shrink: 0;
             min-width: auto !important;
             width: auto !important;
-            overflow: visible !important;
+            overflow: hidden !important;
           }
           
-          .clean-professional-tabs [role="tablist"] {
+          .opengraph-tabs [role="tablist"] {
             overflow: visible !important;
             display: flex !important;
             width: auto !important;
+          }
+          
+          /* Video task filter button enhancements */
+          .video-task-button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
           }
           
           /* Content transition animations */

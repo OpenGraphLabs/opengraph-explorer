@@ -10,6 +10,7 @@ export interface ApprovedAnnotationWithImage extends AnnotationRead {
 }
 
 export type DataType = "image" | "video";
+export type VideoTask = "all" | "wipe_spill" | "fold_clothes";
 
 interface HomePageContextValue {
   // Combined data
@@ -24,6 +25,10 @@ interface HomePageContextValue {
   // Data type selection
   dataType: DataType;
   setDataType: (type: DataType) => void;
+  
+  // Video task selection
+  selectedVideoTask: VideoTask;
+  setSelectedVideoTask: (task: VideoTask) => void;
 
   // Loading states
   isLoading: boolean;
@@ -51,6 +56,7 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   const [previousAnnotationsWithImages, setPreviousAnnotationsWithImages] = useState<ApprovedAnnotationWithImage[]>([]);
   const [dataType, setDataType] = useState<DataType>("image");
+  const [selectedVideoTask, setSelectedVideoTask] = useState<VideoTask>("all");
 
   // Get data from providers
   const {
@@ -195,6 +201,8 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
         setSelectedAnnotation,
         dataType,
         setDataType,
+        selectedVideoTask,
+        setSelectedVideoTask,
         isLoading,
         error,
         isTransitioning,

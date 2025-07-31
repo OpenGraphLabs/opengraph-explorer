@@ -1,20 +1,28 @@
 import React from "react";
 import { Box, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useHomePage } from "@/contexts/page/HomePageContext";
 
 const YOUTUBE_VIDEOS = [
-  { id: "YpZcIwDrsfY" },
-  { id: "zFWP_Nm-wMM" },
-  { id: "InPgnIXWEnM" },
-  { id: "h0IbtzDXdIA" },
+  { id: "YpZcIwDrsfY", task: "wipe_spill" },
+  { id: "zFWP_Nm-wMM", task: "fold_clothes" },
+  { id: "InPgnIXWEnM", task: "fold_clothes" },
+  { id: "h0IbtzDXdIA", task: "wipe_spill" },
+  { id: "z0MsdNLJbiQ", task: "fold_clothes" },
 ];
 
 export function VideoGallery() {
   const { theme } = useTheme();
+  const { selectedVideoTask } = useHomePage();
 
   const getEmbedUrl = (videoId: string) => {
     return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&disablekb=1&fs=0&color=white&playsinline=1`;
   };
+
+  // Filter videos based on selected task
+  const filteredVideos = selectedVideoTask === "all" 
+    ? YOUTUBE_VIDEOS 
+    : YOUTUBE_VIDEOS.filter(video => video.task === selectedVideoTask);
 
   return (
     <Grid
@@ -25,7 +33,7 @@ export function VideoGallery() {
         animation: "fadeIn 0.8s ease-out",
       }}
     >
-      {YOUTUBE_VIDEOS.map((video, index) => (
+      {filteredVideos.map((video, index) => (
         <Box
           key={video.id}
           style={{
