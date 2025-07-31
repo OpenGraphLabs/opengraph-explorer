@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, Button, Badge, Flex, Grid } from "@/shared/ui/design-system/components";
+import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -88,7 +88,7 @@ const TASK_TYPES: TaskType[] = [
   }
 ];
 
-function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; isLoaded: boolean }) {
+function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: number; isLoaded: boolean; isMobile: boolean }) {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
@@ -129,12 +129,12 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
     >
       <Box
         style={{
-          padding: theme.spacing.semantic.component.lg,
+          padding: isMobile ? theme.spacing.semantic.component.md : theme.spacing.semantic.component.lg,
           borderRadius: theme.borders.radius.lg,
           border: `1px solid ${theme.colors.border.primary}`,
           backgroundColor: theme.colors.background.card,
           display: "flex",
-          flexDirection: "column",
+          flexDirection: isMobile ? "row" : "column",
           height: "auto",
           transition: theme.animations.transitions.hover,
           cursor: "pointer",
@@ -176,12 +176,13 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           </Box>
         )}
 
-        <Flex direction="column" gap="4" style={{ height: "100%", minHeight: "520px" }}>
+        <Flex direction={isMobile ? "row" : "column"} gap={isMobile ? "3" : "4"} style={{ height: "100%", minHeight: isMobile ? "auto" : "520px", width: "100%" }}>
           {/* Thumbnail Image */}
           <Box
             style={{
-              width: "100%",
-              height: "260px",
+              width: isMobile ? "120px" : "100%",
+              height: isMobile ? "100px" : "260px",
+              minWidth: isMobile ? "120px" : "auto",
               borderRadius: theme.borders.radius.lg,
               backgroundColor: theme.colors.background.secondary,
               border: `1px solid ${theme.colors.border.primary}`,
@@ -281,26 +282,28 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
             )}
           </Box>
 
+          {/* Mobile: Content Area, Desktop: Same layout */}
+          <Flex direction="column" gap={isMobile ? "2" : "4"} style={{ flex: 1 }}>
           {/* Header with Reward */}
-          <Flex align="center" justify="center" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
+          <Flex align="center" justify={isMobile ? "flex-start" : "center"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.xs }}>
             <Box
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
-                padding: "6px 12px",
+                gap: isMobile ? "4px" : "6px",
+                padding: isMobile ? "4px 8px" : "6px 12px",
                 borderRadius: theme.borders.radius.full,
                 background: `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.accent}15)`,
                 border: `1px solid ${theme.colors.interactive.primary}30`,
               }}
             >
-              <Coins size={16} color={theme.colors.interactive.primary} weight="fill" />
+              <Coins size={isMobile ? 14 : 16} color={theme.colors.interactive.primary} weight="fill" />
               <Text
-                size="2"
+                size={isMobile ? "1" : "2"}
                 style={{
                   color: theme.colors.interactive.primary,
                   fontWeight: 700,
-                  fontSize: "14px",
+                  fontSize: isMobile ? "12px" : "14px",
                 }}
               >
                 {task.reward}
@@ -309,79 +312,84 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
           </Flex>
 
           {/* Title and Description */}
-          <Box style={{ textAlign: "center", marginBottom: theme.spacing.semantic.component.sm, flex: "1" }}>
+          <Box style={{ textAlign: isMobile ? "left" : "center", marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm, flex: "1" }}>
             <Text
               as="p"
-              size="4"
+              size={isMobile ? "3" : "4"}
               weight="bold"
               style={{
                 color: theme.colors.text.primary,
-                marginBottom: "8px",
+                marginBottom: isMobile ? "4px" : "8px",
                 lineHeight: "1.3",
+                fontSize: isMobile ? "16px" : undefined,
               }}
             >
               {task.title}
             </Text>
-            <Text
-              as="p"
-              size="2"
-              style={{
-                color: theme.colors.text.secondary,
-                lineHeight: "1.4",
-                fontSize: "13px",
-                textAlign: "left",
-                padding: "0 8px",
-              }}
-            >
-              {task.description}
-            </Text>
+            {!isMobile && (
+              <Text
+                as="p"
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  lineHeight: "1.4",
+                  fontSize: "13px",
+                  textAlign: "left",
+                  padding: "0 8px",
+                }}
+              >
+                {task.description}
+              </Text>
+            )}
           </Box>
 
-          {/* Requirements */}
-          <Box style={{ marginBottom: theme.spacing.semantic.component.sm }}>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                fontWeight: 600,
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "6px",
-                textAlign: "center",
-              }}
-            >
-              Requirements
-            </Text>
-            <Flex direction="column" gap="2" style={{ padding: "0 8px" }}>
-              {task.requirements.map((requirement, index) => (
-                <Flex key={index} align="center" gap="2">
-                  <CheckCircle size={12} color={theme.colors.status.success} weight="fill" />
-                  <Text
-                    size="1"
-                    style={{
-                      color: theme.colors.text.tertiary,
-                      fontSize: "12px",
-                      lineHeight: "1.3",
-                    }}
-                  >
-                    {requirement}
-                  </Text>
-                </Flex>
-              ))}
-            </Flex>
-          </Box>
+          {/* Requirements - Hidden on mobile */}
+          {!isMobile && (
+            <Box style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.secondary,
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  marginBottom: "6px",
+                  textAlign: "center",
+                }}
+              >
+                Requirements
+              </Text>
+              <Flex direction="column" gap="2" style={{ padding: "0 8px" }}>
+                {task.requirements.map((requirement, index) => (
+                  <Flex key={index} align="center" gap="2">
+                    <CheckCircle size={12} color={theme.colors.status.success} weight="fill" />
+                    <Text
+                      size="1"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                        fontSize: "12px",
+                        lineHeight: "1.3",
+                      }}
+                    >
+                      {requirement}
+                    </Text>
+                  </Flex>
+                ))}
+              </Flex>
+            </Box>
+          )}
 
           {/* Difficulty and Time - Compact */}
-          <Flex justify="center" align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+          <Flex justify={isMobile ? "flex-start" : "center"} align="center" gap={isMobile ? "2" : "3"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm }}>
             <Badge
               style={{
                 backgroundColor: difficultyStyle.background,
                 color: difficultyStyle.color,
                 border: `1px solid ${difficultyStyle.border}`,
                 borderRadius: theme.borders.radius.sm,
-                padding: "4px 10px",
-                fontSize: "11px",
+                padding: isMobile ? "2px 6px" : "4px 10px",
+                fontSize: isMobile ? "10px" : "11px",
                 fontWeight: 600,
               }}
             >
@@ -391,7 +399,7 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
               size="1"
               style={{
                 color: theme.colors.text.secondary,
-                fontSize: "12px",
+                fontSize: isMobile ? "11px" : "12px",
                 fontWeight: 500,
               }}
             >
@@ -419,14 +427,14 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
               color: theme.colors.text.inverse,
               border: "none",
               borderRadius: theme.borders.radius.lg,
-              padding: "12px",
-              fontSize: "13px",
+              padding: isMobile ? "10px" : "12px",
+              fontSize: isMobile ? "12px" : "13px",
               fontWeight: 700,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "6px",
+              gap: isMobile ? "4px" : "6px",
               marginTop: "auto",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               boxShadow: theme.shadows.semantic.interactive.default,
@@ -435,8 +443,9 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
             }}
           >
             Start
-            <ArrowRight size={12} weight="bold" />
+            <ArrowRight size={isMobile ? 10 : 12} weight="bold" />
           </Button>
+          </Flex>
         </Flex>
       </Box>
     </Box>
@@ -446,10 +455,23 @@ function TaskCard({ task, index, isLoaded }: { task: TaskType; index: number; is
 function EarnContent() {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Mobile detection
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   return (
@@ -458,29 +480,31 @@ function EarnContent() {
       <Box
         style={{
           textAlign: "center",
-          marginBottom: theme.spacing.semantic.component.xl,
-          padding: `${theme.spacing.semantic.component.md} 0`,
+          marginBottom: isMobile ? theme.spacing.semantic.component.lg : theme.spacing.semantic.component.xl,
+          padding: `${isMobile ? theme.spacing.semantic.component.sm : theme.spacing.semantic.component.md} 0`,
         }}
       >
         <Text
           as="p"
-          size="6"
+          size={isMobile ? "5" : "6"}
           weight="bold"
           style={{
             color: theme.colors.text.primary,
             marginBottom: theme.spacing.semantic.component.sm,
+            fontSize: isMobile ? "24px" : undefined,
           }}
         >
           Contribute to Robotics AI
         </Text>
         <Text
           as="p"
-          size="3"
+          size={isMobile ? "2" : "3"}
           style={{
             color: theme.colors.text.secondary,
-            maxWidth: "600px",
+            maxWidth: isMobile ? "320px" : "600px",
             margin: "0 auto",
             lineHeight: 1.5,
+            fontSize: isMobile ? "14px" : undefined,
           }}
         >
           Earn $OPEN tokens by completing AI training tasks
@@ -488,19 +512,19 @@ function EarnContent() {
       </Box>
 
       {/* Tasks Grid */}
-      <Grid
-        columns={{ initial: "1", sm: "2" }}
-        gap="25px"
+      <Box
         style={{
-          gridTemplateColumns: "1fr 1fr 1fr 1fr",
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)",
+          gap: isMobile ? "16px" : "25px",
           marginBottom: theme.spacing.semantic.layout.lg,
           width: "100%",
         }}
       >
         {TASK_TYPES.map((task, index) => (
-          <TaskCard key={task.id} task={task} index={index} isLoaded={isLoaded} />
+          <TaskCard key={task.id} task={task} index={index} isLoaded={isLoaded} isMobile={isMobile} />
         ))}
-      </Grid>
+      </Box>
 
       {/* Animations */}
       <style>
@@ -556,7 +580,7 @@ export function Earn() {
       style={{
         maxWidth: "100%",
         margin: "0 auto",
-        padding: "0 20px",
+        padding: "0 16px",
       }}
     >
       <EarnContent />
