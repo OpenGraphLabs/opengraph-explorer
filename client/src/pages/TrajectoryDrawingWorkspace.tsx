@@ -13,11 +13,14 @@ import { TrajectoryCanvas } from "@/components/trajectory-workspace/TrajectoryCa
 import { TrajectoryTaskSidebar } from "@/components/trajectory-workspace/TrajectoryTaskSidebar";
 import { TrajectoryLoadingState } from "@/components/trajectory-workspace/TrajectoryLoadingState";
 import { TrajectoryErrorState } from "@/components/trajectory-workspace/TrajectoryErrorState";
+import { Modal } from "@/shared/ui/components/Modal";
+import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
 
 function TrajectoryWorkspaceContent() {
   const { theme } = useTheme();
   const { selectedImage, isLoading: imagesLoading, error: imagesError } = useImagesContext();
   const { dataset, isLoading: datasetLoading, error: datasetError } = useDatasets();
+  const { modalState, closeModal } = useTrajectoryWorkspace();
 
   // Loading state
   if (imagesLoading || datasetLoading) {
@@ -105,6 +108,19 @@ function TrajectoryWorkspaceContent() {
           }
         `}
       </style>
+
+      {/* Custom Modal */}
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        showCancel={modalState.showCancel}
+      />
     </Box>
   );
 }

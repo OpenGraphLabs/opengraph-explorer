@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
+import { useModal } from "@/shared/hooks/useModal";
 import type { AnnotationClientRead } from "@/shared/api/generated/models";
 
 interface Point {
@@ -58,6 +59,10 @@ interface TrajectoryWorkspaceContextType {
   // Status
   canStartDrawing: boolean;
   isTrajectoryComplete: boolean;
+
+  // Modal state
+  modalState: any;
+  closeModal: () => void;
 }
 
 const TrajectoryWorkspaceContext = createContext<TrajectoryWorkspaceContextType | null>(null);
@@ -72,6 +77,7 @@ export function useTrajectoryWorkspace() {
 
 export function TrajectoryWorkspaceProvider({ children }: { children: React.ReactNode }) {
   const { selectedImage } = useImagesContext();
+  const { modalState, closeModal, showSuccess, showError } = useModal();
   
   // Load approved annotations for the selected image
   const { data: approvedAnnotationsData, isLoading: annotationsLoading } = useApprovedAnnotationsByImage(
@@ -317,15 +323,23 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
       console.log('Submitting trajectory:', trajectoryData);
       
       // Show success feedback and reset
-      alert(`Trajectory submitted successfully! You earned ${selectedTask.reward}`);
-      handleResetTrajectory();
-      setSelectedTask(null);
+      showSuccess(
+        "Trajectory Submitted!",
+        `Great work! You've successfully completed the trajectory task and earned ${selectedTask.reward}. The trajectory has been saved and will help improve our robot training models.`,
+        () => {
+          handleResetTrajectory();
+          setSelectedTask(null);
+        }
+      );
 
     } catch (error) {
       console.error('Failed to submit trajectory:', error);
-      alert('Failed to submit trajectory. Please try again.');
+      showError(
+        "Submission Failed",
+        "We couldn't submit your trajectory right now. Please check your connection and try again.",
+      );
     }
-  }, [selectedTask, startPoint, endPoint, trajectoryPath, selectedImage, handleResetTrajectory]);
+  }, [selectedTask, startPoint, endPoint, trajectoryPath, selectedImage, handleResetTrajectory, showSuccess, showError]);
 
   // Computed properties
   const canStartDrawing = useMemo(() => {
@@ -368,6 +382,10 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
     // Status
     canStartDrawing,
     isTrajectoryComplete,
+
+    // Modal state
+    modalState,
+    closeModal,
   };
 
   return (
