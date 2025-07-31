@@ -1,69 +1,24 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { 
   Camera, 
-  X, 
-  CheckCircle, 
-  ArrowLeft,
-  Target,
-  List
+  X
 } from "phosphor-react";
 import robotHandImage from "@/assets/image/robot_hand.png";
 
-interface TaskInstructions {
-  title: string;
-  description: string;
-  examples: string[];
-}
-
-const TASK_INSTRUCTIONS: TaskInstructions[] = [
-  {
-    title: "Kitchen Tasks",
-    description: "Take photos of kitchen objects from a robot's perspective",
-    examples: [
-      "Dishes in the sink ready for cleaning",
-      "Dirty plates on the counter",
-      "Food items on the table",
-      "Utensils scattered around"
-    ]
-  },
-  {
-    title: "Laundry Tasks", 
-    description: "Capture laundry-related scenarios",
-    examples: [
-      "Clothes pile ready for folding",
-      "Wrinkled clothes on the bed",
-      "Laundry basket with mixed items",
-      "Clothes hanging on drying rack"
-    ]
-  },
-  {
-    title: "Cleaning Tasks",
-    description: "Document cleaning scenarios",
-    examples: [
-      "Cluttered desk surface",
-      "Items scattered on floor",
-      "Dusty surfaces needing attention",
-      "Organized vs. disorganized spaces"
-    ]
-  }
-];
 
 export function FirstPersonCapture() {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const { id: datasetId } = useParams();
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const [isStreaming, setIsStreaming] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [currentTask, setCurrentTask] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -201,7 +156,6 @@ export function FirstPersonCapture() {
     };
   }, []); // No dependencies
 
-  const currentTaskData = TASK_INSTRUCTIONS[currentTask];
 
   return (
     <Box style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -213,243 +167,71 @@ export function FirstPersonCapture() {
           backgroundColor: theme.colors.background.card,
         }}
       >
-        <Flex align="center" justify="between">
-          <Flex align="center" gap={isMobile ? "2" : "3"}>
-            <Box>
-              <Text
-                as="p"
-                size={isMobile ? "3" : "4"} 
-                weight="bold" 
-                style={{ 
-                  color: theme.colors.text.primary,
-                  fontSize: isMobile ? "16px" : "18px",
-                  letterSpacing: "-0.01em"
-                }}
-              >
-                {isMobile ? "Robot Vision Capture" : "First-Person Robot Vision Capture"}
-              </Text>
-              <Text as="p" size="1" style={{
-                color: theme.colors.text.tertiary,
-                fontSize: "12px",
-                marginTop: "2px"
-              }}>
-                Powered by OpenGraph AI
-              </Text>
-            </Box>
-          </Flex>
-          
-          <Flex align="center" gap="2">
-            {isMobile && (
-              <Button
-                  onClick={() => setShowInstructions(!showInstructions)}
-                style={{
-                  padding: "8px",
-                  borderRadius: theme.borders.radius.sm,
-                  color: theme.colors.text.secondary,
-                }}
-              >
-                <List size={18} />
-              </Button>
-            )}
-            {!isMobile && (
-              <>
-                <Target size={16} color={theme.colors.interactive.primary} />
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Task {currentTask + 1} of {TASK_INSTRUCTIONS.length}
-                </Text>
-              </>
-            )}
+        <Flex align="center" justify="center">
+          <Flex align="center" gap={isMobile ? "3" : "4"}>
+            <Text
+              as="p"
+              size={isMobile ? "4" : "5"} 
+              weight="bold" 
+              style={{ 
+                color: theme.colors.text.primary,
+                fontSize: isMobile ? "18px" : "20px",
+                letterSpacing: "-0.01em"
+              }}
+            >
+              📸 Take a picture of your desk
+            </Text>
           </Flex>
         </Flex>
       </Box>
 
-      {/* Mobile Instructions Modal */}
-      {isMobile && showInstructions && (
-        <Box
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "flex-end",
-          }}
-          onClick={() => setShowInstructions(false)}
-        >
-          <Box
-            style={{
-              backgroundColor: theme.colors.background.card,
-              borderTopLeftRadius: theme.borders.radius.lg,
-              borderTopRightRadius: theme.borders.radius.lg,
-              padding: theme.spacing.semantic.component.lg,
-              width: "100%",
-              maxHeight: "70vh",
-              overflowY: "auto",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Flex align="center" justify="between" style={{ marginBottom: theme.spacing.semantic.component.md }}>
-              <Text size="3" weight="bold" style={{ color: theme.colors.text.primary }}>
-                {currentTaskData.title}
-              </Text>
-              <Button
-                  onClick={() => setShowInstructions(false)}
-                style={{ padding: "4px" }}
-              >
-                <X size={18} />
-              </Button>
-            </Flex>
-            
-            <Text size="2" style={{ 
-              color: theme.colors.text.secondary,
-              marginBottom: theme.spacing.semantic.component.md,
-              lineHeight: 1.5
-            }}>
-              {currentTaskData.description}
-            </Text>
 
-            <Text size="2" weight="medium" style={{ 
-              color: theme.colors.text.primary,
-              marginBottom: theme.spacing.semantic.component.sm
-            }}>
-              Example Scenarios:
-            </Text>
+      <Flex style={{ flex: 1, flexDirection: "column" }}>
 
-            {currentTaskData.examples.map((example, index) => (
-              <Flex key={index} align="center" gap="2" style={{ marginBottom: "8px" }}>
-                <CheckCircle size={12} color={theme.colors.status.success} weight="fill" />
-                <Text size="2" style={{ 
-                  color: theme.colors.text.tertiary,
-                  lineHeight: 1.4
-                }}>
-                  {example}
-                </Text>
-              </Flex>
-            ))}
-
-            <Flex gap="2" style={{ marginTop: theme.spacing.semantic.component.lg }}>
-              <Button
-                        disabled={currentTask === 0}
-                onClick={() => setCurrentTask(prev => Math.max(0, prev - 1))}
-                style={{ flex: 1, padding: "12px" }}
-              >
-                Previous
-              </Button>
-              <Button
-                        disabled={currentTask === TASK_INSTRUCTIONS.length - 1}
-                onClick={() => setCurrentTask(prev => Math.min(TASK_INSTRUCTIONS.length - 1, prev + 1))}
-                style={{ flex: 1, padding: "12px" }}
-              >
-                Next
-              </Button>
-            </Flex>
-          </Box>
-        </Box>
-      )}
-
-      <Flex style={{ flex: 1, flexDirection: isMobile ? "column" : "row" }}>
-        {/* Desktop Task Instructions Panel */}
-        {!isMobile && (
-          <Box
-            style={{
-              width: "320px",
-              padding: theme.spacing.semantic.component.lg,
-              backgroundColor: theme.colors.background.secondary,
-              borderRight: `1px solid ${theme.colors.border.primary}`,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Text size="3" weight="bold" style={{ 
-              color: theme.colors.text.primary,
-              marginBottom: theme.spacing.semantic.component.md
-            }}>
-              {currentTaskData.title}
-            </Text>
-            
-            <Text size="2" style={{ 
-              color: theme.colors.text.secondary,
-              marginBottom: theme.spacing.semantic.component.lg,
-              lineHeight: 1.5
-            }}>
-              {currentTaskData.description}
-            </Text>
-
-            <Text size="2" weight="medium" style={{ 
-              color: theme.colors.text.primary,
-              marginBottom: theme.spacing.semantic.component.sm
-            }}>
-              Example Scenarios:
-            </Text>
-
-            <Box style={{ flex: 1 }}>
-              {currentTaskData.examples.map((example, index) => (
-                <Flex key={index} align="center" gap="2" style={{ marginBottom: "8px" }}>
-                  <CheckCircle size={12} color={theme.colors.status.success} weight="fill" />
-                  <Text size="1" style={{ 
-                    color: theme.colors.text.tertiary,
-                    lineHeight: 1.4
-                  }}>
-                    {example}
-                  </Text>
-                </Flex>
-              ))}
-            </Box>
-
-            {/* Task Navigation */}
-            <Flex gap="2" style={{ marginTop: theme.spacing.semantic.component.lg }}>
-              <Button
-                        disabled={currentTask === 0}
-                onClick={() => setCurrentTask(prev => Math.max(0, prev - 1))}
-                style={{
-                  flex: 1,
-                  padding: "8px 12px",
-                  fontSize: "12px",
-                }}
-              >
-                Previous
-              </Button>
-              <Button
-                        disabled={currentTask === TASK_INSTRUCTIONS.length - 1}
-                onClick={() => setCurrentTask(prev => Math.min(TASK_INSTRUCTIONS.length - 1, prev + 1))}
-                style={{
-                  flex: 1,
-                  padding: "8px 12px",
-                  fontSize: "12px",
-                }}
-              >
-                Next
-              </Button>
-            </Flex>
-          </Box>
-        )}
-
-        {/* Camera View */}
+        {/* Camera View Container */}
         <Box style={{ 
           flex: 1, 
           display: "flex", 
           flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           position: "relative",
           backgroundColor: theme.colors.background.primary,
-          minHeight: isMobile ? "calc(100vh - 80px)" : "auto"
+          height: isMobile ? "calc(100vh - 140px)" : "auto",
+          padding: isMobile ? "20px" : "40px",
+          overflow: "hidden"
         }}>
-          {/* Always render video element, but show/hide with CSS */}
-          <video
-            ref={videoRef}
+          {/* Camera Frame */}
+          <Box
             style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              backgroundColor: "black",
-              display: isStreaming ? "block" : "none",
+              position: "relative",
+              width: isMobile 
+                ? (isLandscape ? "min(95vw, 800px)" : "min(90vw, 400px)")
+                : "min(85vw, 900px)",
+              height: isMobile
+                ? (isLandscape ? "min(75vh, 500px)" : "min(60vh, 500px)")
+                : "min(70vh, 600px)",
+              background: `linear-gradient(135deg, ${theme.colors.background.secondary}, ${theme.colors.background.card})`,
+              borderRadius: theme.borders.radius.xl,
+              overflow: "hidden",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              border: `1px solid ${theme.colors.border.primary}`,
             }}
-            playsInline
-            autoPlay
-            muted
-          />
+          >
+            {/* Video Element */}
+            <video
+              ref={videoRef}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                backgroundColor: "black",
+                display: isStreaming ? "block" : "none",
+              }}
+              playsInline
+              autoPlay
+              muted
+            />
 
           {!isStreaming && !capturedImage ? (
             // Camera Start Screen
@@ -458,35 +240,52 @@ export function FirstPersonCapture() {
               align="center" 
               justify="center" 
               style={{ 
-                flex: 1,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: `linear-gradient(135deg, ${theme.colors.background.primary}, ${theme.colors.background.secondary})`,
                 gap: isMobile ? theme.spacing.semantic.component.lg : theme.spacing.semantic.component.xl,
                 padding: theme.spacing.semantic.component.lg
               }}
             >
               <Box
                 style={{
-                  padding: isMobile ? "20px" : "24px",
+                  padding: isMobile ? "24px" : "28px",
                   borderRadius: theme.borders.radius.full,
                   backgroundColor: `${theme.colors.interactive.primary}15`,
-                  border: `2px solid ${theme.colors.interactive.primary}30`,
+                  border: `1px solid ${theme.colors.interactive.primary}30`,
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
                 }}
               >
-                <Camera size={isMobile ? 40 : 48} color={theme.colors.interactive.primary} weight="duotone" />
+                <Camera size={isMobile ? 44 : 52} color={theme.colors.interactive.primary} weight="duotone" />
               </Box>
               
-              <Box style={{ textAlign: "center", maxWidth: isMobile ? "300px" : "400px" }}>
+              <Box style={{ textAlign: "center", maxWidth: isMobile ? "280px" : "320px" }}>
                 <Text as="p" size={isMobile ? "3" : "4"} weight="bold" style={{
                   color: theme.colors.text.primary,
                   marginBottom: "8px"
                 }}>
-                  Ready to Capture
+                  Ready to Start
                 </Text>
                 <Text as="p" size="2" style={{
                   color: theme.colors.text.secondary,
-                  lineHeight: 1.5,
-                  fontSize: isMobile ? "14px" : undefined
+                  lineHeight: 1.4,
+                  fontSize: isMobile ? "14px" : "15px"
                 }}>
-                  Position yourself at arm's length from the objects. The robot hand overlay will help you find the right distance.
+                  Position your camera at arm's length from your desk
+                  {isMobile && (
+                    <Text as="span" style={{ 
+                      display: "block",
+                      marginTop: "6px",
+                      color: theme.colors.interactive.primary,
+                      fontWeight: 500,
+                      fontSize: "13px"
+                    }}>
+                      💡 Landscape mode recommended
+                    </Text>
+                  )}
                 </Text>
               </Box>
 
@@ -498,13 +297,14 @@ export function FirstPersonCapture() {
                   color: theme.colors.text.inverse,
                   border: "none",
                   borderRadius: theme.borders.radius.lg,
-                  padding: isMobile ? "14px 28px" : "16px 32px",
-                  fontSize: isMobile ? "14px" : "16px",
+                  padding: isMobile ? "16px 32px" : "18px 36px",
+                  fontSize: isMobile ? "15px" : "16px",
                   fontWeight: 700,
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
-                  boxShadow: theme.shadows.semantic.interactive.default,
+                  gap: "10px",
+                  boxShadow: "0 3px 12px rgba(0, 0, 0, 0.15)",
+                  transition: "all 0.2s ease",
                 }}
               >
                 <Camera size={16} weight="bold" />
@@ -563,206 +363,87 @@ export function FirstPersonCapture() {
             </Flex>
           ) : null}
 
-          {/* Captured Image Preview */}
-          {capturedImage && (
-            <img
-              src={capturedImage}
-              alt="Captured"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                zIndex: 10,
-              }}
-            />
-          )}
+            {/* Captured Image Preview */}
+            {capturedImage && (
+              <img
+                src={capturedImage}
+                alt="Captured"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  zIndex: 10,
+                }}
+              />
+            )}
 
-          {/* Overlay content container */}
-          {(isStreaming || capturedImage) && (
-            <Box style={{ 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0, 
-              pointerEvents: "none",
-              zIndex: 20
-            }}>
-
-              {/* Robot Hand Overlay */}
-              {isStreaming && (
+            {/* Robot Hand Overlay - Positioned relative to camera frame */}
+            {isStreaming && (
+              <Box
+                style={{
+                  position: "absolute",
+                  bottom: "-20px",
+                  right: "-35px",
+                  width: isMobile ? (isLandscape ? "200px" : "160px") : "220px",
+                  height: isMobile ? (isLandscape ? "220px" : "180px") : "240px",
+                  pointerEvents: "none",
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "center",
+                  zIndex: 25,
+                }}
+              >
+                <img
+                  src={robotHandImage}
+                  alt="Robot Hand"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    opacity: 0.92,
+                    filter: "drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.3)) drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.15)) brightness(1.05) contrast(1.1)",
+                    transform: "scale(1.1) rotate(-3deg)",
+                    transformOrigin: "bottom right",
+                  }}
+                />
+                
+                {/* Enhanced realistic shadow */}
                 <Box
                   style={{
                     position: "absolute",
-                    bottom: isMobile ? (isLandscape ? "20px" : "100px") : "10px",
-                    right: isMobile ? (isLandscape ? "-20px" : "-30px") : "-30px",
-                    width: isMobile ? (isLandscape ? "280px" : "220px") : "320px",
-                    height: isMobile ? (isLandscape ? "280px" : "250px") : "320px",
+                    bottom: "5px",
+                    right: isMobile ? "30px" : "35px",
+                    width: isMobile ? "130px" : "150px",
+                    height: "16px",
+                    background: "radial-gradient(ellipse, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 40%, transparent 70%)",
+                    borderRadius: "50%",
+                    filter: "blur(3px)",
+                    transform: "skewX(-12deg)",
+                  }}
+                />
+                
+                {/* Professional highlight effect */}
+                <Box
+                  style={{
+                    position: "absolute",
+                    top: "15%",
+                    right: "25%",
+                    width: "30px",
+                    height: "30px",
+                    background: "radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%)",
+                    borderRadius: "50%",
+                    filter: "blur(10px)",
                     pointerEvents: "none",
-                    display: "flex",
-                    alignItems: "flex-end",
-                    justifyContent: "center",
-                    zIndex: 25,
                   }}
-                >
-                  <img
-                    src={robotHandImage}
-                    alt="Robot Hand"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      opacity: 0.92,
-                      filter: "drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.3)) drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.15)) brightness(1.05) contrast(1.1)",
-                      transform: isMobile 
-                        ? (isLandscape ? "scale(1.1) rotate(-2deg)" : "scale(1) rotate(-4deg)")
-                        : "scale(1.2) rotate(-2deg)",
-                      transformOrigin: "bottom right",
-                    }}
-                  />
-                  
-                  {/* Enhanced realistic shadow */}
-                  <Box
-                    style={{
-                      position: "absolute",
-                      bottom: isMobile ? (isLandscape ? "0px" : "5px") : "0px",
-                      right: isMobile ? (isLandscape ? "40px" : "30px") : "50px",
-                      width: isMobile ? (isLandscape ? "140px" : "110px") : "160px",
-                      height: "16px",
-                      background: "radial-gradient(ellipse, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 40%, transparent 70%)",
-                      borderRadius: "50%",
-                      filter: "blur(4px)",
-                      transform: "skewX(-12deg)",
-                    }}
-                  />
-                  
-                  {/* Professional highlight effect */}
-                  <Box
-                    style={{
-                      position: "absolute",
-                      top: "15%",
-                      right: "25%",
-                      width: "30px",
-                      height: "30px",
-                      background: "radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%)",
-                      borderRadius: "50%",
-                      filter: "blur(10px)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                </Box>
-              )}
+                />
+              </Box>
+            )}
+          </Box>
 
-              {/* Mobile Landscape Guidance */}
-              {isMobile && !isLandscape && isStreaming && (
-                <Box
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    backgroundColor: "rgba(0, 0, 0, 0.9)",
-                    borderRadius: theme.borders.radius.lg,
-                    padding: "24px",
-                    backdropFilter: "blur(20px)",
-                    border: `2px solid ${theme.colors.interactive.primary}`,
-                    boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5)",
-                    zIndex: 50,
-                    maxWidth: "280px",
-                    textAlign: "center",
-                  }}
-                >
-                  <Box
-                    style={{
-                      marginBottom: "16px",
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Box
-                      style={{
-                        width: "60px",
-                        height: "40px",
-                        border: "3px solid white",
-                        borderRadius: "8px",
-                        position: "relative",
-                        transform: "rotate(90deg)",
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      }}
-                    >
-                      <Box
-                        style={{
-                          position: "absolute",
-                          top: "50%",
-                          left: "50%",
-                          transform: "translate(-50%, -50%)",
-                          width: "20px",
-                          height: "12px",
-                          backgroundColor: "white",
-                          borderRadius: "2px",
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                  
-                  <Text size="3" weight="bold" style={{ 
-                    color: "white",
-                    marginBottom: "8px",
-                    lineHeight: 1.3
-                  }}>
-                    Rotate to Landscape
-                  </Text>
-                  
-                  <Text size="2" style={{ 
-                    color: "rgba(255, 255, 255, 0.8)",
-                    lineHeight: 1.4,
-                    fontSize: "14px"
-                  }}>
-                    For best results, please rotate your device to landscape mode before taking photos
-                  </Text>
-                </Box>
-              )}
 
-              {/* Mobile Task Indicator - Only show in landscape */}
-              {isMobile && isLandscape && isStreaming && (
-                <Box
-                  style={{
-                    position: "absolute",
-                    top: "20px",
-                    left: "20px",
-                    right: "300px", // Leave space for robot hand
-                    backgroundColor: "rgba(0, 0, 0, 0.8)",
-                    borderRadius: theme.borders.radius.lg,
-                    padding: "12px 16px",
-                    backdropFilter: "blur(15px)",
-                    border: `1px solid rgba(255, 255, 255, 0.1)`,
-                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-                  }}
-                >
-                  <Flex align="center" gap="2">
-                    <Box
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        backgroundColor: theme.colors.status.success,
-                        boxShadow: `0 0 10px ${theme.colors.status.success}`,
-                      }}
-                    />
-                    <Text size="2" weight="medium" style={{ 
-                      color: "white",
-                      fontSize: "13px"
-                    }}>
-                      {currentTaskData.title} • Task {currentTask + 1}/{TASK_INSTRUCTIONS.length}
-                    </Text>
-                  </Flex>
-                </Box>
-              )}
-            </Box>
-          )}
 
           {/* Camera Controls */}
           {(isStreaming || capturedImage) && (
@@ -772,11 +453,14 @@ export function FirstPersonCapture() {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                padding: isMobile ? theme.spacing.semantic.component.md : theme.spacing.semantic.component.lg,
-                background: "linear-gradient(transparent, rgba(0, 0, 0, 0.8))",
-                paddingBottom: isMobile ? "calc(env(safe-area-inset-bottom) + 20px)" : theme.spacing.semantic.component.lg,
+                padding: isMobile ? "16px" : theme.spacing.semantic.component.lg,
+                background: "linear-gradient(transparent, rgba(0, 0, 0, 0.85))",
+                paddingBottom: isMobile ? "max(20px, env(safe-area-inset-bottom))" : theme.spacing.semantic.component.lg,
                 zIndex: 30,
                 pointerEvents: "auto",
+                minHeight: isMobile ? "100px" : "120px",
+                display: "flex",
+                alignItems: "center",
               }}
             >
               <Flex justify="center" gap={isMobile ? "3" : "4"} align="center">
