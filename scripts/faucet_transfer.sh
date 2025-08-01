@@ -2,7 +2,7 @@
 
 # Configuration
 TO_ADDRESS="0xf1d044cc7a005d086cfc7105596154c8b60734b532eaf35efbd8bc82a3af8edc"
-FAUCET_COUNT=121  # Total number of faucets (1 for gas + 20 to transfer)
+FAUCET_COUNT=1210000  # Total number of faucets (1 for gas + 20 to transfer)
 GAS_BUDGET=1000000000 # 2 SUI
 
 # Function to get latest coin ID
