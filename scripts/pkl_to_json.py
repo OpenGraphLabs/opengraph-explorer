@@ -27,6 +27,17 @@ def save_json(data: Any, output_path: str):
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, cls=NumpyEncoder, indent=2, ensure_ascii=False)
 
+def format_input_value(value: float) -> str:
+    """Format input value as string with 8 decimal places
+    
+    Args:
+        value: Input value to format
+        
+    Returns:
+        String representation with 8 decimal places (e.g., "0.00000000")
+    """
+    return f"{float(value):.8f}"
+
 def restructure_mnist_data(data: pd.DataFrame) -> List[Dict]:
     """Restructure MNIST test data into a list of objects
     
@@ -36,7 +47,7 @@ def restructure_mnist_data(data: pd.DataFrame) -> List[Dict]:
     Returns:
         List of dictionaries, each containing:
         - index: row index
-        - input: input image data
+        - input: input image data as list of strings with 8 decimal places
         - label: true label
         - predicted_label: predicted label (initialized as null)
         - selected: whether this data point was selected
@@ -44,9 +55,14 @@ def restructure_mnist_data(data: pd.DataFrame) -> List[Dict]:
     restructured_data = []
     
     for idx, row in data.iterrows():
+        # Convert input values to list if numpy array
+        input_data = row['input'].tolist() if isinstance(row['input'], np.ndarray) else row['input']
+        # Format each input value as string with 8 decimal places
+        formatted_input = [format_input_value(val) for val in input_data]
+        
         item = {
             "index": int(idx),
-            "input": row['input'].tolist() if isinstance(row['input'], np.ndarray) else row['input'],
+            "input": formatted_input,
             "label": int(row['label']) if isinstance(row['label'], (np.integer, int)) else row['label'],
             "offchain_predicted_label": int(row['predicted_label']) if isinstance(row['predicted_label'], (np.integer, int)) else row['predicted_label'],
             "onchain_predicted_label": None,  # Initialize as null

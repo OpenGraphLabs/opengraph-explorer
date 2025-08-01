@@ -18,7 +18,7 @@ const SUI_CONTRACT = {
 };
 
 // Model parameters
-const MODEL_ID = "0xd830f879dc7ce693fc46c4ed4562cea4459e25be355491235b342900a6c6a5d3";
+const MODEL_ID = "0x872dc36048bedd901a56356d269c993e1b34afbb4fbd857412f79d0f9ea02657";
 const LAYER_COUNT = 3;
 const LAYER_DIMENSIONS = [32, 16, 10]; // Example dimensions
 
@@ -30,15 +30,13 @@ interface PredictionResult {
   argmaxIdx?: number;
 }
 
-interface TestSample {
+interface MnistSample {
   index: number;
-  input_values: string[];
-  true_label: number;
-  visualization: string[];
-}
-
-interface TestSamples {
-  test_samples: TestSample[];
+  input: number[];
+  label: number;
+  offchain_predicted_label: number | null;
+  onchain_predicted_label: number | null;
+  selected: boolean;
 }
 
 class ModelInference {
@@ -190,29 +188,27 @@ class ModelInference {
 async function main() {
   try {
     // Initialize inference with private key from config
-    const privateKey = contractConfig.account.private_key; // test address : 0xf1d044cc7a005d086cfc7105596154c8b60734b532eaf35efbd8bc82a3af8edc
+    const privateKey = contractConfig.account.private_key;
     const inference = new ModelInference(privateKey);
 
-    // Read test samples
-    const testSamplesPath = path.join(__dirname, '../data/mnist_14_14/test_samples/test_samples.json');
-    const testSamplesData = fs.readFileSync(testSamplesPath, 'utf-8');
-    const testSamples: TestSamples = JSON.parse(testSamplesData);
+    // Read MNIST test data
+    const testDataPath = path.join(__dirname, '../../scripts/mnist_test_data.json');
+    const testData: MnistSample[] = JSON.parse(fs.readFileSync(testDataPath, 'utf-8'));
 
+    // Process first 10 samples
+    const samplesToProcess = testData.slice(0, 10);
     let correctCount = 0;
-    const totalCount = testSamples.test_samples.length;
-    const predictions: number[] = [];
 
-    // Process each test sample
-    for (const sample of testSamples.test_samples) {
-      // console.log(`\nProcessing sample ${sample.index} (true label: ${sample.true_label})`);
-      // console.log("Visualization:");
-      // console.log(sample.visualization.join('\n'));
+    // Process each sample
+    for (const sample of samplesToProcess) {
+      console.log(`\nProcessing sample ${sample.index} (true label: ${sample.label})`);
 
-      // Convert input values to magnitude by removing decimal point
-      const inputMagnitude = sample.input_values.map(v => {
+      // Convert input values to magnitude
+      const inputMagnitude = sample.input.map(v => {
+        const strValue = v.toString();
         // Remove decimal point and convert to integer
         // e.g., "0.55882353" -> 55882353
-        return parseInt(v.replace("0.", "").padEnd(8, "0"));
+        return parseInt(strValue.replace("0.", "").padEnd(8, "0"));
       });
       const inputSign = new Array(inputMagnitude.length).fill(0); // All positive
 
@@ -225,21 +221,19 @@ async function main() {
         inputSign
       );
 
-      console.log("\nPrediction result:");
-      // console.log("- Magnitudes:", result.magnitudes);
-      // console.log("- Signs:", result.signs);
-      console.log("- Predicted class:", result.argmaxIdx);
-      console.log("- True label:", sample.true_label);
-      console.log("- Types:", {
-        predicted: typeof result.argmaxIdx,
-        true_label: typeof sample.true_label,
-        predicted_value: result.argmaxIdx,
-        true_label_value: sample.true_label
-      });
       const predictedClass = Number(result.argmaxIdx);
-      predictions.push(predictedClass);
       
-      const isCorrect = predictedClass === sample.true_label;
+      // Update onchain_predicted_label in the original data
+      const sampleIndex = testData.findIndex(s => s.index === sample.index);
+      if (sampleIndex !== -1) {
+        testData[sampleIndex].onchain_predicted_label = predictedClass;
+      }
+
+      console.log("Prediction result:");
+      console.log("- Predicted class:", predictedClass);
+      console.log("- True label:", sample.label);
+      
+      const isCorrect = predictedClass === sample.label;
       console.log("- Correct?:", isCorrect);
       
       if (isCorrect) {
@@ -247,22 +241,14 @@ async function main() {
       }
     }
 
-    // Print final accuracy statistics
+    // Print final accuracy statistics for processed samples
     console.log("\n=== Final Results ===");
-    console.log(`Correct predictions: ${correctCount}/${totalCount}`);
-    console.log(`Accuracy: ${((correctCount / totalCount) * 100).toFixed(2)}%`);
+    console.log(`Correct predictions: ${correctCount}/${samplesToProcess.length}`);
+    console.log(`Accuracy: ${((correctCount / samplesToProcess.length) * 100).toFixed(2)}%`);
 
-    // Save results to JSON file
-    const results = {
-      predictions,
-      accuracy: correctCount / totalCount,
-      total_samples: totalCount,
-      correct_samples: correctCount
-    };
-
-    const resultsPath = path.join(__dirname, 'blockchain_results.json');
-    fs.writeFileSync(resultsPath, JSON.stringify(results, null, 2));
-    console.log(`\nResults saved to: ${resultsPath}`);
+    // Save updated data back to JSON file
+    fs.writeFileSync(testDataPath, JSON.stringify(testData, null, 2));
+    console.log(`\nUpdated results saved to: ${testDataPath}`);
 
   } catch (error) {
     console.error("Error in main:", error);
