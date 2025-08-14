@@ -70,9 +70,12 @@ export function ObjectDetectionOverlay({
         left: 0,
         width: '100%',
         height: '100%',
+        maxWidth: '100%',
+        maxHeight: '100%',
         pointerEvents: 'none',
         zIndex: isMobile ? 25 : 20,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxSizing: 'border-box'
       }}
     >
       {/* Debug Info - Only in development */}
@@ -80,8 +83,8 @@ export function ObjectDetectionOverlay({
         <div
           style={{
             position: 'absolute',
-            top: isLandscape ? '10px' : '120px',
-            right: '10px',
+            top: isLandscape ? 'max(env(safe-area-inset-top, 0px), 10px)' : '130px',
+            right: isLandscape ? 'max(env(safe-area-inset-right, 0px), 10px)' : '10px',
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             color: '#00ff41',
             padding: '6px 10px',
@@ -91,7 +94,8 @@ export function ObjectDetectionOverlay({
             border: '1px solid rgba(0, 255, 65, 0.3)',
             zIndex: 999,
             backdropFilter: 'blur(10px)',
-            maxWidth: '150px'
+            maxWidth: '150px',
+            boxSizing: 'border-box'
           }}
         >
           D:{detections.length} | {Math.round(displayWidth)}x{Math.round(displayHeight)}

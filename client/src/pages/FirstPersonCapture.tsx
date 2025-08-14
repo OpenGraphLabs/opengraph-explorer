@@ -165,13 +165,26 @@ export function FirstPersonCapture() {
 
   // Capture photo
   const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
+    console.log('capturePhoto called!');
+    
+    if (!videoRef.current || !canvasRef.current) {
+      console.error('Video or canvas ref not available', {
+        videoRef: !!videoRef.current,
+        canvasRef: !!canvasRef.current
+      });
+      return;
+    }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
 
-    if (!context) return;
+    if (!context) {
+      console.error('Canvas context not available');
+      return;
+    }
+    
+    console.log('Starting photo capture...');
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -243,15 +256,24 @@ export function FirstPersonCapture() {
 
   // Flip camera (mobile only)
   const handleFlipCamera = useCallback(() => {
-    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+    console.log('handleFlipCamera called! Current facingMode:', facingMode);
+    setFacingMode(prev => {
+      const newMode = prev === 'user' ? 'environment' : 'user';
+      console.log('Switching camera from', prev, 'to', newMode);
+      return newMode;
+    });
     
     if (isStreaming) {
+      console.log('Stopping camera to switch...');
       stopCamera();
       setTimeout(() => {
+        console.log('Restarting camera with new facing mode...');
         void startCamera();
       }, 100);
+    } else {
+      console.log('Camera not streaming, mode changed but camera not restarted');
     }
-  }, [isStreaming, stopCamera, startCamera]);
+  }, [facingMode, isStreaming, stopCamera, startCamera]);
 
   // Close and navigate back
   const handleClose = useCallback(() => {
@@ -295,13 +317,21 @@ export function FirstPersonCapture() {
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        maxWidth: '100%',
+        maxHeight: '100%',
         backgroundColor: '#000',
         overflow: 'hidden',
         zIndex: 9999,
         userSelect: 'none',
-        WebkitUserSelect: 'none'
+        WebkitUserSelect: 'none',
+        // Mobile web optimization
+        WebkitOverflowScrolling: 'touch',
+        // Prevent body scroll
+        touchAction: isMobile ? 'none' : 'auto'
       }}
     >
       {/* Video Element */}
@@ -311,8 +341,10 @@ export function FirstPersonCapture() {
           position: 'absolute',
           top: 0,
           left: 0,
-          width: '100vw',
-          height: '100vh',
+          width: '100%',
+          height: '100%',
+          maxWidth: '100%',
+          maxHeight: '100%',
           objectFit: isMobile ? 'cover' : 'contain',
           display: isStreaming ? 'block' : 'none',
           transition: isTransitioning ? 'none' : 'all 0.3s ease',
@@ -334,15 +366,14 @@ export function FirstPersonCapture() {
       {isStreaming && !capturedImage && detectionEnabled && (
         <div
           style={{
-            // Remove transition effect that hides overlay during orientation change
-            // transition: 'opacity 0.3s ease',
-            // opacity: isTransitioning ? 0 : 1,
             opacity: 1,
             position: 'absolute',
             top: 0,
             left: 0,
-            width: '100vw',
-            height: '100vh',
+            width: '100%',
+            height: '100%',
+            maxWidth: '100%',
+            maxHeight: '100%',
             zIndex: isMobile ? 25 : 15,
             pointerEvents: 'none',
             // Mobile specific optimizations
@@ -357,8 +388,8 @@ export function FirstPersonCapture() {
             detections={detections}
             videoWidth={videoDimensions.width}
             videoHeight={videoDimensions.height}
-            containerWidth={window.innerWidth}
-            containerHeight={window.innerHeight}
+            containerWidth={containerRef.current?.clientWidth || window.innerWidth}
+            containerHeight={containerRef.current?.clientHeight || window.innerHeight}
           />
         </div>
       )}
@@ -372,8 +403,10 @@ export function FirstPersonCapture() {
             position: 'absolute',
             top: 0,
             left: 0,
-            width: '100vw',
-            height: '100vh',
+            width: '100%',
+            height: '100%',
+            maxWidth: '100%',
+            maxHeight: '100%',
             objectFit: isMobile ? 'cover' : 'contain'
           }}
         />
@@ -408,7 +441,14 @@ export function FirstPersonCapture() {
             onRetake={retakePhoto}
             onSubmit={submitPhoto}
             onClose={handleClose}
-            onToggleDetection={() => setDetectionEnabled(!detectionEnabled)}
+            onToggleDetection={() => {
+              console.log('onToggleDetection called! Current state:', detectionEnabled);
+              setDetectionEnabled(prev => {
+                const newState = !prev;
+                console.log('Detection enabled changing from', prev, 'to', newState);
+                return newState;
+              });
+            }}
             onFlipCamera={handleFlipCamera}
             currentTask={currentTask?.title}
             detectionCount={detections.length}
@@ -769,6 +809,28 @@ export function FirstPersonCapture() {
               opacity: 0.5;
             }
           }
+
+          /* Mobile web optimization */
+          ${isMobile ? `
+            html {
+              height: 100%;
+              overflow: hidden;
+            }
+            body {
+              height: 100%;
+              overflow: hidden;
+              position: fixed;
+              width: 100%;
+              -webkit-overflow-scrolling: touch;
+              overscroll-behavior: none;
+            }
+            * {
+              -webkit-tap-highlight-color: transparent;
+              -webkit-touch-callout: none;
+              -webkit-user-select: none;
+              user-select: none;
+            }
+          ` : ''}
         `}
       </style>
     </div>
