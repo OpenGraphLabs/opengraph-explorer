@@ -33,6 +33,20 @@ interface TaskType {
 
 const TASK_TYPES: TaskType[] = [
   {
+    id: "picture-upload",
+    title: "First-person View Image",
+    description: "Contribute first-person perspective images for embodied AI training.",
+    icon: <Camera size={22} weight="duotone" />,
+    reward: "2-8 $OPEN",
+    difficulty: "Beginner",
+    estimatedTime: "~5 min",
+    category: "Data Collection",
+    featured: true,
+    requirements: ["Camera or smartphone", "Good lighting conditions"],
+    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
+    datasetId: 3 // OceanDAO dataset for demo
+  },
+  {
     id: "segmentation-mask",
     title: "Image Segmentation Mask",
     description: "Create precise object boundaries for computer vision training datasets.",
@@ -41,7 +55,7 @@ const TASK_TYPES: TaskType[] = [
     difficulty: "Intermediate",
     estimatedTime: "~15 min",
     category: "Computer Vision",
-    featured: true,
+    featured: false,
     requirements: ["Basic image editing skills", "Understanding of object boundaries"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_mask.jpg",
     datasetId: 3 // OceanDAO dataset for demo
@@ -55,22 +69,9 @@ const TASK_TYPES: TaskType[] = [
     difficulty: "Advanced",
     estimatedTime: "~25 min",
     category: "Robotics AI",
-    featured: true,
+    featured: false,
     requirements: ["Spatial reasoning skills", "Understanding of robot kinematics"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_trajectory.jpg",
-    datasetId: 3 // OceanDAO dataset for demo
-  },
-  {
-    id: "picture-upload",
-    title: "First-person View Image",
-    description: "Contribute first-person perspective images for embodied AI training.",
-    icon: <Camera size={22} weight="duotone" />,
-    reward: "2-8 $OPEN",
-    difficulty: "Beginner",
-    estimatedTime: "~5 min",
-    category: "Data Collection",
-    requirements: ["Camera or smartphone", "Good lighting conditions"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
     datasetId: 3 // OceanDAO dataset for demo
   },
   {
@@ -82,6 +83,7 @@ const TASK_TYPES: TaskType[] = [
     difficulty: "Intermediate",
     estimatedTime: "~30 min",
     category: "Behavioral AI",
+    featured: false,
     requirements: ["Video recording capability", "Clear action demonstration"],
     thumbnailVideo: actionDemoVideo,
     datasetId: 3 // OceanDAO dataset for demo
@@ -118,6 +120,7 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
   };
 
   const difficultyStyle = getDifficultyColor(task.difficulty);
+  const isDisabled = task.featured === false;
 
   return (
     <Box
@@ -131,18 +134,19 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
         style={{
           padding: isMobile ? theme.spacing.semantic.component.md : theme.spacing.semantic.component.lg,
           borderRadius: theme.borders.radius.lg,
-          border: `1px solid ${theme.colors.border.primary}`,
-          backgroundColor: theme.colors.background.card,
+          border: `1px solid ${isDisabled ? theme.colors.border.secondary : theme.colors.border.primary}`,
+          backgroundColor: isDisabled ? `${theme.colors.background.secondary}80` : theme.colors.background.card,
           display: "flex",
           flexDirection: isMobile ? "row" : "column",
           height: "auto",
           transition: theme.animations.transitions.hover,
-          cursor: "pointer",
+          cursor: isDisabled ? "not-allowed" : "pointer",
           position: "relative",
           overflow: "hidden",
-          boxShadow: theme.shadows.semantic.card.low,
+          boxShadow: isDisabled ? "none" : theme.shadows.semantic.card.low,
+          opacity: isDisabled ? 0.6 : 1,
         }}
-        className="task-card"
+        className={isDisabled ? "task-card-disabled" : "task-card"}
       >
         {/* Featured Badge - Positioned to avoid overlap with OPEN badge */}
         {task.featured && (
@@ -412,7 +416,9 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
           {/* Action Button */}
           <Button
             className="task-button"
+            disabled={isDisabled}
             onClick={() => {
+              if (isDisabled) return;
               if (task.id === "trajectory-drawing") {
                 navigate(`/datasets/${task.datasetId}/trajectory?imageId=1017`);
               } else if (task.id === "segmentation-mask") {
@@ -425,27 +431,30 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
             }}
             style={{
               width: "100%",
-              background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-              color: theme.colors.text.inverse,
-              border: "none",
+              background: isDisabled 
+                ? theme.colors.background.secondary 
+                : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+              color: isDisabled ? theme.colors.text.tertiary : theme.colors.text.inverse,
+              border: isDisabled ? `1px solid ${theme.colors.border.secondary}` : "none",
               borderRadius: theme.borders.radius.lg,
               padding: isMobile ? "10px" : "12px",
               fontSize: isMobile ? "12px" : "13px",
               fontWeight: 700,
-              cursor: "pointer",
+              cursor: isDisabled ? "not-allowed" : "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: isMobile ? "4px" : "6px",
               marginTop: "auto",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              boxShadow: theme.shadows.semantic.interactive.default,
+              boxShadow: isDisabled ? "none" : theme.shadows.semantic.interactive.default,
               textTransform: "uppercase",
               letterSpacing: "0.5px",
+              pointerEvents: isDisabled ? "none" : "auto",
             }}
           >
-            Start
-            <ArrowRight size={isMobile ? 10 : 12} weight="bold" />
+            {isDisabled ? "Coming Soon" : "Start"}
+            {!isDisabled && <ArrowRight size={isMobile ? 10 : 12} weight="bold" />}
           </Button>
           </Flex>
         </Flex>
@@ -547,6 +556,10 @@ function EarnContent() {
           }
           
           .task-card {
+            transition: all 0.25s ease;
+          }
+          
+          .task-card-disabled {
             transition: all 0.25s ease;
           }
           
