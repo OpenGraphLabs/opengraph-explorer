@@ -56,23 +56,20 @@ export function MobileCameraUI({
     callback();
   };
 
-  // Native camera button styles - 더 큰 터치 영역
+  // Smaller compact button styles
   const captureButtonStyle: React.CSSProperties = {
-    width: isLandscape ? '65px' : '75px',
-    height: isLandscape ? '65px' : '75px',
+    width: isLandscape ? '45px' : '50px',
+    height: isLandscape ? '45px' : '50px',
     borderRadius: '50%',
     backgroundColor: '#fff',
-    border: '4px solid rgba(255, 255, 255, 0.3)',
+    border: '2px solid rgba(255, 255, 255, 0.8)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
     position: 'relative',
     transition: 'all 0.2s ease',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4)',
-    // 터치 영역 확장
-    minWidth: '75px',
-    minHeight: '75px',
+    boxShadow: '0 3px 12px rgba(0, 0, 0, 0.3)',
     // 터치 반응성 개선
     WebkitTouchCallout: 'none',
     WebkitUserSelect: 'none',
@@ -81,18 +78,19 @@ export function MobileCameraUI({
   };
 
   const secondaryButtonStyle: React.CSSProperties = {
-    width: isLandscape ? '50px' : '55px',
-    height: isLandscape ? '50px' : '55px',
+    width: isLandscape ? '38px' : '42px',
+    height: isLandscape ? '38px' : '42px',
     borderRadius: '50%',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    border: '2px solid rgba(255, 255, 255, 0.8)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    backdropFilter: 'blur(15px)',
+    backdropFilter: 'blur(10px)',
     color: '#fff',
     transition: 'all 0.2s ease',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
     // 터치 반응성 개선
     WebkitTouchCallout: 'none',
     WebkitUserSelect: 'none',
@@ -119,9 +117,9 @@ export function MobileCameraUI({
   };
 
   const controlsContainerStyle: React.CSSProperties = isLandscape ? {
-    // 가로모드: 우측 중앙에 세로로 배치
+    // 가로모드: 우측 중앙에 세로로 배치 - 배경 제거
     position: 'absolute',
-    right: '10px',
+    right: '15px',
     top: '50%',
     transform: 'translateY(-50%)',
     display: 'flex',
@@ -129,30 +127,23 @@ export function MobileCameraUI({
     alignItems: 'center',
     gap: '20px',
     zIndex: 1100,
-    padding: '20px 15px',
-    paddingRight: 'env(safe-area-inset-right, 25px)',
-    background: 'linear-gradient(270deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%)',
-    borderRadius: '25px 0 0 25px',
-    minHeight: '280px',
-    pointerEvents: 'auto',
-    transition: 'all 0.3s ease'
+    padding: '10px',
+    paddingRight: 'env(safe-area-inset-right, 15px)',
+    pointerEvents: 'auto'
   } : {
-    // 세로모드: 중앙 하단에 가로로 배치
+    // 세로모드: 중앙 하단에 가로로 배치 - 배경 제거
     position: 'absolute',
-    bottom: '20px',
+    bottom: '30px',
     left: '50%',
     transform: 'translateX(-50%)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '25px',
+    gap: '20px',
     zIndex: 1100,
-    padding: '25px 30px',
-    paddingBottom: 'env(safe-area-inset-bottom, 30px)',
-    background: 'linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.9) 100%)',
-    borderRadius: '30px',
-    pointerEvents: 'auto',
-    transition: 'all 0.3s ease'
+    padding: '10px',
+    paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+    pointerEvents: 'auto'
   };
 
   if (capturedImage) {
@@ -408,9 +399,9 @@ export function MobileCameraUI({
           }}
         >
           {isDetecting ? (
-            <Eye size={28} weight="regular" color="#00ff41" />
+            <Eye size={22} weight="regular" color="#00ff41" />
           ) : (
-            <EyeSlash size={28} weight="regular" />
+            <EyeSlash size={22} weight="regular" />
           )}
         </button>
 
@@ -440,8 +431,8 @@ export function MobileCameraUI({
         >
           <div
             style={{
-              width: isLandscape ? '52px' : '62px',
-              height: isLandscape ? '52px' : '62px',
+              width: isLandscape ? '35px' : '38px',
+              height: isLandscape ? '35px' : '38px',
               borderRadius: '50%',
               backgroundColor: isCapturing ? '#ff0000' : '#fff',
               transition: 'all 0.2s ease',
@@ -451,7 +442,7 @@ export function MobileCameraUI({
         </button>
 
         {/* Placeholder for balance in portrait mode only */}
-        {!isLandscape && <div style={{ width: '50px', height: '50px' }} />}
+        {!isLandscape && <div style={{ width: '38px', height: '38px' }} />}
       </div>
 
       {/* Focus indicator (tap to focus) */}
