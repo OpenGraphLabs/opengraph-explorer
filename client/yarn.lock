@@ -1483,6 +1483,11 @@
   dependencies:
     "@tanstack/query-core" "5.83.1"
 
+"@tensorflow-models/coco-ssd@^2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow-models/coco-ssd/-/coco-ssd-2.2.3.tgz#3825286569076d6788199c9cb89fb2fa31f7d2f2"
+  integrity sha512-iCLGktG/XhHbP6h2FWxqCKMp/Px0lCp6MZU1fjNhjDHeaWEC9G7S7cZrnPXsfH+NewCM53YShlrHnknxU3SQig==
+
 "@tensorflow/tfjs-backend-cpu@4.22.0":
   version "4.22.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-4.22.0.tgz#72aeaab14f6f16bbd995c9e6751a8d094d5639a9"

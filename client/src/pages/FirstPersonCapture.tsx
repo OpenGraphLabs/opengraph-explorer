@@ -1,127 +1,124 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
-import { useTheme } from "@/shared/ui/design-system";
-import { useNavigate } from "react-router-dom";
-import { 
-  Camera, 
-  X
-} from "phosphor-react";
-import robotHandImage from "@/assets/image/robot_hand.png";
-
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Camera, X, ArrowLeft, Robot, Eye } from "phosphor-react";
+import { useObjectDetection } from "@/shared/hooks/useObjectDetection";
+import { ObjectDetectionOverlay } from "@/components/robot-vision/ObjectDetectionOverlay";
+import { RobotVisionHUD } from "@/components/robot-vision/RobotVisionHUD";
+import { CAPTURE_TASKS, CaptureTask } from "@/components/robot-vision/types";
 
 export function FirstPersonCapture() {
-  const { theme } = useTheme();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cameraFrameRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const [isStreaming, setIsStreaming] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isLandscape, setIsLandscape] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [videoDimensions, setVideoDimensions] = useState({ width: 640, height: 480 });
+  const [containerDimensions, setContainerDimensions] = useState({ width: 640, height: 480 });
+  const [currentTask, setCurrentTask] = useState<CaptureTask | null>(null);
+  const [detectionEnabled, setDetectionEnabled] = useState(true);
 
-  // Detect mobile device and orientation
-  useEffect(() => {
-    const checkDeviceAndOrientation = () => {
-      const mobile = window.innerWidth < 768;
-      const landscape = window.innerWidth > window.innerHeight;
-      setIsMobile(mobile);
-      setIsLandscape(landscape);
-    };
-    
-    checkDeviceAndOrientation();
-    window.addEventListener('resize', checkDeviceAndOrientation);
-    window.addEventListener('orientationchange', checkDeviceAndOrientation);
-    
-    return () => {
-      window.removeEventListener('resize', checkDeviceAndOrientation);
-      window.removeEventListener('orientationchange', checkDeviceAndOrientation);
-    };
-  }, []);
+  // Object detection hook
+  const {
+    detections,
+    isLoading: isModelLoading,
+    error: modelError,
+    fps,
+    startDetection,
+    stopDetection,
+    isModelReady
+  } = useObjectDetection({
+    enabled: detectionEnabled,
+    scoreThreshold: 0.5,
+    maxDetections: 10
+  });
 
-  // Check camera permissions on mount
+  // Load task from URL params or use default
   useEffect(() => {
-    const checkPermissions = async () => {
-      try {
-        if (navigator.permissions && navigator.permissions.query) {
-          const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-          setHasPermission(permission.state === 'granted');
-          console.log('Camera permission status:', permission.state);
-        }
-      } catch (error) {
-        console.log('Permission API not supported or error:', error);
+    const taskId = searchParams.get('task') || 'desk';
+    const task = CAPTURE_TASKS.find(t => t.id === taskId) || CAPTURE_TASKS[0];
+    setCurrentTask(task);
+  }, [searchParams]);
+
+  // Update container dimensions
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerDimensions({ width: rect.width, height: rect.height });
       }
     };
-    
-    checkPermissions();
-  }, []);
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, [isStreaming]);
 
   const startCamera = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      console.log('Starting simple camera...');
+      console.log('Starting robot vision camera...');
 
-      // Get camera stream
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: isMobile ? "environment" : "user"
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         },
         audio: false
       });
       
       console.log('Got camera stream');
 
-      // Set stream to video element
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        console.log('Stream set to video element');
         
-        // Update state
-        setIsStreaming(true);
-        console.log('State updated');
-        
-        // Auto-scroll to center camera frame
-        setTimeout(() => {
-          if (cameraFrameRef.current) {
-            cameraFrameRef.current.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center'
-            });
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            const { videoWidth, videoHeight } = videoRef.current;
+            setVideoDimensions({ width: videoWidth, height: videoHeight });
+            console.log('Video dimensions:', videoWidth, 'x', videoHeight);
+            
+            // Start object detection when model is ready
+            if (isModelReady) {
+              startDetection(videoRef.current);
+            }
           }
-        }, 100);
+        };
+        
+        setIsStreaming(true);
+        console.log('Robot vision activated');
       }
 
     } catch (error) {
       console.error("Camera failed:", error);
       setError('Camera access denied or not available');
-      alert('Please allow camera access and try again');
     } finally {
       setIsLoading(false);
     }
-  }, [isMobile]);
+  }, [isModelReady, startDetection, modelError]);
 
   const stopCamera = useCallback(() => {
-    console.log('stopCamera called! Stack trace:');
-    console.trace();
+    console.log('Deactivating robot vision...');
     
-    // Use current stream from ref instead of dependency
     if (videoRef.current && videoRef.current.srcObject) {
       const currentStream = videoRef.current.srcObject as MediaStream;
       currentStream.getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
     }
     
+    stopDetection();
     setIsStreaming(false);
-    console.log('Camera stopped');
-  }, []); // Remove stream dependency
+    console.log('Robot vision deactivated');
+  }, [stopDetection]);
 
   const capturePhoto = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -135,172 +132,272 @@ export function FirstPersonCapture() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
+    // Draw video frame
     context.drawImage(video, 0, 0);
     
-    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    // Draw detection overlays on canvas
+    if (detections.length > 0) {
+      context.strokeStyle = '#00ff41';
+      context.lineWidth = 2;
+      context.font = 'bold 16px monospace';
+      context.fillStyle = '#00ff41';
+      
+      detections.forEach(detection => {
+        const [x, y, width, height] = detection.bbox;
+        
+        // Draw bounding box
+        context.strokeRect(x, y, width, height);
+        
+        // Draw label
+        const label = `${detection.class.toUpperCase()} (${Math.round(detection.score * 100)}%)`;
+        const textWidth = context.measureText(label).width;
+        
+        context.fillStyle = '#00ff41';
+        context.fillRect(x, y - 25, textWidth + 10, 25);
+        context.fillStyle = '#000';
+        context.fillText(label, x + 5, y - 7);
+      });
+    }
+    
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
     setCapturedImage(imageDataUrl);
     stopCamera();
-  }, [stopCamera]);
+    
+    // Log capture analytics
+    console.log('Photo captured with detections:', detections.map(d => d.class));
+  }, [detections, stopCamera]);
 
   const retakePhoto = useCallback(() => {
     setCapturedImage(null);
-    startCamera();
+    void startCamera();
   }, [startCamera]);
 
   const submitPhoto = useCallback(() => {
-    // TODO: Implement photo submission to backend
-    console.log("Submitting photo:", capturedImage);
+    if (!capturedImage || !currentTask) return;
     
-    // For now, navigate back to earn page
+    // Check if task requirements are met
+    const detectedClasses = detections.map(d => d.class);
+    const taskMet = currentTask.targetObjects?.some(target => 
+      detectedClasses.includes(target)
+    );
+    
+    console.log("Submitting photo for task:", currentTask.title);
+    console.log("Task requirements met:", taskMet);
+    console.log("Detected objects:", detectedClasses);
+    
+    // TODO: Submit to backend with task ID and detections
+    
     navigate('/earn');
-  }, [capturedImage, navigate]);
+  }, [capturedImage, currentTask, detections, navigate]);
 
+  // Start detection when model becomes ready
   useEffect(() => {
-    console.log('Component mounted');
+    if (isModelReady && isStreaming && videoRef.current) {
+      startDetection(videoRef.current);
+    }
+  }, [isModelReady, isStreaming, startDetection]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      console.log('Component cleanup - stopping camera');
-      // Cleanup directly without calling stopCamera function
       if (videoRef.current && videoRef.current.srcObject) {
         const currentStream = videoRef.current.srcObject as MediaStream;
         currentStream.getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
+      stopDetection();
     };
-  }, []); // No dependencies
-
+  }, [stopDetection]);
 
   return (
-    <Box style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <Box 
+      style={{ 
+        height: "100vh", 
+        display: "flex", 
+        flexDirection: "column",
+        backgroundColor: "#0a0a0a",
+        overflow: "hidden"
+      }}
+    >
       {/* Header */}
       <Box
         style={{
-          padding: isMobile ? theme.spacing.semantic.component.md : theme.spacing.semantic.component.lg,
-          borderBottom: `1px solid ${theme.colors.border.primary}`,
-          backgroundColor: theme.colors.background.card,
+          padding: "16px 20px",
+          borderBottom: `1px solid rgba(0, 255, 65, 0.2)`,
+          backgroundColor: "rgba(0, 0, 0, 0.9)",
+          backdropFilter: "blur(10px)",
         }}
       >
-        <Flex align="center" justify="center">
-          <Flex align="center" gap={isMobile ? "3" : "4"}>
-            <Text
-              as="p"
-              size={isMobile ? "4" : "5"} 
-              weight="bold" 
-              style={{ 
-                color: theme.colors.text.primary,
-                fontSize: isMobile ? "18px" : "20px",
-                letterSpacing: "-0.01em"
+        <Flex align="center" justify="between">
+          <Flex align="center" gap="3">
+            <Button
+              onClick={() => navigate('/earn')}
+              style={{
+                padding: "8px",
+                backgroundColor: "transparent",
+                border: `1px solid rgba(0, 255, 65, 0.3)`,
+                borderRadius: "8px",
+                color: "#00ff41",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              📸 Take a picture of your desk
-            </Text>
+              <ArrowLeft size={18} weight="bold" />
+            </Button>
+            
+            <Flex align="center" gap="2">
+              <Robot size={24} color="#00ff41" weight="duotone" />
+              <Text
+                as="p"
+                size="4"
+                weight="bold"
+                style={{
+                  color: "#00ff41",
+                  fontFamily: "monospace",
+                  letterSpacing: "0.5px",
+                  textShadow: "0 0 10px rgba(0, 255, 65, 0.3)"
+                }}
+              >
+                ROBOT VISION
+              </Text>
+            </Flex>
           </Flex>
+
+          {currentTask && (
+            <Flex align="center" gap="2">
+              <Text size="2" style={{ color: "#00ff41", opacity: 0.8 }}>
+                {currentTask.icon}
+              </Text>
+              <Text
+                size="3"
+                weight="medium"
+                style={{
+                  color: "#00ff41",
+                  fontFamily: "monospace",
+                  fontSize: "14px"
+                }}
+              >
+                {currentTask.title}
+              </Text>
+            </Flex>
+          )}
         </Flex>
       </Box>
 
-
-      <Flex style={{ flex: 1, flexDirection: "column" }}>
-
-        {/* Camera View Container */}
-        <Box style={{ 
+      {/* Main Content */}
+      <Box 
+        style={{ 
           flex: 1, 
-          display: "flex", 
-          flexDirection: "column",
-          alignItems: isMobile && isLandscape ? "flex-start" : "center",
-          justifyContent: "flex-start",
           position: "relative",
-          backgroundColor: theme.colors.background.primary,
-          height: isMobile ? "calc(100vh - 140px)" : "auto",
-          padding: isMobile ? "16px" : "24px",
-          paddingTop: isMobile ? "8px" : "16px",
-          paddingLeft: isMobile && isLandscape ? "8px" : isMobile ? "16px" : "24px",
-          paddingRight: isMobile && isLandscape ? "120px" : isMobile ? "16px" : "24px", // 버튼 공간 확보
-          overflow: "hidden"
-        }}>
-          {/* Camera Frame */}
-          <Box
-            ref={cameraFrameRef}
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px"
+        }}
+      >
+        {/* Camera View Container */}
+        <Box
+          ref={containerRef}
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: "900px",
+            height: "100%",
+            maxHeight: "600px",
+            backgroundColor: "#000",
+            borderRadius: "12px",
+            overflow: "hidden",
+            border: `2px solid rgba(0, 255, 65, 0.3)`,
+            boxShadow: "0 0 40px rgba(0, 255, 65, 0.2)",
+          }}
+        >
+          {/* Video Element */}
+          <video
+            ref={videoRef}
             style={{
-              position: "relative",
-              width: isMobile 
-                ? (isLandscape ? "min(75vw, 600px)" : "min(90vw, 400px)")
-                : "min(85vw, 900px)",
-              height: isMobile
-                ? (isLandscape ? "min(70vh, 420px)" : "min(60vh, 500px)")
-                : "min(70vh, 600px)",
-              background: `linear-gradient(135deg, ${theme.colors.background.secondary}, ${theme.colors.background.card})`,
-              borderRadius: theme.borders.radius.xl,
-              overflow: "hidden",
-              border: `1px solid ${theme.colors.border.primary}`,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: isStreaming ? "block" : "none",
             }}
-          >
-            {/* Video Element */}
-            <video
-              ref={videoRef}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                backgroundColor: "black",
-                display: isStreaming ? "block" : "none",
-              }}
-              playsInline
-              autoPlay
-              muted
-            />
+            playsInline
+            autoPlay
+            muted
+          />
 
-          {!isStreaming && !capturedImage ? (
-            // Camera Start Screen
-            <Flex 
-              direction="column" 
-              align="center" 
-              justify="center" 
-              style={{ 
+          {/* Object Detection Overlay */}
+          {isStreaming && !capturedImage && (
+            <ObjectDetectionOverlay
+              detections={detections}
+              videoWidth={videoDimensions.width}
+              videoHeight={videoDimensions.height}
+              containerWidth={containerDimensions.width}
+              containerHeight={containerDimensions.height}
+            />
+          )}
+
+          {/* HUD Overlay */}
+          {isStreaming && !capturedImage && (
+            <RobotVisionHUD
+              fps={fps}
+              objectCount={detections.length}
+              isDetecting={isStreaming && detectionEnabled}
+              isLoading={isModelLoading}
+              currentTask={currentTask?.title}
+            />
+          )}
+
+          {/* Start Screen */}
+          {!isStreaming && !capturedImage && (
+            <Flex
+              direction="column"
+              align="center"
+              justify="center"
+              style={{
                 position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: `linear-gradient(135deg, ${theme.colors.background.primary}, ${theme.colors.background.secondary})`,
-                gap: isMobile && isLandscape ? "16px" : isMobile ? theme.spacing.semantic.component.lg : theme.spacing.semantic.component.xl,
-                padding: isMobile && isLandscape ? "12px" : theme.spacing.semantic.component.lg
+                inset: 0,
+                background: "linear-gradient(135deg, #0a0a0a, #1a1a1a)",
+                gap: "24px"
               }}
             >
               <Box
                 style={{
-                  padding: isMobile && isLandscape ? "16px" : isMobile ? "24px" : "28px",
-                  borderRadius: theme.borders.radius.full,
-                  backgroundColor: `${theme.colors.interactive.primary}15`,
-                  border: `1px solid ${theme.colors.interactive.primary}30`,
+                  padding: "24px",
+                  borderRadius: "50%",
+                  background: "rgba(0, 255, 65, 0.1)",
+                  border: `2px solid rgba(0, 255, 65, 0.3)`,
+                  animation: "pulse 2s infinite"
                 }}
               >
-                <Camera size={isMobile && isLandscape ? 32 : isMobile ? 44 : 52} color={theme.colors.interactive.primary} weight="duotone" />
+                <Eye size={48} color="#00ff41" weight="duotone" />
               </Box>
-              
-              <Box style={{ textAlign: "center", maxWidth: isMobile && isLandscape ? "240px" : isMobile ? "280px" : "320px" }}>
-                <Text as="p" size={isMobile && isLandscape ? "2" : isMobile ? "3" : "4"} weight="bold" style={{
-                  color: theme.colors.text.primary,
-                  marginBottom: isMobile && isLandscape ? "4px" : "8px",
-                  fontSize: isMobile && isLandscape ? "14px" : undefined
-                }}>
-                  Ready to Start
+
+              <Box style={{ textAlign: "center", maxWidth: "400px" }}>
+                <Text
+                  as="p"
+                  size="5"
+                  weight="bold"
+                  style={{
+                    color: "#00ff41",
+                    fontFamily: "monospace",
+                    marginBottom: "12px",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase"
+                  }}
+                >
+                  Activate Robot Vision
                 </Text>
-                <Text as="p" size="2" style={{
-                  color: theme.colors.text.secondary,
-                  lineHeight: 1.4,
-                  fontSize: isMobile && isLandscape ? "12px" : isMobile ? "14px" : "15px"
-                }}>
-                  Position your camera at arm's length from your desk
-                  {isMobile && !isLandscape && (
-                    <Text as="span" style={{ 
-                      display: "block",
-                      marginTop: "6px",
-                      color: theme.colors.interactive.primary,
-                      fontWeight: 500,
-                      fontSize: "13px"
-                    }}>
-                      💡 Landscape mode recommended
-                    </Text>
-                  )}
+                <Text
+                  as="p"
+                  size="3"
+                  style={{
+                    color: "rgba(0, 255, 65, 0.7)",
+                    lineHeight: 1.6,
+                    fontFamily: "monospace"
+                  }}
+                >
+                  {currentTask?.description || 'Enable AI-powered object detection to complete your mission'}
                 </Text>
               </Box>
 
@@ -308,184 +405,136 @@ export function FirstPersonCapture() {
                 onClick={startCamera}
                 disabled={isLoading}
                 style={{
-                  background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-                  color: theme.colors.text.inverse,
+                  background: "linear-gradient(135deg, #00ff41, #00cc33)",
+                  color: "#000",
                   border: "none",
-                  borderRadius: theme.borders.radius.lg,
-                  padding: isMobile && isLandscape ? "12px 24px" : isMobile ? "16px 32px" : "18px 36px",
-                  fontSize: isMobile && isLandscape ? "13px" : isMobile ? "15px" : "16px",
+                  borderRadius: "8px",
+                  padding: "16px 32px",
+                  fontSize: "16px",
                   fontWeight: 700,
+                  fontFamily: "monospace",
+                  letterSpacing: "1px",
+                  textTransform: "uppercase",
                   display: "flex",
                   alignItems: "center",
-                  gap: isMobile && isLandscape ? "6px" : "10px",
-                  transition: "all 0.2s ease",
+                  gap: "10px",
+                  cursor: "pointer",
+                  boxShadow: "0 0 20px rgba(0, 255, 65, 0.4)",
+                  transition: "all 0.3s ease"
                 }}
               >
-                <Camera size={isMobile && isLandscape ? 14 : 16} weight="bold" />
-                {isLoading ? "Starting Camera..." : "Start Camera"}
+                <Camera size={20} weight="bold" />
+                {isLoading ? "Initializing..." : "Activate Vision"}
               </Button>
 
-              {error && (
+              {(error || modelError) && (
                 <Box
                   style={{
-                    marginTop: theme.spacing.semantic.component.md,
-                    padding: theme.spacing.semantic.component.md,
-                    backgroundColor: `${theme.colors.status.error}15`,
-                    border: `1px solid ${theme.colors.status.error}30`,
-                    borderRadius: theme.borders.radius.md,
-                    maxWidth: isMobile ? "300px" : "400px",
+                    padding: "12px 20px",
+                    backgroundColor: "rgba(255, 0, 65, 0.1)",
+                    border: `1px solid rgba(255, 0, 65, 0.3)`,
+                    borderRadius: "8px",
+                    maxWidth: "400px"
                   }}
                 >
-                  <Text size="2" style={{ 
-                    color: theme.colors.status.error,
-                    textAlign: "center",
-                    lineHeight: 1.4
-                  }}>
-                    <strong>Camera Error:</strong> {error}
-                  </Text>
-                  <Text size="1" style={{ 
-                    color: theme.colors.text.secondary,
-                    textAlign: "center",
-                    marginTop: "8px",
-                    display: "block"
-                  }}>
-                    Please check browser console for detailed logs
+                  <Text size="2" style={{ color: "#ff0041", fontFamily: "monospace" }}>
+                    ERROR: {error || modelError}
                   </Text>
                 </Box>
               )}
 
-              {hasPermission === false && (
-                <Box
-                  style={{
-                    marginTop: theme.spacing.semantic.component.md,
-                    padding: theme.spacing.semantic.component.md,
-                    backgroundColor: `${theme.colors.status.warning}15`,
-                    border: `1px solid ${theme.colors.status.warning}30`,
-                    borderRadius: theme.borders.radius.md,
-                    maxWidth: isMobile ? "300px" : "400px",
-                  }}
-                >
-                  <Text size="2" style={{ 
-                    color: theme.colors.status.warning,
-                    textAlign: "center",
-                    lineHeight: 1.4
-                  }}>
-                    Camera permission is required. Please allow camera access in your browser settings.
-                  </Text>
-                </Box>
+              {isModelLoading && (
+                <Text size="2" style={{ color: "#00ff41", fontFamily: "monospace" }}>
+                  Loading AI model...
+                </Text>
               )}
             </Flex>
-          ) : null}
+          )}
 
-            {/* Captured Image Preview */}
-            {capturedImage && (
-              <img
-                src={capturedImage}
-                alt="Captured"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  zIndex: 10,
-                }}
-              />
-            )}
+          {/* Captured Image Preview */}
+          {capturedImage && (
+            <img
+              src={capturedImage}
+              alt="Captured"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                position: "absolute",
+                top: 0,
+                left: 0,
+              }}
+            />
+          )}
 
-            {/* Robot Hand Overlay - Positioned relative to camera frame */}
-            {isStreaming && (
-              <Box
-                style={{
-                  position: "absolute",
-                  bottom: "-20px",
-                  right: "-35px",
-                  width: isMobile ? (isLandscape ? "180px" : "160px") : "220px",
-                  height: isMobile ? (isLandscape ? "200px" : "180px") : "240px",
-                  pointerEvents: "none",
-                  display: "flex",
-                  alignItems: "flex-end",
-                  justifyContent: "center",
-                  zIndex: 25,
-                }}
-              >
-                <img
-                  src={robotHandImage}
-                  alt="Robot Hand"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    opacity: 0.92,
-                    filter: "drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.2))",
-                    transform: "scale(1.1) rotate(-3deg)",
-                    transformOrigin: "bottom right",
-                  }}
-                />
-              </Box>
-            )}
-          </Box>
-
-
-
-          {/* Camera Controls - Responsive positioning */}
+          {/* Camera Controls */}
           {(isStreaming || capturedImage) && (
             <Box
               style={{
-                position: isMobile && isLandscape ? "absolute" : "relative",
-                top: isMobile && isLandscape ? "50%" : "auto",
-                right: isMobile && isLandscape ? "16px" : "auto",
-                transform: isMobile && isLandscape ? "translateY(-50%)" : "none",
-                marginTop: isMobile && !isLandscape ? "12px" : !isMobile ? "16px" : "0",
-                padding: isMobile ? "12px" : "16px",
-                zIndex: 30,
-                pointerEvents: "auto",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                position: "absolute",
+                bottom: "24px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 40,
               }}
             >
-              <Flex 
-                justify="center" 
-                gap={isMobile ? "3" : "4"} 
-                align="center"
-                direction={isMobile && isLandscape ? "column" : "row"}
-              >
+              <Flex gap="4" align="center">
                 {isStreaming ? (
                   <>
                     <Button
                       onClick={stopCamera}
                       style={{
-                        padding: isMobile ? "12px" : "14px",
-                        borderRadius: theme.borders.radius.full,
-                        backgroundColor: "rgba(0, 0, 0, 0.7)",
-                        border: `1px solid ${theme.colors.border.secondary}`,
+                        padding: "14px",
+                        borderRadius: "50%",
+                        backgroundColor: "rgba(255, 0, 65, 0.8)",
+                        border: "2px solid #ff0041",
                         color: "white",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        cursor: "pointer",
+                        boxShadow: "0 0 20px rgba(255, 0, 65, 0.4)"
                       }}
                     >
-                      <X size={isMobile ? 16 : 18} weight="bold" />
+                      <X size={20} weight="bold" />
                     </Button>
                     
                     <Button
                       onClick={capturePhoto}
                       style={{
-                        width: isMobile ? "64px" : "72px",
-                        height: isMobile ? "64px" : "72px",
+                        width: "80px",
+                        height: "80px",
                         borderRadius: "50%",
-                        border: "3px solid white",
-                        backgroundColor: theme.colors.interactive.primary,
-                        color: "white",
+                        border: "4px solid #00ff41",
+                        backgroundColor: "rgba(0, 255, 65, 0.8)",
+                        color: "#000",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        position: "relative",
+                        cursor: "pointer",
+                        boxShadow: "0 0 30px rgba(0, 255, 65, 0.5)",
+                        animation: "pulse 2s infinite"
                       }}
                     >
-                      <Camera size={isMobile ? 24 : 28} weight="fill" />
+                      <Camera size={32} weight="fill" />
+                    </Button>
+
+                    <Button
+                      onClick={() => setDetectionEnabled(!detectionEnabled)}
+                      style={{
+                        padding: "14px",
+                        borderRadius: "50%",
+                        backgroundColor: detectionEnabled ? "rgba(0, 255, 65, 0.8)" : "rgba(128, 128, 128, 0.8)",
+                        border: `2px solid ${detectionEnabled ? "#00ff41" : "#808080"}`,
+                        color: detectionEnabled ? "#000" : "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        boxShadow: `0 0 20px ${detectionEnabled ? "rgba(0, 255, 65, 0.4)" : "rgba(128, 128, 128, 0.4)"}`
+                      }}
+                    >
+                      <Eye size={20} weight="bold" />
                     </Button>
                   </>
                 ) : capturedImage ? (
@@ -493,31 +542,37 @@ export function FirstPersonCapture() {
                     <Button
                       onClick={retakePhoto}
                       style={{
-                        padding: isMobile ? "12px 24px" : "14px 28px",
-                        borderRadius: theme.borders.radius.lg,
-                        backgroundColor: "rgba(0, 0, 0, 0.7)",
-                        border: `1px solid ${theme.colors.border.secondary}`,
+                        padding: "14px 28px",
+                        borderRadius: "8px",
+                        backgroundColor: "rgba(128, 128, 128, 0.8)",
+                        border: "2px solid #808080",
                         color: "white",
-                        fontSize: isMobile ? "14px" : "16px",
+                        fontSize: "16px",
                         fontWeight: 600,
+                        fontFamily: "monospace",
+                        cursor: "pointer"
                       }}
                     >
-                      Retake
+                      RETAKE
                     </Button>
                     
                     <Button
                       onClick={submitPhoto}
                       style={{
-                        padding: isMobile ? "12px 32px" : "14px 36px",
-                        borderRadius: theme.borders.radius.lg,
-                        background: `linear-gradient(135deg, ${theme.colors.status.success}, ${theme.colors.interactive.accent})`,
-                        color: "white",
+                        padding: "14px 36px",
+                        borderRadius: "8px",
+                        background: "linear-gradient(135deg, #00ff41, #00cc33)",
+                        color: "#000",
                         border: "none",
                         fontWeight: 700,
-                        fontSize: isMobile ? "14px" : "16px",
+                        fontSize: "16px",
+                        fontFamily: "monospace",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        boxShadow: "0 0 20px rgba(0, 255, 65, 0.5)"
                       }}
                     >
-                      Submit Photo
+                      SUBMIT CAPTURE
                     </Button>
                   </>
                 ) : null}
@@ -525,10 +580,25 @@ export function FirstPersonCapture() {
             </Box>
           )}
         </Box>
-      </Flex>
+      </Box>
 
       {/* Hidden canvas for photo capture */}
       <canvas ref={canvasRef} style={{ display: "none" }} />
+
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 1;
+            }
+            50% {
+              transform: scale(1.05);
+              opacity: 0.8;
+            }
+          }
+        `}
+      </style>
     </Box>
   );
 }
