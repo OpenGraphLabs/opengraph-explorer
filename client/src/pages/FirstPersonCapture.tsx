@@ -36,7 +36,7 @@ export function FirstPersonCapture() {
     enabled: true,
     onOrientationChange: (newOrientation) => {
       if (isMobile && isStreaming) {
-        // Start transition
+        // Start transition for UI elements only (not overlay)
         setIsTransitioning(true);
         
         // End transition after a short delay
@@ -316,7 +316,14 @@ export function FirstPersonCapture() {
           objectFit: isMobile ? 'cover' : 'contain',
           display: isStreaming ? 'block' : 'none',
           transition: isTransitioning ? 'none' : 'all 0.3s ease',
-          opacity: isTransitioning ? 0.8 : 1
+          opacity: isTransitioning ? 0.8 : 1,
+          // Mobile specific optimizations
+          ...(isMobile && {
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            WebkitBackfaceVisibility: 'hidden',
+            backfaceVisibility: 'hidden'
+          })
         }}
         playsInline
         autoPlay
@@ -324,19 +331,34 @@ export function FirstPersonCapture() {
       />
 
       {/* Object Detection Overlay */}
-      {isStreaming && !capturedImage && detectionEnabled && !isTransitioning && (
+      {isStreaming && !capturedImage && detectionEnabled && (
         <div
           style={{
-            transition: 'opacity 0.3s ease',
-            opacity: isTransitioning ? 0 : 1
+            // Remove transition effect that hides overlay during orientation change
+            // transition: 'opacity 0.3s ease',
+            // opacity: isTransitioning ? 0 : 1,
+            opacity: 1,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: isMobile ? 25 : 15,
+            pointerEvents: 'none',
+            // Mobile specific optimizations
+            ...(isMobile && {
+              WebkitTransform: 'translateZ(0)',
+              transform: 'translateZ(0)',
+              willChange: 'transform'
+            })
           }}
         >
           <ObjectDetectionOverlay
             detections={detections}
             videoWidth={videoDimensions.width}
             videoHeight={videoDimensions.height}
-            containerWidth={isMobile ? window.innerWidth : videoDimensions.width}
-            containerHeight={isMobile ? window.innerHeight : videoDimensions.height}
+            containerWidth={window.innerWidth}
+            containerHeight={window.innerHeight}
           />
         </div>
       )}
@@ -362,7 +384,19 @@ export function FirstPersonCapture() {
         <div
           style={{
             transition: 'opacity 0.2s ease',
-            opacity: isTransitioning ? 0.5 : 1
+            opacity: isTransitioning ? 0.8 : 1,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            pointerEvents: 'auto', // Enable pointer events for button interactions
+            // Mobile specific optimizations
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            WebkitBackfaceVisibility: 'hidden',
+            backfaceVisibility: 'hidden'
           }}
         >
           <MobileCameraUI
@@ -402,7 +436,8 @@ export function FirstPersonCapture() {
               left: 0,
               right: 0,
               bottom: 0,
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              zIndex: 100
             }}
           >
             {/* Top Bar with Back Button and Task */}
@@ -487,7 +522,8 @@ export function FirstPersonCapture() {
                 display: 'flex',
                 gap: '30px',
                 alignItems: 'center',
-                pointerEvents: 'auto'
+                pointerEvents: 'auto',
+                zIndex: 200
               }}
             >
               {isStreaming && !capturedImage ? (

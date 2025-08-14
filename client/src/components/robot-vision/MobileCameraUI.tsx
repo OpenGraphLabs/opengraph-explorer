@@ -6,9 +6,7 @@ import {
   Circle,
   Eye,
   EyeSlash,
-  CameraRotate,
-  Lightning,
-  LightningSlash
+  CameraRotate
 } from 'phosphor-react';
 
 interface MobileCameraUIProps {
@@ -42,13 +40,12 @@ export function MobileCameraUI({
   detectionCount = 0,
   fps = 0
 }: MobileCameraUIProps) {
-  const [flashMode, setFlashMode] = useState<'off' | 'on' | 'auto'>('off');
   const isLandscape = orientation === 'landscape';
 
-  // Native camera button styles
+  // Native camera button styles - 더 큰 터치 영역
   const captureButtonStyle: React.CSSProperties = {
-    width: isLandscape ? '60px' : '70px',
-    height: isLandscape ? '60px' : '70px',
+    width: isLandscape ? '65px' : '75px',
+    height: isLandscape ? '65px' : '75px',
     borderRadius: '50%',
     backgroundColor: '#fff',
     border: '4px solid rgba(255, 255, 255, 0.3)',
@@ -58,22 +55,35 @@ export function MobileCameraUI({
     cursor: 'pointer',
     position: 'relative',
     transition: 'all 0.2s ease',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4)',
+    // 터치 영역 확장
+    minWidth: '75px',
+    minHeight: '75px',
+    // 터치 반응성 개선
+    WebkitTouchCallout: 'none',
+    WebkitUserSelect: 'none',
+    userSelect: 'none',
+    touchAction: 'manipulation'
   };
 
   const secondaryButtonStyle: React.CSSProperties = {
-    width: isLandscape ? '45px' : '50px',
-    height: isLandscape ? '45px' : '50px',
+    width: isLandscape ? '50px' : '55px',
+    height: isLandscape ? '50px' : '55px',
     borderRadius: '50%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    border: '2px solid rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    backdropFilter: 'blur(10px)',
+    backdropFilter: 'blur(15px)',
     color: '#fff',
-    transition: 'all 0.2s ease'
+    transition: 'all 0.2s ease',
+    // 터치 반응성 개선
+    WebkitTouchCallout: 'none',
+    WebkitUserSelect: 'none',
+    userSelect: 'none',
+    touchAction: 'manipulation'
   };
 
   const topBarStyle: React.CSSProperties = {
@@ -81,38 +91,53 @@ export function MobileCameraUI({
     top: 0,
     left: 0,
     right: 0,
-    padding: '20px',
-    paddingTop: 'env(safe-area-inset-top, 20px)',
-    background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, transparent 100%)',
-    zIndex: 50,
+    padding: '15px 20px',
+    paddingTop: isLandscape ? '15px' : 'env(safe-area-inset-top, 20px)',
+    background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%)',
+    zIndex: 1050,
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    pointerEvents: 'auto',
+    // Ensure proper mobile rendering
+    WebkitBackfaceVisibility: 'hidden',
+    backfaceVisibility: 'hidden'
   };
 
   const controlsContainerStyle: React.CSSProperties = isLandscape ? {
+    // 가로모드: 우측 중앙에 세로로 배치
     position: 'absolute',
-    right: '30px',
+    right: '10px',
     top: '50%',
     transform: 'translateY(-50%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '25px',
-    zIndex: 50,
-    padding: '15px 10px',
+    gap: '20px',
+    zIndex: 1100,
+    padding: '20px 15px',
+    paddingRight: 'env(safe-area-inset-right, 25px)',
+    background: 'linear-gradient(270deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%)',
+    borderRadius: '25px 0 0 25px',
+    minHeight: '280px',
+    pointerEvents: 'auto',
     transition: 'all 0.3s ease'
   } : {
+    // 세로모드: 중앙 하단에 가로로 배치
     position: 'absolute',
-    bottom: '100px', // More bottom margin for better visibility in portrait
-    left: 0,
-    right: 0,
+    bottom: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '35px',
-    zIndex: 50,
-    padding: '0 20px',
+    gap: '25px',
+    zIndex: 1100,
+    padding: '25px 30px',
+    paddingBottom: 'env(safe-area-inset-bottom, 30px)',
+    background: 'linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.9) 100%)',
+    borderRadius: '30px',
+    pointerEvents: 'auto',
     transition: 'all 0.3s ease'
   };
 
@@ -123,11 +148,25 @@ export function MobileCameraUI({
         {/* Top bar with close button */}
         <div style={topBarStyle}>
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
             style={{
               ...secondaryButtonStyle,
               width: '40px',
               height: '40px'
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.style.transform = 'scale(0.9)';
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             <X size={24} weight="regular" />
@@ -137,17 +176,35 @@ export function MobileCameraUI({
         {/* Bottom/Side controls for review */}
         <div style={controlsContainerStyle}>
           <button
-            onClick={onRetake}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRetake();
+            }}
             style={{
               ...secondaryButtonStyle,
               backgroundColor: 'rgba(255, 255, 255, 0.2)'
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.style.transform = 'scale(0.9)';
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             <ArrowCounterClockwise size={28} weight="regular" />
           </button>
 
           <button
-            onClick={onSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSubmit();
+            }}
             style={{
               padding: '14px 32px',
               borderRadius: '30px',
@@ -160,7 +217,18 @@ export function MobileCameraUI({
               boxShadow: '0 4px 20px rgba(0, 255, 65, 0.4)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '8px',
+              touchAction: 'manipulation'
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.style.transform = 'scale(0.95)';
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             Use Photo
@@ -177,11 +245,25 @@ export function MobileCameraUI({
       <div style={topBarStyle}>
         {/* Left side - Close button */}
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
           style={{
             ...secondaryButtonStyle,
             width: '40px',
             height: '40px'
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.style.transform = 'scale(0.9)';
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.style.transform = 'scale(1)';
           }}
         >
           <X size={24} weight="regular" />
@@ -225,39 +307,30 @@ export function MobileCameraUI({
           </div>
         )}
 
-        {/* Right side - Flash and flip camera */}
+        {/* Right side - flip camera */}
         <div style={{ display: 'flex', gap: '10px' }}>
-          {/* Flash toggle (only on mobile) */}
-          <button
-            onClick={() => {
-              const modes: Array<'off' | 'on' | 'auto'> = ['off', 'on', 'auto'];
-              const currentIndex = modes.indexOf(flashMode);
-              const nextIndex = (currentIndex + 1) % modes.length;
-              setFlashMode(modes[nextIndex]);
-            }}
-            style={{
-              ...secondaryButtonStyle,
-              width: '40px',
-              height: '40px'
-            }}
-          >
-            {flashMode === 'off' ? (
-              <LightningSlash size={20} weight="regular" />
-            ) : flashMode === 'on' ? (
-              <Lightning size={20} weight="fill" color="#ffff00" />
-            ) : (
-              <Lightning size={20} weight="regular" />
-            )}
-          </button>
-
           {/* Flip camera button */}
           {onFlipCamera && (
             <button
-              onClick={onFlipCamera}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onFlipCamera();
+              }}
               style={{
                 ...secondaryButtonStyle,
                 width: '40px',
                 height: '40px'
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.currentTarget.style.transform = 'scale(0.9)';
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.currentTarget.style.transform = 'scale(1)';
               }}
             >
               <CameraRotate size={20} weight="regular" />
@@ -308,11 +381,25 @@ export function MobileCameraUI({
       <div style={controlsContainerStyle}>
         {/* AI Detection toggle */}
         <button
-          onClick={onToggleDetection}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleDetection();
+          }}
           style={{
             ...secondaryButtonStyle,
             backgroundColor: isDetecting ? 'rgba(0, 255, 65, 0.2)' : 'rgba(128, 128, 128, 0.3)',
             border: `2px solid ${isDetecting ? '#00ff41' : 'rgba(255, 255, 255, 0.2)'}`
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.style.transform = 'scale(0.9)';
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.style.transform = 'scale(1)';
           }}
         >
           {isDetecting ? (
@@ -324,28 +411,47 @@ export function MobileCameraUI({
 
         {/* Capture button */}
         <button
-          onClick={onCapture}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onCapture();
+          }}
           style={captureButtonStyle}
           onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             e.currentTarget.style.transform = 'scale(0.9)';
+            e.currentTarget.style.boxShadow = '0 3px 15px rgba(0, 0, 0, 0.5)';
           }}
           onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 6px 25px rgba(0, 0, 0, 0.4)';
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.currentTarget.style.transform = 'scale(0.95)';
+          }}
+          onMouseUp={(e) => {
+            e.preventDefault();
             e.currentTarget.style.transform = 'scale(1)';
           }}
         >
           <div
             style={{
-              width: isLandscape ? '48px' : '58px',
-              height: isLandscape ? '48px' : '58px',
+              width: isLandscape ? '52px' : '62px',
+              height: isLandscape ? '52px' : '62px',
               borderRadius: '50%',
               backgroundColor: isCapturing ? '#ff0000' : '#fff',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)'
             }}
           />
         </button>
 
-        {/* Placeholder for balance */}
-        <div style={{ width: '50px', height: '50px' }} />
+        {/* Placeholder for balance in portrait mode only */}
+        {!isLandscape && <div style={{ width: '50px', height: '50px' }} />}
       </div>
 
       {/* Focus indicator (tap to focus) */}
