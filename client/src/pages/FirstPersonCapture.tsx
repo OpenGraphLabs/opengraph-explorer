@@ -6,7 +6,6 @@ import { ObjectDetectionOverlay } from "@/components/robot-vision/ObjectDetectio
 import { RobotVisionHUD } from "@/components/robot-vision/RobotVisionHUD";
 import { MobileCameraUI } from "@/components/robot-vision/MobileCameraUI";
 import { useMobileCamera } from "@/shared/hooks/useMobileCamera";
-import { useTouchGestures } from "@/shared/hooks/useTouchGestures";
 import { CAPTURE_TASKS, CaptureTask } from "@/components/robot-vision/types";
 
 export function FirstPersonCapture() {
@@ -26,6 +25,7 @@ export function FirstPersonCapture() {
   const [currentTask, setCurrentTask] = useState<CaptureTask | null>(null);
   const [detectionEnabled, setDetectionEnabled] = useState(true);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Mobile camera hooks
   const {
@@ -33,31 +33,21 @@ export function FirstPersonCapture() {
     orientation,
     vibrate
   } = useMobileCamera({
-    enabled: true
+    enabled: true,
+    onOrientationChange: (newOrientation) => {
+      if (isMobile && isStreaming) {
+        // Start transition
+        setIsTransitioning(true);
+        
+        // End transition after a short delay
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 300);
+      }
+    }
   });
 
-  // Touch gestures for mobile
-  const { touchRef, showFocusIndicator } = useTouchGestures({
-    onTap: (e) => {
-      if (isStreaming && !capturedImage && isMobile) {
-        const touch = e.changedTouches[0];
-        showFocusIndicator(touch.clientX, touch.clientY);
-        vibrate(10);
-      }
-    },
-    onDoubleTap: () => {
-      if (isStreaming && !capturedImage) {
-        capturePhoto();
-      }
-    },
-    onSwipeUp: () => {
-      if (isStreaming && !capturedImage) {
-        setDetectionEnabled(prev => !prev);
-        vibrate(20);
-      }
-    },
-    preventDefault: false
-  });
+  // Removed touch gestures as per user request
 
   // Object detection hook
   const {
@@ -92,7 +82,7 @@ export function FirstPersonCapture() {
       // Request camera permission
       const constraints = {
         video: {
-          facingMode: isMobile ? facingMode : 'user',
+          facingMode: facingMode,
           width: { ideal: isMobile ? 1920 : 1280 },
           height: { ideal: isMobile ? 1080 : 720 }
         },
@@ -300,10 +290,7 @@ export function FirstPersonCapture() {
   // UNIFIED FULLSCREEN EXPERIENCE FOR BOTH PC AND MOBILE
   return (
     <div
-      ref={(el) => {
-        containerRef.current = el;
-        if (isMobile) touchRef.current = el;
-      }}
+      ref={containerRef}
       style={{
         position: 'fixed',
         top: 0,
@@ -313,7 +300,6 @@ export function FirstPersonCapture() {
         backgroundColor: '#000',
         overflow: 'hidden',
         zIndex: 9999,
-        touchAction: isMobile ? 'none' : 'auto',
         userSelect: 'none',
         WebkitUserSelect: 'none'
       }}
@@ -323,13 +309,14 @@ export function FirstPersonCapture() {
         ref={videoRef}
         style={{
           position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: isStreaming ? 'block' : 'none'
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          objectFit: isMobile ? 'cover' : 'contain',
+          display: isStreaming ? 'block' : 'none',
+          transition: isTransitioning ? 'none' : 'all 0.3s ease',
+          opacity: isTransitioning ? 0.8 : 1
         }}
         playsInline
         autoPlay
@@ -337,14 +324,21 @@ export function FirstPersonCapture() {
       />
 
       {/* Object Detection Overlay */}
-      {isStreaming && !capturedImage && detectionEnabled && (
-        <ObjectDetectionOverlay
-          detections={detections}
-          videoWidth={videoDimensions.width}
-          videoHeight={videoDimensions.height}
-          containerWidth={window.innerWidth}
-          containerHeight={window.innerHeight}
-        />
+      {isStreaming && !capturedImage && detectionEnabled && !isTransitioning && (
+        <div
+          style={{
+            transition: 'opacity 0.3s ease',
+            opacity: isTransitioning ? 0 : 1
+          }}
+        >
+          <ObjectDetectionOverlay
+            detections={detections}
+            videoWidth={videoDimensions.width}
+            videoHeight={videoDimensions.height}
+            containerWidth={isMobile ? window.innerWidth : videoDimensions.width}
+            containerHeight={isMobile ? window.innerHeight : videoDimensions.height}
+          />
+        </div>
       )}
 
       {/* Captured Image */}
@@ -354,33 +348,39 @@ export function FirstPersonCapture() {
           alt="Captured"
           style={{
             position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover'
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            objectFit: isMobile ? 'cover' : 'contain'
           }}
         />
       )}
 
       {/* Mobile UI - Only show on mobile */}
       {isMobile ? (
-        <MobileCameraUI
-          orientation={orientation}
-          isCapturing={false}
-          isDetecting={detectionEnabled}
-          capturedImage={capturedImage}
-          onCapture={capturePhoto}
-          onRetake={retakePhoto}
-          onSubmit={submitPhoto}
-          onClose={handleClose}
-          onToggleDetection={() => setDetectionEnabled(!detectionEnabled)}
-          onFlipCamera={handleFlipCamera}
-          currentTask={currentTask?.title}
-          detectionCount={detections.length}
-          fps={fps}
-        />
+        <div
+          style={{
+            transition: 'opacity 0.2s ease',
+            opacity: isTransitioning ? 0.5 : 1
+          }}
+        >
+          <MobileCameraUI
+            orientation={orientation}
+            isCapturing={false}
+            isDetecting={detectionEnabled}
+            capturedImage={capturedImage}
+            onCapture={capturePhoto}
+            onRetake={retakePhoto}
+            onSubmit={submitPhoto}
+            onClose={handleClose}
+            onToggleDetection={() => setDetectionEnabled(!detectionEnabled)}
+            onFlipCamera={handleFlipCamera}
+            currentTask={currentTask?.title}
+            detectionCount={detections.length}
+            fps={fps}
+          />
+        </div>
       ) : (
         <>
           {/* Desktop HUD Overlay */}
@@ -713,21 +713,6 @@ export function FirstPersonCapture() {
       {/* Hidden canvas for photo capture */}
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      {/* Focus indicator for tap-to-focus (mobile) */}
-      <div
-        id="focus-indicator"
-        style={{
-          position: 'absolute',
-          width: '80px',
-          height: '80px',
-          border: '2px solid #ffff00',
-          borderRadius: '8px',
-          pointerEvents: 'none',
-          opacity: 0,
-          transition: 'opacity 0.3s ease',
-          zIndex: 100
-        }}
-      />
 
       <style>
         {`
@@ -746,20 +731,6 @@ export function FirstPersonCapture() {
             }
             50% {
               opacity: 0.5;
-            }
-          }
-
-          @keyframes focusAnimation {
-            0% {
-              transform: scale(1.2);
-              opacity: 0;
-            }
-            50% {
-              opacity: 1;
-            }
-            100% {
-              transform: scale(1);
-              opacity: 0;
             }
           }
         `}

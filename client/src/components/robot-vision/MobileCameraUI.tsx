@@ -47,8 +47,8 @@ export function MobileCameraUI({
 
   // Native camera button styles
   const captureButtonStyle: React.CSSProperties = {
-    width: '70px',
-    height: '70px',
+    width: isLandscape ? '60px' : '70px',
+    height: isLandscape ? '60px' : '70px',
     borderRadius: '50%',
     backgroundColor: '#fff',
     border: '4px solid rgba(255, 255, 255, 0.3)',
@@ -57,13 +57,13 @@ export function MobileCameraUI({
     justifyContent: 'center',
     cursor: 'pointer',
     position: 'relative',
-    transition: 'transform 0.1s ease',
+    transition: 'all 0.2s ease',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
   };
 
   const secondaryButtonStyle: React.CSSProperties = {
-    width: '50px',
-    height: '50px',
+    width: isLandscape ? '45px' : '50px',
+    height: isLandscape ? '45px' : '50px',
     borderRadius: '50%',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     border: '2px solid rgba(255, 255, 255, 0.2)',
@@ -72,7 +72,8 @@ export function MobileCameraUI({
     justifyContent: 'center',
     cursor: 'pointer',
     backdropFilter: 'blur(10px)',
-    color: '#fff'
+    color: '#fff',
+    transition: 'all 0.2s ease'
   };
 
   const topBarStyle: React.CSSProperties = {
@@ -91,26 +92,28 @@ export function MobileCameraUI({
 
   const controlsContainerStyle: React.CSSProperties = isLandscape ? {
     position: 'absolute',
-    right: 'env(safe-area-inset-right, 20px)',
+    right: '30px',
     top: '50%',
     transform: 'translateY(-50%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '30px',
+    gap: '25px',
     zIndex: 50,
-    padding: '20px 10px'
+    padding: '15px 10px',
+    transition: 'all 0.3s ease'
   } : {
     position: 'absolute',
-    bottom: 'env(safe-area-inset-bottom, 30px)',
+    bottom: '100px', // More bottom margin for better visibility in portrait
     left: 0,
     right: 0,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '40px',
+    gap: '35px',
     zIndex: 50,
-    padding: '0 20px'
+    padding: '0 20px',
+    transition: 'all 0.3s ease'
   };
 
   if (capturedImage) {
@@ -332,11 +335,11 @@ export function MobileCameraUI({
         >
           <div
             style={{
-              width: '58px',
-              height: '58px',
+              width: isLandscape ? '48px' : '58px',
+              height: isLandscape ? '48px' : '58px',
               borderRadius: '50%',
               backgroundColor: isCapturing ? '#ff0000' : '#fff',
-              transition: 'background-color 0.2s ease'
+              transition: 'all 0.2s ease'
             }}
           />
         </button>
