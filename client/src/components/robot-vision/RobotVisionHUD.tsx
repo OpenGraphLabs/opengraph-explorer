@@ -206,62 +206,51 @@ export function RobotVisionHUD({
         </div>
       )}
 
-      {/* Advanced Crosshair System */}
+      {/* Simple Center Crosshair */}
       <div
         style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: '120px',
-          height: '120px',
+          width: '60px',
+          height: '60px',
           zIndex: 25,
           pointerEvents: 'none'
         }}
       >
-        <svg width="120" height="120" viewBox="0 0 120 120">
-          {/* Main crosshair */}
-          <line x1="60" y1="20" x2="60" y2="40" stroke="#00ff41" strokeWidth="2" opacity="0.8" />
-          <line x1="60" y1="80" x2="60" y2="100" stroke="#00ff41" strokeWidth="2" opacity="0.8" />
-          <line x1="20" y1="60" x2="40" y2="60" stroke="#00ff41" strokeWidth="2" opacity="0.8" />
-          <line x1="80" y1="60" x2="100" y2="60" stroke="#00ff41" strokeWidth="2" opacity="0.8" />
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          {/* Clean crosshair lines */}
+          <line x1="30" y1="8" x2="30" y2="22" stroke="#00ff41" strokeWidth="2" opacity="0.9" />
+          <line x1="30" y1="38" x2="30" y2="52" stroke="#00ff41" strokeWidth="2" opacity="0.9" />
+          <line x1="8" y1="30" x2="22" y2="30" stroke="#00ff41" strokeWidth="2" opacity="0.9" />
+          <line x1="38" y1="30" x2="52" y2="30" stroke="#00ff41" strokeWidth="2" opacity="0.9" />
           
-          {/* Concentric circles */}
-          <circle cx="60" cy="60" r="35" stroke="#00ff41" strokeWidth="1" fill="none" opacity="0.4" strokeDasharray="5,5" />
-          <circle cx="60" cy="60" r="20" stroke="#00ff41" strokeWidth="1.5" fill="none" opacity="0.6" />
-          <circle cx="60" cy="60" r="8" stroke="#00ff41" strokeWidth="2" fill="none" opacity="0.8" />
-          <circle cx="60" cy="60" r="2" fill="#00ff41" opacity="1" />
+          {/* Single targeting circle */}
+          <circle cx="30" cy="30" r="15" stroke="#00ff41" strokeWidth="1.5" fill="none" opacity="0.6" />
           
-          {/* Range markers */}
-          <line x1="60" y1="10" x2="60" y2="15" stroke="#00ff41" strokeWidth="1" opacity="0.5" />
-          <line x1="60" y1="105" x2="60" y2="110" stroke="#00ff41" strokeWidth="1" opacity="0.5" />
-          <line x1="10" y1="60" x2="15" y2="60" stroke="#00ff41" strokeWidth="1" opacity="0.5" />
-          <line x1="105" y1="60" x2="110" y2="60" stroke="#00ff41" strokeWidth="1" opacity="0.5" />
-          
-          {/* Targeting brackets */}
-          <g opacity="0.6">
-            <path d="M 45 45 L 35 45 L 35 35 L 45 35" stroke="#00ff41" strokeWidth="1.5" fill="none" />
-            <path d="M 75 45 L 85 45 L 85 35 L 75 35" stroke="#00ff41" strokeWidth="1.5" fill="none" />
-            <path d="M 45 75 L 35 75 L 35 85 L 45 85" stroke="#00ff41" strokeWidth="1.5" fill="none" />
-            <path d="M 75 75 L 85 75 L 85 85 L 75 85" stroke="#00ff41" strokeWidth="1.5" fill="none" />
-          </g>
+          {/* Center dot */}
+          <circle cx="30" cy="30" r="2" fill="#00ff41" opacity="1" />
         </svg>
         
-        {/* Center dot pulse effect */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '6px',
-            height: '6px',
-            backgroundColor: '#00ff41',
-            borderRadius: '50%',
-            boxShadow: '0 0 15px #00ff41',
-            animation: isDetecting ? 'pulse 1.5s infinite' : 'none'
-          }}
-        />
+        {/* Center dot glow effect when detecting */}
+        {isDetecting && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#00ff41',
+              borderRadius: '50%',
+              boxShadow: '0 0 20px #00ff41',
+              animation: 'pulse 1.5s infinite',
+              opacity: 0.8
+            }}
+          />
+        )}
       </div>
 
       {/* Advanced Corner Frame System */}
