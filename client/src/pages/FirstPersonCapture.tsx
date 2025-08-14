@@ -33,19 +33,23 @@ export function FirstPersonCapture() {
     orientation,
     vibrate
   } = useMobileCamera({
-    enabled: true,
-    onOrientationChange: (newOrientation) => {
-      if (isMobile && isStreaming) {
-        // Start transition for UI elements only (not overlay)
-        setIsTransitioning(true);
-        
-        // End transition after a short delay
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 300);
-      }
-    }
+    enabled: true
   });
+
+  // Handle orientation change separately to avoid infinite renders
+  useEffect(() => {
+    if (isMobile && isStreaming) {
+      // Start transition for UI elements only (not overlay)
+      setIsTransitioning(true);
+      
+      // End transition after a short delay
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [orientation, isMobile, isStreaming]);
 
   // Removed touch gestures as per user request
 
@@ -278,7 +282,19 @@ export function FirstPersonCapture() {
   // Close and navigate back
   const handleClose = useCallback(() => {
     stopCamera();
-    navigate('/earn');
+    
+    // Immediately restore page styles before navigation
+    document.documentElement.style.height = '';
+    document.documentElement.style.overflow = '';
+    document.body.style.height = '';
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    
+    // Use setTimeout to ensure cleanup happens before navigation
+    setTimeout(() => {
+      navigate(-1);
+    }, 100);
   }, [stopCamera, navigate]);
 
   // AUTO-START CAMERA ON PAGE LOAD
@@ -301,13 +317,32 @@ export function FirstPersonCapture() {
 
   // Cleanup on unmount
   useEffect(() => {
+    // Apply fullscreen styles when component mounts
+    if (isMobile) {
+      document.documentElement.style.height = '100%';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    }
+
     return () => {
+      // Cleanup on unmount - restore original styles
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
       stopDetection();
+      
+      // Restore normal page styles
+      document.documentElement.style.height = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.height = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
-  }, [stopDetection]);
+  }, [stopDetection, isMobile]);
 
   // UNIFIED FULLSCREEN EXPERIENCE FOR BOTH PC AND MOBILE
   return (
@@ -811,26 +846,10 @@ export function FirstPersonCapture() {
           }
 
           /* Mobile web optimization */
-          ${isMobile ? `
-            html {
-              height: 100%;
-              overflow: hidden;
-            }
-            body {
-              height: 100%;
-              overflow: hidden;
-              position: fixed;
-              width: 100%;
-              -webkit-overflow-scrolling: touch;
-              overscroll-behavior: none;
-            }
-            * {
-              -webkit-tap-highlight-color: transparent;
-              -webkit-touch-callout: none;
-              -webkit-user-select: none;
-              user-select: none;
-            }
-          ` : ''}
+          * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+          }
         `}
       </style>
     </div>
