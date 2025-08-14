@@ -447,49 +447,62 @@ export function FirstPersonCapture() {
         />
       )}
 
-      {/* Mobile UI - Only show on mobile */}
+      {/* Mobile UI with Robot HUD - Show on mobile */}
       {isMobile ? (
-        <div
-          style={{
-            transition: 'opacity 0.2s ease',
-            opacity: isTransitioning ? 0.8 : 1,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1000,
-            pointerEvents: 'auto', // Enable pointer events for button interactions
-            // Mobile specific optimizations
-            WebkitTransform: 'translateZ(0)',
-            transform: 'translateZ(0)',
-            WebkitBackfaceVisibility: 'hidden',
-            backfaceVisibility: 'hidden'
-          }}
-        >
-          <MobileCameraUI
-            orientation={orientation}
-            isCapturing={false}
-            isDetecting={detectionEnabled}
-            capturedImage={capturedImage}
-            onCapture={capturePhoto}
-            onRetake={retakePhoto}
-            onSubmit={submitPhoto}
-            onClose={handleClose}
-            onToggleDetection={() => {
-              console.log('onToggleDetection called! Current state:', detectionEnabled);
-              setDetectionEnabled(prev => {
-                const newState = !prev;
-                console.log('Detection enabled changing from', prev, 'to', newState);
-                return newState;
-              });
+        <>
+          {/* Robot HUD for Mobile */}
+          {isStreaming && !capturedImage && (
+            <RobotVisionHUD
+              fps={fps}
+              objectCount={detections.length}
+              isDetecting={isStreaming && detectionEnabled}
+              isLoading={isModelLoading}
+              currentTask={currentTask?.title}
+            />
+          )}
+          
+          <div
+            style={{
+              transition: 'opacity 0.2s ease',
+              opacity: isTransitioning ? 0.8 : 1,
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1000,
+              pointerEvents: 'auto', // Enable pointer events for button interactions
+              // Mobile specific optimizations
+              WebkitTransform: 'translateZ(0)',
+              transform: 'translateZ(0)',
+              WebkitBackfaceVisibility: 'hidden',
+              backfaceVisibility: 'hidden'
             }}
-            onFlipCamera={handleFlipCamera}
-            currentTask={currentTask?.title}
-            detectionCount={detections.length}
-            fps={fps}
-          />
-        </div>
+          >
+            <MobileCameraUI
+              orientation={orientation}
+              isCapturing={false}
+              isDetecting={detectionEnabled}
+              capturedImage={capturedImage}
+              onCapture={capturePhoto}
+              onRetake={retakePhoto}
+              onSubmit={submitPhoto}
+              onClose={handleClose}
+              onToggleDetection={() => {
+                console.log('onToggleDetection called! Current state:', detectionEnabled);
+                setDetectionEnabled(prev => {
+                  const newState = !prev;
+                  console.log('Detection enabled changing from', prev, 'to', newState);
+                  return newState;
+                });
+              }}
+              onFlipCamera={handleFlipCamera}
+              currentTask={currentTask?.title}
+              detectionCount={detections.length}
+              fps={fps}
+            />
+          </div>
+        </>
       ) : (
         <>
           {/* Desktop HUD Overlay */}

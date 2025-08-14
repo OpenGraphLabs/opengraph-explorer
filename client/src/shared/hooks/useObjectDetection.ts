@@ -31,6 +31,11 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
   const lastFrameTimeRef = useRef<number>(0);
   const frameCountRef = useRef<number>(0);
   const fpsUpdateIntervalRef = useRef<number>();
+  
+  // Mobile stability improvements
+  const lastUpdateTimeRef = useRef<number>(0);
+  const detectionHistoryRef = useRef<Detection[][]>([]);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   // Load the COCO-SSD model
   useEffect(() => {
@@ -83,9 +88,56 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
     };
   }, [enabled]);
 
+  // Stable detection filtering for mobile
+  const getStableDetections = useCallback((newDetections: Detection[]) => {
+    if (!isMobile) return newDetections; // Skip filtering on desktop
+    
+    // Add to history
+    detectionHistoryRef.current.push(newDetections);
+    
+    // Keep only last 3 frames for comparison
+    if (detectionHistoryRef.current.length > 3) {
+      detectionHistoryRef.current.shift();
+    }
+    
+    // If we don't have enough history, return new detections
+    if (detectionHistoryRef.current.length < 2) return newDetections;
+    
+    // Find detections that appear consistently across frames
+    const stableDetections: Detection[] = [];
+    
+    newDetections.forEach(detection => {
+      // Check if this detection class appears in previous frames
+      const appearsInPreviousFrames = detectionHistoryRef.current
+        .slice(0, -1) // Exclude current frame
+        .some(frame => 
+          frame.some(prevDetection => 
+            prevDetection.class === detection.class &&
+            Math.abs(prevDetection.score - detection.score) < 0.3 // Similar confidence
+          )
+        );
+        
+      if (appearsInPreviousFrames) {
+        stableDetections.push(detection);
+      }
+    });
+    
+    return stableDetections;
+  }, [isMobile]);
+
   // Detect objects in video frame
   const detectObjects = useCallback(async (video: HTMLVideoElement) => {
     if (!model || !video || video.readyState !== 4) return;
+
+    // Mobile: Update less frequently for stability
+    if (isMobile) {
+      const now = performance.now();
+      if (now - lastUpdateTimeRef.current < 500) { // 500ms debounce on mobile
+        frameCountRef.current++;
+        return;
+      }
+      lastUpdateTimeRef.current = now;
+    }
 
     try {
       const predictions = await model.detect(video, maxDetections, scoreThreshold);
@@ -96,12 +148,14 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
         bbox: pred.bbox as [number, number, number, number]
       }));
 
-      setDetections(formattedDetections);
+      // Apply stability filtering
+      const stableDetections = getStableDetections(formattedDetections);
+      setDetections(stableDetections);
       frameCountRef.current++;
     } catch (err) {
       console.error('Detection error:', err);
     }
-  }, [model, maxDetections, scoreThreshold]);
+  }, [model, maxDetections, scoreThreshold, isMobile, getStableDetections]);
 
   // Start continuous detection
   const startDetection = useCallback((video: HTMLVideoElement) => {
