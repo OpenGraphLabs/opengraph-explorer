@@ -64,9 +64,9 @@ export function useSearchGlobalCategories(searchTerm: string) {
   // Use global categories hook
   const { data, isLoading, error } = useCategories(
     { limit: 100 }, // Load more categories for better search results
-    { 
-      queryKey: ['categories', 'global', 100],
-      enabled: true 
+    {
+      queryKey: ["categories", "global", 100],
+      enabled: true,
     }
   );
 

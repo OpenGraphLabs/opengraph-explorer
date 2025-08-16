@@ -38,7 +38,7 @@ export function AnnotationsProvider({
     retry: 3,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: config.mode === "approved" || !config.mode,
-    placeholderData: (previousData) => previousData, // Show previous data immediately
+    placeholderData: previousData => previousData, // Show previous data immediately
   } as any);
 
   // Use annotations by image for AnnotationWorkspace
@@ -49,7 +49,7 @@ export function AnnotationsProvider({
     gcTime: 30 * 60 * 1000, // 30 minutes in cache (renamed from cacheTime in v5)
     retry: 3,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-    placeholderData: (previousData) => previousData, // Show previous data immediately
+    placeholderData: previousData => previousData, // Show previous data immediately
   } as any);
 
   // Select the appropriate query based on mode

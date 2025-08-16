@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import '@tensorflow/tfjs';
+import { useEffect, useRef, useState, useCallback } from "react";
+import * as cocoSsd from "@tensorflow-models/coco-ssd";
+import "@tensorflow/tfjs";
 
 export interface Detection {
   class: string;
@@ -15,11 +15,7 @@ interface UseObjectDetectionOptions {
 }
 
 export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
-  const {
-    enabled = true,
-    scoreThreshold = 0.5,
-    maxDetections = 10
-  } = options;
+  const { enabled = true, scoreThreshold = 0.5, maxDetections = 10 } = options;
 
   const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +27,7 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
   const lastFrameTimeRef = useRef<number>(0);
   const frameCountRef = useRef<number>(0);
   const fpsUpdateIntervalRef = useRef<number>();
-  
+
   // Mobile stability improvements
   const lastUpdateTimeRef = useRef<number>(0);
   const detectionHistoryRef = useRef<Detection[][]>([]);
@@ -45,17 +41,17 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
       try {
         setIsLoading(true);
         setError(null);
-        console.log('Loading COCO-SSD model...');
-        
+        console.log("Loading COCO-SSD model...");
+
         const loadedModel = await cocoSsd.load({
-          base: 'lite_mobilenet_v2' // Use lighter model for better performance
+          base: "lite_mobilenet_v2", // Use lighter model for better performance
         });
-        
+
         setModel(loadedModel);
-        console.log('COCO-SSD model loaded successfully');
+        console.log("COCO-SSD model loaded successfully");
       } catch (err) {
-        console.error('Failed to load model:', err);
-        setError('Failed to load object detection model');
+        console.error("Failed to load model:", err);
+        setError("Failed to load object detection model");
       } finally {
         setIsLoading(false);
       }
@@ -71,12 +67,12 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
     fpsUpdateIntervalRef.current = window.setInterval(() => {
       const currentTime = performance.now();
       const deltaTime = currentTime - lastFrameTimeRef.current;
-      
+
       if (deltaTime > 0) {
         const currentFps = Math.round((frameCountRef.current * 1000) / deltaTime);
         setFps(currentFps);
       }
-      
+
       frameCountRef.current = 0;
       lastFrameTimeRef.current = currentTime;
     }, 1000);
@@ -89,85 +85,96 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
   }, [enabled]);
 
   // Stable detection filtering for mobile
-  const getStableDetections = useCallback((newDetections: Detection[]) => {
-    if (!isMobile) return newDetections; // Skip filtering on desktop
-    
-    // Add to history
-    detectionHistoryRef.current.push(newDetections);
-    
-    // Keep only last 3 frames for comparison
-    if (detectionHistoryRef.current.length > 3) {
-      detectionHistoryRef.current.shift();
-    }
-    
-    // If we don't have enough history, return new detections
-    if (detectionHistoryRef.current.length < 2) return newDetections;
-    
-    // Find detections that appear consistently across frames
-    const stableDetections: Detection[] = [];
-    
-    newDetections.forEach(detection => {
-      // Check if this detection class appears in previous frames
-      const appearsInPreviousFrames = detectionHistoryRef.current
-        .slice(0, -1) // Exclude current frame
-        .some(frame => 
-          frame.some(prevDetection => 
-            prevDetection.class === detection.class &&
-            Math.abs(prevDetection.score - detection.score) < 0.3 // Similar confidence
-          )
-        );
-        
-      if (appearsInPreviousFrames) {
-        stableDetections.push(detection);
+  const getStableDetections = useCallback(
+    (newDetections: Detection[]) => {
+      if (!isMobile) return newDetections; // Skip filtering on desktop
+
+      // Add to history
+      detectionHistoryRef.current.push(newDetections);
+
+      // Keep only last 3 frames for comparison
+      if (detectionHistoryRef.current.length > 3) {
+        detectionHistoryRef.current.shift();
       }
-    });
-    
-    return stableDetections;
-  }, [isMobile]);
+
+      // If we don't have enough history, return new detections
+      if (detectionHistoryRef.current.length < 2) return newDetections;
+
+      // Find detections that appear consistently across frames
+      const stableDetections: Detection[] = [];
+
+      newDetections.forEach(detection => {
+        // Check if this detection class appears in previous frames
+        const appearsInPreviousFrames = detectionHistoryRef.current
+          .slice(0, -1) // Exclude current frame
+          .some(frame =>
+            frame.some(
+              prevDetection =>
+                prevDetection.class === detection.class &&
+                Math.abs(prevDetection.score - detection.score) < 0.3 // Similar confidence
+            )
+          );
+
+        if (appearsInPreviousFrames) {
+          stableDetections.push(detection);
+        }
+      });
+
+      return stableDetections;
+    },
+    [isMobile]
+  );
 
   // Detect objects in video frame
-  const detectObjects = useCallback(async (video: HTMLVideoElement) => {
-    if (!model || !video || video.readyState !== 4) return;
+  const detectObjects = useCallback(
+    async (video: HTMLVideoElement) => {
+      if (!model || !video || video.readyState !== 4) return;
 
-    // Mobile: Update less frequently for stability
-    if (isMobile) {
-      const now = performance.now();
-      if (now - lastUpdateTimeRef.current < 500) { // 500ms debounce on mobile
-        frameCountRef.current++;
-        return;
+      // Mobile: Update less frequently for stability
+      if (isMobile) {
+        const now = performance.now();
+        if (now - lastUpdateTimeRef.current < 500) {
+          // 500ms debounce on mobile
+          frameCountRef.current++;
+          return;
+        }
+        lastUpdateTimeRef.current = now;
       }
-      lastUpdateTimeRef.current = now;
-    }
 
-    try {
-      const predictions = await model.detect(video, maxDetections, scoreThreshold);
-      
-      const formattedDetections: Detection[] = predictions.map(pred => ({
-        class: pred.class,
-        score: pred.score,
-        bbox: pred.bbox as [number, number, number, number]
-      }));
+      try {
+        const predictions = await model.detect(video, maxDetections, scoreThreshold);
 
-      // Apply stability filtering
-      const stableDetections = getStableDetections(formattedDetections);
-      setDetections(stableDetections);
-      frameCountRef.current++;
-    } catch (err) {
-      console.error('Detection error:', err);
-    }
-  }, [model, maxDetections, scoreThreshold, isMobile, getStableDetections]);
+        const formattedDetections: Detection[] = predictions.map(pred => ({
+          class: pred.class,
+          score: pred.score,
+          bbox: pred.bbox as [number, number, number, number],
+        }));
+
+        // Apply stability filtering
+        const stableDetections = getStableDetections(formattedDetections);
+        setDetections(stableDetections);
+        frameCountRef.current++;
+      } catch (err) {
+        console.error("Detection error:", err);
+      }
+    },
+    [model, maxDetections, scoreThreshold, isMobile, getStableDetections]
+  );
 
   // Start continuous detection
-  const startDetection = useCallback((video: HTMLVideoElement) => {
-    if (!model || !video) return;
+  const startDetection = useCallback(
+    (video: HTMLVideoElement) => {
+      if (!model || !video) return;
 
-    const detect = async () => {
-      await detectObjects(video);
-      animationFrameRef.current = requestAnimationFrame(detect);
-    };
+      const detect = async () => {
+        await detectObjects(video);
+        animationFrameRef.current = requestAnimationFrame(detect);
+      };
 
-    detect();
-  }, [model, detectObjects]);
+      detect();
+    },
+    [model, detectObjects]
+  );
 
   // Stop detection
   const stopDetection = useCallback(() => {
@@ -196,6 +203,6 @@ export function useObjectDetection(options: UseObjectDetectionOptions = {}) {
     fps,
     startDetection,
     stopDetection,
-    isModelReady: !!model && !isLoading
+    isModelReady: !!model && !isLoading,
   };
 }

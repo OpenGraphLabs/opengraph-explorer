@@ -35,7 +35,7 @@ export function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   // Token selection state - 모든 Hook을 컴포넌트 최상단에 위치
-  const [selectedToken, setSelectedToken] = useState<'OPEN' | 'SUI' | 'USDC'>('OPEN');
+  const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -192,7 +192,7 @@ export function Profile() {
         symbol: "OPEN",
         name: "OpenGraph Token",
         logo: openLogoUrl,
-        primary: true
+        primary: true,
       },
       SUI: {
         balance: 12.47,
@@ -200,17 +200,17 @@ export function Profile() {
         symbol: "SUI",
         name: "Sui Token",
         logo: suiLogoUrl,
-        primary: false
+        primary: false,
       },
       USDC: {
-        balance: 28.90,
-        pending: 4.50,
+        balance: 28.9,
+        pending: 4.5,
         symbol: "USDC",
         name: "USD Coin",
         logo: usdcLogoUrl,
-        primary: false
-      }
-    }
+        primary: false,
+      },
+    },
   };
 
   return (
@@ -281,7 +281,7 @@ export function Profile() {
                   </Box>
                 )}
               </Box>
-              
+
               {/* Status Badge */}
               <Box
                 style={{
@@ -321,9 +321,13 @@ export function Profile() {
                 >
                   {user?.email}
                 </Text>
-                
+
                 {/* Quick Stats */}
-                <Flex gap="4" wrap="wrap" style={{ marginTop: theme.spacing.semantic.component.md }}>
+                <Flex
+                  gap="4"
+                  wrap="wrap"
+                  style={{ marginTop: theme.spacing.semantic.component.md }}
+                >
                   <Flex align="center" gap="2">
                     <Box
                       style={{
@@ -606,53 +610,57 @@ export function Profile() {
                 Select Token
               </Text>
               <Flex gap="2">
-                {(Object.keys(mockData.tokens) as Array<keyof typeof mockData.tokens>).map((tokenKey) => {
-                  const token = mockData.tokens[tokenKey];
-                  const isSelected = selectedToken === tokenKey;
-                  
-                  return (
-                    <button
-                      key={tokenKey}
-                      onClick={() => setSelectedToken(tokenKey)}
-                      style={{
-                        flex: 1,
-                        padding: theme.spacing.semantic.component.sm,
-                        background: isSelected 
-                          ? theme.colors.interactive.primary 
-                          : theme.colors.background.secondary,
-                        border: `1px solid ${isSelected 
-                          ? theme.colors.interactive.primary 
-                          : theme.colors.border.secondary}`,
-                        borderRadius: theme.borders.radius.sm,
-                        cursor: "pointer",
-                        transition: "all 150ms ease",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: theme.spacing.base[1],
-                      }}
-                    >
-                      <img
-                        src={token.logo}
-                        alt={token.symbol}
+                {(Object.keys(mockData.tokens) as Array<keyof typeof mockData.tokens>).map(
+                  tokenKey => {
+                    const token = mockData.tokens[tokenKey];
+                    const isSelected = selectedToken === tokenKey;
+
+                    return (
+                      <button
+                        key={tokenKey}
+                        onClick={() => setSelectedToken(tokenKey)}
                         style={{
-                          width: "20px",
-                          height: "20px",
-                          objectFit: "contain",
-                        }}
-                      />
-                      <Text
-                        size="2"
-                        style={{
-                          color: isSelected ? "white" : theme.colors.text.primary,
-                          fontWeight: isSelected ? "600" : "500",
+                          flex: 1,
+                          padding: theme.spacing.semantic.component.sm,
+                          background: isSelected
+                            ? theme.colors.interactive.primary
+                            : theme.colors.background.secondary,
+                          border: `1px solid ${
+                            isSelected
+                              ? theme.colors.interactive.primary
+                              : theme.colors.border.secondary
+                          }`,
+                          borderRadius: theme.borders.radius.sm,
+                          cursor: "pointer",
+                          transition: "all 150ms ease",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: theme.spacing.base[1],
                         }}
                       >
-                        {token.symbol}
-                      </Text>
-                    </button>
-                  );
-                })}
+                        <img
+                          src={token.logo}
+                          alt={token.symbol}
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                            objectFit: "contain",
+                          }}
+                        />
+                        <Text
+                          size="2"
+                          style={{
+                            color: isSelected ? "white" : theme.colors.text.primary,
+                            fontWeight: isSelected ? "600" : "500",
+                          }}
+                        >
+                          {token.symbol}
+                        </Text>
+                      </button>
+                    );
+                  }
+                )}
               </Flex>
             </Box>
 
@@ -733,7 +741,7 @@ export function Profile() {
                   >
                     {mockData.tokens[selectedToken].balance.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
+                      maximumFractionDigits: 2,
                     })}
                   </Text>
                   <Text size="2" style={{ color: theme.colors.text.tertiary }}>
@@ -769,16 +777,20 @@ export function Profile() {
                 style={{
                   width: "100%",
                   padding: theme.spacing.semantic.component.md,
-                  background: mockData.tokens[selectedToken].pending > 0 
-                    ? theme.colors.interactive.primary 
-                    : theme.colors.background.secondary,
-                  border: `1px solid ${mockData.tokens[selectedToken].pending > 0 
-                    ? theme.colors.interactive.primary 
-                    : theme.colors.border.secondary}`,
+                  background:
+                    mockData.tokens[selectedToken].pending > 0
+                      ? theme.colors.interactive.primary
+                      : theme.colors.background.secondary,
+                  border: `1px solid ${
+                    mockData.tokens[selectedToken].pending > 0
+                      ? theme.colors.interactive.primary
+                      : theme.colors.border.secondary
+                  }`,
                   borderRadius: theme.borders.radius.sm,
-                  color: mockData.tokens[selectedToken].pending > 0 
-                    ? "white" 
-                    : theme.colors.text.tertiary,
+                  color:
+                    mockData.tokens[selectedToken].pending > 0
+                      ? "white"
+                      : theme.colors.text.tertiary,
                   fontSize: "14px",
                   fontWeight: "600",
                   cursor: mockData.tokens[selectedToken].pending > 0 ? "pointer" : "not-allowed",
@@ -786,8 +798,8 @@ export function Profile() {
                   transition: "all 150ms ease",
                 }}
               >
-                {mockData.tokens[selectedToken].pending > 0 
-                  ? `Claim ${mockData.tokens[selectedToken].pending.toFixed(2)} ${mockData.tokens[selectedToken].symbol}` 
+                {mockData.tokens[selectedToken].pending > 0
+                  ? `Claim ${mockData.tokens[selectedToken].pending.toFixed(2)} ${mockData.tokens[selectedToken].symbol}`
                   : "No rewards to claim"}
               </button>
             </Flex>

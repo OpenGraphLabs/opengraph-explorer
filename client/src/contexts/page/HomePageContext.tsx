@@ -21,11 +21,11 @@ interface HomePageContextValue {
   setShowGlobalMasks: (show: boolean) => void;
   selectedAnnotation: ApprovedAnnotationWithImage | null;
   setSelectedAnnotation: (annotation: ApprovedAnnotationWithImage | null) => void;
-  
+
   // Data type selection
   dataType: DataType;
   setDataType: (type: DataType) => void;
-  
+
   // Video task selection
   selectedVideoTask: VideoTask;
   setSelectedVideoTask: (task: VideoTask) => void;
@@ -34,7 +34,7 @@ interface HomePageContextValue {
   isLoading: boolean;
   error: any;
   isTransitioning: boolean;
-  
+
   // Search states
   hasSearchFilter: boolean;
   isSearching: boolean;
@@ -54,7 +54,9 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
     null
   );
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
-  const [previousAnnotationsWithImages, setPreviousAnnotationsWithImages] = useState<ApprovedAnnotationWithImage[]>([]);
+  const [previousAnnotationsWithImages, setPreviousAnnotationsWithImages] = useState<
+    ApprovedAnnotationWithImage[]
+  >([]);
   const [dataType, setDataType] = useState<DataType>("image");
   const [selectedVideoTask, setSelectedVideoTask] = useState<VideoTask>("all");
 
@@ -66,7 +68,12 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
     setCurrentPage,
   } = useAnnotations();
 
-  const { imageMap, isLoading: imagesLoading, error: imagesError, isPlaceholderDataShowing: imagesPreviousData } = useImagesContext();
+  const {
+    imageMap,
+    isLoading: imagesLoading,
+    error: imagesError,
+    isPlaceholderDataShowing: imagesPreviousData,
+  } = useImagesContext();
 
   const { categoryMap, selectedCategory, isLoading: categoriesLoading } = useCategories();
 
@@ -83,7 +90,7 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
     }
 
     // First filter by category if selected
-    const categoryFilteredAnnotations = selectedCategory 
+    const categoryFilteredAnnotations = selectedCategory
       ? annotations.filter(annotation => annotation.category_id === selectedCategory.id)
       : annotations;
 
@@ -91,17 +98,15 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
     const annotationsWithData = categoryFilteredAnnotations.map(annotation => ({
       ...annotation,
       image: imageMap.get(annotation.image_id),
-      categoryName:
-        categoryMap.get(annotation.category_id) || `Category ${annotation.category_id}`,
+      categoryName: categoryMap.get(annotation.category_id) || `Category ${annotation.category_id}`,
     }));
-
 
     // Only filter out items without images after loading is complete
     // During loading, show all annotations to maintain count
     if (!imagesLoading) {
       return annotationsWithData.filter(item => item.image);
     }
-    
+
     return annotationsWithData;
   }, [annotations, imageMap, categoryMap, selectedCategory, annotationsLoading, imagesLoading]);
 
@@ -158,7 +163,7 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
 
   // Simplified loading state
   const isLoading = !isDataReady;
-  
+
   // Show transition state for pagination
   const isTransitioning = isPageTransitioning && (annotationsLoading || imagesLoading);
   const error = annotationsError || imagesError;

@@ -9,43 +9,43 @@ export interface CaptureTask {
 
 export const CAPTURE_TASKS: CaptureTask[] = [
   {
-    id: 'desk',
-    title: 'Take a picture of your desk',
-    description: 'Capture your workspace including computer, keyboard, and mouse',
-    targetObjects: ['laptop', 'keyboard', 'mouse', 'tv', 'monitor'],
+    id: "desk",
+    title: "Take a picture of your desk",
+    description: "Capture your workspace including computer, keyboard, and mouse",
+    targetObjects: ["laptop", "keyboard", "mouse", "tv", "monitor"],
     requiredCount: 1,
-    icon: '🖥️'
+    icon: "🖥️",
   },
   {
-    id: 'kitchen',
-    title: 'Take a picture of your kitchen',
-    description: 'Capture kitchen appliances and utensils',
-    targetObjects: ['refrigerator', 'oven', 'microwave', 'sink', 'bottle', 'cup', 'bowl'],
+    id: "kitchen",
+    title: "Take a picture of your kitchen",
+    description: "Capture kitchen appliances and utensils",
+    targetObjects: ["refrigerator", "oven", "microwave", "sink", "bottle", "cup", "bowl"],
     requiredCount: 2,
-    icon: '🍳'
+    icon: "🍳",
   },
   {
-    id: 'livingroom',
-    title: 'Take a picture of your living room',
-    description: 'Capture furniture and entertainment devices',
-    targetObjects: ['couch', 'chair', 'tv', 'remote', 'book'],
+    id: "livingroom",
+    title: "Take a picture of your living room",
+    description: "Capture furniture and entertainment devices",
+    targetObjects: ["couch", "chair", "tv", "remote", "book"],
     requiredCount: 2,
-    icon: '🛋️'
+    icon: "🛋️",
   },
   {
-    id: 'bookshelf',
-    title: 'Take a picture of your bookshelf',
-    description: 'Capture books and decorative items',
-    targetObjects: ['book', 'vase', 'clock'],
+    id: "bookshelf",
+    title: "Take a picture of your bookshelf",
+    description: "Capture books and decorative items",
+    targetObjects: ["book", "vase", "clock"],
     requiredCount: 3,
-    icon: '📚'
+    icon: "📚",
   },
   {
-    id: 'pet',
-    title: 'Take a picture of your pet',
-    description: 'Capture your furry friend',
-    targetObjects: ['cat', 'dog', 'bird'],
+    id: "pet",
+    title: "Take a picture of your pet",
+    description: "Capture your furry friend",
+    targetObjects: ["cat", "dog", "bird"],
     requiredCount: 1,
-    icon: '🐾'
-  }
+    icon: "🐾",
+  },
 ];

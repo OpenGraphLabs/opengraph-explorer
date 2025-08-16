@@ -2,7 +2,10 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { useSearchCategories, useSearchGlobalCategories } from "@/shared/hooks/useDictionaryCategories";
+import {
+  useSearchCategories,
+  useSearchGlobalCategories,
+} from "@/shared/hooks/useDictionaryCategories";
 
 export interface CategorySearchInputProps {
   placeholder?: string;
@@ -35,7 +38,7 @@ export function CategorySearchInput({
   // Use global categories or dictionary categories based on prop
   const dictionaryResult = useSearchCategories(query, dictionaryId);
   const globalResult = useSearchGlobalCategories(query);
-  
+
   const { categories, isLoading } = useGlobalCategories ? globalResult : dictionaryResult;
 
   // Smooth transitions for dropdown visibility

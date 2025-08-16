@@ -20,9 +20,10 @@ export function VideoGallery() {
   };
 
   // Filter videos based on selected task
-  const filteredVideos = selectedVideoTask === "all" 
-    ? YOUTUBE_VIDEOS 
-    : YOUTUBE_VIDEOS.filter(video => video.task === selectedVideoTask);
+  const filteredVideos =
+    selectedVideoTask === "all"
+      ? YOUTUBE_VIDEOS
+      : YOUTUBE_VIDEOS.filter(video => video.task === selectedVideoTask);
 
   return (
     <Grid

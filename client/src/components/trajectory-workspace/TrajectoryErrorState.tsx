@@ -2,27 +2,27 @@ import React from "react";
 import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate } from "react-router-dom";
-import { 
-  Warning, 
-  Robot, 
-  ArrowLeft, 
+import {
+  Warning,
+  Robot,
+  ArrowLeft,
   ArrowClockwise,
   Image as ImageIcon,
-  Database
+  Database,
 } from "phosphor-react";
 
 interface TrajectoryErrorStateProps {
   error?: Error | null;
-  imagesError?: Error | null;  
+  imagesError?: Error | null;
   datasetError?: Error | null;
   hasNoImages?: boolean;
 }
 
-export function TrajectoryErrorState({ 
-  error, 
-  imagesError, 
-  datasetError, 
-  hasNoImages 
+export function TrajectoryErrorState({
+  error,
+  imagesError,
+  datasetError,
+  hasNoImages,
 }: TrajectoryErrorStateProps) {
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -32,9 +32,10 @@ export function TrajectoryErrorState({
       return {
         icon: <ImageIcon size={48} color={theme.colors.status.warning} weight="duotone" />,
         title: "No Images Available",
-        message: "This dataset doesn't have any images suitable for trajectory drawing. Please try a different dataset or upload some images first.",
+        message:
+          "This dataset doesn't have any images suitable for trajectory drawing. Please try a different dataset or upload some images first.",
         actionText: "Browse Datasets",
-        action: () => navigate("/datasets")
+        action: () => navigate("/datasets"),
       };
     }
 
@@ -42,9 +43,10 @@ export function TrajectoryErrorState({
       return {
         icon: <ImageIcon size={48} color={theme.colors.status.error} weight="duotone" />,
         title: "Image Loading Error",
-        message: "Failed to load dataset images. This might be a temporary network issue or the images might not be available.",
+        message:
+          "Failed to load dataset images. This might be a temporary network issue or the images might not be available.",
         actionText: "Retry Loading",
-        action: () => window.location.reload()
+        action: () => window.location.reload(),
       };
     }
 
@@ -52,18 +54,20 @@ export function TrajectoryErrorState({
       return {
         icon: <Database size={48} color={theme.colors.status.error} weight="duotone" />,
         title: "Dataset Error",
-        message: "Failed to load dataset information. The dataset might not exist or you might not have permission to access it.",
-        actionText: "Browse Datasets", 
-        action: () => navigate("/datasets")
+        message:
+          "Failed to load dataset information. The dataset might not exist or you might not have permission to access it.",
+        actionText: "Browse Datasets",
+        action: () => navigate("/datasets"),
       };
     }
 
     return {
       icon: <Warning size={48} color={theme.colors.status.error} weight="duotone" />,
       title: "Trajectory Workspace Error",
-      message: "Something went wrong while loading the trajectory drawing workspace. Please try again or contact support if the issue persists.",
+      message:
+        "Something went wrong while loading the trajectory drawing workspace. Please try again or contact support if the issue persists.",
       actionText: "Retry",
-      action: () => window.location.reload()
+      action: () => window.location.reload(),
     };
   };
 
@@ -124,7 +128,7 @@ export function TrajectoryErrorState({
           >
             {errorInfo.title}
           </Text>
-          
+
           <Text
             size="3"
             style={{
@@ -236,8 +240,8 @@ export function TrajectoryErrorState({
               lineHeight: 1.4,
             }}
           >
-            To use trajectory drawing, you need a dataset with approved annotation masks. 
-            These masks serve as reference points for robot navigation tasks.
+            To use trajectory drawing, you need a dataset with approved annotation masks. These
+            masks serve as reference points for robot navigation tasks.
           </Text>
         </Box>
       </Flex>

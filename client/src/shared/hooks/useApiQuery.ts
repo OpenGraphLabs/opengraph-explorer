@@ -317,9 +317,12 @@ export function useApprovedAnnotationsByImage(
   return useQuery({
     queryKey: [...queryKeys.annotations.byImage(imageId), "approved"],
     queryFn: async () => {
-      const response = await client.annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet({
-        imageId
-      });
+      const response =
+        await client.annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(
+          {
+            imageId,
+          }
+        );
       return response.data;
     },
     enabled: !!imageId,
@@ -372,12 +375,15 @@ export function useCategories(
   return useQuery({
     queryKey: [...queryKeys.categories.all, "list", filters],
     queryFn: async () => {
-      const { CategoriesApi } = await import('../api/generated');
-      const baseURL = options?.apiClientOptions?.baseURL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const { CategoriesApi } = await import("../api/generated");
+      const baseURL =
+        options?.apiClientOptions?.baseURL ||
+        import.meta.env.VITE_API_BASE_URL ||
+        "http://localhost:8000";
       const categoriesApi = new CategoriesApi(undefined, baseURL, client.getAxiosInstance());
-      const response = await categoriesApi.getCategoriesApiV1CategoriesGet({ 
-        page: filters.page || 1, 
-        limit: filters.limit || 100 
+      const response = await categoriesApi.getCategoriesApiV1CategoriesGet({
+        page: filters.page || 1,
+        limit: filters.limit || 100,
       });
       return response.data;
     },
@@ -419,18 +425,19 @@ export function useDatasetImages(
   options?: UseQueryOptions<any, Error> & { apiClientOptions?: UseApiClientOptions }
 ) {
   const { datasets } = useApiClient(options?.apiClientOptions);
-  
+
   // Explicitly check if we should skip this query
   const shouldSkip = !datasetId || datasetId <= 0 || options?.enabled === false;
-  
+
   return useQuery({
     queryKey: [...queryKeys.datasets.detail(datasetId), "images", filters],
-    queryFn: shouldSkip 
+    queryFn: shouldSkip
       ? () => Promise.resolve({ items: [], total: 0 }) // Return empty result without API call
-      : () => datasets.getDatasetImages(datasetId, {
-          page: filters.page || 1,
-          limit: filters.limit || 100,
-        }),
+      : () =>
+          datasets.getDatasetImages(datasetId, {
+            page: filters.page || 1,
+            limit: filters.limit || 100,
+          }),
     enabled: !shouldSkip,
     ...options,
   });

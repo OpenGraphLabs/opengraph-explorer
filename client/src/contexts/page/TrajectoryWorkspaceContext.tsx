@@ -11,7 +11,7 @@ interface Point {
 
 interface TrajectoryPoint extends Point {
   id: string;
-  type: 'start' | 'end' | 'waypoint';
+  type: "start" | "end" | "waypoint";
   maskId?: number;
 }
 
@@ -70,7 +70,7 @@ const TrajectoryWorkspaceContext = createContext<TrajectoryWorkspaceContextType 
 export function useTrajectoryWorkspace() {
   const context = useContext(TrajectoryWorkspaceContext);
   if (!context) {
-    throw new Error('useTrajectoryWorkspace must be used within TrajectoryWorkspaceProvider');
+    throw new Error("useTrajectoryWorkspace must be used within TrajectoryWorkspaceProvider");
   }
   return context;
 }
@@ -78,16 +78,14 @@ export function useTrajectoryWorkspace() {
 export function TrajectoryWorkspaceProvider({ children }: { children: React.ReactNode }) {
   const { selectedImage } = useImagesContext();
   const { modalState, closeModal, showSuccess, showError } = useModal();
-  
+
   // Load approved annotations for the selected image
-  const { data: approvedAnnotationsData, isLoading: annotationsLoading } = useApprovedAnnotationsByImage(
-    selectedImage?.id || 0,
-    {
+  const { data: approvedAnnotationsData, isLoading: annotationsLoading } =
+    useApprovedAnnotationsByImage(selectedImage?.id || 0, {
       enabled: !!selectedImage?.id,
       refetchOnWindowFocus: false,
-    } as any
-  );
-  
+    } as any);
+
   const approvedAnnotations = useMemo(() => {
     return approvedAnnotationsData || [];
   }, [approvedAnnotationsData]);
@@ -107,9 +105,9 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
   // Hardcoded tasks and mask mappings per image - in real app, these would come from API
   const hardcodedImageTasks = useMemo(() => {
     if (!selectedImage) return { tasks: [], maskMappings: {} };
-    
+
     const imageId = selectedImage.id;
-    
+
     // Create tasks specific to this image based on available annotations
     let imageTasks: TrajectoryTask[] = [];
 
@@ -124,18 +122,18 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
           difficulty: "Easy",
           reward: "5 $OPEN",
           startAnnotationId: 152337,
-          endAnnotationId: 152365
+          endAnnotationId: 152365,
         },
         {
-          id: `image-${imageId}-task-2`, 
+          id: `image-${imageId}-task-2`,
           description: `Tidy up the table`,
           startMaskCategories: [],
           endMaskCategories: [],
           difficulty: "Medium",
           reward: "8 $OPEN",
           startAnnotationId: 20,
-          endAnnotationId: 25
-        }
+          endAnnotationId: 25,
+        },
       ];
     } else if (imageId === 1016) {
       imageTasks = [
@@ -147,18 +145,18 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
           difficulty: "Easy",
           reward: "5 $OPEN",
           startAnnotationId: 30,
-          endAnnotationId: 35
+          endAnnotationId: 35,
         },
         {
-          id: `image-${imageId}-task-2`, 
+          id: `image-${imageId}-task-2`,
           description: `Place item in container`,
           startMaskCategories: [],
           endMaskCategories: [],
           difficulty: "Medium",
           reward: "8 $OPEN",
           startAnnotationId: 40,
-          endAnnotationId: 45
-        }
+          endAnnotationId: 45,
+        },
       ];
     } else {
       // Default tasks for other images
@@ -171,34 +169,34 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
           difficulty: "Easy",
           reward: "5 $OPEN",
           startAnnotationId: 1,
-          endAnnotationId: 2
+          endAnnotationId: 2,
         },
         {
-          id: `image-${imageId}-task-2`, 
+          id: `image-${imageId}-task-2`,
           description: `Plan robot path for object manipulation task (Image ${imageId})`,
           startMaskCategories: [],
           endMaskCategories: [],
           difficulty: "Medium",
           reward: "8 $OPEN",
           startAnnotationId: 3,
-          endAnnotationId: 4
-        }
+          endAnnotationId: 4,
+        },
       ];
     }
 
     // Create mask mappings for each task
     const maskMappings: { [taskId: string]: { startMask: number; endMask: number } } = {};
-    
+
     // Use hardcoded annotation IDs from tasks
     imageTasks.forEach(task => {
       if (task.startAnnotationId && task.endAnnotationId) {
         maskMappings[task.id] = {
           startMask: task.startAnnotationId,
-          endMask: task.endAnnotationId
+          endMask: task.endAnnotationId,
         };
       }
     });
-    
+
     return { tasks: imageTasks, maskMappings };
   }, [selectedImage, approvedAnnotations]);
 
@@ -207,18 +205,18 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
   // Get active trajectory masks based on selected task (hardcoded mapping)
   const activeTrajectoryMasks = useMemo(() => {
     if (!selectedTask || !approvedAnnotations.length) return [];
-    
+
     const taskMapping = hardcodedImageTasks.maskMappings[selectedTask.id];
     if (!taskMapping) return [];
-    
+
     const selectedMasks = [taskMapping.startMask, taskMapping.endMask];
-    
+
     console.log(`Task ${selectedTask.id} - Selected masks:`, {
       startMask: taskMapping.startMask,
       endMask: taskMapping.endMask,
-      selectedMasks
+      selectedMasks,
     });
-    
+
     return selectedMasks;
   }, [selectedTask, approvedAnnotations, hardcodedImageTasks.maskMappings]);
 
@@ -228,13 +226,13 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
       // Move robot hand to start point
       setRobotHandPosition({
         x: startPoint.x,
-        y: startPoint.y
+        y: startPoint.y,
       });
     } else if (selectedImage && selectedTask) {
       // Default robot hand position at bottom center of image
       setRobotHandPosition({
         x: selectedImage.width / 2,
-        y: selectedImage.height * 0.8
+        y: selectedImage.height * 0.8,
       });
     }
   }, [selectedImage, selectedTask, startPoint]);
@@ -243,7 +241,12 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
   const calculateMaskCenter = useCallback((annotation: AnnotationClientRead) => {
     // Check for polygon first
     const polygonData = annotation.polygon as any;
-    if (polygonData && polygonData.has_segmentation && polygonData.polygons && polygonData.polygons.length > 0) {
+    if (
+      polygonData &&
+      polygonData.has_segmentation &&
+      polygonData.polygons &&
+      polygonData.polygons.length > 0
+    ) {
       // Calculate centroid of the first polygon
       const polygon = polygonData.polygons[0];
       let cx = 0;
@@ -256,13 +259,13 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
       cy /= polygon.length;
       return { x: cx, y: cy };
     }
-    
+
     // Fallback to bbox center
     const bbox = annotation.bbox || [0, 0, 0, 0];
     const [bx, by, bw, bh] = bbox;
     return {
       x: bx + bw / 2,
-      y: by + bh / 2
+      y: by + bh / 2,
     };
   }, []);
 
@@ -279,26 +282,26 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
       if (taskMapping) {
         const startAnnotation = approvedAnnotations.find(ann => ann.id === taskMapping.startMask);
         const endAnnotation = approvedAnnotations.find(ann => ann.id === taskMapping.endMask);
-        
+
         if (startAnnotation) {
           const startCenter = calculateMaskCenter(startAnnotation);
           setStartPoint({
             x: startCenter.x,
             y: startCenter.y,
             id: `start-${startAnnotation.id}`,
-            type: 'start',
-            maskId: startAnnotation.id
+            type: "start",
+            maskId: startAnnotation.id,
           });
         }
-        
+
         if (endAnnotation) {
           const endCenter = calculateMaskCenter(endAnnotation);
           setEndPoint({
             x: endCenter.x,
             y: endCenter.y,
             id: `end-${endAnnotation.id}`,
-            type: 'end',
-            maskId: endAnnotation.id
+            type: "end",
+            maskId: endAnnotation.id,
           });
         }
       }
@@ -320,35 +323,41 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
     setIsDrawingMode(false);
   }, []);
 
-  const handleEndDrawing = useCallback((path: Point[]) => {
-    setTrajectoryPath(path);
-    setIsDrawingMode(false);
-    
-    // Move robot hand to end point when trajectory is completed
-    if (endPoint) {
-      setRobotHandPosition({
-        x: endPoint.x,
-        y: endPoint.y
-      });
-    }
-  }, [endPoint]);
+  const handleEndDrawing = useCallback(
+    (path: Point[]) => {
+      setTrajectoryPath(path);
+      setIsDrawingMode(false);
+
+      // Move robot hand to end point when trajectory is completed
+      if (endPoint) {
+        setRobotHandPosition({
+          x: endPoint.x,
+          y: endPoint.y,
+        });
+      }
+    },
+    [endPoint]
+  );
 
   // Trajectory point management
-  const handleTrajectoryPointAdd = useCallback((point: TrajectoryPoint) => {
-    if (point.type === 'start') {
-      setStartPoint(point);
-      // If this is a new start point and we already had an end point, clear the trajectory
-      if (endPoint) {
-        setTrajectoryPath([]);
+  const handleTrajectoryPointAdd = useCallback(
+    (point: TrajectoryPoint) => {
+      if (point.type === "start") {
+        setStartPoint(point);
+        // If this is a new start point and we already had an end point, clear the trajectory
+        if (endPoint) {
+          setTrajectoryPath([]);
+        }
+      } else if (point.type === "end") {
+        setEndPoint(point);
+        // If we already had a trajectory, clear it since we have a new end point
+        if (trajectoryPath.length > 0) {
+          setTrajectoryPath([]);
+        }
       }
-    } else if (point.type === 'end') {
-      setEndPoint(point);
-      // If we already had a trajectory, clear it since we have a new end point
-      if (trajectoryPath.length > 0) {
-        setTrajectoryPath([]);
-      }
-    }
-  }, [endPoint, trajectoryPath.length]);
+    },
+    [endPoint, trajectoryPath.length]
+  );
 
   const handleRobotHandMove = useCallback((position: Point) => {
     setRobotHandPosition(position);
@@ -363,7 +372,7 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
 
   const handleSubmitTrajectory = useCallback(async () => {
     if (!selectedTask || !startPoint || !endPoint || trajectoryPath.length === 0) {
-      console.warn('Cannot submit incomplete trajectory');
+      console.warn("Cannot submit incomplete trajectory");
       return;
     }
 
@@ -375,11 +384,11 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
         startPoint,
         endPoint,
         trajectoryPath,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
-      console.log('Submitting trajectory:', trajectoryData);
-      
+      console.log("Submitting trajectory:", trajectoryData);
+
       // Show success feedback and reset
       showSuccess(
         "Trajectory Submitted!",
@@ -389,19 +398,33 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
           setSelectedTask(null);
         }
       );
-
     } catch (error) {
-      console.error('Failed to submit trajectory:', error);
+      console.error("Failed to submit trajectory:", error);
       showError(
         "Submission Failed",
-        "We couldn't submit your trajectory right now. Please check your connection and try again.",
+        "We couldn't submit your trajectory right now. Please check your connection and try again."
       );
     }
-  }, [selectedTask, startPoint, endPoint, trajectoryPath, selectedImage, handleResetTrajectory, showSuccess, showError]);
+  }, [
+    selectedTask,
+    startPoint,
+    endPoint,
+    trajectoryPath,
+    selectedImage,
+    handleResetTrajectory,
+    showSuccess,
+    showError,
+  ]);
 
   // Computed properties
   const canStartDrawing = useMemo(() => {
-    return !!(selectedTask && startPoint && endPoint && !isDrawingMode && trajectoryPath.length === 0);
+    return !!(
+      selectedTask &&
+      startPoint &&
+      endPoint &&
+      !isDrawingMode &&
+      trajectoryPath.length === 0
+    );
   }, [selectedTask, startPoint, endPoint, isDrawingMode, trajectoryPath.length]);
 
   const isTrajectoryComplete = useMemo(() => {

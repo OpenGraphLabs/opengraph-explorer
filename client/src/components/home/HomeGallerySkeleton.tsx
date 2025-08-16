@@ -51,7 +51,7 @@ export function HomeGallerySkeleton({ count = 12 }: HomeGallerySkeletonProps) {
               animation: "shimmer 2s infinite",
             }}
           />
-          
+
           {/* Content placeholder */}
           <Box
             style={{
@@ -71,7 +71,7 @@ export function HomeGallerySkeleton({ count = 12 }: HomeGallerySkeletonProps) {
                 marginBottom: theme.spacing[1],
               }}
             />
-            
+
             {/* Meta info placeholder */}
             <Box
               style={{

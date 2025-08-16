@@ -2,18 +2,11 @@ import React from "react";
 import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
-import { 
-  Play, 
-  Stop, 
-  CheckCircle, 
-  Circle, 
-  Robot, 
-  Sparkle
-} from "phosphor-react";
+import { Play, Stop, CheckCircle, Circle, Robot, Sparkle } from "phosphor-react";
 
 export function TrajectoryTaskSidebar() {
   const { theme } = useTheme();
-  const { 
+  const {
     selectedTask,
     availableTasks,
     isDrawingMode,
@@ -26,34 +19,38 @@ export function TrajectoryTaskSidebar() {
     handleTaskSelect,
     handleStartDrawing,
     handleStopDrawing,
-    handleResetTrajectory
+    handleResetTrajectory,
   } = useTrajectoryWorkspace();
 
-  console.log('TrajectoryTaskSidebar - Available tasks:', availableTasks.length);
-  console.log('TrajectoryTaskSidebar - Approved annotations:', approvedAnnotations.length);
+  console.log("TrajectoryTaskSidebar - Available tasks:", availableTasks.length);
+  console.log("TrajectoryTaskSidebar - Approved annotations:", approvedAnnotations.length);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Easy": return {
-        color: theme.colors.status.success,
-        background: `${theme.colors.status.success}15`,
-        border: `${theme.colors.status.success}30`
-      };
-      case "Medium": return {
-        color: theme.colors.status.warning,
-        background: `${theme.colors.status.warning}15`,
-        border: `${theme.colors.status.warning}30`
-      };
-      case "Hard": return {
-        color: theme.colors.status.error,
-        background: `${theme.colors.status.error}15`,
-        border: `${theme.colors.status.error}30`
-      };
-      default: return {
-        color: theme.colors.text.secondary,
-        background: `${theme.colors.text.secondary}15`,
-        border: `${theme.colors.text.secondary}30`
-      };
+      case "Easy":
+        return {
+          color: theme.colors.status.success,
+          background: `${theme.colors.status.success}15`,
+          border: `${theme.colors.status.success}30`,
+        };
+      case "Medium":
+        return {
+          color: theme.colors.status.warning,
+          background: `${theme.colors.status.warning}15`,
+          border: `${theme.colors.status.warning}30`,
+        };
+      case "Hard":
+        return {
+          color: theme.colors.status.error,
+          background: `${theme.colors.status.error}15`,
+          border: `${theme.colors.status.error}30`,
+        };
+      default:
+        return {
+          color: theme.colors.text.secondary,
+          background: `${theme.colors.text.secondary}15`,
+          border: `${theme.colors.text.secondary}30`,
+        };
     }
   };
 
@@ -117,10 +114,10 @@ export function TrajectoryTaskSidebar() {
           </Box>
         ) : (
           <Flex direction="column" gap="3">
-            {availableTasks.map((task) => {
+            {availableTasks.map(task => {
               const isSelected = selectedTask?.id === task.id;
               const difficultyStyle = getDifficultyColor(task.difficulty);
-              
+
               return (
                 <Box
                   key={task.id}
@@ -129,7 +126,9 @@ export function TrajectoryTaskSidebar() {
                     padding: theme.spacing.semantic.component.md,
                     borderRadius: theme.borders.radius.lg,
                     border: `1px solid ${isSelected ? theme.colors.interactive.primary : theme.colors.border.primary}`,
-                    backgroundColor: isSelected ? `${theme.colors.interactive.primary}10` : theme.colors.background.primary,
+                    backgroundColor: isSelected
+                      ? `${theme.colors.interactive.primary}10`
+                      : theme.colors.background.primary,
                     cursor: "pointer",
                     transition: theme.animations.transitions.hover,
                     position: "relative",
@@ -209,10 +208,16 @@ export function TrajectoryTaskSidebar() {
                     {isSelected && (
                       <Box style={{ marginTop: theme.spacing.semantic.component.xs }}>
                         <Flex align="center" justify="between" style={{ marginBottom: "4px" }}>
-                          <Text size="1" style={{ color: theme.colors.text.secondary, fontSize: "10px" }}>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.secondary, fontSize: "10px" }}
+                          >
                             Progress
                           </Text>
-                          <Text size="1" style={{ color: theme.colors.text.secondary, fontSize: "10px" }}>
+                          <Text
+                            size="1"
+                            style={{ color: theme.colors.text.secondary, fontSize: "10px" }}
+                          >
                             {getTaskProgress()}%
                           </Text>
                         </Flex>
@@ -262,7 +267,12 @@ export function TrajectoryTaskSidebar() {
                 ) : (
                   <Circle size={16} color={theme.colors.text.tertiary} />
                 )}
-                <Text size="1" style={{ color: startPoint ? theme.colors.status.success : theme.colors.text.tertiary }}>
+                <Text
+                  size="1"
+                  style={{
+                    color: startPoint ? theme.colors.status.success : theme.colors.text.tertiary,
+                  }}
+                >
                   Start point selected
                 </Text>
               </Flex>
@@ -272,8 +282,13 @@ export function TrajectoryTaskSidebar() {
                 ) : (
                   <Circle size={16} color={theme.colors.text.tertiary} />
                 )}
-                <Text size="1" style={{ color: endPoint ? theme.colors.status.success : theme.colors.text.tertiary }}>
-                  End point selected  
+                <Text
+                  size="1"
+                  style={{
+                    color: endPoint ? theme.colors.status.success : theme.colors.text.tertiary,
+                  }}
+                >
+                  End point selected
                 </Text>
               </Flex>
               <Flex align="center" gap="2">
@@ -282,7 +297,15 @@ export function TrajectoryTaskSidebar() {
                 ) : (
                   <Circle size={16} color={theme.colors.text.tertiary} />
                 )}
-                <Text size="1" style={{ color: trajectoryPath.length > 1 ? theme.colors.status.success : theme.colors.text.tertiary }}>
+                <Text
+                  size="1"
+                  style={{
+                    color:
+                      trajectoryPath.length > 1
+                        ? theme.colors.status.success
+                        : theme.colors.text.tertiary,
+                  }}
+                >
                   Trajectory drawn
                 </Text>
               </Flex>
@@ -383,7 +406,8 @@ export function TrajectoryTaskSidebar() {
               lineHeight: 1.4,
             }}
           >
-            {approvedAnnotations.length} approved mask{approvedAnnotations.length !== 1 ? 's' : ''} available for trajectory drawing
+            {approvedAnnotations.length} approved mask{approvedAnnotations.length !== 1 ? "s" : ""}{" "}
+            available for trajectory drawing
           </Text>
         </Box>
       )}

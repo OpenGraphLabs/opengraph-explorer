@@ -42,9 +42,9 @@ export function CategoriesProvider({
     error: globalCategoriesError,
   } = useGlobalCategories(
     { limit: config.limit || 100 },
-    { 
-      queryKey: ['categories', 'global', config.limit || 100],
-      enabled: config.useGlobalCategories === true 
+    {
+      queryKey: ["categories", "global", config.limit || 100],
+      enabled: config.useGlobalCategories === true,
     }
   );
 
@@ -58,21 +58,20 @@ export function CategoriesProvider({
   } = useDictionaryCategories({
     dictionaryId,
     limit: config.limit || 100,
-    enabled: !config.useGlobalCategories && (!config.useDictionaryFromDataset || !!config.dictionaryId),
+    enabled:
+      !config.useGlobalCategories && (!config.useDictionaryFromDataset || !!config.dictionaryId),
   });
 
   // Select the appropriate data source
-  const categories = config.useGlobalCategories 
-    ? (globalCategoriesResponse?.items || [])
-    : (dictionaryCategoriesResponse?.items || []);
-  
-  const isLoading = config.useGlobalCategories 
-    ? globalCategoriesLoading 
+  const categories = config.useGlobalCategories
+    ? globalCategoriesResponse?.items || []
+    : dictionaryCategoriesResponse?.items || [];
+
+  const isLoading = config.useGlobalCategories
+    ? globalCategoriesLoading
     : dictionaryCategoriesLoading;
-    
-  const error = config.useGlobalCategories 
-    ? globalCategoriesError 
-    : dictionaryCategoriesError;
+
+  const error = config.useGlobalCategories ? globalCategoriesError : dictionaryCategoriesError;
 
   // Create category map for quick lookup
   const categoryMap = useMemo(() => {

@@ -1,5 +1,13 @@
 import React from "react";
-import { Box, Flex, Heading, Text, Button, Badge, Tabs } from "@/shared/ui/design-system/components";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Button,
+  Badge,
+  Tabs,
+} from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { EyeOpenIcon, EyeNoneIcon, CubeIcon, ImageIcon, VideoIcon } from "@radix-ui/react-icons";
 import { CategorySearchInput } from "@/components/annotation";
@@ -10,7 +18,16 @@ import type { VideoTask } from "@/contexts/page/HomePageContext";
 
 export function HomeHeader() {
   const { theme } = useTheme();
-  const { showGlobalMasks, setShowGlobalMasks, annotationsWithImages, isLoading, dataType, setDataType, selectedVideoTask, setSelectedVideoTask } = useHomePage();
+  const {
+    showGlobalMasks,
+    setShowGlobalMasks,
+    annotationsWithImages,
+    isLoading,
+    dataType,
+    setDataType,
+    selectedVideoTask,
+    setSelectedVideoTask,
+  } = useHomePage();
   const { totalAnnotations } = useAnnotations();
   const { selectedCategory, setSelectedCategory } = useCategories();
 
@@ -37,7 +54,7 @@ export function HomeHeader() {
           <Flex align="center" justify="between" style={{ width: "100%", position: "relative" }}>
             {/* Left: Spacer */}
             <Box style={{ flex: 1 }} />
-            
+
             {/* Center: Title */}
             <Flex direction="column" align="center" gap="2">
               <Flex align="center" gap="2">
@@ -83,81 +100,81 @@ export function HomeHeader() {
                   transition: "opacity 200ms ease-out",
                 }}
               >
-              {/* Dataset Stats */}
-              <Flex align="center" gap="3">
-                <Badge
-                  size="2"
-                  variant="solid"
-                  style={{
-                    fontSize: "14px",
-                    padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
-                    background: theme.colors.interactive.secondary + "20",
-                    color: theme.colors.text.primary,
-                    border: `1px solid ${theme.colors.border.subtle}50`,
-                  }}
-                >
-                  {selectedCategory
-                    ? `${annotationsWithImages.length} images`
-                    : `${totalAnnotations.toLocaleString()} annotations`}
-                </Badge>
-                
-                {selectedCategory && (
-                  <Text
+                {/* Dataset Stats */}
+                <Flex align="center" gap="3">
+                  <Badge
+                    size="2"
+                    variant="solid"
                     style={{
-                      fontSize: theme.typography.bodySmall.fontSize,
-                      color: theme.colors.text.secondary,
+                      fontSize: "14px",
+                      padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
+                      background: theme.colors.interactive.secondary + "20",
+                      color: theme.colors.text.primary,
+                      border: `1px solid ${theme.colors.border.subtle}50`,
                     }}
                   >
-                    in "{selectedCategory.name}"
-                  </Text>
-                )}
-              </Flex>
+                    {selectedCategory
+                      ? `${annotationsWithImages.length} images`
+                      : `${totalAnnotations.toLocaleString()} annotations`}
+                  </Badge>
 
-              {/* Divider */}
-              <Box
-                style={{
-                  width: "1px",
-                  height: "24px",
-                  background: theme.colors.border.subtle,
-                  opacity: 0.5,
-                }}
-              />
+                  {selectedCategory && (
+                    <Text
+                      style={{
+                        fontSize: theme.typography.bodySmall.fontSize,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
+                      in "{selectedCategory.name}"
+                    </Text>
+                  )}
+                </Flex>
 
-              {/* Global Mask Toggle */}
-              <Button
-                variant="secondary"
-                size="sm"
-                highContrast={false}
-                onClick={() => setShowGlobalMasks(!showGlobalMasks)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: theme.spacing[2],
-                  padding: `${theme.spacing[2]} ${theme.spacing[3]}`,
-                  borderRadius: "20px",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  background: showGlobalMasks 
-                    ? theme.colors.interactive.primary + "15"
-                    : "transparent",
-                  color: showGlobalMasks
-                    ? theme.colors.interactive.primary
-                    : theme.colors.text.secondary,
-                  border: `1px solid ${
-                    showGlobalMasks 
-                      ? theme.colors.interactive.primary + "30"
-                      : theme.colors.border.subtle + "50"
-                  }`,
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {showGlobalMasks ? (
-                  <EyeOpenIcon width="16" height="16" />
-                ) : (
-                  <EyeNoneIcon width="16" height="16" />
-                )}
-                {showGlobalMasks ? "Masks On" : "Masks Off"}
-              </Button>
+                {/* Divider */}
+                <Box
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: theme.colors.border.subtle,
+                    opacity: 0.5,
+                  }}
+                />
+
+                {/* Global Mask Toggle */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  highContrast={false}
+                  onClick={() => setShowGlobalMasks(!showGlobalMasks)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing[2],
+                    padding: `${theme.spacing[2]} ${theme.spacing[3]}`,
+                    borderRadius: "20px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    background: showGlobalMasks
+                      ? theme.colors.interactive.primary + "15"
+                      : "transparent",
+                    color: showGlobalMasks
+                      ? theme.colors.interactive.primary
+                      : theme.colors.text.secondary,
+                    border: `1px solid ${
+                      showGlobalMasks
+                        ? theme.colors.interactive.primary + "30"
+                        : theme.colors.border.subtle + "50"
+                    }`,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {showGlobalMasks ? (
+                    <EyeOpenIcon width="16" height="16" />
+                  ) : (
+                    <EyeNoneIcon width="16" height="16" />
+                  )}
+                  {showGlobalMasks ? "Masks On" : "Masks Off"}
+                </Button>
               </Flex>
             ) : (
               <Box style={{ flex: 1 }} />
@@ -166,10 +183,13 @@ export function HomeHeader() {
 
           {/* Sophisticated OpenGraph-Style Data Type Tabs */}
           <Box style={{ position: "relative", display: "inline-block" }}>
-            <Tabs.Root value={dataType} onValueChange={(value) => setDataType(value as "image" | "video")}>
-              <Tabs.List 
-                size="2" 
-                style={{ 
+            <Tabs.Root
+              value={dataType}
+              onValueChange={value => setDataType(value as "image" | "video")}
+            >
+              <Tabs.List
+                size="2"
+                style={{
                   background: `linear-gradient(135deg, ${theme.colors.background.card}95, ${theme.colors.background.secondary}40)`,
                   borderRadius: "24px",
                   border: `1px solid ${theme.colors.border.primary}25`,
@@ -186,29 +206,35 @@ export function HomeHeader() {
                 }}
                 className="opengraph-tabs"
               >
-                <Tabs.Trigger 
-                  value="image" 
-                  style={{ 
+                <Tabs.Trigger
+                  value="image"
+                  style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "10px",
-                    color: dataType === "image" ? theme.colors.text.primary : theme.colors.text.secondary,
+                    color:
+                      dataType === "image"
+                        ? theme.colors.text.primary
+                        : theme.colors.text.secondary,
                     fontWeight: dataType === "image" ? "600" : "500",
                     fontSize: "14px",
                     padding: "14px 24px",
                     borderRadius: "18px",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     position: "relative",
-                    background: dataType === "image" 
-                      ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
-                      : "transparent",
-                    border: dataType === "image" 
-                      ? `1px solid ${theme.colors.interactive.primary}40`
-                      : "1px solid transparent",
-                    boxShadow: dataType === "image" 
-                      ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
-                      : "0 2px 4px rgba(0,0,0,0.02)",
+                    background:
+                      dataType === "image"
+                        ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
+                        : "transparent",
+                    border:
+                      dataType === "image"
+                        ? `1px solid ${theme.colors.interactive.primary}40`
+                        : "1px solid transparent",
+                    boxShadow:
+                      dataType === "image"
+                        ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
+                        : "0 2px 4px rgba(0,0,0,0.02)",
                     minHeight: "52px",
                     whiteSpace: "nowrap",
                     cursor: "pointer",
@@ -234,34 +260,40 @@ export function HomeHeader() {
                     width="18"
                     height="18"
                     style={{
-                      marginRight: "5px"
+                      marginRight: "5px",
                     }}
                   />
                   <span>Image Data</span>
                 </Tabs.Trigger>
-                <Tabs.Trigger 
-                  value="video" 
-                  style={{ 
+                <Tabs.Trigger
+                  value="video"
+                  style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "10px",
-                    color: dataType === "video" ? theme.colors.text.primary : theme.colors.text.secondary,
+                    color:
+                      dataType === "video"
+                        ? theme.colors.text.primary
+                        : theme.colors.text.secondary,
                     fontWeight: dataType === "video" ? "600" : "500",
                     fontSize: "14px",
                     padding: "14px 24px",
                     borderRadius: "18px",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     position: "relative",
-                    background: dataType === "video" 
-                      ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
-                      : "transparent",
-                    border: dataType === "video" 
-                      ? `1px solid ${theme.colors.interactive.primary}40`
-                      : "1px solid transparent",
-                    boxShadow: dataType === "video" 
-                      ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
-                      : "0 2px 4px rgba(0,0,0,0.02)",
+                    background:
+                      dataType === "video"
+                        ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
+                        : "transparent",
+                    border:
+                      dataType === "video"
+                        ? `1px solid ${theme.colors.interactive.primary}40`
+                        : "1px solid transparent",
+                    boxShadow:
+                      dataType === "video"
+                        ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
+                        : "0 2px 4px rgba(0,0,0,0.02)",
                     minHeight: "52px",
                     whiteSpace: "nowrap",
                     cursor: "pointer",
@@ -287,7 +319,7 @@ export function HomeHeader() {
                     width="18"
                     height="18"
                     style={{
-                      marginRight: "5px"
+                      marginRight: "5px",
                     }}
                   />
                   <span>Video Data</span>
@@ -310,8 +342,8 @@ export function HomeHeader() {
                 {[
                   { value: "all" as VideoTask, label: "All Tasks" },
                   { value: "wipe_spill" as VideoTask, label: "Wipe the spill" },
-                  { value: "fold_clothes" as VideoTask, label: "Fold clothes" }
-                ].map((task) => (
+                  { value: "fold_clothes" as VideoTask, label: "Fold clothes" },
+                ].map(task => (
                   <Button
                     key={task.value}
                     variant={selectedVideoTask === task.value ? "primary" : "secondary"}
@@ -323,18 +355,22 @@ export function HomeHeader() {
                       fontSize: "13px",
                       fontWeight: "500",
                       transition: "all 0.2s ease",
-                      background: selectedVideoTask === task.value 
-                        ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
-                        : `${theme.colors.background.card}80`,
-                      color: selectedVideoTask === task.value 
-                        ? theme.colors.text.primary
-                        : theme.colors.text.secondary,
-                      border: selectedVideoTask === task.value 
-                        ? `1px solid ${theme.colors.interactive.primary}40`
-                        : `1px solid ${theme.colors.border.primary}30`,
-                      boxShadow: selectedVideoTask === task.value 
-                        ? `0 2px 8px ${theme.colors.interactive.primary}25`
-                        : "0 1px 3px rgba(0,0,0,0.05)",
+                      background:
+                        selectedVideoTask === task.value
+                          ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
+                          : `${theme.colors.background.card}80`,
+                      color:
+                        selectedVideoTask === task.value
+                          ? theme.colors.text.primary
+                          : theme.colors.text.secondary,
+                      border:
+                        selectedVideoTask === task.value
+                          ? `1px solid ${theme.colors.interactive.primary}40`
+                          : `1px solid ${theme.colors.border.primary}30`,
+                      boxShadow:
+                        selectedVideoTask === task.value
+                          ? `0 2px 8px ${theme.colors.interactive.primary}25`
+                          : "0 1px 3px rgba(0,0,0,0.05)",
                       backdropFilter: "blur(8px)",
                     }}
                   >
@@ -365,7 +401,7 @@ export function HomeHeader() {
           )}
         </Flex>
       </Box>
-      
+
       {/* Sophisticated OpenGraph Tab Styles */}
       <style>
         {`

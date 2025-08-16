@@ -3,7 +3,15 @@ import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
-import { HandGrabbing, ArrowRight, CheckCircle, Eye, EyeSlash, CornersOut, CrosshairSimple } from "phosphor-react";
+import {
+  HandGrabbing,
+  ArrowRight,
+  CheckCircle,
+  Eye,
+  EyeSlash,
+  CornersOut,
+  CrosshairSimple,
+} from "phosphor-react";
 import type { AnnotationClientRead } from "@/shared/api/generated/models";
 
 interface Point {
@@ -13,7 +21,7 @@ interface Point {
 
 interface TrajectoryPoint extends Point {
   id: string;
-  type: 'start' | 'end' | 'waypoint';
+  type: "start" | "end" | "waypoint";
   maskId?: number;
 }
 
@@ -23,12 +31,12 @@ export function TrajectoryCanvas() {
   const overlayRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  
+
   const { selectedImage } = useImagesContext();
-  const { 
-    selectedTask, 
-    isDrawingMode, 
-    trajectoryPath, 
+  const {
+    selectedTask,
+    isDrawingMode,
+    trajectoryPath,
     robotHandPosition,
     startPoint,
     endPoint,
@@ -39,7 +47,7 @@ export function TrajectoryCanvas() {
     handleRobotHandMove,
     handleSubmitTrajectory,
     approvedAnnotations,
-    annotationsLoading
+    annotationsLoading,
   } = useTrajectoryWorkspace();
 
   // Canvas states
@@ -52,14 +60,20 @@ export function TrajectoryCanvas() {
 
   // Debug: Log annotation data
   useEffect(() => {
-    console.log('TrajectoryCanvas Debug:', {
+    console.log("TrajectoryCanvas Debug:", {
       selectedImageId: selectedImage?.id,
       annotationsLoading,
       annotationsCount: approvedAnnotations?.length || 0,
       showMasks,
-      activeTrajectoryMasks: activeTrajectoryMasks.length
+      activeTrajectoryMasks: activeTrajectoryMasks.length,
     });
-  }, [selectedImage?.id, annotationsLoading, approvedAnnotations, showMasks, activeTrajectoryMasks]);
+  }, [
+    selectedImage?.id,
+    annotationsLoading,
+    approvedAnnotations,
+    showMasks,
+    activeTrajectoryMasks,
+  ]);
 
   // Color constants
   const ACTIVE_MASK_COLOR = "#0066FF";
@@ -70,7 +84,7 @@ export function TrajectoryCanvas() {
   // Load image and fit to container (similar to InteractiveAnnotationCanvas)
   useEffect(() => {
     if (!selectedImage) return;
-    
+
     const img = new Image();
     img.onload = () => {
       imageRef.current = img;
@@ -118,8 +132,8 @@ export function TrajectoryCanvas() {
     // Update SVG overlay size
     const overlay = overlayRef.current;
     if (overlay) {
-      overlay.setAttribute('width', scaledWidth.toString());
-      overlay.setAttribute('height', scaledHeight.toString());
+      overlay.setAttribute("width", scaledWidth.toString());
+      overlay.setAttribute("height", scaledHeight.toString());
       overlay.style.width = `${scaledWidth}px`;
       overlay.style.height = `${scaledHeight}px`;
     }
@@ -132,7 +146,7 @@ export function TrajectoryCanvas() {
     const canvas = canvasRef.current;
     if (!canvas || !selectedImage || !imageLoaded) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Create image element if not exists
@@ -169,28 +183,31 @@ export function TrajectoryCanvas() {
       fitImageToContainer();
     }
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [fitImageToContainer, imageLoaded]);
 
   // Convert image coordinates to screen coordinates
-  const imageToScreen = useCallback((imageX: number, imageY: number) => {
-    if (!selectedImage) return { x: 0, y: 0 };
-    
-    const scaleX = (canvasRef.current?.width || 0) / selectedImage.width;
-    const scaleY = (canvasRef.current?.height || 0) / selectedImage.height;
-    
-    return {
-      x: imageX * scaleX,
-      y: imageY * scaleY
-    };
-  }, [selectedImage]);
+  const imageToScreen = useCallback(
+    (imageX: number, imageY: number) => {
+      if (!selectedImage) return { x: 0, y: 0 };
+
+      const scaleX = (canvasRef.current?.width || 0) / selectedImage.width;
+      const scaleY = (canvasRef.current?.height || 0) / selectedImage.height;
+
+      return {
+        x: imageX * scaleX,
+        y: imageY * scaleY,
+      };
+    },
+    [selectedImage]
+  );
 
   // Transform coordinates for SVG (similar to ImageDetailSidebar)
   const transformCoordinates = useCallback(
     (originalX: number, originalY: number) => {
       if (!selectedImage || !canvasRef.current) return { x: 0, y: 0 };
-      
+
       const canvasWidth = canvasRef.current.width;
       const canvasHeight = canvasRef.current.height;
       const scaleX = canvasWidth / selectedImage.width;
@@ -223,132 +240,156 @@ export function TrajectoryCanvas() {
   );
 
   // Convert screen coordinates to image coordinates
-  const screenToImage = useCallback((screenX: number, screenY: number) => {
-    if (!selectedImage || !canvasRef.current) return { x: 0, y: 0 };
-    
-    const scaleX = (canvasRef.current.width || 0) / selectedImage.width;
-    const scaleY = (canvasRef.current.height || 0) / selectedImage.height;
-    
-    return {
-      x: screenX / scaleX,
-      y: screenY / scaleY
-    };
-  }, [selectedImage]);
+  const screenToImage = useCallback(
+    (screenX: number, screenY: number) => {
+      if (!selectedImage || !canvasRef.current) return { x: 0, y: 0 };
+
+      const scaleX = (canvasRef.current.width || 0) / selectedImage.width;
+      const scaleY = (canvasRef.current.height || 0) / selectedImage.height;
+
+      return {
+        x: screenX / scaleX,
+        y: screenY / scaleY,
+      };
+    },
+    [selectedImage]
+  );
 
   // Handle SVG click for mask selection
-  const handleSvgClick = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
-    if (!selectedTask || !overlayRef.current || activeTrajectoryMasks.length < 2) return;
+  const handleSvgClick = useCallback(
+    (event: React.MouseEvent<SVGSVGElement>) => {
+      if (!selectedTask || !overlayRef.current || activeTrajectoryMasks.length < 2) return;
 
-    const svg = overlayRef.current;
-    const rect = svg.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    // Convert to image coordinates
-    const imageCoords = screenToImage(x, y);
+      const svg = overlayRef.current;
+      const rect = svg.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
 
-    // Helper function to check if point is inside annotation
-    const isPointInAnnotation = (annotation: AnnotationClientRead, point: Point) => {
-      // Check polygon first if available
-      const polygonData = annotation.polygon as any;
-      if (polygonData && polygonData.has_segmentation && polygonData.polygons && polygonData.polygons.length > 0) {
-        return polygonData.polygons.some((polygon: number[][]) => {
-          // Point-in-polygon check for array of [x, y] points
-          let inside = false;
-          for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            const xi = polygon[i][0];
-            const yi = polygon[i][1];
-            const xj = polygon[j][0];
-            const yj = polygon[j][1];
-            
-            if (((yi > point.y) !== (yj > point.y)) &&
-                (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)) {
-              inside = !inside;
+      // Convert to image coordinates
+      const imageCoords = screenToImage(x, y);
+
+      // Helper function to check if point is inside annotation
+      const isPointInAnnotation = (annotation: AnnotationClientRead, point: Point) => {
+        // Check polygon first if available
+        const polygonData = annotation.polygon as any;
+        if (
+          polygonData &&
+          polygonData.has_segmentation &&
+          polygonData.polygons &&
+          polygonData.polygons.length > 0
+        ) {
+          return polygonData.polygons.some((polygon: number[][]) => {
+            // Point-in-polygon check for array of [x, y] points
+            let inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+              const xi = polygon[i][0];
+              const yi = polygon[i][1];
+              const xj = polygon[j][0];
+              const yj = polygon[j][1];
+
+              if (
+                yi > point.y !== yj > point.y &&
+                point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi
+              ) {
+                inside = !inside;
+              }
             }
-          }
-          return inside;
+            return inside;
+          });
+        }
+
+        // Fallback to bbox check
+        const bbox = annotation.bbox || [0, 0, 0, 0];
+        const [bx, by, bw, bh] = bbox;
+        return point.x >= bx && point.x <= bx + bw && point.y >= by && point.y <= by + bh;
+      };
+
+      // Get start and end mask IDs
+      const startMaskId = activeTrajectoryMasks[0];
+      const endMaskId = activeTrajectoryMasks[1];
+
+      // Find the annotations for start and end masks
+      const startMaskAnnotation = approvedAnnotations.find(ann => ann.id === startMaskId);
+      const endMaskAnnotation = approvedAnnotations.find(ann => ann.id === endMaskId);
+
+      // Check if clicking on start mask
+      if (startMaskAnnotation && isPointInAnnotation(startMaskAnnotation, imageCoords)) {
+        handleTrajectoryPointAdd({
+          x: imageCoords.x,
+          y: imageCoords.y,
+          id: `start-${Date.now()}`,
+          type: "start",
+          maskId: startMaskId,
         });
+        return;
       }
-      
-      // Fallback to bbox check
-      const bbox = annotation.bbox || [0, 0, 0, 0];
-      const [bx, by, bw, bh] = bbox;
-      return point.x >= bx && point.x <= bx + bw && 
-             point.y >= by && point.y <= by + bh;
-    };
 
-    // Get start and end mask IDs
-    const startMaskId = activeTrajectoryMasks[0];
-    const endMaskId = activeTrajectoryMasks[1];
-    
-    // Find the annotations for start and end masks
-    const startMaskAnnotation = approvedAnnotations.find(ann => ann.id === startMaskId);
-    const endMaskAnnotation = approvedAnnotations.find(ann => ann.id === endMaskId);
+      // Check if clicking on end mask
+      if (endMaskAnnotation && isPointInAnnotation(endMaskAnnotation, imageCoords)) {
+        handleTrajectoryPointAdd({
+          x: imageCoords.x,
+          y: imageCoords.y,
+          id: `end-${Date.now()}`,
+          type: "end",
+          maskId: endMaskId,
+        });
+        return;
+      }
 
-    // Check if clicking on start mask
-    if (startMaskAnnotation && isPointInAnnotation(startMaskAnnotation, imageCoords)) {
-      handleTrajectoryPointAdd({
-        x: imageCoords.x,
-        y: imageCoords.y,
-        id: `start-${Date.now()}`,
-        type: 'start',
-        maskId: startMaskId
-      });
-      return;
-    }
-
-    // Check if clicking on end mask
-    if (endMaskAnnotation && isPointInAnnotation(endMaskAnnotation, imageCoords)) {
-      handleTrajectoryPointAdd({
-        x: imageCoords.x,
-        y: imageCoords.y,
-        id: `end-${Date.now()}`,
-        type: 'end',
-        maskId: endMaskId
-      });
-      return;
-    }
-
-    // If clicking outside of masks, do nothing
-  }, [selectedTask, approvedAnnotations, activeTrajectoryMasks, handleTrajectoryPointAdd, screenToImage]);
+      // If clicking outside of masks, do nothing
+    },
+    [
+      selectedTask,
+      approvedAnnotations,
+      activeTrajectoryMasks,
+      handleTrajectoryPointAdd,
+      screenToImage,
+    ]
+  );
 
   // Handle drawing
-  const handleMouseDown = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
-    if (!isDrawingMode || !startPoint || !endPoint) return;
-    
-    setIsDrawing(true);
-    const svg = overlayRef.current;
-    if (!svg) return;
-    
-    const rect = svg.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    setCurrentPath([{ x, y }]);
-    handleStartDrawing();
-  }, [isDrawingMode, startPoint, endPoint, handleStartDrawing]);
+  const handleMouseDown = useCallback(
+    (event: React.MouseEvent<SVGSVGElement>) => {
+      if (!isDrawingMode || !startPoint || !endPoint) return;
 
-  const handleMouseMove = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
-    if (!isDrawing) return;
-    
-    const svg = overlayRef.current;
-    if (!svg) return;
-    
-    const rect = svg.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    setCurrentPath(prev => [...prev, { x, y }]);
-  }, [isDrawing]);
+      setIsDrawing(true);
+      const svg = overlayRef.current;
+      if (!svg) return;
+
+      const rect = svg.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      setCurrentPath([{ x, y }]);
+      handleStartDrawing();
+    },
+    [isDrawingMode, startPoint, endPoint, handleStartDrawing]
+  );
+
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent<SVGSVGElement>) => {
+      if (!isDrawing) return;
+
+      const svg = overlayRef.current;
+      if (!svg) return;
+
+      const rect = svg.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      setCurrentPath(prev => [...prev, { x, y }]);
+    },
+    [isDrawing]
+  );
 
   const handleMouseUp = useCallback(() => {
     if (!isDrawing) return;
-    
+
     setIsDrawing(false);
-    
+
     // Convert current path to image coordinates and save
     const imagePath = currentPath.map(point => screenToImage(point.x, point.y));
-    
+
     handleEndDrawing(imagePath);
     setCurrentPath([]);
   }, [isDrawing, currentPath, screenToImage, handleEndDrawing]);
@@ -384,7 +425,7 @@ export function TrajectoryCanvas() {
             </Text>
           )}
         </Box>
-        
+
         <Flex align="center" gap="2">
           {/* Toggle masks visibility */}
           <Button
@@ -507,7 +548,7 @@ export function TrajectoryCanvas() {
               zIndex: 1,
             }}
           />
-          
+
           {/* SVG overlay for masks and interactions */}
           <svg
             ref={overlayRef}
@@ -532,7 +573,7 @@ export function TrajectoryCanvas() {
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
-              
+
               {/* Trajectory line pattern */}
               <pattern id="trajectoryPattern" patternUnits="userSpaceOnUse" width="10" height="10">
                 <rect width="10" height="10" fill="none" />
@@ -546,132 +587,144 @@ export function TrajectoryCanvas() {
                 No approved annotations found for image {selectedImage?.id}
               </text>
             )}
-            
+
             {/* Render approved annotation masks */}
-            {showMasks && approvedAnnotations.map((annotation: AnnotationClientRead, index: number) => {
-              console.log('Rendering annotation:', annotation.id, annotation);
-              
-              // Check if this annotation is active based on selected task
-              const isActive = activeTrajectoryMasks.includes(annotation.id);
-              const maskIndex = activeTrajectoryMasks.indexOf(annotation.id);
-              
-              // Different colors for start vs end masks
-              let color = INACTIVE_MASK_COLOR;
-              let opacity = 0.2;
-              let label = "";
-              
-              if (isActive) {
-                opacity = 0.4;
-                if (maskIndex === 0) {
-                  color = "#00D4AA"; // Green for start mask
-                  label = "START";
-                } else if (maskIndex === 1) {
-                  color = "#FF6B35"; // Orange for end mask  
-                  label = "END";
-                } else {
-                  color = ACTIVE_MASK_COLOR; // Blue fallback
+            {showMasks &&
+              approvedAnnotations.map((annotation: AnnotationClientRead, index: number) => {
+                console.log("Rendering annotation:", annotation.id, annotation);
+
+                // Check if this annotation is active based on selected task
+                const isActive = activeTrajectoryMasks.includes(annotation.id);
+                const maskIndex = activeTrajectoryMasks.indexOf(annotation.id);
+
+                // Different colors for start vs end masks
+                let color = INACTIVE_MASK_COLOR;
+                let opacity = 0.2;
+                let label = "";
+
+                if (isActive) {
+                  opacity = 0.4;
+                  if (maskIndex === 0) {
+                    color = "#00D4AA"; // Green for start mask
+                    label = "START";
+                  } else if (maskIndex === 1) {
+                    color = "#FF6B35"; // Orange for end mask
+                    label = "END";
+                  } else {
+                    color = ACTIVE_MASK_COLOR; // Blue fallback
+                  }
                 }
-              }
 
-              // Get bbox for fallback and label positioning
-              const bbox = annotation.bbox || [0, 0, 0, 0];
-              const [bx, by, bw, bh] = bbox;
-              const bboxScreenCoords = imageToScreen(bx, by);
-              
-              console.log('Annotation render data:', {
-                id: annotation.id,
-                bbox,
-                bboxScreenCoords,
-                hasPolygon: !!(annotation.polygon as any)?.polygons,
-                polygonCount: (annotation.polygon as any)?.polygons?.length || 0,
-                isActive,
-                categoryId: annotation.category_id
-              });
+                // Get bbox for fallback and label positioning
+                const bbox = annotation.bbox || [0, 0, 0, 0];
+                const [bx, by, bw, bh] = bbox;
+                const bboxScreenCoords = imageToScreen(bx, by);
 
-              return (
-                <g key={annotation.id}>
-                  {/* Render segmentation mask (same as ImageDetailSidebar) */}
-                  {(() => {
-                    // Check for polygon data exactly like ImageDetailSidebar
-                    if (!annotation.polygon || !(annotation.polygon as any).has_segmentation) {
-                      console.log(`No segmentation data for annotation ${annotation.id}, using bbox fallback`);
-                      
-                      return (
+                console.log("Annotation render data:", {
+                  id: annotation.id,
+                  bbox,
+                  bboxScreenCoords,
+                  hasPolygon: !!(annotation.polygon as any)?.polygons,
+                  polygonCount: (annotation.polygon as any)?.polygons?.length || 0,
+                  isActive,
+                  categoryId: annotation.category_id,
+                });
+
+                return (
+                  <g key={annotation.id}>
+                    {/* Render segmentation mask (same as ImageDetailSidebar) */}
+                    {(() => {
+                      // Check for polygon data exactly like ImageDetailSidebar
+                      if (!annotation.polygon || !(annotation.polygon as any).has_segmentation) {
+                        console.log(
+                          `No segmentation data for annotation ${annotation.id}, using bbox fallback`
+                        );
+
+                        return (
+                          <rect
+                            x={bboxScreenCoords.x}
+                            y={bboxScreenCoords.y}
+                            width={Math.abs(bw * zoom)}
+                            height={Math.abs(bh * zoom)}
+                            fill={color}
+                            fillOpacity={opacity}
+                            stroke={color}
+                            strokeWidth={isActive ? 3 : 2}
+                            strokeOpacity={0.9}
+                            filter={isActive ? "url(#maskGlow)" : undefined}
+                            style={{
+                              transition: "all 0.3s ease",
+                              cursor: "pointer",
+                            }}
+                          />
+                        );
+                      }
+
+                      console.log(
+                        `Rendering segmentation polygons for annotation ${annotation.id}`
+                      );
+                      console.log("Polygon data:", annotation.polygon);
+
+                      // Render polygons exactly like ImageDetailSidebar
+                      return (annotation.polygon as any).polygons.map(
+                        (polygon: number[][], polygonIndex: number) => {
+                          const pathData = polygonToPath(polygon);
+                          if (!pathData) return null;
+
+                          console.log(
+                            `Polygon ${polygonIndex} path:`,
+                            pathData.substring(0, 100) + "..."
+                          );
+
+                          return (
+                            <path
+                              key={`${annotation.id}-polygon-${polygonIndex}`}
+                              d={pathData}
+                              fill={`${color}${Math.round(opacity * 255)
+                                .toString(16)
+                                .padStart(2, "0")}`}
+                              stroke={color}
+                              strokeWidth={isActive ? 3 : 2}
+                              filter={isActive ? "url(#maskGlow)" : undefined}
+                              style={{
+                                transition: "all 0.3s ease",
+                                cursor: "pointer",
+                              }}
+                            />
+                          );
+                        }
+                      );
+                    })()}
+
+                    {/* Label for active masks */}
+                    {isActive && label && (
+                      <g>
+                        {/* Background for label */}
                         <rect
-                          x={bboxScreenCoords.x}
-                          y={bboxScreenCoords.y}
-                          width={Math.abs(bw * zoom)}
-                          height={Math.abs(bh * zoom)}
+                          x={bboxScreenCoords.x + 4}
+                          y={bboxScreenCoords.y + 2}
+                          width={label.length * 7}
+                          height={16}
                           fill={color}
-                          fillOpacity={opacity}
-                          stroke={color}
-                          strokeWidth={isActive ? 3 : 2}
-                          strokeOpacity={0.9}
-                          filter={isActive ? "url(#maskGlow)" : undefined}
-                          style={{
-                            transition: "all 0.3s ease",
-                            cursor: "pointer",
-                          }}
+                          rx="2"
+                          style={{ pointerEvents: "none" }}
                         />
-                      );
-                    }
-
-                    console.log(`Rendering segmentation polygons for annotation ${annotation.id}`);
-                    console.log('Polygon data:', annotation.polygon);
-                    
-                    // Render polygons exactly like ImageDetailSidebar
-                    return (annotation.polygon as any).polygons.map((polygon: number[][], polygonIndex: number) => {
-                      const pathData = polygonToPath(polygon);
-                      if (!pathData) return null;
-
-                      console.log(`Polygon ${polygonIndex} path:`, pathData.substring(0, 100) + '...');
-
-                      return (
-                        <path
-                          key={`${annotation.id}-polygon-${polygonIndex}`}
-                          d={pathData}
-                          fill={`${color}${Math.round(opacity * 255).toString(16).padStart(2, "0")}`}
-                          stroke={color}
-                          strokeWidth={isActive ? 3 : 2}
-                          filter={isActive ? "url(#maskGlow)" : undefined}
-                          style={{
-                            transition: "all 0.3s ease",
-                            cursor: "pointer",
-                          }}
-                        />
-                      );
-                    });
-                  })()}
-                  
-                  {/* Label for active masks */}
-                  {isActive && label && (
-                    <g>
-                      {/* Background for label */}
-                      <rect
-                        x={bboxScreenCoords.x + 4}
-                        y={bboxScreenCoords.y + 2}
-                        width={label.length * 7}
-                        height={16}
-                        fill={color}
-                        rx="2"
-                        style={{ pointerEvents: "none" }}
-                      />
-                      {/* Label text */}
-                      <text
-                        x={bboxScreenCoords.x + 8}
-                        y={bboxScreenCoords.y + 13}
-                        fill={theme.colors.text.inverse}
-                        fontSize="10"
-                        fontWeight="700"
-                        style={{ pointerEvents: "none" }}
-                      >
-                        {label}
-                      </text>
-                    </g>
-                  )}
-                </g>
-              );
-            })}
+                        {/* Label text */}
+                        <text
+                          x={bboxScreenCoords.x + 8}
+                          y={bboxScreenCoords.y + 13}
+                          fill={theme.colors.text.inverse}
+                          fontSize="10"
+                          fontWeight="700"
+                          style={{ pointerEvents: "none" }}
+                        >
+                          {label}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                );
+              })}
 
             {/* Render trajectory points */}
             {startPoint && (
@@ -703,12 +756,12 @@ export function TrajectoryCanvas() {
                       />
                       {/* HandGrabbing icon */}
                       <foreignObject x="-14" y="-14" width="28" height="28">
-                        <HandGrabbing 
-                          size={28} 
-                          color={theme.colors.status.success} 
+                        <HandGrabbing
+                          size={28}
+                          color={theme.colors.status.success}
                           weight="fill"
                           style={{
-                            display: "block"
+                            display: "block",
                           }}
                         />
                       </foreignObject>
@@ -752,7 +805,7 @@ export function TrajectoryCanvas() {
                           color={theme.colors.interactive.primary}
                           weight="fill"
                           style={{
-                            display: "block"
+                            display: "block",
                           }}
                         />
                       </foreignObject>
@@ -770,13 +823,7 @@ export function TrajectoryCanvas() {
                   return (
                     <g transform={`translate(${screenCoords.x}, ${screenCoords.y})`}>
                       {/* Shadow circle for depth */}
-                      <circle
-                        cx="0"
-                        cy="0"
-                        r="24"
-                        fill="rgba(0, 0, 0, 0.1)"
-                        stroke="none"
-                      />
+                      <circle cx="0" cy="0" r="24" fill="rgba(0, 0, 0, 0.1)" stroke="none" />
                       {/* Main circle background */}
                       <circle
                         cx="0"
@@ -791,12 +838,12 @@ export function TrajectoryCanvas() {
                       />
                       {/* HandGrabbing icon */}
                       <foreignObject x="-14" y="-14" width="28" height="28">
-                        <HandGrabbing 
-                          size={28} 
-                          color={ROBOT_HAND_COLOR} 
+                        <HandGrabbing
+                          size={28}
+                          color={ROBOT_HAND_COLOR}
                           weight="fill"
                           style={{
-                            display: "block"
+                            display: "block",
                           }}
                         />
                       </foreignObject>
@@ -811,10 +858,12 @@ export function TrajectoryCanvas() {
               <g>
                 {/* Shadow for depth */}
                 <polyline
-                  points={trajectoryPath.map(point => {
-                    const screenCoords = imageToScreen(point.x, point.y);
-                    return `${screenCoords.x},${screenCoords.y}`;
-                  }).join(' ')}
+                  points={trajectoryPath
+                    .map(point => {
+                      const screenCoords = imageToScreen(point.x, point.y);
+                      return `${screenCoords.x},${screenCoords.y}`;
+                    })
+                    .join(" ")}
                   fill="none"
                   stroke="rgba(0, 0, 0, 0.2)"
                   strokeWidth="6"
@@ -824,10 +873,12 @@ export function TrajectoryCanvas() {
                 />
                 {/* Main trajectory line */}
                 <polyline
-                  points={trajectoryPath.map(point => {
-                    const screenCoords = imageToScreen(point.x, point.y);
-                    return `${screenCoords.x},${screenCoords.y}`;
-                  }).join(' ')}
+                  points={trajectoryPath
+                    .map(point => {
+                      const screenCoords = imageToScreen(point.x, point.y);
+                      return `${screenCoords.x},${screenCoords.y}`;
+                    })
+                    .join(" ")}
                   fill="none"
                   stroke={TRAJECTORY_COLOR}
                   strokeWidth="5"
@@ -845,7 +896,7 @@ export function TrajectoryCanvas() {
             {/* Render current drawing path */}
             {currentPath.length > 1 && (
               <polyline
-                points={currentPath.map(point => `${point.x},${point.y}`).join(' ')}
+                points={currentPath.map(point => `${point.x},${point.y}`).join(" ")}
                 fill="none"
                 stroke={theme.colors.interactive.accent}
                 strokeWidth="4"
@@ -869,17 +920,50 @@ export function TrajectoryCanvas() {
       >
         <Text size="2" style={{ color: theme.colors.text.secondary, textAlign: "center" }}>
           {annotationsLoading && "Loading approved annotations..."}
-          {!annotationsLoading && approvedAnnotations.length === 0 && "No approved annotations found for this image"}
-          {!annotationsLoading && approvedAnnotations.length > 0 && !selectedTask && "Select a task from the sidebar to begin"}
-          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && activeTrajectoryMasks.length < 2 && `Selected task requires 2 masks, but only ${activeTrajectoryMasks.length} available`}
-          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && activeTrajectoryMasks.length >= 2 && !startPoint && "Click on the GREEN (START) mask to set the start point"}
-          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && startPoint && !endPoint && "Click on the ORANGE (END) mask to set the end point"}
-          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && startPoint && endPoint && !isDrawingMode && "Click 'Start Drawing' to draw the trajectory path"}
-          {!annotationsLoading && approvedAnnotations.length > 0 && selectedTask && isDrawingMode && "Draw the trajectory path from start to end point"}
+          {!annotationsLoading &&
+            approvedAnnotations.length === 0 &&
+            "No approved annotations found for this image"}
+          {!annotationsLoading &&
+            approvedAnnotations.length > 0 &&
+            !selectedTask &&
+            "Select a task from the sidebar to begin"}
+          {!annotationsLoading &&
+            approvedAnnotations.length > 0 &&
+            selectedTask &&
+            activeTrajectoryMasks.length < 2 &&
+            `Selected task requires 2 masks, but only ${activeTrajectoryMasks.length} available`}
+          {!annotationsLoading &&
+            approvedAnnotations.length > 0 &&
+            selectedTask &&
+            activeTrajectoryMasks.length >= 2 &&
+            !startPoint &&
+            "Click on the GREEN (START) mask to set the start point"}
+          {!annotationsLoading &&
+            approvedAnnotations.length > 0 &&
+            selectedTask &&
+            startPoint &&
+            !endPoint &&
+            "Click on the ORANGE (END) mask to set the end point"}
+          {!annotationsLoading &&
+            approvedAnnotations.length > 0 &&
+            selectedTask &&
+            startPoint &&
+            endPoint &&
+            !isDrawingMode &&
+            "Click 'Start Drawing' to draw the trajectory path"}
+          {!annotationsLoading &&
+            approvedAnnotations.length > 0 &&
+            selectedTask &&
+            isDrawingMode &&
+            "Draw the trajectory path from start to end point"}
         </Text>
         {!annotationsLoading && approvedAnnotations.length > 0 && (
-          <Text size="1" style={{ color: theme.colors.text.tertiary, textAlign: "center", marginTop: "4px" }}>
-            {approvedAnnotations.length} approved annotation{approvedAnnotations.length !== 1 ? 's' : ''} loaded
+          <Text
+            size="1"
+            style={{ color: theme.colors.text.tertiary, textAlign: "center", marginTop: "4px" }}
+          >
+            {approvedAnnotations.length} approved annotation
+            {approvedAnnotations.length !== 1 ? "s" : ""} loaded
           </Text>
         )}
       </Box>

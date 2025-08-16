@@ -18,9 +18,9 @@ export function HomePagination() {
   }
 
   return (
-    <Flex 
-      justify="center" 
-      align="center" 
+    <Flex
+      justify="center"
+      align="center"
       gap="3"
       style={{
         marginTop: theme.spacing.semantic.layout.lg,
@@ -67,9 +67,7 @@ export function HomePagination() {
         }}
       >
         {isLoading ? (
-          <>
-            Loading page {currentPage}...
-          </>
+          <>Loading page {currentPage}...</>
         ) : (
           <>
             Page {currentPage} of {totalPages}

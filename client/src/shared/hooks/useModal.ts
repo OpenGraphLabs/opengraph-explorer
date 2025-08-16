@@ -36,50 +36,62 @@ export function useModal() {
     setModalState(prev => ({ ...prev, isOpen: false }));
   }, []);
 
-  const showSuccess = useCallback((title: string, message: string, onConfirm?: () => void) => {
-    openModal({
-      title,
-      message,
-      type: "success",
-      onConfirm,
-    });
-  }, [openModal]);
+  const showSuccess = useCallback(
+    (title: string, message: string, onConfirm?: () => void) => {
+      openModal({
+        title,
+        message,
+        type: "success",
+        onConfirm,
+      });
+    },
+    [openModal]
+  );
 
-  const showError = useCallback((title: string, message: string, onConfirm?: () => void) => {
-    openModal({
-      title,
-      message,
-      type: "error",
-      onConfirm,
-    });
-  }, [openModal]);
+  const showError = useCallback(
+    (title: string, message: string, onConfirm?: () => void) => {
+      openModal({
+        title,
+        message,
+        type: "error",
+        onConfirm,
+      });
+    },
+    [openModal]
+  );
 
-  const showInfo = useCallback((title: string, message: string, onConfirm?: () => void) => {
-    openModal({
-      title,
-      message,
-      type: "info",
-      onConfirm,
-    });
-  }, [openModal]);
+  const showInfo = useCallback(
+    (title: string, message: string, onConfirm?: () => void) => {
+      openModal({
+        title,
+        message,
+        type: "info",
+        onConfirm,
+      });
+    },
+    [openModal]
+  );
 
-  const showConfirm = useCallback((
-    title: string,
-    message: string,
-    onConfirm: () => void,
-    confirmText = "Confirm",
-    cancelText = "Cancel"
-  ) => {
-    openModal({
-      title,
-      message,
-      type: "info",
-      onConfirm,
-      confirmText,
-      cancelText,
-      showCancel: true,
-    });
-  }, [openModal]);
+  const showConfirm = useCallback(
+    (
+      title: string,
+      message: string,
+      onConfirm: () => void,
+      confirmText = "Confirm",
+      cancelText = "Cancel"
+    ) => {
+      openModal({
+        title,
+        message,
+        type: "info",
+        onConfirm,
+        confirmText,
+        cancelText,
+        showCancel: true,
+      });
+    },
+    [openModal]
+  );
 
   return {
     modalState,

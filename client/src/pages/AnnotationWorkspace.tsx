@@ -114,7 +114,7 @@ export function AnnotationWorkspace() {
   }
 
   const datasetId = parseInt(datasetIdParam);
-  const imageIdParam = searchParams.get('imageId');
+  const imageIdParam = searchParams.get("imageId");
   const specificImageId = imageIdParam ? parseInt(imageIdParam) : undefined;
 
   return (
