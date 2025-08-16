@@ -225,30 +225,181 @@ export const isImageType = (dataType: string): boolean => {
 };
 ```
 
-### 5. API Integration Pattern
+### 5. API Integration Pattern - Generic CRUD Architecture
 
-#### API Client Usage
+#### Core API Structure
+```
+shared/api/
+├── generated/          # OpenAPI 생성 코드 (유지용)
+├── core/              # Generic API 레이어 
+│   ├── client.ts      # Axios 클라이언트 및 인증
+│   ├── hooks/         # 재사용 가능한 API hooks
+│   └── types/         # 공통 타입 정의
+├── endpoints/         # 도메인별 API 정의
+│   ├── datasets.ts
+│   ├── images.ts
+│   ├── annotations.ts
+│   └── users.ts
+└── services/          # 비즈니스 로직 (legacy)
+```
+
+#### Generic Hooks 사용 패턴
 ```typescript
-// contexts/data/EntityContext.tsx
-import { useApiQuery } from '@/shared/hooks/useApiQuery';
+// 1. Single Get Hook
+import { useSingleGet } from '@/shared/api/core';
 
-export function EntityProvider({ config }) {
-  const { data, loading, error } = useApiQuery.useEntities({
-    ...config,
-    enabled: !!config.entityId,
+const { data, isLoading, error } = useSingleGet<RawType, ParsedType>({
+  url: '/api/v1/datasets/1',
+  authenticated: true,
+  parseData: (raw) => ({ id: raw.id, name: raw.name })
+});
+
+// 2. Paginated Get Hook  
+import { usePaginatedGet } from '@/shared/api/core';
+
+const { data, totalCount, isLoading } = usePaginatedGet<RawItem, ApiResponse, ParsedItem>({
+  url: '/api/v1/datasets',
+  page: 1,
+  limit: 20,
+  search: 'query',
+  sortBy: 'newest',
+  authenticated: true,
+  parseData: (item) => transformItem(item),
+  setTotalPages: (total) => setPages(total)
+});
+
+// 3. Post/Put/Delete Hooks
+import { usePost, usePut, useDelete } from '@/shared/api/core';
+
+const { post, isPosting, error } = usePost<CreateData, RawResponse, ParsedResponse>(
+  '/api/v1/datasets',
+  (raw) => parseResponse(raw),
+  { authenticated: true }
+);
+```
+
+#### Endpoint Definition Pattern
+```typescript
+// shared/api/endpoints/datasets.ts
+import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '../core/hooks';
+
+// Type definitions with camelCase conversion
+export interface Dataset {
+  id: number;
+  name: string;
+  description?: string;
+  tags?: string[];
+  dictionaryId?: number;  // snake_case → camelCase
+  createdBy?: number;
+  createdAt: string;
+}
+
+// Parsing function for type conversion
+const parseDataset = (raw: DatasetRead): Dataset => ({
+  id: raw.id,
+  name: raw.name,
+  description: raw.description || undefined,
+  tags: raw.tags || undefined,
+  dictionaryId: raw.dictionary_id || undefined,  // 자동 변환
+  createdBy: raw.created_by || undefined,
+  createdAt: raw.created_at,
+});
+
+// CRUD hooks for domain
+export function useDataset(datasetId: number, options = {}) {
+  return useSingleGet<DatasetRead, Dataset>({
+    url: `/api/v1/datasets/${datasetId}`,
+    enabled: options.enabled && !!datasetId,
+    authenticated: true,
+    parseData: parseDataset,
   });
-  
-  // ...
+}
+
+export function useDatasets(options = {}) {
+  return usePaginatedGet<DatasetListItem, DatasetListResponse, Dataset>({
+    url: '/api/v1/datasets',
+    page: options.page || 1,
+    limit: options.limit || 20,
+    search: options.search,
+    sortBy: options.sortBy,
+    authenticated: true,
+    parseData: parseDatasetListItem,
+    setTotalPages: options.setTotalPages,
+  });
+}
+
+export function useCreateDataset() {
+  return usePost<DatasetCreateInput, DatasetRead, Dataset>(
+    '/api/v1/datasets',
+    parseDataset,
+    { authenticated: true }
+  );
 }
 ```
 
-#### Service Layer Usage
+#### Context Provider with Generic API
 ```typescript
-// shared/api/services/entityService.ts
-export class EntityService {
-  async getEntity(id: number) {
-    // API call logic
+// contexts/data/DatasetsListContext.tsx
+import { useDatasets, type Dataset } from '@/shared/api/endpoints';
+
+export function DatasetsListProvider({ children, config = {} }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const {
+    data: datasets,
+    totalCount,
+    isLoading,
+    error,
+    refetch,
+  } = useDatasets({
+    page: currentPage,
+    limit: config.pageSize || 20,
+    search: config.search,
+    sortBy: config.sortBy,
+    setTotalPages,
+  });
+
+  return (
+    <DatasetsListContext.Provider value={{
+      datasets,
+      totalDatasets: totalCount,
+      totalPages,
+      currentPage,
+      setCurrentPage,
+      isLoading,
+      error,
+      refetch,
+    }}>
+      {children}
+    </DatasetsListContext.Provider>
+  );
+}
+```
+
+#### Authentication Integration
+```typescript
+// core/client.ts - 인증 헤더 자동 주입
+const authService = {
+  getAuthHeaders: () => {
+    const headers = {};
+    
+    // JWT 토큰 (sessionStorage)
+    const jwt = sessionStorage.getItem("zklogin-jwt");
+    if (jwt) headers.Authorization = `Bearer ${jwt}`;
+    
+    // User ID 헤더 (localStorage)  
+    const userId = localStorage.getItem("opengraph-user-id");
+    if (userId) headers["X-Opengraph-User-Id"] = userId;
+    
+    return headers;
   }
+};
+
+// 401 에러 시 자동 로그아웃
+if (err.response?.status === 401 && authenticated) {
+  authService.clearAuthState();
+  window.location.reload();
 }
 ```
 
@@ -256,50 +407,76 @@ export class EntityService {
 
 ### ✅ Recommended
 
-1. **Single Responsibility Principle**
+1. **Generic API Pattern**
+   - Use generic CRUD hooks for all API calls
+   - Define domain-specific endpoints with type conversion
+   - Implement proper error handling and authentication
+
+2. **Single Responsibility Principle**
    - UI components handle rendering only
    - Providers handle data management only
+   - Endpoints handle API logic and type conversion
 
-2. **Context Optimization**
+3. **Type Safety & Conversion**
+   - Convert snake_case API responses to camelCase client types
+   - Use parsing functions for consistent type transformation
+   - Define clear TypeScript interfaces for all data structures
+
+4. **Context Optimization**
    - Include only necessary data in Context
    - Prevent unnecessary re-renders with useMemo, useCallback
+   - Use generic hooks within Context Providers
 
-3. **Type Safety**
-   - Define TypeScript types for all Contexts
-   - Explicit Props interface declarations
-
-4. **Error Handling**
+5. **Error Handling**
    - Set error boundaries when using Context
    - Provide Loading/Error state UI
+   - Handle 401 errors with automatic logout
 
 ### ❌ Avoid
 
-1. **Context Misuse**
+1. **API Anti-patterns**
+   - Don't use generated API clients directly in components
+   - Avoid raw axios calls - use generic hooks instead
+   - Don't mix authentication patterns
+
+2. **Context Misuse**
    - Use useState for local state
    - Don't use Context for non-global data
+   - Avoid bypassing generic API layer
 
-2. **Circular Dependencies**
-   - No direct dependencies between Providers
-   - Compose entity Providers only in page Providers
+3. **Type Inconsistencies**
+   - Don't use snake_case in client-side types
+   - Avoid manual API calls without type conversion
+   - Don't skip parseData functions in endpoint definitions
 
-3. **Performance Issues**
+4. **Performance Issues**
    - Ensure reference stability for large objects
    - Avoid unnecessary Context nesting
+   - Don't forget to implement pagination for large datasets
 
 ## Refactoring Checklist
 
+### When Adding New API Integration
+- [ ] Create endpoint definition in `shared/api/endpoints/`
+- [ ] Define client-side types with camelCase conversion
+- [ ] Implement parseData functions for type transformation
+- [ ] Add CRUD hooks (useGet, usePaginatedGet, usePost, etc.)
+- [ ] Update Context Providers to use new generic hooks
+- [ ] Test authentication and error handling
+
 ### When Adding New Page
 - [ ] Identify required entity Providers
-- [ ] Create page Provider
+- [ ] Create page Provider using generic API hooks
 - [ ] Design Provider composition structure
 - [ ] Plan component splitting
 - [ ] Define types and error handling
 
 ### When Refactoring Existing Page
 - [ ] Measure current line count
+- [ ] Replace legacy API calls with generic hooks
 - [ ] Separate data logic from UI logic
-- [ ] Design Provider hierarchy
-- [ ] Split and move components
+- [ ] Update Context Providers to use endpoint definitions
+- [ ] Convert snake_case types to camelCase
 - [ ] Verify build and tests
 
 ## Development Commands
@@ -324,7 +501,30 @@ yarn codegen
 - **Home.tsx**: 542 → 105 lines (80% reduction)
 - **Profile.tsx**: 885 → 70 lines (92% reduction)
 - **DatasetDetail.tsx**: Significantly simplified
-- **Maintainability**: Enhanced through Context-based modularization
-- **Reusability**: Common Providers and components extracted
+- **API Layer**: Generic CRUD pattern eliminates code duplication
+- **Type Safety**: 100% snake_case → camelCase conversion
+- **Maintainability**: Enhanced through Context-based modularization + Generic API
+- **Reusability**: Common Providers, components, and API hooks extracted
 
-Follow this guide to write consistent and maintainable React client code.
+## Migration Priority
+
+### Phase 1: Core Entities (✅ Completed)
+- [x] **Datasets**: Generic API pattern implemented
+- [x] **Authentication**: JWT + User ID header integration
+- [x] **Build System**: TypeScript compilation successful
+
+### Phase 2: Primary Entities
+- [ ] **Images**: Convert to generic API pattern
+- [ ] **Annotations**: Convert to generic API pattern  
+- [ ] **Categories**: Convert to generic API pattern
+
+### Phase 3: Secondary Entities
+- [ ] **Users**: Convert to generic API pattern
+- [ ] **Dictionaries**: Convert to generic API pattern
+
+### Phase 4: Legacy Cleanup
+- [ ] Remove generated API client dependencies
+- [ ] Clean up legacy service classes
+- [ ] Update documentation
+
+Follow this guide to write consistent and maintainable React client code with the new Generic CRUD API pattern.
