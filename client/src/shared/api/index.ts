@@ -1,10 +1,12 @@
-// Export services and client
+// Export legacy services and client (maintaining backward compatibility)
 export * from "./services";
-
-// Export generated types and APIs
 export * from "./generated";
 
-// Service instances with default client
+// Export new generic API layer
+export * from "./core";
+export * from "./endpoints";
+
+// Service instances with default client (legacy)
 import { apiClient } from "./client";
 import { AnnotationService } from "./services";
 

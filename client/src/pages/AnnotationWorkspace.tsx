@@ -90,7 +90,7 @@ function WorkspaceInner() {
     >
       <CategoriesProvider
         config={{
-          dictionaryId: dataset?.dictionary_id,
+          dictionaryId: dataset?.dictionaryId,
           useDictionaryFromDataset: false,
         }}
       >

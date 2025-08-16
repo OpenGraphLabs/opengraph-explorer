@@ -16,12 +16,12 @@ from ..models.user import User
 from ..services.user_service import UserService
 
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)  # auto_error=False로 설정하여 헤더 없어도 에러 안남
 
 
 async def get_current_user(
     request: Request,
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
@@ -57,7 +57,7 @@ async def get_current_user(
             print(f"[DEBUG] Invalid X-Opengraph-User-Id format: {opengraph_user_id}")
     
     # 2. X-Opengraph-User-Id가 없거나 유효하지 않으면 JWT 토큰 확인
-    if not user_id:
+    if not user_id and credentials:
         try:
             # JWT 토큰 디코딩
             payload = jwt.decode(
@@ -72,6 +72,14 @@ async def get_current_user(
                 
         except JWTError:
             raise credentials_exception
+    
+    # 3. 두 방법 모두 실패 시 에러
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No valid authentication method found. Provide either JWT token or X-Opengraph-User-Id header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     # 사용자 조회
     user_service = UserService(db)

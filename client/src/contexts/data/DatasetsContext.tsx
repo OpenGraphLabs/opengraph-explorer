@@ -1,15 +1,14 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { useDataset } from "@/shared/hooks/useApiQuery";
-import type { DatasetRead } from "@/shared/api/generated/models";
+import { useDataset, type Dataset } from "@/shared/api/endpoints";
 
 interface DatasetsConfig {
   datasetId: number;
 }
 
 interface DatasetsContextValue {
-  dataset: DatasetRead | null;
+  dataset: Dataset | null;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
 }
 
 const DatasetsContext = createContext<DatasetsContextValue | undefined>(undefined);
@@ -26,14 +25,13 @@ export function DatasetsProvider({
     isLoading,
     error,
   } = useDataset(config.datasetId, {
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-  } as any);
+    enabled: !!config.datasetId,
+  });
 
   return (
     <DatasetsContext.Provider
       value={{
-        dataset: dataset || null,
+        dataset,
         isLoading,
         error,
       }}

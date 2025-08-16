@@ -1,27 +1,20 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { useDatasets } from "@/shared/hooks/useApiQuery";
-import type { DatasetRead } from "@/shared/api/generated/models";
+import { useDatasets, type Dataset } from "@/shared/api/endpoints";
 
 interface DatasetsListConfig {
   pageSize?: number;
-}
-
-interface DatasetListResponse {
-  items: DatasetRead[];
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
+  search?: string;
+  sortBy?: string;
 }
 
 interface DatasetsListContextValue {
-  datasets: DatasetRead[];
+  datasets: Dataset[];
   totalDatasets: number;
   totalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   refetch: () => void;
 }
 
@@ -35,28 +28,28 @@ export function DatasetsListProvider({
   config?: DatasetsListConfig;
 }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = config.pageSize || 20;
+  const [totalPages, setTotalPages] = useState(0);
+  const pageSize = config.pageSize;
 
   const {
-    data: datasetsResponse,
+    data: datasets,
+    totalCount,
     isLoading,
     error,
     refetch,
-  } = useDatasets({ page: currentPage, limit: pageSize }, {
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-  } as any);
-
-  const response = datasetsResponse as DatasetListResponse;
-  const datasets = response?.items || [];
-  const totalDatasets = response?.total || 0;
-  const totalPages = response?.pages || 0;
+  } = useDatasets({
+    page: currentPage,
+    limit: pageSize,
+    search: config.search,
+    sortBy: config.sortBy,
+    setTotalPages,
+  });
 
   return (
     <DatasetsListContext.Provider
       value={{
         datasets,
-        totalDatasets,
+        totalDatasets: totalCount,
         totalPages,
         currentPage,
         setCurrentPage,

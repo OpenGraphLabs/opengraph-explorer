@@ -792,7 +792,7 @@
           "datasets"
         ],
         "summary": "Get Datasets",
-        "description": "List all datasets.",
+        "description": "List all datasets with optional search and sorting.",
         "operationId": "get_datasets_api_v1_datasets__get",
         "parameters": [
           {
@@ -817,6 +817,42 @@
               "default": 10,
               "title": "Limit"
             }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by name or description",
+              "title": "Search"
+            },
+            "description": "Search by name or description"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Sort by field (name, created_at)",
+              "title": "Sort By"
+            },
+            "description": "Sort by field (name, created_at)"
           }
         ],
         "responses": {
@@ -890,7 +926,7 @@
           "datasets"
         ],
         "summary": "Update Dataset",
-        "description": "데이터셋을 업데이트합니다.",
+        "description": "Update an existing dataset.",
         "operationId": "update_dataset_api_v1_datasets__dataset_id__put",
         "security": [
           {
@@ -946,7 +982,7 @@
           "datasets"
         ],
         "summary": "Delete Dataset",
-        "description": "데이터셋을 삭제합니다.",
+        "description": "Delete a dataset by its ID.",
         "operationId": "delete_dataset_api_v1_datasets__dataset_id__delete",
         "security": [
           {

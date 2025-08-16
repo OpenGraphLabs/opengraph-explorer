@@ -92,7 +92,7 @@ export function WorkspaceSidebar() {
             onCategorySelect={handleCategorySelect}
             selectedCategory={selectedEntity?.category || null}
             placeholder="Search categories (e.g., desk, chair, table...)"
-            dictionaryId={dataset?.dictionary_id || undefined}
+            dictionaryId={dataset?.dictionaryId || undefined}
           />
           <Text
             size="1"

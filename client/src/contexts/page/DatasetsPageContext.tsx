@@ -79,9 +79,9 @@ export function DatasetsPageProvider({ children }: { children: ReactNode }) {
       })
       .sort((a, b) => {
         if (filters.selectedSort === "newest")
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         if (filters.selectedSort === "oldest")
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         if (filters.selectedSort === "name") return a.name.localeCompare(b.name);
         return 0;
       });
