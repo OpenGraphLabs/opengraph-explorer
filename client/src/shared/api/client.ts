@@ -62,7 +62,7 @@ export class ApiClient {
         const userId = localStorage.getItem("opengraph-user-id");
         config.headers["X-Opengraph-User-Id"] = userId;
       }
-      
+
       return config;
     });
 

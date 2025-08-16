@@ -70,8 +70,8 @@ export function SearchEmptyState() {
             lineHeight: "1.5",
           }}
         >
-          We couldn't find any images or annotations matching your search criteria. 
-          Try searching for a different category or browse all available content.
+          We couldn't find any images or annotations matching your search criteria. Try searching
+          for a different category or browse all available content.
         </Text>
 
         <Flex gap="3" style={{ marginTop: theme.spacing.semantic.component.md }}>

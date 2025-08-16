@@ -11,15 +11,21 @@ import { HomeGallery } from "@/components/home/HomeGallery";
 import { VideoGallery } from "@/components/home/VideoGallery";
 import { HomePagination } from "@/components/home/HomePagination";
 import { HomeLoadingState } from "@/components/home/HomeLoadingState";
-import { HomeGallerySkeleton } from "@/components/home/HomeGallerySkeleton";
 import { HomeEmptyState } from "@/components/home/HomeEmptyState";
 import { SearchEmptyState } from "@/components/home/SearchEmptyState";
 import { HomeErrorState } from "@/components/home/HomeErrorState";
 
 function HomeContent() {
   const { theme } = useTheme();
-  const { isLoading, error, annotationsWithImages, selectedAnnotation, handleCloseSidebar, isTransitioning, hasSearchFilter, dataType } =
-    useHomePage();
+  const {
+    error,
+    annotationsWithImages,
+    selectedAnnotation,
+    handleCloseSidebar,
+    isTransitioning,
+    hasSearchFilter,
+    dataType,
+  } = useHomePage();
 
   if (error) {
     return <HomeErrorState />;
@@ -69,10 +75,8 @@ function HomeContent() {
                 animation: "contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
-              {/* Progressive loading: show skeleton on initial load, content as soon as available */}
-              {isLoading && annotationsWithImages.length === 0 ? (
-                <HomeGallerySkeleton count={25} />
-              ) : annotationsWithImages.length > 0 ? (
+              {/* Show content or empty state */}
+              {annotationsWithImages.length > 0 ? (
                 <>
                   <HomeGallery />
                   <HomePagination />
@@ -80,14 +84,14 @@ function HomeContent() {
                   {isTransitioning && (
                     <Box
                       style={{
-                        position: 'fixed',
+                        position: "fixed",
                         top: 0,
                         left: 0,
                         right: 0,
-                        height: '3px',
+                        height: "3px",
                         background: `linear-gradient(90deg, transparent, ${theme.colors.interactive.primary}, transparent)`,
                         opacity: 0.8,
-                        animation: 'slideProgress 1s ease-in-out infinite',
+                        animation: "slideProgress 1s ease-in-out infinite",
                         zIndex: 1000,
                       }}
                     />

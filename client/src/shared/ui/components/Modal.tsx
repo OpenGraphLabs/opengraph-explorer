@@ -113,7 +113,7 @@ export function Modal({
       >
         {/* Modal Content */}
         <Box
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
           style={{
             background: theme.colors.background.card,
             borderRadius: theme.borders.radius.lg,

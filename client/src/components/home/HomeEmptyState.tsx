@@ -50,9 +50,7 @@ export function HomeEmptyState() {
             fontWeight: theme.typography.h4.fontWeight,
           }}
         >
-          {selectedCategory
-            ? "No annotations found in this category"
-            : "No approved annotations available"}
+          {selectedCategory ? "No annotations found in this category" : "No annotations available"}
         </Heading>
 
         <Text
@@ -64,7 +62,7 @@ export function HomeEmptyState() {
         >
           {selectedCategory
             ? `Try selecting a different category or clear the current filter`
-            : "Approved annotations will appear here when available"}
+            : "Annotations will appear here when available"}
         </Text>
 
         {selectedCategory && (

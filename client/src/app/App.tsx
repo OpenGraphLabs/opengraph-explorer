@@ -17,6 +17,7 @@ import { AuthSuccess } from "@/pages/AuthSuccess";
 import { AuthError } from "@/pages/AuthError";
 import { Login } from "@/pages/Login.tsx";
 import { Earn } from "@/pages/Earn";
+import { SpaceSelection } from "@/pages/SpaceSelection";
 import { FirstPersonCapture } from "@/pages/FirstPersonCapture";
 
 export default function App() {
@@ -117,6 +118,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Earn />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/datasets/:id/space-selection"
+          element={
+            <ProtectedRoute>
+              <SpaceSelection />
             </ProtectedRoute>
           }
         />

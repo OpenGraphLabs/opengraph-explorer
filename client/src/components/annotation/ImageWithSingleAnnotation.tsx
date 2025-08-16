@@ -45,7 +45,6 @@ export function ImageWithSingleAnnotation({
   const [retryCount, setRetryCount] = useState(0);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-
   useEffect(() => {
     setShowMasks(showMaskByDefault);
     setDisplayOptions(prev => ({ ...prev, showMasks: showMaskByDefault }));
@@ -57,7 +56,7 @@ export function ImageWithSingleAnnotation({
       loadingTimeoutRef.current = setTimeout(() => {
         if (!isLoaded && imgRef.current) {
           // Force a retry by changing the src
-          const retryUrl = imageUrl + '?timeout_retry=' + Date.now();
+          const retryUrl = imageUrl + "?timeout_retry=" + Date.now();
           imgRef.current.src = retryUrl;
         }
       }, 5000);
@@ -216,13 +215,16 @@ export function ImageWithSingleAnnotation({
           onError={() => {
             if (retryCount < 2) {
               // Retry loading after delay
-              setTimeout(() => {
-                if (imgRef.current) {
-                  const retryUrl = imageUrl + '?retry=' + (retryCount + 1);
-                  imgRef.current.src = retryUrl;
-                  setRetryCount(prev => prev + 1);
-                }
-              }, 1000 * (retryCount + 1));
+              setTimeout(
+                () => {
+                  if (imgRef.current) {
+                    const retryUrl = imageUrl + "?retry=" + (retryCount + 1);
+                    imgRef.current.src = retryUrl;
+                    setRetryCount(prev => prev + 1);
+                  }
+                },
+                1000 * (retryCount + 1)
+              );
             } else {
               setIsError(true);
             }

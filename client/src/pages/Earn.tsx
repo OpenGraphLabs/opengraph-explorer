@@ -2,16 +2,16 @@ import React from "react";
 import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate } from "react-router-dom";
-import { 
-  MaskHappy, 
-  Path, 
-  Camera, 
+import {
+  MaskHappy,
+  Path,
+  Camera,
   PlayCircle,
   ArrowRight,
   Coins,
   CheckCircle,
   Sparkle,
-  Image
+  Image,
 } from "phosphor-react";
 import actionDemoVideo from "@/assets/thumbnail/earn_thumbnail_action_demonstration.mov";
 
@@ -33,6 +33,20 @@ interface TaskType {
 
 const TASK_TYPES: TaskType[] = [
   {
+    id: "picture-upload",
+    title: "First-person View Image",
+    description: "Contribute first-person perspective images for embodied AI training.",
+    icon: <Camera size={22} weight="duotone" />,
+    reward: "2-8 $OPEN",
+    difficulty: "Beginner",
+    estimatedTime: "~5 min",
+    category: "Data Collection",
+    featured: true,
+    requirements: ["Camera or smartphone", "Good lighting conditions"],
+    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
+    datasetId: 3, // OceanDAO dataset for demo
+  },
+  {
     id: "segmentation-mask",
     title: "Image Segmentation Mask",
     description: "Create precise object boundaries for computer vision training datasets.",
@@ -41,10 +55,10 @@ const TASK_TYPES: TaskType[] = [
     difficulty: "Intermediate",
     estimatedTime: "~15 min",
     category: "Computer Vision",
-    featured: true,
+    featured: false,
     requirements: ["Basic image editing skills", "Understanding of object boundaries"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_mask.jpg",
-    datasetId: 3 // OceanDAO dataset for demo
+    datasetId: 3, // OceanDAO dataset for demo
   },
   {
     id: "trajectory-drawing",
@@ -55,23 +69,10 @@ const TASK_TYPES: TaskType[] = [
     difficulty: "Advanced",
     estimatedTime: "~25 min",
     category: "Robotics AI",
-    featured: true,
+    featured: false,
     requirements: ["Spatial reasoning skills", "Understanding of robot kinematics"],
     thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_trajectory.jpg",
-    datasetId: 3 // OceanDAO dataset for demo
-  },
-  {
-    id: "picture-upload",
-    title: "First-person View Image",
-    description: "Contribute first-person perspective images for embodied AI training.",
-    icon: <Camera size={22} weight="duotone" />,
-    reward: "2-8 $OPEN",
-    difficulty: "Beginner",
-    estimatedTime: "~5 min",
-    category: "Data Collection",
-    requirements: ["Camera or smartphone", "Good lighting conditions"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
-    datasetId: 3 // OceanDAO dataset for demo
+    datasetId: 3, // OceanDAO dataset for demo
   },
   {
     id: "video-upload",
@@ -82,42 +83,58 @@ const TASK_TYPES: TaskType[] = [
     difficulty: "Intermediate",
     estimatedTime: "~30 min",
     category: "Behavioral AI",
+    featured: false,
     requirements: ["Video recording capability", "Clear action demonstration"],
     thumbnailVideo: actionDemoVideo,
-    datasetId: 3 // OceanDAO dataset for demo
-  }
+    datasetId: 3, // OceanDAO dataset for demo
+  },
 ];
 
-function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: number; isLoaded: boolean; isMobile: boolean }) {
+function TaskCard({
+  task,
+  index,
+  isLoaded,
+  isMobile,
+}: {
+  task: TaskType;
+  index: number;
+  isLoaded: boolean;
+  isMobile: boolean;
+}) {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Beginner": return {
-        color: theme.colors.status.success,
-        background: `${theme.colors.status.success}15`,
-        border: `${theme.colors.status.success}30`
-      };
-      case "Intermediate": return {
-        color: theme.colors.status.warning,
-        background: `${theme.colors.status.warning}15`,
-        border: `${theme.colors.status.warning}30`
-      };
-      case "Advanced": return {
-        color: theme.colors.status.error,
-        background: `${theme.colors.status.error}15`,
-        border: `${theme.colors.status.error}30`
-      };
-      default: return {
-        color: theme.colors.text.secondary,
-        background: `${theme.colors.text.secondary}15`,
-        border: `${theme.colors.text.secondary}30`
-      };
+      case "Beginner":
+        return {
+          color: theme.colors.status.success,
+          background: `${theme.colors.status.success}15`,
+          border: `${theme.colors.status.success}30`,
+        };
+      case "Intermediate":
+        return {
+          color: theme.colors.status.warning,
+          background: `${theme.colors.status.warning}15`,
+          border: `${theme.colors.status.warning}30`,
+        };
+      case "Advanced":
+        return {
+          color: theme.colors.status.error,
+          background: `${theme.colors.status.error}15`,
+          border: `${theme.colors.status.error}30`,
+        };
+      default:
+        return {
+          color: theme.colors.text.secondary,
+          background: `${theme.colors.text.secondary}15`,
+          border: `${theme.colors.text.secondary}30`,
+        };
     }
   };
 
   const difficultyStyle = getDifficultyColor(task.difficulty);
+  const isDisabled = task.featured === false;
 
   return (
     <Box
@@ -129,20 +146,25 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
     >
       <Box
         style={{
-          padding: isMobile ? theme.spacing.semantic.component.md : theme.spacing.semantic.component.lg,
+          padding: isMobile
+            ? theme.spacing.semantic.component.md
+            : theme.spacing.semantic.component.lg,
           borderRadius: theme.borders.radius.lg,
-          border: `1px solid ${theme.colors.border.primary}`,
-          backgroundColor: theme.colors.background.card,
+          border: `1px solid ${isDisabled ? theme.colors.border.secondary : theme.colors.border.primary}`,
+          backgroundColor: isDisabled
+            ? `${theme.colors.background.secondary}80`
+            : theme.colors.background.card,
           display: "flex",
           flexDirection: isMobile ? "row" : "column",
           height: "auto",
           transition: theme.animations.transitions.hover,
-          cursor: "pointer",
+          cursor: isDisabled ? "not-allowed" : "pointer",
           position: "relative",
           overflow: "hidden",
-          boxShadow: theme.shadows.semantic.card.low,
+          boxShadow: isDisabled ? "none" : theme.shadows.semantic.card.low,
+          opacity: isDisabled ? 0.6 : 1,
         }}
-        className="task-card"
+        className={isDisabled ? "task-card-disabled" : "task-card"}
       >
         {/* Featured Badge - Positioned to avoid overlap with OPEN badge */}
         {task.featured && (
@@ -177,7 +199,11 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
           </Box>
         )}
 
-        <Flex direction={isMobile ? "row" : "column"} gap={isMobile ? "3" : "4"} style={{ height: "100%", minHeight: isMobile ? "auto" : "520px", width: "100%" }}>
+        <Flex
+          direction={isMobile ? "row" : "column"}
+          gap={isMobile ? "3" : "4"}
+          style={{ height: "100%", minHeight: isMobile ? "auto" : "520px", width: "100%" }}
+        >
           {/* Thumbnail Image */}
           <Box
             style={{
@@ -258,10 +284,13 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
                     transform: isMobile ? "scale(0.8)" : "none",
                   }}
                 >
-                  <Box className="task-icon" style={{ 
-                    color: theme.colors.interactive.primary,
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                  }}>
+                  <Box
+                    className="task-icon"
+                    style={{
+                      color: theme.colors.interactive.primary,
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                  >
                     {task.icon}
                   </Box>
                 </Box>
@@ -286,167 +315,191 @@ function TaskCard({ task, index, isLoaded, isMobile }: { task: TaskType; index: 
 
           {/* Mobile: Content Area, Desktop: Same layout */}
           <Flex direction="column" gap={isMobile ? "2" : "4"} style={{ flex: 1 }}>
-          {/* Header with Reward */}
-          <Flex align="center" justify={isMobile ? "start" : "center"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.xs }}>
+            {/* Header with Reward */}
+            <Flex
+              align="center"
+              justify={isMobile ? "start" : "center"}
+              style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.xs }}
+            >
+              <Box
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: isMobile ? "4px" : "6px",
+                  padding: isMobile ? "4px 8px" : "6px 12px",
+                  borderRadius: theme.borders.radius.full,
+                  background: `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.accent}15)`,
+                  border: `1px solid ${theme.colors.interactive.primary}30`,
+                }}
+              >
+                <Coins
+                  size={isMobile ? 14 : 16}
+                  color={theme.colors.interactive.primary}
+                  weight="fill"
+                />
+                <Text
+                  size={isMobile ? "1" : "2"}
+                  style={{
+                    color: theme.colors.interactive.primary,
+                    fontWeight: 700,
+                    fontSize: isMobile ? "12px" : "14px",
+                  }}
+                >
+                  {task.reward}
+                </Text>
+              </Box>
+            </Flex>
+
+            {/* Title and Description */}
             <Box
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: isMobile ? "4px" : "6px",
-                padding: isMobile ? "4px 8px" : "6px 12px",
-                borderRadius: theme.borders.radius.full,
-                background: `linear-gradient(135deg, ${theme.colors.interactive.primary}15, ${theme.colors.interactive.accent}15)`,
-                border: `1px solid ${theme.colors.interactive.primary}30`,
+                textAlign: isMobile ? "left" : "center",
+                marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm,
+                flex: "1",
               }}
             >
-              <Coins size={isMobile ? 14 : 16} color={theme.colors.interactive.primary} weight="fill" />
-              <Text
-                size={isMobile ? "1" : "2"}
-                style={{
-                  color: theme.colors.interactive.primary,
-                  fontWeight: 700,
-                  fontSize: isMobile ? "12px" : "14px",
-                }}
-              >
-                {task.reward}
-              </Text>
-            </Box>
-          </Flex>
-
-          {/* Title and Description */}
-          <Box style={{ textAlign: isMobile ? "left" : "center", marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm, flex: "1" }}>
-            <Text
-              as="p"
-              size={isMobile ? "3" : "4"}
-              weight="bold"
-              style={{
-                color: theme.colors.text.primary,
-                marginBottom: isMobile ? "4px" : "8px",
-                lineHeight: "1.3",
-                fontSize: isMobile ? "16px" : undefined,
-              }}
-            >
-              {task.title}
-            </Text>
-            {!isMobile && (
               <Text
                 as="p"
-                size="2"
+                size={isMobile ? "3" : "4"}
+                weight="bold"
                 style={{
-                  color: theme.colors.text.secondary,
-                  lineHeight: "1.4",
-                  fontSize: "13px",
-                  textAlign: "left",
-                  padding: "0 8px",
+                  color: theme.colors.text.primary,
+                  marginBottom: isMobile ? "4px" : "8px",
+                  lineHeight: "1.3",
+                  fontSize: isMobile ? "16px" : undefined,
                 }}
               >
-                {task.description}
+                {task.title}
               </Text>
-            )}
-          </Box>
+              {!isMobile && (
+                <Text
+                  as="p"
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    lineHeight: "1.4",
+                    fontSize: "13px",
+                    textAlign: "left",
+                    padding: "0 8px",
+                  }}
+                >
+                  {task.description}
+                </Text>
+              )}
+            </Box>
 
-          {/* Requirements - Hidden on mobile */}
-          {!isMobile && (
-            <Box style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+            {/* Requirements - Hidden on mobile */}
+            {!isMobile && (
+              <Box style={{ marginBottom: theme.spacing.semantic.component.sm }}>
+                <Text
+                  size="1"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    marginBottom: "6px",
+                    textAlign: "center",
+                  }}
+                >
+                  Requirements
+                </Text>
+                <Flex direction="column" gap="2" style={{ padding: "0 8px" }}>
+                  {task.requirements.map((requirement, index) => (
+                    <Flex key={index} align="center" gap="2">
+                      <CheckCircle size={12} color={theme.colors.status.success} weight="fill" />
+                      <Text
+                        size="1"
+                        style={{
+                          color: theme.colors.text.tertiary,
+                          fontSize: "12px",
+                          lineHeight: "1.3",
+                        }}
+                      >
+                        {requirement}
+                      </Text>
+                    </Flex>
+                  ))}
+                </Flex>
+              </Box>
+            )}
+
+            {/* Difficulty and Time - Compact */}
+            <Flex
+              justify={isMobile ? "start" : "center"}
+              align="center"
+              gap={isMobile ? "2" : "3"}
+              style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm }}
+            >
+              <Badge
+                style={{
+                  backgroundColor: difficultyStyle.background,
+                  color: difficultyStyle.color,
+                  border: `1px solid ${difficultyStyle.border}`,
+                  borderRadius: theme.borders.radius.sm,
+                  padding: isMobile ? "2px 6px" : "4px 10px",
+                  fontSize: isMobile ? "10px" : "11px",
+                  fontWeight: 600,
+                }}
+              >
+                {task.difficulty}
+              </Badge>
               <Text
                 size="1"
                 style={{
                   color: theme.colors.text.secondary,
-                  fontWeight: 600,
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: "6px",
-                  textAlign: "center",
+                  fontSize: isMobile ? "11px" : "12px",
+                  fontWeight: 500,
                 }}
               >
-                Requirements
+                {task.estimatedTime}
               </Text>
-              <Flex direction="column" gap="2" style={{ padding: "0 8px" }}>
-                {task.requirements.map((requirement, index) => (
-                  <Flex key={index} align="center" gap="2">
-                    <CheckCircle size={12} color={theme.colors.status.success} weight="fill" />
-                    <Text
-                      size="1"
-                      style={{
-                        color: theme.colors.text.tertiary,
-                        fontSize: "12px",
-                        lineHeight: "1.3",
-                      }}
-                    >
-                      {requirement}
-                    </Text>
-                  </Flex>
-                ))}
-              </Flex>
-            </Box>
-          )}
+            </Flex>
 
-          {/* Difficulty and Time - Compact */}
-          <Flex justify={isMobile ? "start" : "center"} align="center" gap={isMobile ? "2" : "3"} style={{ marginBottom: isMobile ? "8px" : theme.spacing.semantic.component.sm }}>
-            <Badge
+            {/* Action Button */}
+            <Button
+              className="task-button"
+              disabled={isDisabled}
+              onClick={() => {
+                if (isDisabled) return;
+                if (task.id === "trajectory-drawing") {
+                  navigate(`/datasets/${task.datasetId}/trajectory?imageId=1017`);
+                } else if (task.id === "segmentation-mask") {
+                  navigate(`/datasets/${task.datasetId}/annotate?imageId=1013`);
+                } else if (task.id === "picture-upload") {
+                  navigate(`/datasets/${task.datasetId}/space-selection`);
+                } else {
+                  navigate(`/datasets/${task.datasetId}/annotate`);
+                }
+              }}
               style={{
-                backgroundColor: difficultyStyle.background,
-                color: difficultyStyle.color,
-                border: `1px solid ${difficultyStyle.border}`,
-                borderRadius: theme.borders.radius.sm,
-                padding: isMobile ? "2px 6px" : "4px 10px",
-                fontSize: isMobile ? "10px" : "11px",
-                fontWeight: 600,
+                width: "100%",
+                background: isDisabled
+                  ? theme.colors.background.secondary
+                  : `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
+                color: isDisabled ? theme.colors.text.tertiary : theme.colors.text.inverse,
+                border: isDisabled ? `1px solid ${theme.colors.border.secondary}` : "none",
+                borderRadius: theme.borders.radius.lg,
+                padding: isMobile ? "10px" : "12px",
+                fontSize: isMobile ? "12px" : "13px",
+                fontWeight: 700,
+                cursor: isDisabled ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: isMobile ? "4px" : "6px",
+                marginTop: "auto",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: isDisabled ? "none" : theme.shadows.semantic.interactive.default,
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                pointerEvents: isDisabled ? "none" : "auto",
               }}
             >
-              {task.difficulty}
-            </Badge>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.secondary,
-                fontSize: isMobile ? "11px" : "12px",
-                fontWeight: 500,
-              }}
-            >
-              {task.estimatedTime}
-            </Text>
-          </Flex>
-
-          {/* Action Button */}
-          <Button
-            className="task-button"
-            onClick={() => {
-              if (task.id === "trajectory-drawing") {
-                navigate(`/datasets/${task.datasetId}/trajectory?imageId=1017`);
-              } else if (task.id === "segmentation-mask") {
-                navigate(`/datasets/${task.datasetId}/annotate?imageId=1013`);
-              } else if (task.id === "picture-upload") {
-                navigate(`/datasets/${task.datasetId}/first-person-capture`);
-              } else {
-                navigate(`/datasets/${task.datasetId}/annotate`);
-              }
-            }}
-            style={{
-              width: "100%",
-              background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-              color: theme.colors.text.inverse,
-              border: "none",
-              borderRadius: theme.borders.radius.lg,
-              padding: isMobile ? "10px" : "12px",
-              fontSize: isMobile ? "12px" : "13px",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: isMobile ? "4px" : "6px",
-              marginTop: "auto",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              boxShadow: theme.shadows.semantic.interactive.default,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-            }}
-          >
-            Start
-            <ArrowRight size={isMobile ? 10 : 12} weight="bold" />
-          </Button>
+              {isDisabled ? "Coming Soon" : "Start"}
+              {!isDisabled && <ArrowRight size={isMobile ? 10 : 12} weight="bold" />}
+            </Button>
           </Flex>
         </Flex>
       </Box>
@@ -469,11 +522,11 @@ function EarnContent() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return (
@@ -482,7 +535,9 @@ function EarnContent() {
       <Box
         style={{
           textAlign: "center",
-          marginBottom: isMobile ? theme.spacing.semantic.component.lg : theme.spacing.semantic.component.xl,
+          marginBottom: isMobile
+            ? theme.spacing.semantic.component.lg
+            : theme.spacing.semantic.component.xl,
           padding: `${isMobile ? theme.spacing.semantic.component.sm : theme.spacing.semantic.component.md} 0`,
         }}
       >
@@ -524,7 +579,13 @@ function EarnContent() {
         }}
       >
         {TASK_TYPES.map((task, index) => (
-          <TaskCard key={task.id} task={task} index={index} isLoaded={isLoaded} isMobile={isMobile} />
+          <TaskCard
+            key={task.id}
+            task={task}
+            index={index}
+            isLoaded={isLoaded}
+            isMobile={isMobile}
+          />
         ))}
       </Box>
 
@@ -547,6 +608,10 @@ function EarnContent() {
           }
           
           .task-card {
+            transition: all 0.25s ease;
+          }
+          
+          .task-card-disabled {
             transition: all 0.25s ease;
           }
           

@@ -6,8 +6,13 @@ import { useHomePage } from "@/contexts/page/HomePageContext";
 
 export function HomeGallery() {
   const { theme } = useTheme();
-  const { annotationsWithImages, showGlobalMasks, handleAnnotationClick, isLoading, isTransitioning } =
-    useHomePage();
+  const {
+    annotationsWithImages,
+    showGlobalMasks,
+    handleAnnotationClick,
+    isLoading,
+    isTransitioning,
+  } = useHomePage();
 
   if (annotationsWithImages.length === 0) {
     return null;
