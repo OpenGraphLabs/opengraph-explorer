@@ -37,23 +37,3 @@ export function useApiClient(options: UseApiClientOptions = {}) {
 
   return services;
 }
-
-export function useDatasetService(options?: UseApiClientOptions) {
-  const { datasets } = useApiClient(options);
-  return datasets;
-}
-
-export function useUserService(options?: UseApiClientOptions) {
-  const { users } = useApiClient(options);
-  return users;
-}
-
-export function useAnnotationService(options?: UseApiClientOptions) {
-  const { annotations } = useApiClient(options);
-  return annotations;
-}
-
-export function useImageService(options?: UseApiClientOptions) {
-  const { images } = useApiClient(options);
-  return images;
-}

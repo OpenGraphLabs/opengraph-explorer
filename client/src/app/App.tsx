@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { AppLayout } from "@/widgets/layout/AppLayout";
+import { AppLayout } from "@/shared/components/AppLayout";
 import { ScrollToTop } from "@/shared/components/ScrollToTop";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Home } from "@/pages/Home";

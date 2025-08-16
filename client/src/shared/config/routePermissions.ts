@@ -1,12 +1,16 @@
-import { RouteConfig } from "../types/auth";
+export type PagePermission = "public" | "auth-required";
+
+export interface RouteConfig {
+  path: string;
+  permission: PagePermission;
+  redirectTo?: string;
+}
 
 export const ROUTE_PERMISSIONS: RouteConfig[] = [
   // All routes now require authentication (wallet or demo login)
   { path: "/", permission: "auth-required" },
   { path: "/models", permission: "auth-required" },
   { path: "/datasets", permission: "auth-required" },
-  { path: "/models/upload", permission: "auth-required" },
-  { path: "/models/:id", permission: "auth-required" },
   { path: "/datasets/upload", permission: "auth-required" },
   { path: "/datasets/:id", permission: "auth-required" },
   { path: "/profile", permission: "auth-required" },
@@ -33,12 +37,4 @@ export const getRouteConfig = (path: string): RouteConfig | undefined => {
 export const requiresAuth = (path: string): boolean => {
   const config = getRouteConfig(path);
   return config?.permission === "auth-required";
-};
-
-/**
- * Legacy function name for backward compatibility
- * @deprecated Use requiresAuth instead
- */
-export const requiresWallet = (path: string): boolean => {
-  return requiresAuth(path);
 };

@@ -1,8 +1,20 @@
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import { useLocation } from "react-router-dom";
 import { getRouteConfig, requiresAuth } from "../config/routePermissions";
-import { AuthState } from "../types/auth";
 import { useAuth as useNewAuth } from "../../contexts/data/AuthContext";
+
+export interface AuthState {
+  isWalletConnected: boolean;
+  walletAddress?: string;
+  isLoading: boolean;
+  // Demo login integration
+  isDemoAuthenticated?: boolean;
+  demoUser?: {
+    id: string;
+    username: string;
+    displayName: string;
+  };
+}
 
 export const useAuth = (): AuthState => {
   const { isConnected, currentWallet } = useCurrentWallet();
