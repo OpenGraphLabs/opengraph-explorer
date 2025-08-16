@@ -1,7 +1,7 @@
 import React from "react";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { SidebarLayout } from "@/widgets/layout/AppLayout";
+import { SidebarLayout } from "@/shared/components/SidebarLayout";
 import { Database, UploadSimple, Circle, Sparkle } from "phosphor-react";
 import { DatasetsListProvider } from "@/contexts/data/DatasetsListContext";
 import { DatasetsPageProvider, useDatasetsPage } from "@/contexts/page/DatasetsPageContext";

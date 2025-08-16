@@ -1,12 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import { AppLayout } from "@/widgets/layout/AppLayout";
+import { AppLayout } from "@/shared/components/AppLayout";
 import { ScrollToTop } from "@/shared/components/ScrollToTop";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Home } from "@/pages/Home";
-import { Models } from "@/pages/Models";
-import { ModelDetail } from "@/pages/ModelDetail";
-import { UploadModel } from "@/pages/UploadModel";
-import { UploadDataset } from "@/pages/UploadDataset";
 import { Profile } from "@/pages/Profile";
 import { Datasets } from "@/pages/Datasets";
 import { DatasetDetail } from "@/pages/DatasetDetail";
@@ -42,42 +38,10 @@ export default function App() {
         />
 
         <Route
-          path="/models"
-          element={
-            <ProtectedRoute>
-              <Models />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/models/upload"
-          element={
-            <ProtectedRoute>
-              <UploadModel />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/models/:id"
-          element={
-            <ProtectedRoute>
-              <ModelDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/datasets"
           element={
             <ProtectedRoute>
               <Datasets />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/datasets/upload"
-          element={
-            <ProtectedRoute>
-              <UploadDataset />
             </ProtectedRoute>
           }
         />

@@ -7,7 +7,6 @@ import {
 } from "@mysten/sui/zklogin";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
-import { bigIntToBytes, toBase64FromBytes } from "@/shared/utils/bytes.ts";
 
 export interface JwtPayload {
   iss: string;

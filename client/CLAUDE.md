@@ -17,7 +17,6 @@ client/
 │   │   ├── hooks/             # Shared React hooks
 │   │   ├── ui/                # Design system
 │   │   └── utils/             # Utility functions
-│   └── widgets/               # Complex widget components
 ```
 
 ## Core Architecture Pattern: Context Provider-based "UI Database"

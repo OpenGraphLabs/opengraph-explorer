@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@/shared/ui/design-system/components";
-import { Header } from "@/widgets/layout/AppLayout";
+import { Header } from "@/shared/components/Header";
 import { useTheme, fontFamilies } from "@/shared/ui/design-system";
 import { LAYOUT_CSS_VARS } from "@/shared/constants/layout";
 

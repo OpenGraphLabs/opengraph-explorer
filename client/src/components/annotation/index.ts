@@ -11,6 +11,3 @@ export { SegmentationMaskOverlay } from "./SegmentationMaskOverlay";
 export { SimpleMaskOverlay } from "./SimpleMaskOverlay";
 export { SimpleInteractionSystem } from "./SimpleInteractionSystem";
 export type { SimpleInteractionState } from "./SimpleInteractionSystem";
-
-// Types
-export * from "./types";
