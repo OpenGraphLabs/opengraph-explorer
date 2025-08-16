@@ -8,7 +8,6 @@ import type {
 export class AnnotationService {
   constructor(private apiClient: ApiClient) {}
 
-  // Get approved annotations
   async getApprovedAnnotations(params: { page?: number; limit?: number } = {}) {
     const response =
       await this.apiClient.annotations.getApprovedAnnotationsApiV1AnnotationsApprovedGet({
@@ -18,7 +17,6 @@ export class AnnotationService {
     return response.data;
   }
 
-  // Get annotations by image
   async getAnnotationsByImage(imageId: number, params: { skip?: number; limit?: number } = {}) {
     const response =
       await this.apiClient.annotations.getAnnotationsByImageApiV1AnnotationsImageImageIdGet({
@@ -27,7 +25,6 @@ export class AnnotationService {
     return response.data;
   }
 
-  // Get approved annotations by image
   async getApprovedAnnotationsByImage(imageId: number) {
     const response =
       await this.apiClient.annotations.getApprovedAnnotationsByImageApiV1AnnotationsImageImageIdApprovedGet(
@@ -38,7 +35,6 @@ export class AnnotationService {
     return response.data;
   }
 
-  // Create annotation selections in batch
   async createAnnotationSelectionsBatch(
     batchData: UserAnnotationSelectionBatchCreate
   ): Promise<UserAnnotationSelectionBatchResponse> {
