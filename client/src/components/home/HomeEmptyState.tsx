@@ -50,9 +50,7 @@ export function HomeEmptyState() {
             fontWeight: theme.typography.h4.fontWeight,
           }}
         >
-          {selectedCategory
-            ? "No annotations found in this category"
-            : "No annotations available"}
+          {selectedCategory ? "No annotations found in this category" : "No annotations available"}
         </Heading>
 
         <Text

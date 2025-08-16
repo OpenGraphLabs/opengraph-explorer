@@ -6,7 +6,7 @@ import { ObjectDetectionOverlay } from "@/components/robot-vision/ObjectDetectio
 import { RobotVisionHUD } from "@/components/robot-vision/RobotVisionHUD";
 import { MobileCameraUI } from "@/components/robot-vision/MobileCameraUI";
 import { useMobileCamera } from "@/shared/hooks/useMobileCamera";
-import { CAPTURE_TASKS, CaptureTask } from "@/components/robot-vision/types";
+import { CAPTURE_TASKS, SPACE_TASKS, CaptureTask } from "@/components/robot-vision/types";
 
 export function FirstPersonCapture() {
   const navigate = useNavigate();
@@ -64,12 +64,42 @@ export function FirstPersonCapture() {
     maxDetections: 10,
   });
 
-  // Load task from URL params
+  // Load tasks based on selected space
+  const [availableTasks, setAvailableTasks] = useState<CaptureTask[]>([]);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+
   useEffect(() => {
-    const taskId = searchParams.get("task") || "desk";
-    const task = CAPTURE_TASKS.find(t => t.id === taskId) || CAPTURE_TASKS[0];
-    setCurrentTask(task);
+    const space = searchParams.get("space");
+    const taskId = searchParams.get("task");
+
+    // Get tasks for the selected space
+    let tasks: CaptureTask[] = [];
+    if (space && SPACE_TASKS[space]) {
+      tasks = SPACE_TASKS[space];
+    } else {
+      // Fallback to default tasks
+      tasks = CAPTURE_TASKS;
+    }
+
+    setAvailableTasks(tasks);
+
+    // Find specific task if provided, otherwise use the first task
+    if (taskId) {
+      const taskIndex = tasks.findIndex(t => t.id === taskId);
+      setCurrentTaskIndex(taskIndex >= 0 ? taskIndex : 0);
+    } else {
+      setCurrentTaskIndex(0);
+    }
+
+    setCurrentTask(tasks[0] || null);
   }, [searchParams]);
+
+  // Update current task when index changes
+  useEffect(() => {
+    if (availableTasks.length > 0) {
+      setCurrentTask(availableTasks[currentTaskIndex]);
+    }
+  }, [currentTaskIndex, availableTasks]);
 
   // Core camera start function
   const startCamera = useCallback(async () => {
@@ -496,6 +526,26 @@ export function FirstPersonCapture() {
               currentTask={currentTask?.title}
               detectionCount={detections.length}
               fps={fps}
+              onNextTask={() => {
+                if (currentTaskIndex < availableTasks.length - 1) {
+                  setCurrentTaskIndex(prev => prev + 1);
+                  // Vibrate on task change
+                  if (isMobile) {
+                    vibrate([30]);
+                  }
+                }
+              }}
+              onPrevTask={() => {
+                if (currentTaskIndex > 0) {
+                  setCurrentTaskIndex(prev => prev - 1);
+                  // Vibrate on task change
+                  if (isMobile) {
+                    vibrate([30]);
+                  }
+                }
+              }}
+              currentTaskIndex={currentTaskIndex}
+              totalTasks={availableTasks.length}
             />
           </div>
         </>

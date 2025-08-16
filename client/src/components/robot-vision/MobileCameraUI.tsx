@@ -7,6 +7,8 @@ import {
   Eye,
   EyeSlash,
   CameraRotate,
+  CaretLeft,
+  CaretRight,
 } from "phosphor-react";
 
 interface MobileCameraUIProps {
@@ -23,6 +25,10 @@ interface MobileCameraUIProps {
   currentTask?: string;
   detectionCount?: number;
   fps?: number;
+  onNextTask?: () => void;
+  onPrevTask?: () => void;
+  currentTaskIndex?: number;
+  totalTasks?: number;
 }
 
 export function MobileCameraUI({
@@ -39,6 +45,10 @@ export function MobileCameraUI({
   currentTask,
   detectionCount = 0,
   fps = 0,
+  onNextTask,
+  onPrevTask,
+  currentTaskIndex = 0,
+  totalTasks = 1,
 }: MobileCameraUIProps) {
   const isLandscape = orientation === "landscape";
 
@@ -265,7 +275,7 @@ export function MobileCameraUI({
           <X size={24} weight="regular" />
         </button>
 
-        {/* Center - Task info (mobile optimized) */}
+        {/* Center - Task info with navigation (mobile optimized) */}
         {currentTask && (
           <div
             style={{
@@ -278,27 +288,96 @@ export function MobileCameraUI({
           >
             <div
               style={{
-                padding: "6px 12px",
+                padding: "4px 6px",
                 backgroundColor: "rgba(0, 0, 0, 0.5)",
                 borderRadius: "20px",
                 backdropFilter: "blur(10px)",
                 border: "1px solid rgba(0, 255, 65, 0.3)",
+                display: "flex",
+                alignItems: "center",
+                gap: "2px",
               }}
             >
+              {/* Previous task button */}
+              {totalTasks > 1 && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onPrevTask?.();
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: currentTaskIndex > 0 ? "#00ff41" : "#666",
+                    cursor: currentTaskIndex > 0 ? "pointer" : "not-allowed",
+                    padding: "2px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    touchAction: "manipulation",
+                  }}
+                  disabled={currentTaskIndex === 0}
+                >
+                  <CaretLeft size={14} weight="bold" />
+                </button>
+              )}
+
               <div
                 style={{
-                  color: "#00ff41",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: isLandscape ? "300px" : "200px",
+                  padding: "0 6px",
                 }}
               >
-                {currentTask}
+                <div
+                  style={{
+                    color: "#00ff41",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: isLandscape ? "250px" : "140px",
+                  }}
+                >
+                  {currentTask}
+                </div>
+                {totalTasks > 1 && (
+                  <div
+                    style={{
+                      fontSize: "9px",
+                      opacity: 0.7,
+                      color: "#00ff41",
+                      textAlign: "center",
+                    }}
+                  >
+                    {currentTaskIndex + 1} / {totalTasks}
+                  </div>
+                )}
               </div>
+
+              {/* Next task button */}
+              {totalTasks > 1 && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onNextTask?.();
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: currentTaskIndex < totalTasks - 1 ? "#00ff41" : "#666",
+                    cursor: currentTaskIndex < totalTasks - 1 ? "pointer" : "not-allowed",
+                    padding: "2px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    touchAction: "manipulation",
+                  }}
+                  disabled={currentTaskIndex === totalTasks - 1}
+                >
+                  <CaretRight size={14} weight="bold" />
+                </button>
+              )}
             </div>
           </div>
         )}
