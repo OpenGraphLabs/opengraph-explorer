@@ -435,7 +435,6 @@ class AnnotationService:
     async def get_annotations_with_filters(
         self,
         pagination: Pagination,
-        search: Optional[str] = None,
         sort_by: Optional[str] = None,
         image_id: Optional[int] = None,
         category_id: Optional[int] = None,
@@ -447,7 +446,6 @@ class AnnotationService:
         
         Args:
             pagination: Pagination
-            search: Search text (searches in status, source_type)
             sort_by: Sort field (created_at, updated_at, area)
             image_id: Filter by image ID
             category_id: Filter by category ID  
@@ -468,13 +466,6 @@ class AnnotationService:
             conditions.append(Annotation.status == status.upper())
         if source_type:
             conditions.append(Annotation.source_type == source_type.upper())
-        if search:
-            # Search in status and source_type fields
-            search_term = f"%{search}%"
-            conditions.append(
-                Annotation.status.ilike(search_term) |
-                Annotation.source_type.ilike(search_term)
-            )
         
         # Count total items
         count_query = select(func.count(Annotation.id))

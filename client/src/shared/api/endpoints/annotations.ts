@@ -107,7 +107,8 @@ export function useAnnotations(options: {
   limit?: number;
   imageId?: number;
   categoryId?: number;
-  search?: string;
+  status?: string;
+  sourceType?: string;
   sortBy?: string;
   enabled?: boolean;
   setTotalPages?: (total: number) => void;
@@ -117,7 +118,8 @@ export function useAnnotations(options: {
     limit = 25, 
     imageId,
     categoryId,
-    search,
+    status,
+    sourceType,
     sortBy,
     enabled = true,
     setTotalPages 
@@ -131,7 +133,6 @@ export function useAnnotations(options: {
     url: ANNOTATIONS_BASE,
     page,
     limit,
-    search,
     sortBy,
     enabled,
     authenticated: true,
@@ -139,6 +140,8 @@ export function useAnnotations(options: {
     setTotalPages,
     ...(imageId && { image_id: imageId }),
     ...(categoryId && { category_id: categoryId }),
+    ...(status && { status: status }),
+    ...(sourceType && { source_type: sourceType }),
   });
 }
 

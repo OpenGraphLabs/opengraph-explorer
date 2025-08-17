@@ -34,21 +34,19 @@ router = APIRouter(
 async def get_annotations(
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=100),
-    search: Optional[str] = Query(None, description="Search in status or source_type"),
     sort_by: Optional[str] = Query(None, description="Sort by field (created_at, updated_at, area)"),
     image_id: Optional[int] = Query(None, description="Filter by image ID"),
     category_id: Optional[int] = Query(None, description="Filter by category ID"),
-    status: Optional[str] = Query(None, description="Filter by status (PENDING, APPROVED, REJECTED)"),
-    source_type: Optional[str] = Query(None, description="Filter by source type (AUTO, USER)"),
+    status: Optional[str] = Query(None, description="Filter by exact status (PENDING, APPROVED, REJECTED)"),
+    source_type: Optional[str] = Query(None, description="Filter by exact source type (AUTO, USER)"),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    List all annotations with optional filtering, searching and sorting.
+    List all annotations with optional filtering and sorting.
     """
     annotation_service = AnnotationService(db)
     return await annotation_service.get_annotations_with_filters(
         pagination=Pagination(page=page, limit=limit),
-        search=search,
         sort_by=sort_by,
         image_id=image_id,
         category_id=category_id,

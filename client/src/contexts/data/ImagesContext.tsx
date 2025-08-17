@@ -80,7 +80,7 @@ export function ImagesProvider({
     }
 
     const imageIds = annotationsFromContext
-      .map((annotation: any) => annotation.image_id)
+      .map((annotation: any) => annotation.imageId)
       .filter((id: number) => id && typeof id === "number");
 
     return Array.from(new Set(imageIds));

@@ -30,7 +30,7 @@ GET {{http-host}}/api/v1/annotations/image/740
 X-Opengraph-User-Id: 1
 
 ### annotation - ReadAll Approved Annotations
-GET {{http-host}}/api/v1/annotations/approved
+GET {{http-host}}/api/v1/annotations?page=1&limit=25&status=APPROVED&source_type=USER
 X-Opengraph-User-Id: 1
 
 # ==================== User Annotation Selections ====================

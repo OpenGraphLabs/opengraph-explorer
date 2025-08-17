@@ -6,7 +6,7 @@ interface AnnotationsConfig {
   limit?: number;
   page?: number;
   imageId?: number;
-  mode?: "approved" | "byImage";
+  mode?: "approved" | "byImage"; // approved: 승인된 사용자 어노테이션만, byImage: 이미지의 모든 어노테이션
 }
 
 interface AnnotationsContextValue {
@@ -32,12 +32,39 @@ export function AnnotationsProvider({
   const [totalPages, setTotalPages] = useState(0);
   const limit = config.limit || 25;
 
-  // Use unified annotations hook
+  // Map mode to proper status and sourceType filters
+  const getFilters = () => {
+    switch (config.mode) {
+      case "approved":
+        // For approved mode: show only approved user annotations
+        return {
+          status: "APPROVED",
+          sourceType: "USER",
+        };
+      case "byImage":
+        // For byImage mode: show all annotations for the image (no status/source filters)
+        return {
+          status: undefined,
+          sourceType: undefined,
+        };
+      default:
+        // Default: no filters
+        return {
+          status: undefined,
+          sourceType: undefined,
+        };
+    }
+  };
+
+  const filters = getFilters();
+
+  // Use unified annotations hook with proper filtering
   const annotationsQuery = useAnnotationsAPI({
     page: currentPage,
     limit,
     imageId: config.imageId,
-    search: config.mode,
+    status: filters.status,
+    sourceType: filters.sourceType,
     enabled: true,
     setTotalPages,
   });

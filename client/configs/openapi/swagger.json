@@ -1907,7 +1907,7 @@
           "annotations"
         ],
         "summary": "Get Annotations",
-        "description": "List all annotations with optional filtering, searching and sorting.",
+        "description": "List all annotations with optional filtering and sorting.",
         "operationId": "get_annotations_api_v1_annotations__get",
         "parameters": [
           {
@@ -1932,24 +1932,6 @@
               "default": 25,
               "title": "Limit"
             }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Search in status or source_type",
-              "title": "Search"
-            },
-            "description": "Search in status or source_type"
           },
           {
             "name": "sort_by",
@@ -2018,10 +2000,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by status (PENDING, APPROVED, REJECTED)",
+              "description": "Filter by exact status (PENDING, APPROVED, REJECTED)",
               "title": "Status"
             },
-            "description": "Filter by status (PENDING, APPROVED, REJECTED)"
+            "description": "Filter by exact status (PENDING, APPROVED, REJECTED)"
           },
           {
             "name": "source_type",
@@ -2036,10 +2018,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by source type (AUTO, USER)",
+              "description": "Filter by exact source type (AUTO, USER)",
               "title": "Source Type"
             },
-            "description": "Filter by source type (AUTO, USER)"
+            "description": "Filter by exact source type (AUTO, USER)"
           }
         ],
         "responses": {
