@@ -18,10 +18,10 @@ export function usePost<TBody, TRawResponse, TParsedResponse>(
   parseResponse: (raw: TRawResponse) => TParsedResponse,
   options: Pick<
     UsePostOptions<TBody, TRawResponse, TParsedResponse>,
-    "authenticated" | "enabled"
+    "authenticated" | "enabled" | "transformRequest"
   > = {}
 ): PostResult<TBody, TParsedResponse> {
-  const { authenticated = false, enabled = true } = options;
+  const { authenticated = false, enabled = true, transformRequest } = options;
   const [isPosting, setIsPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,9 +34,10 @@ export function usePost<TBody, TRawResponse, TParsedResponse>(
     setError(null);
 
     try {
-      const response = await postData<{}, TBody, { success?: boolean; data: TRawResponse }>({
+      const requestBody = transformRequest ? transformRequest(body) : body;
+      const response = await postData<{}, typeof requestBody, { success?: boolean; data: TRawResponse }>({
         url,
-        body,
+        body: requestBody,
         authenticated,
       });
 
@@ -85,10 +86,10 @@ export function usePut<TBody, TRawResponse, TParsedResponse>(
   parseResponse: (raw: TRawResponse) => TParsedResponse,
   options: Pick<
     UsePostOptions<TBody, TRawResponse, TParsedResponse>,
-    "authenticated" | "enabled"
+    "authenticated" | "enabled" | "transformRequest"
   > = {}
 ): PostResult<TBody, TParsedResponse> {
-  const { authenticated = false, enabled = true } = options;
+  const { authenticated = false, enabled = true, transformRequest } = options;
   const [isPosting, setIsPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,10 +102,11 @@ export function usePut<TBody, TRawResponse, TParsedResponse>(
     setError(null);
 
     try {
-      const response = await postData<{}, TBody, { success?: boolean; data: TRawResponse }>({
+      const requestBody = transformRequest ? transformRequest(body) : body;
+      const response = await postData<{}, typeof requestBody, { success?: boolean; data: TRawResponse }>({
         url,
         method: "put",
-        body,
+        body: requestBody,
         authenticated,
       });
 

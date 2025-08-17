@@ -56,4 +56,5 @@ export interface UsePostOptions<TBody, TRawResponse, TParsedResponse> {
   parseResponse: (raw: TRawResponse) => TParsedResponse;
   authenticated?: boolean;
   enabled?: boolean;
+  transformRequest?: (body: TBody) => any;
 }

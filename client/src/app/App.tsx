@@ -15,6 +15,7 @@ import { Login } from "@/pages/Login";
 import { Earn } from "@/pages/Earn";
 import { SpaceSelection } from "@/pages/SpaceSelection";
 import { FirstPersonCapture } from "@/pages/FirstPersonCapture";
+import { AdminDashboard } from "@/pages/AdminDashboard";
 
 export default function App() {
   return (
@@ -26,6 +27,9 @@ export default function App() {
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/auth/error" element={<AuthError />} />
         <Route path="/login" element={<Login />} />
+        
+        {/* Admin dashboard - completely independent from main app */}
+        <Route path="/admin" element={<AdminDashboard />} />
 
         {/* Protected routes - wallet required */}
         <Route

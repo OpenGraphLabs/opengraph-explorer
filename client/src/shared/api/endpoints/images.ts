@@ -170,6 +170,13 @@ export function useCreateFirstPersonImage() {
     parseImage,
     {
       authenticated: true,
+      transformRequest: (data: FirstPersonImageCreateInput) => ({
+        file_name: data.fileName,
+        image_url: data.imageUrl,
+        width: data.width,
+        height: data.height,
+        task_id: data.taskId,
+      }),
     }
   );
 }
