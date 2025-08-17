@@ -47,7 +47,6 @@ class DatasetInDB(DatasetRead):
 class DatasetWithStats(DatasetRead):
     """Dataset schema with statistics"""
     image_count: int = Field(0, description="Number of images")
-    annotation_count: int = Field(0, description="Number of annotations")
     
     model_config = ConfigDict(from_attributes=True)
 

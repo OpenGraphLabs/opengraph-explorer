@@ -220,8 +220,6 @@ class DatasetService:
         # Build response items with image and annotation counts
         items = []
         for dataset in datasets:
-            image_count = len(dataset.images)
-            annotation_count = sum(len(image.annotations) for image in dataset.images)
             items.append(DatasetWithStats(
                 id=dataset.id,
                 name=dataset.name,
@@ -230,8 +228,7 @@ class DatasetService:
                 dictionary_id=dataset.dictionary_id,
                 created_by=dataset.created_by,
                 created_at=dataset.created_at,
-                image_count=image_count,
-                annotation_count=annotation_count
+                image_count=len(dataset.images),
             ))
         
         pages = (total + pagination.limit - 1) // pagination.limit
