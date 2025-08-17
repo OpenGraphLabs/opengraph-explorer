@@ -47,6 +47,8 @@ export interface UsePaginatedGetOptions<TRawData, TParsedData> {
   authenticated?: boolean;
   parseData: (item: TRawData) => TParsedData;
   setTotalPages?: (total: number) => void;
+  // Additional query parameters
+  [key: string]: any;
 }
 
 export interface UsePostOptions<TBody, TRawResponse, TParsedResponse> {

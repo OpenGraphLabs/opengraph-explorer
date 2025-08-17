@@ -3,7 +3,7 @@ import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
-import { useCurrentUserProfile, type UserProfile } from "@/shared/api/endpoints/users";
+import { useCurrentUserProfile } from "@/shared/api/endpoints/users";
 import {
   BarChartIcon,
   PersonIcon,

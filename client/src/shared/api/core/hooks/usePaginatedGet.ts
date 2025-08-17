@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { fetchData } from "../client";
-import { ApiListResponse, PaginationParams, UsePaginatedGetOptions } from "../types/pagination";
+import { fetchData } from "@/shared/api/core/client";
+import { ApiListResponse, PaginationParams, UsePaginatedGetOptions } from "@/shared/api/core/types/pagination";
 
 export function usePaginatedGet<
   TRawData,
@@ -17,12 +17,13 @@ export function usePaginatedGet<
   authenticated = false,
   parseData,
   setTotalPages,
+  ...additionalParams
 }: UsePaginatedGetOptions<TRawData, TParsedData>) {
   const queryClient = useQueryClient();
   const [fetchedPage, setFetchedPage] = useState(page);
   const [totalCount, setTotalCount] = useState(0);
 
-  const queryKey = [url, page, limit, sortBy ?? "", search ?? ""] as const;
+  const queryKey = [url, page, limit, sortBy ?? "", search ?? "", additionalParams] as const;
 
   const queryResult = useQuery({
     queryKey,
@@ -35,6 +36,7 @@ export function usePaginatedGet<
           limit,
           ...(sortBy ? { sortBy } : {}),
           ...(search ? { search } : {}),
+          ...additionalParams,
         },
         authenticated,
       });

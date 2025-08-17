@@ -116,3 +116,128 @@ class ImageService:
             limit=pagination.limit,
             pages=pages
         )
+    
+    async def get_images_with_filters(
+        self,
+        pagination: Pagination,
+        search: Optional[str] = None,
+        sort_by: Optional[str] = None,
+        dataset_id: Optional[int] = None
+    ) -> ImageListResponse:
+        """
+        Get images with various filters
+        
+        Args:
+            pagination: Pagination
+            search: Search text (searches in file_name)
+            sort_by: Sort field (created_at, file_name, width, height)
+            dataset_id: Filter by dataset ID
+            
+        Returns:
+            ImageListResponse: List of images with pagination information
+        """
+        # Build filter conditions
+        conditions = []
+        
+        if dataset_id:
+            conditions.append(Image.dataset_id == dataset_id)
+        if search:
+            # Search in file_name field
+            search_term = f"%{search}%"
+            conditions.append(Image.file_name.ilike(search_term))
+        
+        # Count total items
+        count_query = select(func.count(Image.id))
+        if conditions:
+            count_query = count_query.where(*conditions)
+        
+        total_result = await self.db.execute(count_query)
+        total = total_result.scalar() or 0
+        
+        # Build main query
+        query = select(Image)
+        if conditions:
+            query = query.where(*conditions)
+        
+        # Apply sorting
+        if sort_by:
+            if sort_by == "created_at":
+                query = query.order_by(Image.created_at.desc())
+            elif sort_by == "file_name":
+                query = query.order_by(Image.file_name)
+            elif sort_by == "width":
+                query = query.order_by(Image.width.desc())
+            elif sort_by == "height":
+                query = query.order_by(Image.height.desc())
+            else:
+                query = query.order_by(Image.created_at.desc())  # default
+        else:
+            query = query.order_by(Image.created_at.desc())  # default
+        
+        # Apply pagination
+        offset = (pagination.page - 1) * pagination.limit
+        query = query.offset(offset).limit(pagination.limit)
+        
+        result = await self.db.execute(query)
+        images = result.scalars().all()
+        
+        pages = (total + pagination.limit - 1) // pagination.limit
+        
+        return ImageListResponse(
+            items=[ImageRead.model_validate(image) for image in images],
+            total=total,
+            page=pagination.page,
+            limit=pagination.limit,
+            pages=pages
+        )
+    
+    async def update_image(self, image_id: int, image_data: ImageUpdate) -> Optional[ImageRead]:
+        """
+        Update an existing image.
+        
+        Args:
+            image_id: ID of the image to update
+            image_data: Schema containing updated image data
+            
+        Returns:
+            Optional[ImageRead]: Updated image information, None if not found
+        """
+        result = await self.db.execute(
+            select(Image).where(Image.id == image_id)
+        )
+        image = result.scalar_one_or_none()
+        
+        if not image:
+            return None
+        
+        # Update fields if provided
+        update_data = image_data.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(image, field, value)
+        
+        await self.db.commit()
+        await self.db.refresh(image)
+        
+        return ImageRead.model_validate(image)
+    
+    async def delete_image(self, image_id: int) -> bool:
+        """
+        Delete an image.
+        
+        Args:
+            image_id: ID of the image to delete
+            
+        Returns:
+            bool: Success status of deletion
+        """
+        result = await self.db.execute(
+            select(Image).where(Image.id == image_id)
+        )
+        image = result.scalar_one_or_none()
+        
+        if not image:
+            return False
+        
+        await self.db.delete(image)
+        await self.db.commit()
+        return True

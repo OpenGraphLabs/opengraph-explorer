@@ -6,7 +6,7 @@ import { useImagesContext } from "@/contexts/data/ImagesContext";
 import { useAnnotations } from "@/contexts/data/AnnotationsContext";
 import { useAnnotationWorkspace } from "@/contexts/page/AnnotationWorkspaceContext";
 import type { Annotation, MaskInfo } from "@/components/annotation/types/annotation";
-import type { AnnotationRead } from "@/shared/api/generated/models";
+import type { Annotation as NewAnnotation } from "@/shared/api/endpoints/annotations";
 
 export function WorkspaceCanvas() {
   const { theme } = useTheme();
@@ -15,40 +15,30 @@ export function WorkspaceCanvas() {
   const { currentSelectedMasks, handleMaskSelectionChange, handleBboxComplete } =
     useAnnotationWorkspace();
 
-  // Convert AnnotationRead to Annotation format
+  // Convert NewAnnotation to Annotation format for legacy component
   const convertedAnnotations = useMemo(() => {
     return annotations.map(
-      (annotation: AnnotationRead): Annotation => ({
+      (annotation: NewAnnotation): Annotation => ({
         ...annotation,
-        bbox:
-          annotation.bbox.length >= 4
-            ? ([annotation.bbox[0], annotation.bbox[1], annotation.bbox[2], annotation.bbox[3]] as [
-                number,
-                number,
-                number,
-                number,
-              ])
-            : ([0, 0, 0, 0] as [number, number, number, number]),
-        segmentation_size: annotation.segmentation_size
-          ? ([annotation.segmentation_size[0] || 0, annotation.segmentation_size[1] || 0] as [
-              number,
-              number,
-            ])
-          : ([0, 0] as [number, number]),
-        segmentation_counts: annotation.segmentation_counts || "",
+        bbox: annotation.bbox,
+        segmentation_size: annotation.segmentationSize || [0, 0],
+        segmentation_counts: annotation.segmentationCounts || "",
         polygon: (annotation.polygon as MaskInfo) || {
           has_segmentation: false,
           polygons: [],
           bbox_polygon: [],
         },
         status: annotation.status as "PENDING" | "APPROVED" | "REJECTED",
-        source_type: annotation.source_type as "AUTO" | "USER",
-        is_crowd: annotation.is_crowd || false,
-        predicted_iou: annotation.predicted_iou,
-        stability_score: annotation.stability_score || 0,
-        point_coords: annotation.point_coords,
-        category_id: annotation.category_id,
-        created_by: annotation.created_by,
+        source_type: annotation.sourceType as "AUTO" | "USER",
+        is_crowd: annotation.isCrowd || false,
+        predicted_iou: annotation.predictedIou,
+        stability_score: annotation.stabilityScore || 0,
+        point_coords: annotation.pointCoords,
+        category_id: annotation.categoryId,
+        created_by: annotation.createdBy,
+        image_id: annotation.imageId,
+        created_at: annotation.createdAt,
+        updated_at: annotation.updatedAt,
       })
     );
   }, [annotations]);

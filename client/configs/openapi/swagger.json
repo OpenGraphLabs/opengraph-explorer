@@ -1134,7 +1134,7 @@
           "images"
         ],
         "summary": "Get Images",
-        "description": "List all images.",
+        "description": "List all images with optional filtering, searching and sorting.",
         "operationId": "get_images_api_v1_images__get",
         "parameters": [
           {
@@ -1156,9 +1156,63 @@
               "type": "integer",
               "maximum": 100,
               "minimum": 1,
-              "default": 10,
+              "default": 25,
               "title": "Limit"
             }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search in file names",
+              "title": "Search"
+            },
+            "description": "Search in file names"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Sort by field (created_at, file_name, width, height)",
+              "title": "Sort By"
+            },
+            "description": "Sort by field (created_at, file_name, width, height)"
+          },
+          {
+            "name": "dataset_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by dataset ID",
+              "title": "Dataset Id"
+            },
+            "description": "Filter by dataset ID"
           }
         ],
         "responses": {
@@ -1212,6 +1266,106 @@
                 "schema": {
                   "$ref": "#/components/schemas/ImageRead"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "images"
+        ],
+        "summary": "Update Image",
+        "description": "Update image information.\n\nArgs:\n    image_id: ID of the image to update\n    image_data: Updated image data\n    current_user: Current authenticated user\n    db: Database session\n\nReturns:\n    ImageRead: Updated image information",
+        "operationId": "update_image_api_v1_images__image_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Image Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "images"
+        ],
+        "summary": "Delete Image",
+        "description": "Delete an image.\n\nArgs:\n    image_id: ID of the image to delete\n    current_user: Current authenticated user\n    db: Database session\n\nReturns:\n    dict: Success message",
+        "operationId": "delete_image_api_v1_images__image_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Image Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -1747,6 +1901,216 @@
         }
       }
     },
+    "/api/v1/annotations/": {
+      "get": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Get Annotations",
+        "description": "List all annotations with optional filtering, searching and sorting.",
+        "operationId": "get_annotations_api_v1_annotations__get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search in status or source_type",
+              "title": "Search"
+            },
+            "description": "Search in status or source_type"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Sort by field (created_at, updated_at, area)",
+              "title": "Sort By"
+            },
+            "description": "Sort by field (created_at, updated_at, area)"
+          },
+          {
+            "name": "image_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by image ID",
+              "title": "Image Id"
+            },
+            "description": "Filter by image ID"
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category ID",
+              "title": "Category Id"
+            },
+            "description": "Filter by category ID"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by status (PENDING, APPROVED, REJECTED)",
+              "title": "Status"
+            },
+            "description": "Filter by status (PENDING, APPROVED, REJECTED)"
+          },
+          {
+            "name": "source_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by source type (AUTO, USER)",
+              "title": "Source Type"
+            },
+            "description": "Filter by source type (AUTO, USER)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Create Annotation",
+        "description": "Create a new annotation.",
+        "operationId": "create_annotation_api_v1_annotations__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/annotations/approved": {
       "get": {
         "tags": [
@@ -1775,7 +2139,7 @@
               "type": "integer",
               "maximum": 100,
               "minimum": 1,
-              "default": 10,
+              "default": 25,
               "title": "Limit"
             }
           }
@@ -1831,6 +2195,106 @@
                 "schema": {
                   "$ref": "#/components/schemas/AnnotationRead"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Update Annotation",
+        "description": "Update an existing annotation.\n\nArgs:\n    annotation_id: ID of the annotation to update\n    annotation_data: Updated annotation data\n    current_user: Current authenticated user\n    db: Database session\n\nReturns:\n    AnnotationRead: Updated annotation",
+        "operationId": "update_annotation_api_v1_annotations__annotation_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "annotation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Annotation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "annotations"
+        ],
+        "summary": "Delete Annotation",
+        "description": "Delete an annotation.\n\nArgs:\n    annotation_id: ID of the annotation to delete\n    current_user: Current authenticated user\n    db: Database session\n\nReturns:\n    dict: Success message",
+        "operationId": "delete_annotation_api_v1_annotations__annotation_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "annotation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Annotation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -2491,6 +2955,159 @@
         "title": "AnnotationClientRead",
         "description": "클라이언트용 어노테이션 읽기 스키마 (RLE 데이터 제외)"
       },
+      "AnnotationCreate": {
+        "properties": {
+          "bbox": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Bbox",
+            "description": "Bounding box [x, y, width, height]"
+          },
+          "area": {
+            "type": "number",
+            "title": "Area",
+            "description": "Segmentation area"
+          },
+          "segmentation_size": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segmentation Size",
+            "description": "[height, width] of the segmentation"
+          },
+          "segmentation_counts": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segmentation Counts",
+            "description": "COCO RLE encoding"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon",
+            "description": "Pre-computed polygon data for client rendering"
+          },
+          "point_coords": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point Coords",
+            "description": "Point coordinates used for SAM"
+          },
+          "is_crowd": {
+            "type": "boolean",
+            "title": "Is Crowd",
+            "description": "Is crowd annotation",
+            "default": false
+          },
+          "predicted_iou": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Iou",
+            "description": "Predicted IoU from SAM"
+          },
+          "stability_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stability Score",
+            "description": "Stability score from SAM"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Annotation status",
+            "default": "PENDING"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type",
+            "description": "Source type (AUTO or USER)"
+          },
+          "image_id": {
+            "type": "integer",
+            "title": "Image Id",
+            "description": "Associated image ID"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "Associated category ID"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By",
+            "description": "Creator user ID (for USER type)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bbox",
+          "area",
+          "source_type",
+          "image_id"
+        ],
+        "title": "AnnotationCreate",
+        "description": "어노테이션 생성 스키마"
+      },
       "AnnotationListResponse": {
         "properties": {
           "items": {
@@ -2780,6 +3397,115 @@
         ],
         "title": "AnnotationSelectionStats",
         "description": "어노테이션 선택 통계 스키마"
+      },
+      "AnnotationUpdate": {
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox",
+            "description": "Bounding box [x, y, width, height]"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area",
+            "description": "Segmentation area"
+          },
+          "segmentation_size": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segmentation Size",
+            "description": "[height, width] of the segmentation"
+          },
+          "segmentation_counts": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segmentation Counts",
+            "description": "COCO RLE encoding"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon",
+            "description": "Pre-computed polygon data for client rendering"
+          },
+          "is_crowd": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Crowd",
+            "description": "Is crowd annotation"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "Annotation status"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id",
+            "description": "Associated category ID"
+          }
+        },
+        "type": "object",
+        "title": "AnnotationUpdate",
+        "description": "어노테이션 업데이트 스키마"
       },
       "CategoryCreate": {
         "properties": {
@@ -3557,6 +4283,61 @@
         ],
         "title": "ImageRead",
         "description": "Image read schema"
+      },
+      "ImageUpdate": {
+        "properties": {
+          "file_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Name",
+            "description": "File name"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url",
+            "description": "Image URL"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width",
+            "description": "Image width in pixels"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height",
+            "description": "Image height in pixels"
+          }
+        },
+        "type": "object",
+        "title": "ImageUpdate",
+        "description": "Image update schema"
       },
       "UpdateSuiAddressRequest": {
         "properties": {

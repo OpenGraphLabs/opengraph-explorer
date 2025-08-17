@@ -55,12 +55,20 @@ export function HomeGallery() {
             }}
           >
             <ImageWithSingleAnnotation
-              annotation={annotation}
+              annotation={{
+                ...annotation,
+                source_type: annotation.sourceType,
+                image_id: annotation.imageId,
+                category_id: annotation.categoryId,
+                created_by: annotation.createdBy,
+                created_at: annotation.createdAt,
+                updated_at: annotation.updatedAt,
+              } as any}
               imageId={image.id}
-              imageUrl={image.image_url}
+              imageUrl={image.imageUrl}
               imageWidth={image.width}
               imageHeight={image.height}
-              fileName={image.file_name}
+              fileName={image.fileName}
               onClick={() => handleAnnotationClick(annotationWithImage)}
               showMaskByDefault={showGlobalMasks}
               priority={index < 6} // First 6 images get priority loading

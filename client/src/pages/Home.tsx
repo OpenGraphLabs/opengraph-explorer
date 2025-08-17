@@ -159,8 +159,22 @@ function HomeContent() {
       {/* Image Detail Sidebar */}
       {selectedAnnotation && selectedAnnotation.image && (
         <ImageDetailSidebar
-          annotation={selectedAnnotation}
-          image={selectedAnnotation.image}
+          annotation={{
+            ...selectedAnnotation,
+            source_type: selectedAnnotation.sourceType,
+            image_id: selectedAnnotation.imageId,
+            category_id: selectedAnnotation.categoryId,
+            created_by: selectedAnnotation.createdBy,
+            created_at: selectedAnnotation.createdAt,
+            updated_at: selectedAnnotation.updatedAt,
+          } as any}
+          image={{
+            ...selectedAnnotation.image,
+            file_name: selectedAnnotation.image.fileName,
+            image_url: selectedAnnotation.image.imageUrl,
+            dataset_id: selectedAnnotation.image.datasetId,
+            created_at: selectedAnnotation.image.createdAt,
+          } as any}
           categoryName={selectedAnnotation.categoryName}
           isOpen={!!selectedAnnotation}
           onClose={handleCloseSidebar}

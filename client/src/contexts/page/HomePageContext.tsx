@@ -2,10 +2,11 @@ import React, { createContext, useContext, useState, useMemo, useEffect, ReactNo
 import { useAnnotations } from "../data/AnnotationsContext";
 import { useImagesContext } from "../data/ImagesContext";
 import { useCategories } from "../data/CategoriesContext";
-import type { AnnotationRead, ImageRead } from "@/shared/api/generated/models";
+import type { Annotation } from "@/shared/api/endpoints/annotations";
+import type { Image } from "@/shared/api/endpoints/images";
 
-export interface ApprovedAnnotationWithImage extends AnnotationRead {
-  image?: ImageRead;
+export interface ApprovedAnnotationWithImage extends Annotation {
+  image?: Image;
   categoryName?: string;
 }
 
@@ -91,15 +92,29 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
 
     // First filter by category if selected
     const categoryFilteredAnnotations = selectedCategory
-      ? annotations.filter(annotation => annotation.category_id === selectedCategory.id)
+      ? annotations.filter(annotation => annotation.categoryId === selectedCategory.id)
       : annotations;
 
     // Map annotations with their images and category names
-    const annotationsWithData = categoryFilteredAnnotations.map(annotation => ({
-      ...annotation,
-      image: imageMap.get(annotation.image_id),
-      categoryName: categoryMap.get(annotation.category_id) || `Category ${annotation.category_id}`,
-    }));
+    const annotationsWithData = categoryFilteredAnnotations.map(annotation => {
+      const rawImage = imageMap.get(annotation.imageId);
+      // Convert ImageRead to Image if needed
+      const image = rawImage ? {
+        id: rawImage.id,
+        fileName: (rawImage as any).file_name || (rawImage as any).fileName,
+        imageUrl: (rawImage as any).image_url || (rawImage as any).imageUrl,
+        width: rawImage.width,
+        height: rawImage.height,
+        datasetId: (rawImage as any).dataset_id || (rawImage as any).datasetId,
+        createdAt: (rawImage as any).created_at || (rawImage as any).createdAt,
+      } : undefined;
+      
+      return {
+        ...annotation,
+        image,
+        categoryName: categoryMap.get(annotation.categoryId) || `Category ${annotation.categoryId}`,
+      };
+    });
 
     // Only filter out items without images after loading is complete
     // During loading, show all annotations to maintain count

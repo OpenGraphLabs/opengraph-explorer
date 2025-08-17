@@ -1,14 +1,8 @@
-import { useSingleGet, usePaginatedGet, usePost, useDelete } from '../core/hooks';
-import type { 
-  ImageRead, 
-  ImageCreate,
-  ImageListResponse 
-} from '../generated/models';
+import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '@/shared/api/core';
+import type { ApiListResponse } from '@/shared/api/core';
 
-// Base endpoints
 const IMAGES_BASE = '/api/v1/images';
 
-// Type mappings for better UX
 export interface Image {
   id: number;
   fileName: string;
@@ -27,15 +21,35 @@ export interface ImageCreateInput {
   datasetId: number;
 }
 
-// Parsing functions
-const parseImage = (raw: ImageRead): Image => ({
-  id: raw.id,
-  fileName: raw.file_name,
-  imageUrl: raw.image_url,
-  width: raw.width,
-  height: raw.height,
-  datasetId: raw.dataset_id,
-  createdAt: raw.created_at,
+export interface ImageUpdateInput {
+  fileName?: string;
+  imageUrl?: string;
+  width?: number;
+  height?: number;
+  datasetId?: number;
+}
+
+interface ImageResponse {
+  id: number;
+  file_name: string;
+  image_url: string;
+  width: number;
+  height: number;
+  dataset_id: number;
+  created_at: string;
+}
+
+interface ImageListResponse extends ApiListResponse<ImageResponse> {}
+
+// Parsing functions to convert API responses to client types
+const parseImage = (resp: ImageResponse): Image => ({
+  id: resp.id,
+  fileName: resp.file_name,
+  imageUrl: resp.image_url,
+  width: resp.width,
+  height: resp.height,
+  datasetId: resp.dataset_id,
+  createdAt: resp.created_at,
 });
 
 // API Hooks
@@ -44,7 +58,7 @@ const parseImage = (raw: ImageRead): Image => ({
  * Get a single image by ID
  */
 export function useImage(imageId: number, options: { enabled?: boolean } = {}) {
-  return useSingleGet<ImageRead, Image>({
+  return useSingleGet<ImageResponse, Image>({
     url: `${IMAGES_BASE}/${imageId}`,
     enabled: options.enabled && !!imageId,
     authenticated: true,
@@ -74,16 +88,8 @@ export function useImages(options: {
     setTotalPages 
   } = options;
 
-  const queryParams = {
-    page,
-    limit,
-    ...(datasetId && { dataset_id: datasetId }),
-    ...(search && { search }),
-    ...(sortBy && { sortBy }),
-  };
-
   return usePaginatedGet<
-    ImageRead,
+    ImageResponse,
     ImageListResponse,
     Image
   >({
@@ -96,6 +102,7 @@ export function useImages(options: {
     authenticated: true,
     parseData: parseImage,
     setTotalPages,
+    ...(datasetId && { dataset_id: datasetId }),
   });
 }
 
@@ -103,8 +110,19 @@ export function useImages(options: {
  * Create a new image
  */
 export function useCreateImage() {
-  return usePost<ImageCreateInput, ImageRead, Image>(
+  return usePost<ImageCreateInput, ImageResponse, Image>(
     IMAGES_BASE,
+    parseImage,
+    { authenticated: true }
+  );
+}
+
+/**
+ * Update an existing image
+ */
+export function useUpdateImage(imageId: number) {
+  return usePut<ImageUpdateInput, ImageResponse, Image>(
+    `${IMAGES_BASE}/${imageId}`,
     parseImage,
     { authenticated: true }
   );
