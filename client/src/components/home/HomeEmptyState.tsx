@@ -2,7 +2,7 @@ import React from "react";
 import { Flex, Box, Heading, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { GridIcon } from "@radix-ui/react-icons";
-import { useHomePageContext } from "@/shared/providers/HomePageProvider";
+import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 export function HomeEmptyState() {
   const { theme } = useTheme();

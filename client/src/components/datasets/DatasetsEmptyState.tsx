@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Database } from "phosphor-react";
-import { useDatasetsPageContext } from "@/shared/providers/DatasetsPageProvider";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsEmptyState() {
   const { theme } = useTheme();

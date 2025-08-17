@@ -11,8 +11,8 @@ import {
 import { useTheme } from "@/shared/ui/design-system";
 import { EyeOpenIcon, EyeNoneIcon, CubeIcon, ImageIcon, VideoIcon } from "@radix-ui/react-icons";
 import { CategorySearchInput } from "@/components/annotation";
-import { useHomePageContext } from "@/shared/providers/HomePageProvider";
-import type { VideoTask } from "@/shared/hooks/pages/useHomePage";
+import { useHomePageContext } from "@/contexts/HomePageContextProvider";
+import type { VideoTask } from "@/hooks/useHomePage";
 
 export function HomeHeader() {
   const {

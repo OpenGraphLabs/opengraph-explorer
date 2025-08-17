@@ -1,8 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from "react";
 import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
+import { useTrajectoryWorkspacePageContext } from "@/contexts/TrajectoryWorkspacePageContextProvider";
 import {
   HandGrabbing,
   ArrowRight,
@@ -32,23 +31,50 @@ export function TrajectoryCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
-  const { selectedImage } = useImagesContext();
   const {
-    selectedTask,
+    selectedImage,
+    annotations: approvedAnnotations,
+    trajectoryPoints,
     isDrawingMode,
-    trajectoryPath,
-    robotHandPosition,
-    startPoint,
-    endPoint,
-    activeTrajectoryMasks,
-    handleStartDrawing,
-    handleEndDrawing,
-    handleTrajectoryPointAdd,
-    handleRobotHandMove,
-    handleSubmitTrajectory,
-    approvedAnnotations,
-    annotationsLoading,
-  } = useTrajectoryWorkspace();
+    isLoading: annotationsLoading,
+    handleAddTrajectoryPoint,
+    handleToggleDrawingMode,
+  } = useTrajectoryWorkspacePageContext();
+
+  // For trajectory workspace, we need to extract some temporary state
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [trajectoryPath, setTrajectoryPath] = useState<Point[]>([]);
+  const [robotHandPosition, setRobotHandPosition] = useState<Point | null>(null);
+  const [startPoint, setStartPoint] = useState<Point | null>(null);
+  const [endPoint, setEndPoint] = useState<Point | null>(null);
+  const [activeTrajectoryMasks, setActiveTrajectoryMasks] = useState<number[]>([]);
+
+  // Temporary handlers until trajectory logic is properly implemented
+  const handleStartDrawing = useCallback(() => {
+    handleToggleDrawingMode();
+  }, [handleToggleDrawingMode]);
+
+  const handleEndDrawing = useCallback((path: Point[]) => {
+    setTrajectoryPath(path);
+    handleToggleDrawingMode();
+  }, [handleToggleDrawingMode]);
+
+  const handleTrajectoryPointAdd = useCallback((point: any) => {
+    if (point.type === "start") {
+      setStartPoint(point);
+    } else if (point.type === "end") {
+      setEndPoint(point);
+    }
+    handleAddTrajectoryPoint(point);
+  }, [handleAddTrajectoryPoint]);
+
+  const handleRobotHandMove = useCallback((position: Point) => {
+    setRobotHandPosition(position);
+  }, []);
+
+  const handleSubmitTrajectory = useCallback(() => {
+    console.log("Submit trajectory", { startPoint, endPoint, trajectoryPath });
+  }, [startPoint, endPoint, trajectoryPath]);
 
   // Canvas states
   const [imageLoaded, setImageLoaded] = useState(false);

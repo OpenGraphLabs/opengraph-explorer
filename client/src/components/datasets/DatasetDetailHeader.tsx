@@ -1,7 +1,7 @@
 import { Box, Flex, Text, Badge, Heading, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Hash } from "phosphor-react";
-import { useDatasetDetailPageContext } from "@/shared/providers/DatasetDetailPageProvider";
+import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 
 export function DatasetDetailHeader() {
   const { theme } = useTheme();

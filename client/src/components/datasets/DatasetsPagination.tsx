@@ -2,7 +2,7 @@ import React from "react";
 import { Flex, Button, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { CaretLeft, CaretRight } from "phosphor-react";
-import { useDatasetsPageContext } from "@/shared/providers/DatasetsPageProvider";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsPagination() {
   const { theme } = useTheme();

@@ -1,7 +1,7 @@
 import { Box, Flex, Text, Avatar } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Circle } from "phosphor-react";
-import { useProfilePageContext } from "@/shared/providers/ProfilePageProvider";
+import { useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
 
 export function ProfileTopBar() {
   const { theme } = useTheme();

@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from "react";
 import { useAnnotations, useCreateAnnotationSelectionsBatch } from "@/shared/api/endpoints/annotations";
 import { useImages } from "@/shared/api/endpoints/images";
-import { useCategories } from "@/shared/api/endpoints/categories";
+import { useDictionaryCategories } from "@/shared/api/endpoints/categories";
+import { useDataset } from "@/shared/api/endpoints/datasets";
 import type { AnnotationSelectionBatchCreateInput } from "@/shared/api/endpoints/annotations";
 import type { Category } from "@/shared/api/endpoints/categories";
 
@@ -14,10 +15,11 @@ export interface EntityAnnotation {
 export interface UseAnnotationWorkspacePageOptions {
   datasetId?: number;
   imagesLimit?: number;
+  specificImageId?: number;
 }
 
 export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOptions = {}) {
-  const { datasetId, imagesLimit = 100 } = options;
+  const { datasetId, imagesLimit = 100, specificImageId } = options;
 
   // Page-specific UI state
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
@@ -30,6 +32,14 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
 
   // API data fetching
   const {
+    data: dataset,
+    isLoading: datasetLoading,
+    error: datasetError,
+  } = useDataset(datasetId!, {
+    enabled: !!datasetId,
+  });
+
+  const {
     data: images = [],
     isLoading: imagesLoading,
     error: imagesError,
@@ -39,12 +49,16 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
     enabled: !!datasetId,
   });
 
-  // Get a random image from the dataset
+  // Get selected image (specific or random)
   const selectedImage = useMemo(() => {
     if (images.length === 0) return null;
+    if (specificImageId) {
+      const specificImage = images.find(img => img.id === specificImageId);
+      if (specificImage) return specificImage;
+    }
     const randomIndex = randomSeed % images.length;
     return images[randomIndex];
-  }, [images, randomSeed]);
+  }, [images, randomSeed, specificImageId]);
 
   const {
     data: annotations = [],
@@ -59,17 +73,18 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
     data: categories = [],
     isLoading: categoriesLoading,
     error: categoriesError,
-  } = useCategories({
+  } = useDictionaryCategories({
+    dictionaryId: dataset?.dictionaryId!,
     limit: 100,
-    enabled: true,
+    enabled: !!dataset?.dictionaryId,
   });
 
   // Create annotation selections batch
   const { createBatch, isPosting: isSaving } = useCreateAnnotationSelectionsBatch();
 
   // Loading and error states
-  const isLoading = imagesLoading || annotationsLoading || categoriesLoading;
-  const error = imagesError || annotationsError || categoriesError;
+  const isLoading = datasetLoading || imagesLoading || annotationsLoading || categoriesLoading;
+  const error = datasetError || imagesError || annotationsError || categoriesError;
 
   // Entity management
   const handleCategorySelect = useCallback((category: Category) => {
@@ -164,6 +179,9 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
   }, [selectedImage, entities, createBatch, moveToNextImage]);
 
   return {
+    // Dataset data
+    dataset,
+
     // Image data
     selectedImage,
     images,

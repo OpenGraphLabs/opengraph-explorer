@@ -2,23 +2,30 @@ import React from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Target, Trash, FloppyDisk, Check, X } from "phosphor-react";
-import { useAnnotationWorkspace } from "@/contexts/page/AnnotationWorkspaceContext";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
+import { useAnnotationWorkspacePageContext } from "@/contexts/AnnotationWorkspacePageContextProvider";
 
 export function EntityList() {
   const { theme } = useTheme();
-  const { annotations } = useAnnotations();
-  const {
+  const { 
+    annotations,
     entities,
     selectedEntityId,
     isMovingToNext,
     isSaving,
     saveError,
     saveSuccess,
-    handleEntitySelect,
-    handleEntityDelete,
-    handleSaveAnnotations,
-  } = useAnnotationWorkspace();
+    setSelectedEntityId,
+    setEntities,
+    handleSaveAnnotations
+  } = useAnnotationWorkspacePageContext();
+
+  const handleEntitySelect = (entityId: string) => {
+    setSelectedEntityId(entityId);
+  };
+
+  const handleEntityDelete = (entityId: string) => {
+    setEntities(prev => prev.filter(e => e.id !== entityId));
+  };
 
   return (
     <Box

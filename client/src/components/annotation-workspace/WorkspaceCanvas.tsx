@@ -2,18 +2,22 @@ import React, { useMemo } from "react";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { InteractiveAnnotationCanvas } from "@/components/annotation";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
-import { useAnnotationWorkspace } from "@/contexts/page/AnnotationWorkspaceContext";
+import { useAnnotationWorkspacePageContext } from "@/contexts/AnnotationWorkspacePageContextProvider";
 import type { Annotation, MaskInfo } from "@/components/annotation/types/annotation";
 import type { Annotation as NewAnnotation } from "@/shared/api/endpoints/annotations";
 
 export function WorkspaceCanvas() {
   const { theme } = useTheme();
-  const { selectedImage } = useImagesContext();
-  const { annotations } = useAnnotations();
-  const { currentSelectedMasks, handleMaskSelectionChange, handleBboxComplete } =
-    useAnnotationWorkspace();
+  const { 
+    selectedImage, 
+    annotations, 
+    currentSelectedMasks, 
+    handleMaskSelectionChange 
+  } = useAnnotationWorkspacePageContext();
+
+  const handleBboxComplete = (bbox: any) => {
+    console.log("Bbox complete:", bbox);
+  };
 
   // Convert NewAnnotation to Annotation format for legacy component
   const convertedAnnotations = useMemo(() => {

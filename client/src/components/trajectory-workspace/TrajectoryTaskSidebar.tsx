@@ -1,26 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
+import { useTrajectoryWorkspacePageContext } from "@/contexts/TrajectoryWorkspacePageContextProvider";
 import { Play, Stop, CheckCircle, Circle, Robot, Sparkle } from "phosphor-react";
 
 export function TrajectoryTaskSidebar() {
   const { theme } = useTheme();
   const {
-    selectedTask,
-    availableTasks,
+    annotations: approvedAnnotations,
+    trajectoryPoints,
     isDrawingMode,
-    robotHandPosition,
-    startPoint,
-    endPoint,
-    trajectoryPath,
-    activeTrajectoryMasks,
-    approvedAnnotations,
-    handleTaskSelect,
-    handleStartDrawing,
-    handleStopDrawing,
-    handleResetTrajectory,
-  } = useTrajectoryWorkspace();
+    handleToggleDrawingMode,
+  } = useTrajectoryWorkspacePageContext();
+
+  // Temporary state until trajectory logic is properly implemented
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [availableTasks, setAvailableTasks] = useState([]);
+  const [startPoint, setStartPoint] = useState(null);
+  const [endPoint, setEndPoint] = useState(null);
+  const [trajectoryPath, setTrajectoryPath] = useState([]);
+
+  // Temporary handlers
+  const handleTaskSelect = (task) => setSelectedTask(task);
+  const handleStartDrawing = () => handleToggleDrawingMode();
+  const handleStopDrawing = () => handleToggleDrawingMode();
+  const handleResetTrajectory = () => {
+    setStartPoint(null);
+    setEndPoint(null);
+    setTrajectoryPath([]);
+  };
 
   console.log("TrajectoryTaskSidebar - Available tasks:", availableTasks.length);
   console.log("TrajectoryTaskSidebar - Approved annotations:", approvedAnnotations.length);

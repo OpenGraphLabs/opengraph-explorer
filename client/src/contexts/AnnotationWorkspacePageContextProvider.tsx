@@ -1,17 +1,17 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { useAnnotationWorkspacePage } from "@/shared/hooks/pages/useAnnotationWorkspacePage";
-import type { UseAnnotationWorkspacePageOptions } from "@/shared/hooks/pages/useAnnotationWorkspacePage";
+import { useAnnotationWorkspacePage } from "@/hooks/useAnnotationWorkspacePage";
+import type { UseAnnotationWorkspacePageOptions } from "@/hooks/useAnnotationWorkspacePage";
 
 type AnnotationWorkspacePageContextType = ReturnType<typeof useAnnotationWorkspacePage>;
 
 const AnnotationWorkspacePageContext = createContext<AnnotationWorkspacePageContextType | null>(null);
 
-interface AnnotationWorkspacePageProviderProps {
+interface AnnotationWorkspacePageContextProviderProps {
   children: ReactNode;
   options?: UseAnnotationWorkspacePageOptions;
 }
 
-export function AnnotationWorkspacePageProvider({ children, options = {} }: AnnotationWorkspacePageProviderProps) {
+export function AnnotationWorkspacePageContextProvider({ children, options = {} }: AnnotationWorkspacePageContextProviderProps) {
   const annotationWorkspacePageData = useAnnotationWorkspacePage(options);
 
   return (

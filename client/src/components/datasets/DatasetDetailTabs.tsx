@@ -1,7 +1,7 @@
 import { Box, Flex, Text, Tabs } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircle, Users, Database } from "phosphor-react";
-import { useDatasetDetailPageContext } from "@/shared/providers/DatasetDetailPageProvider";
+import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 
 export function DatasetDetailTabs() {
   const { theme } = useTheme();

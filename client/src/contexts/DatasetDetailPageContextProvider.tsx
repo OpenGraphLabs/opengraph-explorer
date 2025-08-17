@@ -1,17 +1,17 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { useDatasetDetailPage } from "@/shared/hooks/pages/useDatasetDetailPage";
-import type { UseDatasetDetailPageOptions } from "@/shared/hooks/pages/useDatasetDetailPage";
+import { useDatasetDetailPage } from "@/hooks/useDatasetDetailPage";
+import type { UseDatasetDetailPageOptions } from "@/hooks/useDatasetDetailPage";
 
 type DatasetDetailPageContextType = ReturnType<typeof useDatasetDetailPage>;
 
 const DatasetDetailPageContext = createContext<DatasetDetailPageContextType | null>(null);
 
-interface DatasetDetailPageProviderProps {
+interface DatasetDetailPageContextProviderProps {
   children: ReactNode;
   options: UseDatasetDetailPageOptions;
 }
 
-export function DatasetDetailPageProvider({ children, options }: DatasetDetailPageProviderProps) {
+export function DatasetDetailPageContextProvider({ children, options }: DatasetDetailPageContextProviderProps) {
   const datasetDetailPageData = useDatasetDetailPage(options);
 
   return (

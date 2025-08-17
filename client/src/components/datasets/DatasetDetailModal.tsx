@@ -1,4 +1,4 @@
-import { useDatasetDetailPageContext } from "@/shared/providers/DatasetDetailPageProvider";
+import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 import { DatasetImageModal } from "./DatasetImageModal";
 import { getAnnotationColor } from "@/shared/utils/dataset";
 

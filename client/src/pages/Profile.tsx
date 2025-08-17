@@ -3,7 +3,7 @@ import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
-import { ProfilePageProvider, useProfilePageContext } from "@/shared/providers/ProfilePageProvider";
+import { ProfilePageContextProvider, useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
 import {
   BarChartIcon,
   PersonIcon,
@@ -791,8 +791,8 @@ function ProfileContent() {
 
 export function Profile() {
   return (
-    <ProfilePageProvider>
+    <ProfilePageContextProvider>
       <ProfileContent />
-    </ProfilePageProvider>
+    </ProfilePageContextProvider>
   );
 }

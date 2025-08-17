@@ -2,7 +2,7 @@ import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { Database, Target, ChartBar } from "phosphor-react";
-import { useProfilePageContext } from "@/shared/providers/ProfilePageProvider";
+import { useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
 
 export function ProfileActivityStats() {
   const { theme } = useTheme();

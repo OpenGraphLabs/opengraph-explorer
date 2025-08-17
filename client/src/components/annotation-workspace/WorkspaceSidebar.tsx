@@ -2,24 +2,22 @@ import React, { useMemo } from "react";
 import { Box, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SimpleSelectionUI, CategorySearchPanel } from "@/components/annotation";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
-import { useDatasets } from "@/contexts/data/DatasetsContext";
-import { useAnnotationWorkspace } from "@/contexts/page/AnnotationWorkspaceContext";
+import { useAnnotationWorkspacePageContext } from "@/contexts/AnnotationWorkspacePageContextProvider";
 import { EntityList } from "./EntityList";
 import type { Annotation, MaskInfo } from "@/components/annotation/types/annotation";
 import type { Annotation as NewAnnotation } from "@/shared/api/endpoints/annotations";
 
 export function WorkspaceSidebar() {
   const { theme } = useTheme();
-  const { annotations } = useAnnotations();
-  const { dataset } = useDatasets();
-  const {
-    currentSelectedMasks,
+  const { 
+    annotations, 
+    dataset, 
+    currentSelectedMasks, 
     entities,
     selectedEntityId,
     handleCategorySelect,
-    handleMaskSelectionChange,
-  } = useAnnotationWorkspace();
+    handleMaskSelectionChange 
+  } = useAnnotationWorkspacePageContext();
 
   const selectedEntity = entities.find(e => e.id === selectedEntityId);
 

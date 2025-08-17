@@ -2,7 +2,7 @@ import React from "react";
 import { Grid, Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ImageWithSingleAnnotation } from "@/components/annotation";
-import { useHomePageContext } from "@/shared/providers/HomePageProvider";
+import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 export function HomeGallery() {
   const {

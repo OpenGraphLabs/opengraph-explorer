@@ -4,6 +4,7 @@ import type { ApiListResponse } from "@/shared/api/core";
 // Base endpoints
 const CATEGORIES_BASE = "/api/v1/categories";
 const DICTIONARIES_BASE = "/api/v1/dictionaries";
+const DICTIONARY_CATEGORIES_BASE = "/api/v1/dictionary-categories";
 
 // Client-side types (camelCase)
 export interface Category {
@@ -112,7 +113,7 @@ export function useDictionaryCategories(
   } = options;
 
   return usePaginatedGet<CategoryResponse, CategoryListResponse, Category>({
-    url: `${DICTIONARIES_BASE}/${dictionaryId}/categories`,
+    url: `${DICTIONARY_CATEGORIES_BASE}/${dictionaryId}`,
     page,
     limit,
     search,

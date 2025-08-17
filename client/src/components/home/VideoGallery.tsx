@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useHomePageContext } from "@/shared/providers/HomePageProvider";
+import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 const YOUTUBE_VIDEOS = [
   { id: "YpZcIwDrsfY", task: "wipe_spill" },

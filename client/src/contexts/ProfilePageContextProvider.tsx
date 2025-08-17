@@ -1,17 +1,17 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { useProfilePage } from "@/shared/hooks/pages/useProfilePage";
-import type { UseProfilePageOptions } from "@/shared/hooks/pages/useProfilePage";
+import { useProfilePage } from "@/hooks/useProfilePage";
+import type { UseProfilePageOptions } from "@/hooks/useProfilePage";
 
 type ProfilePageContextType = ReturnType<typeof useProfilePage>;
 
 const ProfilePageContext = createContext<ProfilePageContextType | null>(null);
 
-interface ProfilePageProviderProps {
+interface ProfilePageContextProviderProps {
   children: ReactNode;
   options?: UseProfilePageOptions;
 }
 
-export function ProfilePageProvider({ children, options = {} }: ProfilePageProviderProps) {
+export function ProfilePageContextProvider({ children, options = {} }: ProfilePageContextProviderProps) {
   const profilePageData = useProfilePage(options);
 
   return (

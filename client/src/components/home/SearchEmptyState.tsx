@@ -2,16 +2,14 @@ import React from "react";
 import { Flex, Box, Heading, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { useCategories } from "@/contexts/data/CategoriesContext";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
+import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 export function SearchEmptyState() {
   const { theme } = useTheme();
-  const { selectedCategory, setSelectedCategory } = useCategories();
-  const { setCurrentPage } = useAnnotations();
+  const { selectedCategory, handleCategorySelect, setCurrentPage } = useHomePageContext();
 
   const handleClearSearch = () => {
-    setSelectedCategory(null);
+    handleCategorySelect(null);
     setCurrentPage(1);
     setTimeout(() => {
       window.scrollTo({

@@ -2,7 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { DatasetDetailPageProvider, useDatasetDetailPageContext } from "@/shared/providers/DatasetDetailPageProvider";
+import { DatasetDetailPageContextProvider, useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 import {
   DatasetDetailHeader,
   DatasetDetailDataBrowser,
@@ -88,8 +88,8 @@ export function DatasetDetail() {
   const datasetId = id ? parseInt(id) : 0;
 
   return (
-    <DatasetDetailPageProvider options={{ datasetId, imagesLimit: 100 }}>
+    <DatasetDetailPageContextProvider options={{ datasetId, imagesLimit: 100 }}>
       <DatasetDetailContent />
-    </DatasetDetailPageProvider>
+    </DatasetDetailPageContextProvider>
   );
 }

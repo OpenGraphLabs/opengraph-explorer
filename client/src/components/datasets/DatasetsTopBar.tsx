@@ -2,7 +2,7 @@ import React from "react";
 import { Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ChartLineUp, MagnifyingGlass } from "phosphor-react";
-import { useDatasetsPageContext } from "@/shared/providers/DatasetsPageProvider";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsTopBar() {
   const { theme } = useTheme();

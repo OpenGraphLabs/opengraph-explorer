@@ -2,7 +2,7 @@ import React from "react";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ImageDetailSidebar } from "@/components/annotation";
-import { HomePageProvider, useHomePageContext } from "@/shared/providers/HomePageProvider";
+import { HomePageContextProvider, useHomePageContext } from "@/contexts/HomePageContextProvider";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { HomeGallery } from "@/components/home/HomeGallery";
 import { VideoGallery } from "@/components/home/VideoGallery";
@@ -187,9 +187,9 @@ function HomeContent() {
 
 export function Home() {
   return (
-    <HomePageProvider>
+    <HomePageContextProvider>
       <HomeContent />
-    </HomePageProvider>
+    </HomePageContextProvider>
   );
 }
 

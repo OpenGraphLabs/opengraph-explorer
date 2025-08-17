@@ -1,17 +1,17 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { useDatasetsPage } from "@/shared/hooks/pages/useDatasetsPage";
-import type { UseDatasetsPageOptions } from "@/shared/hooks/pages/useDatasetsPage";
+import { useDatasetsPage } from "@/hooks/useDatasetsPage";
+import type { UseDatasetsPageOptions } from "@/hooks/useDatasetsPage";
 
 type DatasetsPageContextType = ReturnType<typeof useDatasetsPage>;
 
 const DatasetsPageContext = createContext<DatasetsPageContextType | null>(null);
 
-interface DatasetsPageProviderProps {
+interface DatasetsPageContextProviderProps {
   children: ReactNode;
   options?: UseDatasetsPageOptions;
 }
 
-export function DatasetsPageProvider({ children, options = {} }: DatasetsPageProviderProps) {
+export function DatasetsPageContextProvider({ children, options = {} }: DatasetsPageContextProviderProps) {
   const datasetsPageData = useDatasetsPage({
     limit: 20,
     ...options,

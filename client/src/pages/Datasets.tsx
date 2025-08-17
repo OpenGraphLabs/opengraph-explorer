@@ -3,7 +3,7 @@ import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/shared/components/SidebarLayout";
 import { Database, UploadSimple, Circle, Sparkle } from "phosphor-react";
-import { DatasetsPageProvider, useDatasetsPageContext } from "@/shared/providers/DatasetsPageProvider";
+import { DatasetsPageContextProvider, useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 import {
   DatasetsLoadingState,
   DatasetsErrorState,
@@ -113,8 +113,8 @@ function DatasetsContent() {
 
 export function Datasets() {
   return (
-    <DatasetsPageProvider options={{ limit: 20 }}>
+    <DatasetsPageContextProvider options={{ limit: 20 }}>
       <DatasetsContent />
-    </DatasetsPageProvider>
+    </DatasetsPageContextProvider>
   );
 }

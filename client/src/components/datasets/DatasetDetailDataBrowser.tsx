@@ -1,7 +1,7 @@
 import { Box, Tabs } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { useDatasetDetailPageContext } from "@/shared/providers/DatasetDetailPageProvider";
+import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 import { DatasetDetailTabs } from "./DatasetDetailTabs";
 import { DatasetImageGallery } from "./DatasetImageGallery";
 import { DatasetPagination } from "./DatasetPagination";

@@ -1,39 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { AnnotationsProvider } from "@/contexts/data/AnnotationsContext";
-import { ImagesProvider } from "@/contexts/data/ImagesContext";
-import { CategoriesProvider } from "@/contexts/data/CategoriesContext";
-import { DatasetsProvider } from "@/contexts/data/DatasetsContext";
-import { TrajectoryWorkspaceProvider } from "@/contexts/page/TrajectoryWorkspaceContext";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useDatasets } from "@/contexts/data/DatasetsContext";
+import { TrajectoryWorkspacePageContextProvider, useTrajectoryWorkspacePageContext } from "@/contexts/TrajectoryWorkspacePageContextProvider";
 import { TrajectoryCanvas } from "@/components/trajectory-workspace/TrajectoryCanvas";
 import { TrajectoryTaskSidebar } from "@/components/trajectory-workspace/TrajectoryTaskSidebar";
 import { TrajectoryLoadingState } from "@/components/trajectory-workspace/TrajectoryLoadingState";
 import { TrajectoryErrorState } from "@/components/trajectory-workspace/TrajectoryErrorState";
 import { Modal } from "@/shared/ui/components/Modal";
-import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
 
 function TrajectoryWorkspaceContent() {
   const { theme } = useTheme();
-  const { selectedImage, isLoading: imagesLoading, error: imagesError } = useImagesContext();
-  const { dataset, isLoading: datasetLoading, error: datasetError } = useDatasets();
-  const { modalState, closeModal } = useTrajectoryWorkspace();
+  const { selectedImage, dataset, isLoading, error, modalState, closeModal } = useTrajectoryWorkspacePageContext();
 
   // Loading state
-  if (imagesLoading || datasetLoading) {
+  if (isLoading) {
     return <TrajectoryLoadingState />;
   }
 
   // Error state
-  if (imagesError || datasetError || !selectedImage || !dataset) {
+  if (error || !selectedImage || !dataset) {
     return (
       <TrajectoryErrorState
-        error={imagesError || datasetError}
-        imagesError={imagesError}
-        datasetError={datasetError}
+        error={error}
+        imagesError={error}
+        datasetError={error}
         hasNoImages={!selectedImage}
       />
     );
@@ -125,32 +116,6 @@ function TrajectoryWorkspaceContent() {
   );
 }
 
-// Inner wrapper that has access to dataset and images context
-function TrajectoryWorkspaceInner() {
-  const { dataset } = useDatasets();
-  const { selectedImage } = useImagesContext();
-
-  return (
-    <AnnotationsProvider
-      config={{
-        mode: "approved", // Only work with approved annotations
-        imageId: selectedImage?.id || 0,
-      }}
-    >
-      <CategoriesProvider
-        config={{
-          dictionaryId: dataset?.dictionaryId,
-          useDictionaryFromDataset: false,
-        }}
-      >
-        <TrajectoryWorkspaceProvider>
-          <TrajectoryWorkspaceContent />
-        </TrajectoryWorkspaceProvider>
-      </CategoriesProvider>
-    </AnnotationsProvider>
-  );
-}
-
 export function TrajectoryDrawingWorkspace() {
   const { id: datasetIdParam } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -167,10 +132,13 @@ export function TrajectoryDrawingWorkspace() {
   const specificImageId = imageIdParam ? parseInt(imageIdParam) : undefined;
 
   return (
-    <DatasetsProvider config={{ datasetId }}>
-      <ImagesProvider config={{ datasetId, limit: 100, specificImageId }}>
-        <TrajectoryWorkspaceInner />
-      </ImagesProvider>
-    </DatasetsProvider>
+    <TrajectoryWorkspacePageContextProvider
+      options={{
+        datasetId,
+        specificImageId
+      }}
+    >
+      <TrajectoryWorkspaceContent />
+    </TrajectoryWorkspacePageContextProvider>
   );
 }

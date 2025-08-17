@@ -1,7 +1,7 @@
 import { Flex, Text, Badge, Separator } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { useProfilePageContext } from "@/shared/providers/ProfilePageProvider";
+import { useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
 
 export function ProfileAccountOverview() {
   const { theme } = useTheme();

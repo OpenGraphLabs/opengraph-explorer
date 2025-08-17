@@ -1,17 +1,17 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { useHomePage } from "@/shared/hooks/pages/useHomePage";
-import type { UseHomePageOptions } from "@/shared/hooks/pages/useHomePage";
+import { useHomePage } from "@/hooks/useHomePage";
+import type { UseHomePageOptions } from "@/hooks/useHomePage";
 
 type HomePageContextType = ReturnType<typeof useHomePage>;
 
 const HomePageContext = createContext<HomePageContextType | null>(null);
 
-interface HomePageProviderProps {
+interface HomePageContextProviderProps {
   children: ReactNode;
   options?: UseHomePageOptions;
 }
 
-export function HomePageProvider({ children, options = {} }: HomePageProviderProps) {
+export function HomePageContextProvider({ children, options = {} }: HomePageContextProviderProps) {
   const homePageData = useHomePage({
     annotationsLimit: 25,
     categoriesLimit: 100,

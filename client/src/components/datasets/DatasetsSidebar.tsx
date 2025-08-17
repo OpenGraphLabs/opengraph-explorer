@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useDatasetsPageContext } from "@/shared/providers/DatasetsPageProvider";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsSidebar() {
   const { theme } = useTheme();

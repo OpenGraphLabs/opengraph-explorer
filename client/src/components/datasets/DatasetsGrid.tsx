@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { DatasetCard } from "./DatasetCard";
-import { useDatasetsPageContext } from "@/shared/providers/DatasetsPageProvider";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsGrid() {
   const { theme } = useTheme();
