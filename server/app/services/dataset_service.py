@@ -15,7 +15,6 @@ from ..schemas.dataset import (
     DatasetUpdate,
     DatasetRead,
     DatasetWithStats,
-    DatasetListItem,
     DatasetFilter,
     DatasetListResponse
 )
@@ -88,43 +87,6 @@ class DatasetService:
         if dataset:
             return DatasetRead.model_validate(dataset)
         return None
-    
-    async def get_dataset_with_stats(self, dataset_id: int) -> Optional[DatasetWithStats]:
-        """
-        Get dataset information along with statistics like image and annotation counts.
-        
-        Args:
-            dataset_id: Dataset ID
-            
-        Returns:
-            Optional[DatasetWithStats]: Dataset information with statistics or None if not found
-        """
-        result = await self.db.execute(
-            select(Dataset)
-            .options(
-                selectinload(Dataset.images)
-            )
-            .where(Dataset.id == dataset_id)
-        )
-        dataset = result.scalar_one_or_none()
-        
-        if not dataset:
-            return None
-        
-        image_count = len(dataset.images)
-        annotation_count = sum(len(image.annotations) for image in dataset.images)
-        
-        return DatasetWithStats(
-            id=dataset.id,
-            name=dataset.name,
-            description=dataset.description,
-            tags=dataset.tags,
-            dictionary_id=dataset.dictionary_id,
-            created_by=dataset.created_by,
-            created_at=dataset.created_at,
-            image_count=image_count,
-            annotation_count=annotation_count
-        )
     
     async def update_dataset(self, dataset_id: int, dataset_data: DatasetUpdate) -> Optional[DatasetRead]:
         """
@@ -255,10 +217,12 @@ class DatasetService:
         result = await self.db.execute(query)
         datasets = result.scalars().all()
         
-        # Build response items with image count
+        # Build response items with image and annotation counts
         items = []
         for dataset in datasets:
-            items.append(DatasetListItem(
+            image_count = len(dataset.images)
+            annotation_count = sum(len(image.annotations) for image in dataset.images)
+            items.append(DatasetWithStats(
                 id=dataset.id,
                 name=dataset.name,
                 description=dataset.description,
@@ -266,7 +230,8 @@ class DatasetService:
                 dictionary_id=dataset.dictionary_id,
                 created_by=dataset.created_by,
                 created_at=dataset.created_at,
-                image_count=len(dataset.images)
+                image_count=image_count,
+                annotation_count=annotation_count
             ))
         
         pages = (total + pagination.limit - 1) // pagination.limit

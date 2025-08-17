@@ -1,16 +1,10 @@
 import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '../core/hooks';
-import type { PaginatedResponse } from '../core';
-import type { 
-  DatasetRead, 
-  DatasetCreate, 
-  DatasetUpdate,
-  DatasetListResponse,
-  DatasetListItem 
-} from '../generated/models';
+import type { ApiListResponse } from '../core';
 
 // Base endpoints
 const DATASETS_BASE = '/api/v1/datasets';
 
+// Client-side types (camelCase)
 export interface Dataset {
   id: number;
   name: string;
@@ -21,22 +15,59 @@ export interface Dataset {
   createdAt: string;
 }
 
-export interface DatasetCreateInput {
+export interface DatasetWithStats {
+  id: number;
   name: string;
   description?: string;
   tags?: string[];
   dictionaryId?: number;
+  createdBy?: number;
+  createdAt: string;
+  imageCount: number;
+  annotationCount: number;
+}
+
+export interface DatasetCreateInput {
+  name: string;
+  description?: string;
+  tags?: string[];
+  dictionary_id?: number;  // API expects snake_case
 }
 
 export interface DatasetUpdateInput {
   name?: string;
   description?: string;
   tags?: string[];
-  dictionaryId?: number;
+  dictionary_id?: number;  // API expects snake_case
 }
 
+// Raw API response types (snake_case - matching backend)
+interface DatasetRaw {
+  id: number;
+  name: string;
+  description?: string | null;
+  tags?: string[] | null;
+  dictionary_id?: number | null;
+  created_by?: number | null;
+  created_at: string;
+}
+
+interface DatasetWithStatsRaw {
+  id: number;
+  name: string;
+  description?: string | null;
+  tags?: string[] | null;
+  dictionary_id?: number | null;
+  created_by?: number | null;
+  created_at: string;
+  image_count: number;
+  annotation_count: number;
+}
+
+interface DatasetListResponse extends ApiListResponse<DatasetWithStatsRaw> {}
+
 // Parsing functions to convert API responses to client types
-const parseDataset = (raw: DatasetRead): Dataset => ({
+const parseDataset = (raw: DatasetRaw): Dataset => ({
   id: raw.id,
   name: raw.name,
   description: raw.description || undefined,
@@ -46,7 +77,7 @@ const parseDataset = (raw: DatasetRead): Dataset => ({
   createdAt: raw.created_at,
 });
 
-const parseDatasetListItem = (raw: DatasetListItem): Dataset => ({
+const parseDatasetWithStats = (raw: DatasetWithStatsRaw): DatasetWithStats => ({
   id: raw.id,
   name: raw.name,
   description: raw.description || undefined,
@@ -54,6 +85,8 @@ const parseDatasetListItem = (raw: DatasetListItem): Dataset => ({
   dictionaryId: raw.dictionary_id || undefined,
   createdBy: raw.created_by || undefined,
   createdAt: raw.created_at,
+  imageCount: raw.image_count,
+  annotationCount: raw.annotation_count,
 });
 
 // API Hooks
@@ -62,7 +95,7 @@ const parseDatasetListItem = (raw: DatasetListItem): Dataset => ({
  * Get a single dataset by ID
  */
 export function useDataset(datasetId: number, options: { enabled?: boolean } = {}) {
-  return useSingleGet<DatasetRead, Dataset>({
+  return useSingleGet<DatasetRaw, Dataset>({
     url: `${DATASETS_BASE}/${datasetId}`,
     enabled: options.enabled && !!datasetId,
     authenticated: true,
@@ -91,7 +124,7 @@ export function useDatasets(options: {
   } = options;
 
   return usePaginatedGet<
-    DatasetListItem,
+    DatasetRaw,
     DatasetListResponse,
     Dataset
   >({
@@ -102,7 +135,7 @@ export function useDatasets(options: {
     sortBy,
     enabled,
     authenticated: true,
-    parseData: parseDatasetListItem,
+    parseData: parseDatasetWithStats,
     setTotalPages,
   });
 }
@@ -111,7 +144,7 @@ export function useDatasets(options: {
  * Create a new dataset
  */
 export function useCreateDataset() {
-  return usePost<DatasetCreateInput, DatasetRead, Dataset>(
+  return usePost<DatasetCreateInput, DatasetRaw, Dataset>(
     DATASETS_BASE,
     parseDataset,
     { authenticated: true }
@@ -122,7 +155,7 @@ export function useCreateDataset() {
  * Update an existing dataset
  */
 export function useUpdateDataset(datasetId: number) {
-  return usePut<DatasetUpdateInput, DatasetRead, Dataset>(
+  return usePut<DatasetUpdateInput, DatasetRaw, Dataset>(
     `${DATASETS_BASE}/${datasetId}`,
     parseDataset,
     { authenticated: true }

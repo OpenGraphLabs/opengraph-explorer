@@ -3015,96 +3015,11 @@
         "title": "DatasetCreate",
         "description": "Dataset creation schema"
       },
-      "DatasetListItem": {
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id",
-            "description": "Dataset ID"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name",
-            "description": "Dataset name"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description",
-            "description": "Dataset description"
-          },
-          "tags": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tags",
-            "description": "Tag list"
-          },
-          "dictionary_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Dictionary Id",
-            "description": "Dictionary ID for category validation"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By",
-            "description": "Creator ID"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At",
-            "description": "Creation timestamp"
-          },
-          "image_count": {
-            "type": "integer",
-            "title": "Image Count",
-            "description": "Number of images",
-            "default": 0
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "created_at"
-        ],
-        "title": "DatasetListItem",
-        "description": "Dataset list item schema"
-      },
       "DatasetListResponse": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/DatasetListItem"
+              "$ref": "#/components/schemas/DatasetWithStats"
             },
             "type": "array",
             "title": "Items",
@@ -3278,6 +3193,97 @@
         "type": "object",
         "title": "DatasetUpdate",
         "description": "Dataset update schema"
+      },
+      "DatasetWithStats": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Dataset name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Dataset description"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "Tag list"
+          },
+          "dictionary_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dictionary Id",
+            "description": "Dictionary ID for category validation"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Dataset ID"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By",
+            "description": "Creator ID"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "image_count": {
+            "type": "integer",
+            "title": "Image Count",
+            "description": "Number of images",
+            "default": 0
+          },
+          "annotation_count": {
+            "type": "integer",
+            "title": "Annotation Count",
+            "description": "Number of annotations",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "created_at"
+        ],
+        "title": "DatasetWithStats",
+        "description": "Dataset schema with statistics"
       },
       "DictionaryCategoryBatchCreate": {
         "properties": {
