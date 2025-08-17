@@ -55,15 +55,17 @@ export function HomeGallery() {
             }}
           >
             <ImageWithSingleAnnotation
-              annotation={{
-                ...annotation,
-                source_type: annotation.sourceType,
-                image_id: annotation.imageId,
-                category_id: annotation.categoryId,
-                created_by: annotation.createdBy,
-                created_at: annotation.createdAt,
-                updated_at: annotation.updatedAt,
-              } as any}
+              annotation={
+                {
+                  ...annotation,
+                  source_type: annotation.sourceType,
+                  image_id: annotation.imageId,
+                  category_id: annotation.categoryId,
+                  created_by: annotation.createdBy,
+                  created_at: annotation.createdAt,
+                  updated_at: annotation.updatedAt,
+                } as any
+              }
               imageId={image.id}
               imageUrl={image.imageUrl}
               imageWidth={image.width}

@@ -5,14 +5,14 @@ import { useImagesContext } from "../data/ImagesContext";
 import { useDatasets } from "../data/DatasetsContext";
 import { useCreateAnnotationSelectionsBatch } from "@/shared/api/endpoints/annotations";
 import type { AnnotationSelectionBatchCreateInput } from "@/shared/api/endpoints/annotations";
-import type { CategoryRead } from "@/shared/api/generated/models";
+import type { Category } from "@/shared/api/endpoints/categories";
 import { BoundingBox } from "@/components/annotation/types/workspace";
 
 export interface EntityAnnotation {
   id: string;
   bbox: BoundingBox;
   selectedMaskIds: number[];
-  category?: CategoryRead;
+  category?: Category;
   createdAt: Date;
 }
 
@@ -27,7 +27,7 @@ interface AnnotationWorkspaceContextValue {
   handleMaskSelectionChange: (selectedMaskIds: number[]) => void;
   handleEntitySelect: (entityId: string) => void;
   handleEntityDelete: (entityId: string) => void;
-  handleCategorySelect: (category: CategoryRead) => void;
+  handleCategorySelect: (category: Category) => void;
 
   // Save state
   isSaving: boolean;
@@ -127,7 +127,7 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
 
   // Handle category selection for entity
   const handleCategorySelect = useCallback(
-    (category: CategoryRead) => {
+    (category: Category) => {
       if (selectedEntityId) {
         // Update existing entity
         setEntities(prev =>
@@ -174,22 +174,22 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
   }, [setRandomSeed]);
 
   // Helper function to convert entities to batch create input format
-  const createBatchDataFromEntities = useCallback((
-    imageId: number,
-    entities: EntityAnnotation[]
-  ): AnnotationSelectionBatchCreateInput => {
-    const validEntities = entities.filter(
-      entity => entity.selectedMaskIds.length > 0 && entity.category?.id
-    );
+  const createBatchDataFromEntities = useCallback(
+    (imageId: number, entities: EntityAnnotation[]): AnnotationSelectionBatchCreateInput => {
+      const validEntities = entities.filter(
+        entity => entity.selectedMaskIds.length > 0 && entity.category?.id
+      );
 
-    const selections = validEntities.map(entity => ({
-      imageId,
-      selectedAnnotationIds: entity.selectedMaskIds,
-      categoryId: entity.category!.id,
-    }));
+      const selections = validEntities.map(entity => ({
+        imageId,
+        selectedAnnotationIds: entity.selectedMaskIds,
+        categoryId: entity.category!.id,
+      }));
 
-    return { selections };
-  }, []);
+      return { selections };
+    },
+    []
+  );
 
   // Save annotations using generic CRUD hook
   const handleSaveAnnotations = useCallback(async () => {
@@ -204,7 +204,9 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
     );
 
     if (validEntities.length === 0) {
-      setSaveError("No valid entities to save. Each entity must have selected masks and a category.");
+      setSaveError(
+        "No valid entities to save. Each entity must have selected masks and a category."
+      );
       return;
     }
 
@@ -217,7 +219,7 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
     await createBatch(
       batchData,
       // onSuccess callback
-      (result) => {
+      result => {
         console.log("Save successful:", result);
         setSaveSuccess(true);
 
@@ -236,7 +238,7 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
         }, 1500);
       },
       // onFailure callback
-      (errorMessage) => {
+      errorMessage => {
         console.error("Error saving annotations:", errorMessage);
         setSaveError(errorMessage);
 

@@ -29,8 +29,8 @@ interface ConfirmationStatus {
   message: string;
   confirmedLabels?: string[];
 }
-import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
-import { useDictionaryCategories } from "@/shared/hooks/useDictionaryCategories";
+import { useAnnotations } from "@/shared/api/endpoints/annotations";
+import { useDictionaryCategories } from "@/shared/api/endpoints/categories";
 
 interface DatasetImageModalProps {
   isOpen: boolean;
@@ -60,11 +60,11 @@ export function DatasetImageModal({
   const overlayRef = useRef<SVGSVGElement>(null);
 
   // Get all approved annotations for this image if imageId is available
-  const { data: allApprovedAnnotations, isLoading: annotationsLoading } =
-    useApprovedAnnotationsByImage(selectedImageData?.imageId || 0, {
-      enabled: isOpen && !!selectedImageData?.imageId,
-      refetchOnWindowFocus: false,
-    } as any);
+  const { data: allApprovedAnnotations, isLoading: annotationsLoading } = useAnnotations({
+    imageId: selectedImageData?.imageId,
+    status: "APPROVED",
+    enabled: isOpen && !!selectedImageData?.imageId,
+  });
 
   // Fetch categories to get actual category names
   const { data: categoriesResponse, isLoading: categoriesLoading } = useDictionaryCategories({
@@ -75,9 +75,9 @@ export function DatasetImageModal({
 
   const approvedAnnotations = allApprovedAnnotations || [];
   const hasConfirmedAnnotations = approvedAnnotations.length > 0;
-  const allCategories = categoriesResponse?.items || [];
+  const allCategories = categoriesResponse || [];
 
-  // Create a map of category_id to category name for quick lookup
+  // Create a map of categoryId to category name for quick lookup
   const categoryMap = new Map<number, string>();
   allCategories.forEach(category => {
     categoryMap.set(category.id, category.name);
@@ -495,7 +495,7 @@ export function DatasetImageModal({
                               }}
                             />
                             <Text size="2" style={{ color: theme.colors.text.primary }}>
-                              {getCategoryName(annotation.category_id)}
+                              {getCategoryName(annotation.categoryId)}
                             </Text>
                           </Flex>
                         </Flex>

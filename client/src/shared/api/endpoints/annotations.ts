@@ -1,9 +1,9 @@
-import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '@/shared/api/core';
-import { postData } from '@/shared/api/core/client';
-import type { ApiListResponse } from '@/shared/api/core';
-import { useState } from 'react';
+import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from "@/shared/api/core";
+import { postData } from "@/shared/api/core/client";
+import type { ApiListResponse } from "@/shared/api/core";
+import { useState } from "react";
 
-const ANNOTATIONS_BASE = '/api/v1/annotations';
+const ANNOTATIONS_BASE = "/api/v1/annotations";
 
 export interface Annotation {
   id: number;
@@ -102,34 +102,32 @@ export function useAnnotation(annotationId: number, options: { enabled?: boolean
 /**
  * Get paginated list of annotations
  */
-export function useAnnotations(options: {
-  page?: number;
-  limit?: number;
-  imageId?: number;
-  categoryId?: number;
-  status?: string;
-  sourceType?: string;
-  sortBy?: string;
-  enabled?: boolean;
-  setTotalPages?: (total: number) => void;
-} = {}) {
-  const { 
-    page = 1, 
-    limit = 25, 
+export function useAnnotations(
+  options: {
+    page?: number;
+    limit?: number;
+    imageId?: number;
+    categoryId?: number;
+    status?: string;
+    sourceType?: string;
+    sortBy?: string;
+    enabled?: boolean;
+    setTotalPages?: (total: number) => void;
+  } = {}
+) {
+  const {
+    page = 1,
+    limit = 25,
     imageId,
     categoryId,
     status,
     sourceType,
     sortBy,
     enabled = true,
-    setTotalPages 
+    setTotalPages,
   } = options;
 
-  return usePaginatedGet<
-    AnnotationResponse,
-    AnnotationListResponse,
-    Annotation
-  >({
+  return usePaginatedGet<AnnotationResponse, AnnotationListResponse, Annotation>({
     url: ANNOTATIONS_BASE,
     page,
     limit,
@@ -173,7 +171,7 @@ export function useUpdateAnnotation(annotationId: number) {
 export function useDeleteAnnotation(annotationId: number) {
   return useDelete<{ success: boolean }, { success: boolean }>(
     `${ANNOTATIONS_BASE}/${annotationId}`,
-    (raw) => raw,
+    raw => raw,
     { authenticated: true }
   );
 }
@@ -207,13 +205,17 @@ interface AnnotationSelectionBatchResponse {
 }
 
 // Parse functions for annotation selections
-const parseAnnotationSelectionCreateInput = (input: AnnotationSelectionCreateInput): AnnotationSelectionCreateRequest => ({
+const parseAnnotationSelectionCreateInput = (
+  input: AnnotationSelectionCreateInput
+): AnnotationSelectionCreateRequest => ({
   image_id: input.imageId,
   selected_annotation_ids: input.selectedAnnotationIds,
   category_id: input.categoryId,
 });
 
-const parseAnnotationSelectionBatchCreateInput = (input: AnnotationSelectionBatchCreateInput): AnnotationSelectionBatchCreateRequest => ({
+const parseAnnotationSelectionBatchCreateInput = (
+  input: AnnotationSelectionBatchCreateInput
+): AnnotationSelectionBatchCreateRequest => ({
   selections: input.selections.map(parseAnnotationSelectionCreateInput),
 });
 
@@ -241,7 +243,7 @@ export function useCreateAnnotationSelectionsBatch() {
     try {
       // Transform camelCase input to snake_case for server
       const transformedData = parseAnnotationSelectionBatchCreateInput(input);
-      
+
       console.log("Batch data to send:", transformedData);
 
       // TEST LOGIC: Make 5 sequential requests with different user IDs
@@ -251,14 +253,18 @@ export function useCreateAnnotationSelectionsBatch() {
       for (const userId of testUserIds) {
         console.log(`\n--- Request ${userId}/5 ---`);
         console.log("JWT before request:", !!sessionStorage.getItem("zklogin-jwt"));
-        
+
         // Temporarily set the user ID in localStorage (interceptor will use this)
         localStorage.setItem("opengraph-user-id", userId);
         console.log(`Set user ID to: ${userId}`);
 
         try {
           // Direct postData call - server returns AnnotationSelectionBatchResponse directly
-          const response = await postData<{}, AnnotationSelectionBatchCreateRequest, AnnotationSelectionBatchResponse>({
+          const response = await postData<
+            {},
+            AnnotationSelectionBatchCreateRequest,
+            AnnotationSelectionBatchResponse
+          >({
             url: `${ANNOTATIONS_BASE}/selections/batch`,
             body: transformedData,
             authenticated: true,
@@ -266,7 +272,10 @@ export function useCreateAnnotationSelectionsBatch() {
 
           responses.push(response);
           console.log(`✅ Request ${userId} completed successfully`);
-          console.log("Response:", { total_created: response.total_created, auto_approved_count: response.auto_approved_count });
+          console.log("Response:", {
+            total_created: response.total_created,
+            auto_approved_count: response.auto_approved_count,
+          });
         } catch (err: any) {
           console.error(`❌ Request ${userId} failed:`, err);
           throw err; // Re-throw to stop the loop
@@ -302,14 +311,14 @@ export function useCreateAnnotationSelectionsBatch() {
         localStorage.removeItem("opengraph-user-id");
         console.log("Removed user ID (was null/undefined)");
       }
-      
+
       setIsPosting(false);
     }
   };
 
-  return { 
-    createBatch, 
-    isPosting, 
-    error 
+  return {
+    createBatch,
+    isPosting,
+    error,
   };
 }

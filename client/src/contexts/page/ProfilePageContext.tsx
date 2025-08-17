@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useCurrentWallet } from "@mysten/dapp-kit";
-import { useCurrentUserProfile } from "@/shared/hooks/useApiQuery";
+import { useCurrentUserProfile } from "@/shared/api/endpoints/users";
 import { useAuth } from "@/shared/hooks/useAuth";
 
 interface ProfilePageContextValue {
@@ -40,12 +40,10 @@ export function ProfilePageProvider({ children }: { children: ReactNode }) {
     error: profileError,
   } = useCurrentUserProfile({
     enabled: isAuthenticated,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-  } as any);
+  });
 
-  // Get user's wallet address (fallback to current wallet if profile doesn't have sui_address)
-  const userAddress = userProfile?.sui_address || currentWallet?.accounts[0]?.address || "";
+  // Get user's wallet address (fallback to current wallet if profile doesn't have suiAddress)
+  const userAddress = userProfile?.suiAddress || currentWallet?.accounts[0]?.address || "";
 
   // Format wallet address for display
   const formatAddress = (address: string) => {
@@ -53,7 +51,7 @@ export function ProfilePageProvider({ children }: { children: ReactNode }) {
   };
 
   // Format user's display name or email
-  const displayName = userProfile?.display_name || userProfile?.email || formatAddress(userAddress);
+  const displayName = userProfile?.displayName || userProfile?.email || formatAddress(userAddress);
 
   // Format profile creation date
   const formatDate = (dateString: string) => {

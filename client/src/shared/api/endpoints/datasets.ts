@@ -1,8 +1,8 @@
-import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '@/shared/api/core';
-import type { ApiListResponse } from '@/shared/api/core';
+import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from "@/shared/api/core";
+import type { ApiListResponse } from "@/shared/api/core";
 
 // Base endpoints
-const DATASETS_BASE = '/api/v1/datasets';
+const DATASETS_BASE = "/api/v1/datasets";
 
 // Client-side types (camelCase)
 export interface Dataset {
@@ -23,14 +23,14 @@ export interface DatasetCreateInput {
   name: string;
   description?: string;
   tags?: string[];
-  dictionary_id?: number;  // API expects snake_case
+  dictionary_id?: number; // API expects snake_case
 }
 
 export interface DatasetUpdateInput {
   name?: string;
   description?: string;
   tags?: string[];
-  dictionary_id?: number;  // API expects snake_case
+  dictionary_id?: number; // API expects snake_case
 }
 
 interface DatasetResponse {
@@ -88,28 +88,19 @@ export function useDataset(datasetId: number, options: { enabled?: boolean } = {
 /**
  * Get paginated list of datasets
  */
-export function useDatasets(options: {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  enabled?: boolean;
-  setTotalPages?: (total: number) => void;
-} = {}) {
-  const { 
-    page = 1, 
-    limit = 25, 
-    search, 
-    sortBy, 
-    enabled = true,
-    setTotalPages 
-  } = options;
+export function useDatasets(
+  options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    enabled?: boolean;
+    setTotalPages?: (total: number) => void;
+  } = {}
+) {
+  const { page = 1, limit = 25, search, sortBy, enabled = true, setTotalPages } = options;
 
-  return usePaginatedGet<
-    DatasetResponse,
-    DatasetListResponse,
-    Dataset
-  >({
+  return usePaginatedGet<DatasetResponse, DatasetListResponse, Dataset>({
     url: DATASETS_BASE,
     page,
     limit,
@@ -126,11 +117,9 @@ export function useDatasets(options: {
  * Create a new dataset
  */
 export function useCreateDataset() {
-  return usePost<DatasetCreateInput, DatasetResponse, Dataset>(
-    DATASETS_BASE,
-    parseDataset,
-    { authenticated: true }
-  );
+  return usePost<DatasetCreateInput, DatasetResponse, Dataset>(DATASETS_BASE, parseDataset, {
+    authenticated: true,
+  });
 }
 
 /**
@@ -150,7 +139,7 @@ export function useUpdateDataset(datasetId: number) {
 export function useDeleteDataset(datasetId: number) {
   return useDelete<{ success: boolean }, { success: boolean }>(
     `${DATASETS_BASE}/${datasetId}`,
-    (raw) => raw,
+    raw => raw,
     { authenticated: true }
   );
 }

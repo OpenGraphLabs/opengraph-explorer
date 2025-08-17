@@ -2,12 +2,12 @@ import React, { useState, useCallback, useRef } from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { MagnifyingGlass, X, Sparkle } from "phosphor-react";
-import { useSearchCategories } from "@/shared/hooks";
-import type { CategoryRead } from "@/shared/api/generated/models";
+import { useDictionaryCategories } from "@/shared/api/endpoints/categories";
+import type { Category } from "@/shared/api/endpoints/categories";
 
 interface CategorySearchPanelProps {
-  onCategorySelect?: (category: CategoryRead) => void;
-  selectedCategory?: CategoryRead | null;
+  onCategorySelect?: (category: Category) => void;
+  selectedCategory?: Category | null;
   placeholder?: string;
   dictionaryId?: number;
 }
@@ -23,7 +23,31 @@ export function CategorySearchPanel({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { categories, isLoading, error, hasSearch } = useSearchCategories(searchTerm, dictionaryId);
+  // Fetch dictionary categories
+  const {
+    data: allCategories,
+    isLoading,
+    error,
+  } = useDictionaryCategories({
+    dictionaryId,
+    limit: 100, // Load more categories for better search results
+    enabled: true,
+  });
+
+  // Filter categories locally based on search term
+  const categories = React.useMemo(() => {
+    if (!allCategories) return [];
+
+    if (searchTerm) {
+      return allCategories.filter(category =>
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return allCategories.slice(0, 8); // Show first 8 as default
+  }, [allCategories, searchTerm]);
+
+  const hasSearch = !!searchTerm;
 
   // Handle input change
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +58,7 @@ export function CategorySearchPanel({
 
   // Handle category selection
   const handleCategorySelect = useCallback(
-    (category: CategoryRead) => {
+    (category: Category) => {
       onCategorySelect?.(category);
       setHighlightedIndex(-1);
     },

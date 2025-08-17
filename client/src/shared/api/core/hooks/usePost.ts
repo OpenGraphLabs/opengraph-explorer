@@ -15,7 +15,10 @@ export type PostResult<TBody, TParsedResponse> = {
 export function usePost<TBody, TRawResponse, TParsedResponse>(
   url: string,
   parseResponse: (raw: TRawResponse) => TParsedResponse,
-  options: Pick<UsePostOptions<TBody, TRawResponse, TParsedResponse>, 'authenticated' | 'enabled'> = {}
+  options: Pick<
+    UsePostOptions<TBody, TRawResponse, TParsedResponse>,
+    "authenticated" | "enabled"
+  > = {}
 ): PostResult<TBody, TParsedResponse> {
   const { authenticated = false, enabled = true } = options;
   const [isPosting, setIsPosting] = useState(false);
@@ -70,7 +73,10 @@ export function usePost<TBody, TRawResponse, TParsedResponse>(
 export function usePut<TBody, TRawResponse, TParsedResponse>(
   url: string,
   parseResponse: (raw: TRawResponse) => TParsedResponse,
-  options: Pick<UsePostOptions<TBody, TRawResponse, TParsedResponse>, 'authenticated' | 'enabled'> = {}
+  options: Pick<
+    UsePostOptions<TBody, TRawResponse, TParsedResponse>,
+    "authenticated" | "enabled"
+  > = {}
 ): PostResult<TBody, TParsedResponse> {
   const { authenticated = false, enabled = true } = options;
   const [isPosting, setIsPosting] = useState(false);

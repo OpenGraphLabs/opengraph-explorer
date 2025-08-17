@@ -1,7 +1,7 @@
-import { useSingleGet, usePost, usePut } from '@/shared/api/core';
+import { useSingleGet, usePost, usePut } from "@/shared/api/core";
 
 // Base endpoints
-const USERS_BASE = '/api/v1/users';
+const USERS_BASE = "/api/v1/users";
 
 export interface User {
   id: number;
@@ -20,16 +20,16 @@ export interface UserProfile extends User {
 
 export interface UserCreateInput {
   email: string;
-  google_id?: string;  // API expects snake_case
-  display_name?: string;  // API expects snake_case
-  profile_image_url?: string;  // API expects snake_case
+  google_id?: string; // API expects snake_case
+  display_name?: string; // API expects snake_case
+  profile_image_url?: string; // API expects snake_case
 }
 
 export interface UserUpdateInput {
   email?: string;
-  display_name?: string;  // API expects snake_case
-  profile_image_url?: string;  // API expects snake_case
-  sui_address?: string;  // API expects snake_case
+  display_name?: string; // API expects snake_case
+  profile_image_url?: string; // API expects snake_case
+  sui_address?: string; // API expects snake_case
 }
 
 interface UserResponse {
@@ -111,22 +111,18 @@ export function useCreateUser() {
  * Update user profile
  */
 export function useUpdateUser(userId: number) {
-  return usePut<UserUpdateInput, UserResponse, User>(
-    `${USERS_BASE}/${userId}`,
-    parseUser,
-    { authenticated: true }
-  );
+  return usePut<UserUpdateInput, UserResponse, User>(`${USERS_BASE}/${userId}`, parseUser, {
+    authenticated: true,
+  });
 }
 
 /**
  * Update current user profile
  */
 export function useUpdateCurrentUser() {
-  return usePut<UserUpdateInput, UserResponse, User>(
-    `${USERS_BASE}/me`,
-    parseUser,
-    { authenticated: true }
-  );
+  return usePut<UserUpdateInput, UserResponse, User>(`${USERS_BASE}/me`, parseUser, {
+    authenticated: true,
+  });
 }
 
 /**

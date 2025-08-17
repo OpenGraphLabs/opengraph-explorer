@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from "react";
-import { useImages, useDatasetImages, useImageById } from "@/shared/hooks/useApiQuery";
-import { useApiClient } from "@/shared/hooks/useApiClient";
+import { useImages, useImage, type Image } from "@/shared/api/endpoints/images";
 import { useAnnotations } from "./AnnotationsContext";
-import type { ImageRead } from "@/shared/api/generated/models";
+import { postData, fetchData } from "@/shared/api/core/client";
 
 interface ImagesConfig {
   limit?: number;
@@ -15,9 +14,9 @@ interface ImagesConfig {
 }
 
 interface ImagesContextValue {
-  images: ImageRead[];
-  imageMap: Map<number, ImageRead>;
-  selectedImage: ImageRead | null;
+  images: Image[];
+  imageMap: Map<number, Image>;
+  selectedImage: Image | null;
   isLoading: boolean;
   error: any;
   randomSeed: number;
@@ -46,7 +45,6 @@ export function ImagesProvider({
     config.randomSeed || Math.floor(Math.random() * 1000)
   );
   const [annotationCounts, setAnnotationCounts] = useState<Map<number, number>>(new Map());
-  const { annotations: annotationsApiClient, images: imagesApiClient } = useApiClient();
 
   // Get annotations context if we need to fetch images based on annotations
   let annotationsFromContext: any[] = [];
@@ -87,7 +85,7 @@ export function ImagesProvider({
   }, [useAnnotationBasedImages, annotationsFromContext]);
 
   // State for individually fetched images
-  const [annotationImages, setAnnotationImages] = useState<ImageRead[]>([]);
+  const [annotationImages, setAnnotationImages] = useState<Image[]>([]);
   const [annotationImagesLoading, setAnnotationImagesLoading] = useState(false);
   const [annotationImagesError, setAnnotationImagesError] = useState<any>(null);
 
@@ -104,15 +102,19 @@ export function ImagesProvider({
       try {
         const imagePromises = requiredImageIds.map(async (imageId: number) => {
           try {
-            const image = await imagesApiClient.getImageById(imageId);
-            return { success: true, imageId, image };
+            const response = await fetchData<{}, Image>({
+              url: `/api/v1/images/${imageId}`,
+              method: "get",
+              authenticated: true,
+            });
+            return { success: true, imageId, image: response };
           } catch (error) {
             return { success: false, imageId, error };
           }
         });
 
         const results = await Promise.allSettled(imagePromises);
-        const successfulImages: ImageRead[] = [];
+        const successfulImages: Image[] = [];
 
         results.forEach(result => {
           if (result.status === "fulfilled" && result.value.success) {
@@ -131,43 +133,36 @@ export function ImagesProvider({
     fetchAnnotationImages().catch(console.error);
   }, [useAnnotationBasedImages, requiredImageIds, annotationsLoading]);
 
+  const [totalPages, setTotalPages] = useState(0);
+  const [isPlaceholderData, setIsPlaceholderData] = useState(false);
+
   const {
-    data: generalImagesResponse,
+    data: generalImages,
+    totalCount: generalTotalCount,
     isLoading: generalLoading,
     error: generalError,
-    isPlaceholderData,
-  } = useImages(
-    { page: config.page || 1, limit: config.limit || 100 },
-    {
-      enabled: useGeneralImages && !useAnnotationBasedImages,
-      refetchOnWindowFocus: false,
-      staleTime: 10 * 60 * 1000, // 10 minutes - images don't change frequently
-      retry: 3,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-      placeholderData: previousData => previousData, // Show previous data immediately
-    }
-  );
+  } = useImages({
+    page: config.page || 1,
+    limit: config.limit || 100,
+    enabled: useGeneralImages && !useAnnotationBasedImages,
+    setTotalPages,
+  });
 
   // Skip the dataset images query entirely if we're using annotation-based images
   const skipDatasetQuery = config.useAnnotationImages === true;
 
   const {
-    data: datasetImagesResponse,
+    data: datasetImagesFromHook,
+    totalCount: datasetTotalCount,
     isLoading: datasetLoading,
     error: datasetError,
-    isPlaceholderData: datasetIsPlaceholderData,
-  } = useDatasetImages(
-    config.datasetId || 999999, // Use a very high number that won't exist
-    { page: config.page || 1, limit: config.limit || 100 },
-    {
-      enabled: !skipDatasetQuery && shouldUseDatasetImages,
-      refetchOnWindowFocus: false,
-      staleTime: 10 * 60 * 1000, // 10 minutes - images don't change frequently
-      retry: false, // Disable retries for invalid dataset IDs
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-      placeholderData: previousData => previousData, // Show previous data immediately
-    } as any
-  );
+  } = useImages({
+    page: config.page || 1,
+    limit: config.limit || 100,
+    datasetId: config.datasetId,
+    enabled: !skipDatasetQuery && shouldUseDatasetImages && !!config.datasetId,
+    setTotalPages,
+  });
 
   // Determine loading state and data source
   const isLoading = useAnnotationBasedImages
@@ -182,23 +177,26 @@ export function ImagesProvider({
       ? generalError
       : datasetError;
 
-  const imagesResponse = useGeneralImages ? generalImagesResponse : datasetImagesResponse;
-  const images = useAnnotationBasedImages ? annotationImages : imagesResponse?.items || [];
+  const images = useAnnotationBasedImages
+    ? annotationImages
+    : useGeneralImages
+      ? generalImages || []
+      : datasetImagesFromHook || [];
+
+  const totalCount = useGeneralImages ? generalTotalCount : datasetTotalCount;
   const isPreviousDataShowing = useAnnotationBasedImages
     ? false // No placeholder data for annotation-based fetching
-    : useGeneralImages
-      ? isPlaceholderData
-      : datasetIsPlaceholderData;
+    : isPlaceholderData;
 
   // Image preloading effect
   useEffect(() => {
     if (images.length > 0) {
       // Preload first 6 images for faster rendering
       const imagesToPreload = images.slice(0, 6);
-      imagesToPreload.forEach((image: ImageRead) => {
-        if (image.image_url) {
+      imagesToPreload.forEach((image: Image) => {
+        if (image.imageUrl) {
           const img = new Image();
-          img.src = image.image_url;
+          img.src = image.imageUrl;
           // Set low priority to avoid blocking other resources
           if ("loading" in img) {
             (img as any).loading = "lazy";
@@ -209,17 +207,19 @@ export function ImagesProvider({
   }, [images]);
 
   // Fetch annotation counts for dataset images
-  const fetchAnnotationCounts = async (imagesToProcess: ImageRead[]) => {
+  const fetchAnnotationCounts = async (imagesToProcess: Image[]) => {
     if (!config.fetchAnnotationCounts) return new Map();
 
     const counts = new Map<number, number>();
 
     try {
-      const promises = imagesToProcess.map(async (image: ImageRead) => {
+      const promises = imagesToProcess.map(async (image: Image) => {
         try {
-          const annotationsData = await annotationsApiClient.getApprovedAnnotationsByImage(
-            image.id
-          );
+          const annotationsData = await fetchData<{}, any[]>({
+            url: `/api/v1/annotations?image_id=${image.id}&status=APPROVED`,
+            method: "get",
+            authenticated: true,
+          });
           const count = Array.isArray(annotationsData) ? annotationsData.length : 0;
           return { imageId: image.id, count };
         } catch (error) {
@@ -253,8 +253,8 @@ export function ImagesProvider({
 
   // Create image map for quick lookup
   const imageMap = useMemo(() => {
-    const map = new Map<number, ImageRead>();
-    images.forEach((image: ImageRead) => {
+    const map = new Map<number, Image>();
+    images.forEach((image: Image) => {
       map.set(image.id, image);
     });
     return map;
@@ -267,8 +267,8 @@ export function ImagesProvider({
     // If a specific image ID is requested, try to find it
     if (config.specificImageId) {
       const specificImage = images.find(
-        (image: ImageRead) =>
-          image.id === config.specificImageId && image.dataset_id === config.datasetId
+        (image: Image) =>
+          image.id === config.specificImageId && image.datasetId === config.datasetId
       );
       if (specificImage) {
         return specificImage;
@@ -280,7 +280,7 @@ export function ImagesProvider({
     }
 
     const datasetFilteredImages = images.filter(
-      (image: ImageRead) => image.dataset_id === config.datasetId
+      (image: Image) => image.datasetId === config.datasetId
     );
 
     if (datasetFilteredImages.length === 0) return null;
@@ -290,13 +290,13 @@ export function ImagesProvider({
   }, [images, config.datasetId, randomSeed, config.specificImageId]);
 
   // Transform images for dataset detail view
-  const datasetImages = useMemo(() => {
+  const datasetImagesForDetail = useMemo(() => {
     if (!config.fetchAnnotationCounts) return [];
 
-    return images.map((image: ImageRead) => ({
+    return images.map((image: Image) => ({
       id: image.id.toString(),
-      path: image.file_name,
-      image_url: image.image_url,
+      path: image.fileName,
+      image_url: image.imageUrl, // Keep snake_case for legacy compatibility
       width: image.width,
       height: image.height,
       imageId: image.id,
@@ -304,7 +304,7 @@ export function ImagesProvider({
       approvedAnnotationsCount: annotationCounts.get(image.id) || 0,
       metadata: {
         index: image.id,
-        datasetId: image.dataset_id,
+        datasetId: image.datasetId,
       },
     }));
   }, [images, annotationCounts, config.fetchAnnotationCounts]);
@@ -315,12 +315,12 @@ export function ImagesProvider({
       return { total: 0, confirmed: 0, pending: 0 };
     }
 
-    const total = imagesResponse?.total || images.length;
-    const confirmed = datasetImages.filter(item => item.approvedAnnotationsCount > 0).length;
-    const pending = datasetImages.length - confirmed;
+    const total = totalCount || images.length;
+    const confirmed = datasetImagesForDetail.filter(item => item.approvedAnnotationsCount > 0).length;
+    const pending = datasetImagesForDetail.length - confirmed;
 
     return { total, confirmed, pending };
-  }, [datasetImages, imagesResponse?.total, config.fetchAnnotationCounts]);
+  }, [datasetImagesForDetail, totalCount, config.fetchAnnotationCounts]);
 
   return (
     <ImagesContext.Provider
@@ -332,7 +332,7 @@ export function ImagesProvider({
         error,
         randomSeed,
         setRandomSeed,
-        datasetImages,
+        datasetImages: datasetImagesForDetail,
         annotationCounts,
         totalCounts,
         isPlaceholderDataShowing: isPreviousDataShowing || false,

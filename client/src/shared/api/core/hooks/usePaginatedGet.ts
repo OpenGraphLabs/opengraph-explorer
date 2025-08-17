@@ -1,7 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { fetchData } from "@/shared/api/core/client";
-import { ApiListResponse, PaginationParams, UsePaginatedGetOptions } from "@/shared/api/core/types/pagination";
+import {
+  ApiListResponse,
+  PaginationParams,
+  UsePaginatedGetOptions,
+} from "@/shared/api/core/types/pagination";
 
 export function usePaginatedGet<
   TRawData,
@@ -45,7 +49,7 @@ export function usePaginatedGet<
       if (setTotalPages && response.total != null) {
         setTotalPages(response.pages || Math.ceil(response.total / limit));
       }
-      
+
       setTotalCount(response.total || 0);
       setFetchedPage(page);
 

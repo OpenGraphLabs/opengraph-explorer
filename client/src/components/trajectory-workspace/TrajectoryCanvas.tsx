@@ -12,7 +12,7 @@ import {
   CornersOut,
   CrosshairSimple,
 } from "phosphor-react";
-import type { AnnotationClientRead } from "@/shared/api/generated/models";
+import type { Annotation } from "@/shared/api/endpoints/annotations";
 
 interface Point {
   x: number;
@@ -94,7 +94,7 @@ export function TrajectoryCanvas() {
         fitImageToContainer();
       }, 100);
     };
-    img.src = selectedImage.image_url;
+    img.src = selectedImage.imageUrl;
   }, [selectedImage]);
 
   // Fit image to container
@@ -153,7 +153,7 @@ export function TrajectoryCanvas() {
     let img = imageRef.current;
     if (!img) {
       img = new Image();
-      img.src = selectedImage.image_url;
+      img.src = selectedImage.imageUrl;
       imageRef.current = img;
       return;
     }
@@ -269,7 +269,7 @@ export function TrajectoryCanvas() {
       const imageCoords = screenToImage(x, y);
 
       // Helper function to check if point is inside annotation
-      const isPointInAnnotation = (annotation: AnnotationClientRead, point: Point) => {
+      const isPointInAnnotation = (annotation: Annotation, point: Point) => {
         // Check polygon first if available
         const polygonData = annotation.polygon as any;
         if (
@@ -590,7 +590,7 @@ export function TrajectoryCanvas() {
 
             {/* Render approved annotation masks */}
             {showMasks &&
-              approvedAnnotations.map((annotation: AnnotationClientRead, index: number) => {
+              approvedAnnotations.map((annotation: Annotation, index: number) => {
                 console.log("Rendering annotation:", annotation.id, annotation);
 
                 // Check if this annotation is active based on selected task
@@ -627,7 +627,7 @@ export function TrajectoryCanvas() {
                   hasPolygon: !!(annotation.polygon as any)?.polygons,
                   polygonCount: (annotation.polygon as any)?.polygons?.length || 0,
                   isActive,
-                  categoryId: annotation.category_id,
+                  categoryId: annotation.categoryId,
                 });
 
                 return (

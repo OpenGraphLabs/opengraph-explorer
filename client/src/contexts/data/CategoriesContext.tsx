@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from "react";
-import { useDictionaryCategories } from "@/shared/hooks/useDictionaryCategories";
-import { useCategories as useGlobalCategories } from "@/shared/hooks/useApiQuery";
-import type { CategoryRead } from "@/shared/api/generated/models";
+import {
+  useCategories as useGlobalCategories,
+  useDictionaryCategories,
+  type Category,
+} from "@/shared/api/endpoints/categories";
 
 interface CategoriesConfig {
   dictionaryId?: number;
@@ -11,7 +13,7 @@ interface CategoriesConfig {
 }
 
 interface CategoriesContextValue {
-  categories: CategoryRead[];
+  categories: Category[];
   categoryMap: Map<number, string>;
   selectedCategory: { id: number; name: string } | null;
   setSelectedCategory: (category: { id: number; name: string } | null) => void;
@@ -37,22 +39,19 @@ export function CategoriesProvider({
 
   // Use global categories if requested, otherwise use dictionary-specific categories
   const {
-    data: globalCategoriesResponse,
+    data: globalCategories,
     isLoading: globalCategoriesLoading,
     error: globalCategoriesError,
-  } = useGlobalCategories(
-    { limit: config.limit || 100 },
-    {
-      queryKey: ["categories", "global", config.limit || 100],
-      enabled: config.useGlobalCategories === true,
-    }
-  );
+  } = useGlobalCategories({
+    limit: config.limit || 100,
+    enabled: config.useGlobalCategories === true,
+  });
 
   // If useDictionaryFromDataset is true, the dictionaryId will be provided by the parent context
   const dictionaryId = config.dictionaryId || 1; // Default to dictionary 1
 
   const {
-    data: dictionaryCategoriesResponse,
+    data: dictionaryCategories,
     isLoading: dictionaryCategoriesLoading,
     error: dictionaryCategoriesError,
   } = useDictionaryCategories({
@@ -64,8 +63,8 @@ export function CategoriesProvider({
 
   // Select the appropriate data source
   const categories = config.useGlobalCategories
-    ? globalCategoriesResponse?.items || []
-    : dictionaryCategoriesResponse?.items || [];
+    ? globalCategories || []
+    : dictionaryCategories || [];
 
   const isLoading = config.useGlobalCategories
     ? globalCategoriesLoading

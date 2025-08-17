@@ -99,16 +99,18 @@ export function HomePageProvider({ children }: { children: ReactNode }) {
     const annotationsWithData = categoryFilteredAnnotations.map(annotation => {
       const rawImage = imageMap.get(annotation.imageId);
       // Convert ImageRead to Image if needed
-      const image = rawImage ? {
-        id: rawImage.id,
-        fileName: (rawImage as any).file_name || (rawImage as any).fileName,
-        imageUrl: (rawImage as any).image_url || (rawImage as any).imageUrl,
-        width: rawImage.width,
-        height: rawImage.height,
-        datasetId: (rawImage as any).dataset_id || (rawImage as any).datasetId,
-        createdAt: (rawImage as any).created_at || (rawImage as any).createdAt,
-      } : undefined;
-      
+      const image = rawImage
+        ? {
+            id: rawImage.id,
+            fileName: (rawImage as any).file_name || (rawImage as any).fileName,
+            imageUrl: (rawImage as any).image_url || (rawImage as any).imageUrl,
+            width: rawImage.width,
+            height: rawImage.height,
+            datasetId: (rawImage as any).dataset_id || (rawImage as any).datasetId,
+            createdAt: (rawImage as any).created_at || (rawImage as any).createdAt,
+          }
+        : undefined;
+
       return {
         ...annotation,
         image,

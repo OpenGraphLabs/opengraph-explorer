@@ -3,11 +3,11 @@ import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { EyeOpenIcon, EyeNoneIcon, BookmarkIcon } from "@radix-ui/react-icons";
 import { SegmentationMaskOverlay } from "./SegmentationMaskOverlay";
-import { Annotation, SegmentationDisplayOptions } from "./types/annotation";
-import type { AnnotationRead } from "@/shared/api/generated/models";
+import { Annotation as LegacyAnnotation, SegmentationDisplayOptions } from "./types/annotation";
+import type { Annotation } from "@/shared/api/endpoints/annotations";
 
 export interface ImageWithSingleAnnotationProps {
-  annotation: AnnotationRead;
+  annotation: Annotation;
   imageId: number;
   imageUrl: string;
   imageWidth: number;
@@ -75,7 +75,7 @@ export function ImageWithSingleAnnotation({
     setDisplayOptions(prev => ({ ...prev, showMasks: !showMasks }));
   };
 
-  const formattedDate = new Date(annotation.created_at).toLocaleDateString("en-US", {
+  const formattedDate = new Date(annotation.createdAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });

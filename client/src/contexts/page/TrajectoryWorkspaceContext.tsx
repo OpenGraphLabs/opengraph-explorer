@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
+import { useAnnotations, type Annotation } from "@/shared/api/endpoints/annotations";
 import { useModal } from "@/shared/hooks/useModal";
-import type { AnnotationClientRead } from "@/shared/api/generated/models";
 
 interface Point {
   x: number;
@@ -53,7 +52,7 @@ interface TrajectoryWorkspaceContextType {
   handleSubmitTrajectory: () => void;
 
   // Data
-  approvedAnnotations: AnnotationClientRead[];
+  approvedAnnotations: Annotation[];
   annotationsLoading: boolean;
 
   // Status
@@ -80,11 +79,11 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
   const { modalState, closeModal, showSuccess, showError } = useModal();
 
   // Load approved annotations for the selected image
-  const { data: approvedAnnotationsData, isLoading: annotationsLoading } =
-    useApprovedAnnotationsByImage(selectedImage?.id || 0, {
-      enabled: !!selectedImage?.id,
-      refetchOnWindowFocus: false,
-    } as any);
+  const { data: approvedAnnotationsData, isLoading: annotationsLoading } = useAnnotations({
+    imageId: selectedImage?.id,
+    status: "APPROVED",
+    enabled: !!selectedImage?.id,
+  });
 
   const approvedAnnotations = useMemo(() => {
     return approvedAnnotationsData || [];
@@ -238,7 +237,7 @@ export function TrajectoryWorkspaceProvider({ children }: { children: React.Reac
   }, [selectedImage, selectedTask, startPoint]);
 
   // Helper function to calculate mask center
-  const calculateMaskCenter = useCallback((annotation: AnnotationClientRead) => {
+  const calculateMaskCenter = useCallback((annotation: Annotation) => {
     // Check for polygon first
     const polygonData = annotation.polygon as any;
     if (

@@ -16,15 +16,17 @@ import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
 import openLogoUrl from "@/assets/logo/logo.png";
 import usdcLogoUrl from "@/assets/logo/usdc_logo.png";
 
-
 export function Profile() {
   const { theme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { suiAddress } = useZkLogin();
-  const { data: profile, isLoading: loading, error } = useCurrentUserProfile({ enabled: isAuthenticated });
+  const {
+    data: profile,
+    isLoading: loading,
+    error,
+  } = useCurrentUserProfile({ enabled: isAuthenticated });
   // Token selection state - 모든 Hook을 컴포넌트 최상단에 위치
   const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
-
 
   if (loading) {
     return (

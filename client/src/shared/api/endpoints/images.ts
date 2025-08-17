@@ -1,7 +1,7 @@
-import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '@/shared/api/core';
-import type { ApiListResponse } from '@/shared/api/core';
+import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from "@/shared/api/core";
+import type { ApiListResponse } from "@/shared/api/core";
 
-const IMAGES_BASE = '/api/v1/images';
+const IMAGES_BASE = "/api/v1/images";
 
 export interface Image {
   id: number;
@@ -69,30 +69,28 @@ export function useImage(imageId: number, options: { enabled?: boolean } = {}) {
 /**
  * Get paginated list of images
  */
-export function useImages(options: {
-  page?: number;
-  limit?: number;
-  datasetId?: number;
-  search?: string;
-  sortBy?: string;
-  enabled?: boolean;
-  setTotalPages?: (total: number) => void;
-} = {}) {
-  const { 
-    page = 1, 
-    limit = 25, 
+export function useImages(
+  options: {
+    page?: number;
+    limit?: number;
+    datasetId?: number;
+    search?: string;
+    sortBy?: string;
+    enabled?: boolean;
+    setTotalPages?: (total: number) => void;
+  } = {}
+) {
+  const {
+    page = 1,
+    limit = 25,
     datasetId,
-    search, 
-    sortBy, 
+    search,
+    sortBy,
     enabled = true,
-    setTotalPages 
+    setTotalPages,
   } = options;
 
-  return usePaginatedGet<
-    ImageResponse,
-    ImageListResponse,
-    Image
-  >({
+  return usePaginatedGet<ImageResponse, ImageListResponse, Image>({
     url: IMAGES_BASE,
     page,
     limit,
@@ -110,22 +108,18 @@ export function useImages(options: {
  * Create a new image
  */
 export function useCreateImage() {
-  return usePost<ImageCreateInput, ImageResponse, Image>(
-    IMAGES_BASE,
-    parseImage,
-    { authenticated: true }
-  );
+  return usePost<ImageCreateInput, ImageResponse, Image>(IMAGES_BASE, parseImage, {
+    authenticated: true,
+  });
 }
 
 /**
  * Update an existing image
  */
 export function useUpdateImage(imageId: number) {
-  return usePut<ImageUpdateInput, ImageResponse, Image>(
-    `${IMAGES_BASE}/${imageId}`,
-    parseImage,
-    { authenticated: true }
-  );
+  return usePut<ImageUpdateInput, ImageResponse, Image>(`${IMAGES_BASE}/${imageId}`, parseImage, {
+    authenticated: true,
+  });
 }
 
 /**
@@ -134,7 +128,7 @@ export function useUpdateImage(imageId: number) {
 export function useDeleteImage(imageId: number) {
   return useDelete<{ success: boolean }, { success: boolean }>(
     `${IMAGES_BASE}/${imageId}`,
-    (raw) => raw,
+    raw => raw,
     { authenticated: true }
   );
 }

@@ -61,7 +61,7 @@ export function WorkspaceCanvas() {
         }}
       >
         <InteractiveAnnotationCanvas
-          imageUrl={selectedImage.image_url}
+          imageUrl={selectedImage.imageUrl}
           imageWidth={selectedImage.width}
           imageHeight={selectedImage.height}
           annotations={convertedAnnotations}
