@@ -1,17 +1,19 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAnnotations } from "@/shared/api/endpoints/annotations";
-import { useImages } from "@/shared/api/endpoints/images";
+import { useImages, ImageStatus } from "@/shared/api/endpoints/images";
 import { useCategories } from "@/shared/api/endpoints/categories";
+import { useTasks } from "@/shared/api/endpoints/tasks";
 import type { Annotation } from "@/shared/api/endpoints/annotations";
 import type { Image } from "@/shared/api/endpoints/images";
 import type { Category } from "@/shared/api/endpoints/categories";
+import type { Task } from "@/shared/api/endpoints/tasks";
 
 export interface ApprovedAnnotationWithImage extends Annotation {
   image?: Image;
   categoryName?: string;
 }
 
-export type DataType = "image" | "video";
+export type DataType = "first-person" | "object-detection" | "action-video";
 export type VideoTask = "all" | "wipe_spill" | "fold_clothes";
 
 export interface UseHomePageOptions {
@@ -26,7 +28,7 @@ export function useHomePage(options: UseHomePageOptions = {}) {
   const [showGlobalMasks, setShowGlobalMasks] = useState(true);
   const [selectedAnnotation, setSelectedAnnotation] = useState<ApprovedAnnotationWithImage | null>(null);
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
-  const [dataType, setDataType] = useState<DataType>("image");
+  const [dataType, setDataType] = useState<DataType>("first-person");
   const [selectedVideoTask, setSelectedVideoTask] = useState<VideoTask>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
@@ -43,7 +45,7 @@ export function useHomePage(options: UseHomePageOptions = {}) {
     sourceType: "USER", 
     page: currentPage,
     limit: annotationsLimit,
-    enabled: dataType === "image",
+    enabled: dataType === "object-detection",
   });
 
   const {
@@ -53,7 +55,16 @@ export function useHomePage(options: UseHomePageOptions = {}) {
   } = useCategories({
     page: 1,
     limit: categoriesLimit,
-    enabled: true,
+    enabled: dataType === "object-detection",
+  });
+
+  // Fetch tasks for first-person images
+  const {
+    data: tasks = [],
+    isLoading: tasksLoading,
+    error: tasksError,
+  } = useTasks({
+    enabled: dataType === "first-person",
   });
 
   // Get unique image IDs from annotations
@@ -70,7 +81,20 @@ export function useHomePage(options: UseHomePageOptions = {}) {
     page: 1,
     // TODO: fetch annotation first and then fetch images by IDs
     limit: 100, // Large limit to get all required images
-    enabled: imageIds.length > 0,
+    enabled: imageIds.length > 0 && dataType === "object-detection",
+  });
+
+  // Fetch first-person images
+  const {
+    data: firstPersonImages = [],
+    totalCount: totalFirstPersonImages = 0,
+    isLoading: firstPersonImagesLoading,
+    error: firstPersonImagesError,
+  } = useImages({
+    page: currentPage,
+    limit: annotationsLimit,
+    status: ImageStatus.APPROVED,
+    enabled: dataType === "first-person",
   });
 
   // Create lookup maps for efficient data joining
@@ -105,8 +129,17 @@ export function useHomePage(options: UseHomePageOptions = {}) {
   }, [annotations, imageMap, categoryMap]);
 
   // Loading and error states
-  const isLoading = annotationsLoading || categoriesLoading || imagesLoading;
-  const error = annotationsError || categoriesError || imagesError;
+  const isLoading = dataType === "first-person" 
+    ? (firstPersonImagesLoading || tasksLoading)
+    : dataType === "object-detection"
+    ? (annotationsLoading || categoriesLoading || imagesLoading)
+    : false; // action-video not implemented yet
+  
+  const error = dataType === "first-person"
+    ? (firstPersonImagesError || tasksError)
+    : dataType === "object-detection"
+    ? (annotationsError || categoriesError || imagesError)
+    : null;
 
   // Search and filter states
   const hasSearchFilter = false; // TODO: Implement search functionality
@@ -140,13 +173,18 @@ export function useHomePage(options: UseHomePageOptions = {}) {
   };
 
   // Calculate total pages
-  const totalPages = Math.ceil(totalAnnotations / annotationsLimit);
+  const totalPages = dataType === "first-person" 
+    ? Math.ceil(totalFirstPersonImages / annotationsLimit)
+    : Math.ceil(totalAnnotations / annotationsLimit);
 
   return {
     // Combined data
     annotationsWithImages,
+    firstPersonImages,
+    tasks,
     totalPages,
     totalAnnotations,
+    totalFirstPersonImages,
     currentPage,
 
     // Page-specific UI state

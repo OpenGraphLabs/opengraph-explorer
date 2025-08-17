@@ -9,7 +9,7 @@ import {
   Tabs,
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { EyeOpenIcon, EyeNoneIcon, CubeIcon, ImageIcon, VideoIcon } from "@radix-ui/react-icons";
+import { EyeOpenIcon, EyeNoneIcon, CubeIcon, ImageIcon, VideoIcon, CameraIcon } from "@radix-ui/react-icons";
 import { CategorySearchInput } from "@/components/annotation";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 import type { VideoTask } from "@/hooks/useHomePage";
@@ -19,12 +19,14 @@ export function HomeHeader() {
     showGlobalMasks,
     setShowGlobalMasks,
     annotationsWithImages,
+    firstPersonImages,
     isLoading,
     dataType,
     setDataType,
     selectedVideoTask,
     setSelectedVideoTask,
     totalAnnotations,
+    totalFirstPersonImages,
     selectedCategory,
     handleCategorySelect,
   } = useHomePageContext();
@@ -88,7 +90,35 @@ export function HomeHeader() {
             </Flex>
 
             {/* Right: Stats and Controls */}
-            {dataType === "image" ? (
+            {dataType === "first-person" ? (
+              <Flex
+                align="center"
+                gap="4"
+                style={{
+                  flex: 1,
+                  justifyContent: "flex-end",
+                  opacity: isLoading ? 0.5 : 1,
+                  transition: "opacity 200ms ease-out",
+                }}
+              >
+                {/* Dataset Stats */}
+                <Flex align="center" gap="3">
+                  <Badge
+                    size="2"
+                    variant="solid"
+                    style={{
+                      fontSize: "14px",
+                      padding: `${theme.spacing[1]} ${theme.spacing[3]}`,
+                      background: theme.colors.interactive.secondary + "20",
+                      color: theme.colors.text.primary,
+                      border: `1px solid ${theme.colors.border.subtle}50`,
+                    }}
+                  >
+                    {totalFirstPersonImages.toLocaleString()} first-person images
+                  </Badge>
+                </Flex>
+              </Flex>
+            ) : dataType === "object-detection" ? (
               <Flex
                 align="center"
                 gap="4"
@@ -184,7 +214,7 @@ export function HomeHeader() {
           <Box style={{ position: "relative", display: "inline-block" }}>
             <Tabs.Root
               value={dataType}
-              onValueChange={value => setDataType(value as "image" | "video")}
+              onValueChange={value => setDataType(value as "first-person" | "object-detection" | "action-video")}
             >
               <Tabs.List
                 size="2"
@@ -206,32 +236,32 @@ export function HomeHeader() {
                 className="opengraph-tabs"
               >
                 <Tabs.Trigger
-                  value="image"
+                  value="first-person"
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "10px",
                     color:
-                      dataType === "image"
+                      dataType === "first-person"
                         ? theme.colors.text.primary
                         : theme.colors.text.secondary,
-                    fontWeight: dataType === "image" ? "600" : "500",
-                    fontSize: "14px",
-                    padding: "14px 24px",
+                    fontWeight: dataType === "first-person" ? "600" : "500",
+                    fontSize: "13px",
+                    padding: "14px 20px",
                     borderRadius: "18px",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     position: "relative",
                     background:
-                      dataType === "image"
+                      dataType === "first-person"
                         ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
                         : "transparent",
                     border:
-                      dataType === "image"
+                      dataType === "first-person"
                         ? `1px solid ${theme.colors.interactive.primary}40`
                         : "1px solid transparent",
                     boxShadow:
-                      dataType === "image"
+                      dataType === "first-person"
                         ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
                         : "0 2px 4px rgba(0,0,0,0.02)",
                     minHeight: "52px",
@@ -241,7 +271,67 @@ export function HomeHeader() {
                   }}
                   className="opengraph-tab-trigger"
                 >
-                  {dataType === "image" && (
+                  {dataType === "first-person" && (
+                    <Box
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)`,
+                        animation: "shimmer 2s infinite",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
+                  <CameraIcon
+                    width="18"
+                    height="18"
+                    style={{
+                      marginRight: "5px",
+                    }}
+                  />
+                  <span>First Person Image</span>
+                </Tabs.Trigger>
+                
+                <Tabs.Trigger
+                  value="object-detection"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    color:
+                      dataType === "object-detection"
+                        ? theme.colors.text.primary
+                        : theme.colors.text.secondary,
+                    fontWeight: dataType === "object-detection" ? "600" : "500",
+                    fontSize: "13px",
+                    padding: "14px 20px",
+                    borderRadius: "18px",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    position: "relative",
+                    background:
+                      dataType === "object-detection"
+                        ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
+                        : "transparent",
+                    border:
+                      dataType === "object-detection"
+                        ? `1px solid ${theme.colors.interactive.primary}40`
+                        : "1px solid transparent",
+                    boxShadow:
+                      dataType === "object-detection"
+                        ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
+                        : "0 2px 4px rgba(0,0,0,0.02)",
+                    minHeight: "52px",
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    overflow: "hidden",
+                  }}
+                  className="opengraph-tab-trigger"
+                >
+                  {dataType === "object-detection" && (
                     <Box
                       style={{
                         position: "absolute",
@@ -262,35 +352,35 @@ export function HomeHeader() {
                       marginRight: "5px",
                     }}
                   />
-                  <span>Image Data</span>
+                  <span>Object Detection</span>
                 </Tabs.Trigger>
                 <Tabs.Trigger
-                  value="video"
+                  value="action-video"
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "10px",
                     color:
-                      dataType === "video"
+                      dataType === "action-video"
                         ? theme.colors.text.primary
                         : theme.colors.text.secondary,
-                    fontWeight: dataType === "video" ? "600" : "500",
-                    fontSize: "14px",
-                    padding: "14px 24px",
+                    fontWeight: dataType === "action-video" ? "600" : "500",
+                    fontSize: "13px",
+                    padding: "14px 20px",
                     borderRadius: "18px",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     position: "relative",
                     background:
-                      dataType === "video"
+                      dataType === "action-video"
                         ? `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}E6)`
                         : "transparent",
                     border:
-                      dataType === "video"
+                      dataType === "action-video"
                         ? `1px solid ${theme.colors.interactive.primary}40`
                         : "1px solid transparent",
                     boxShadow:
-                      dataType === "video"
+                      dataType === "action-video"
                         ? `0 4px 16px ${theme.colors.interactive.primary}30, inset 0 1px 0 rgba(255,255,255,0.2)`
                         : "0 2px 4px rgba(0,0,0,0.02)",
                     minHeight: "52px",
@@ -300,7 +390,7 @@ export function HomeHeader() {
                   }}
                   className="opengraph-tab-trigger"
                 >
-                  {dataType === "video" && (
+                  {dataType === "action-video" && (
                     <Box
                       style={{
                         position: "absolute",
@@ -321,14 +411,14 @@ export function HomeHeader() {
                       marginRight: "5px",
                     }}
                   />
-                  <span>Video Data</span>
+                  <span>Action Video</span>
                 </Tabs.Trigger>
               </Tabs.List>
             </Tabs.Root>
           </Box>
 
           {/* Video Task Filter - Only show for video data */}
-          {dataType === "video" && (
+          {dataType === "action-video" && (
             <Box
               style={{
                 width: "100%",
@@ -381,7 +471,7 @@ export function HomeHeader() {
           )}
 
           {/* Bottom Row: Search Bar - Only show for image data */}
-          {dataType === "image" && (
+          {dataType === "object-detection" && (
             <Box
               style={{
                 width: "100%",

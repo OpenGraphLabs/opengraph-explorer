@@ -11,6 +11,7 @@ import { HomeLoadingState } from "@/components/home/HomeLoadingState";
 import { HomeEmptyState } from "@/components/home/HomeEmptyState";
 import { SearchEmptyState } from "@/components/home/SearchEmptyState";
 import { HomeErrorState } from "@/components/home/HomeErrorState";
+import { FirstPersonImageGallery } from "@/components/home/FirstPersonImageGallery";
 
 function HomeContent() {
   const { theme } = useTheme();
@@ -58,13 +59,21 @@ function HomeContent() {
             transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {dataType === "video" ? (
+          {dataType === "action-video" ? (
             <Box
               style={{
                 animation: "contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
               <VideoGallery />
+            </Box>
+          ) : dataType === "first-person" ? (
+            <Box
+              style={{
+                animation: "contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            >
+              <FirstPersonImageGallery />
             </Box>
           ) : (
             <Box

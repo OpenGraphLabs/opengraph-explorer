@@ -8,6 +8,7 @@ export type PostResult<TBody, TParsedResponse> = {
     onSuccess?: (response: TParsedResponse) => void,
     onFailure?: (error: string) => void
   ) => Promise<void>;
+  mutateAsync: (body: TBody) => Promise<TParsedResponse>;
   isPosting: boolean;
   error: string | null;
 };
@@ -24,13 +25,9 @@ export function usePost<TBody, TRawResponse, TParsedResponse>(
   const [isPosting, setIsPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const post = async (
-    body: TBody,
-    onSuccess?: (response: TParsedResponse) => void,
-    onFailure?: (error: string) => void
-  ) => {
+  const mutateAsync = async (body: TBody): Promise<TParsedResponse> => {
     if (!enabled) {
-      return;
+      throw new Error("Post operation is disabled");
     }
 
     setIsPosting(true);
@@ -44,7 +41,7 @@ export function usePost<TBody, TRawResponse, TParsedResponse>(
       });
 
       const parsedResponse = parseResponse(response.data);
-      onSuccess?.(parsedResponse);
+      return parsedResponse;
     } catch (err: any) {
       console.error("Failed to post request:", err);
 
@@ -60,13 +57,26 @@ export function usePost<TBody, TRawResponse, TParsedResponse>(
       }
 
       setError(errorMessage);
-      onFailure?.(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsPosting(false);
     }
   };
 
-  return { post, isPosting, error };
+  const post = async (
+    body: TBody,
+    onSuccess?: (response: TParsedResponse) => void,
+    onFailure?: (error: string) => void
+  ) => {
+    try {
+      const result = await mutateAsync(body);
+      onSuccess?.(result);
+    } catch (err: any) {
+      onFailure?.(err.message || "Request failed");
+    }
+  };
+
+  return { post, mutateAsync, isPosting, error };
 }
 
 // Additional hooks for PUT and DELETE operations
@@ -82,13 +92,9 @@ export function usePut<TBody, TRawResponse, TParsedResponse>(
   const [isPosting, setIsPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const post = async (
-    body: TBody,
-    onSuccess?: (response: TParsedResponse) => void,
-    onFailure?: (error: string) => void
-  ) => {
+  const mutateAsync = async (body: TBody): Promise<TParsedResponse> => {
     if (!enabled) {
-      return;
+      throw new Error("Put operation is disabled");
     }
 
     setIsPosting(true);
@@ -103,7 +109,7 @@ export function usePut<TBody, TRawResponse, TParsedResponse>(
       });
 
       const parsedResponse = parseResponse(response.data);
-      onSuccess?.(parsedResponse);
+      return parsedResponse;
     } catch (err: any) {
       console.error("Failed to put request:", err);
 
@@ -117,13 +123,26 @@ export function usePut<TBody, TRawResponse, TParsedResponse>(
       }
 
       setError(errorMessage);
-      onFailure?.(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsPosting(false);
     }
   };
 
-  return { post, isPosting, error };
+  const post = async (
+    body: TBody,
+    onSuccess?: (response: TParsedResponse) => void,
+    onFailure?: (error: string) => void
+  ) => {
+    try {
+      const result = await mutateAsync(body);
+      onSuccess?.(result);
+    } catch (err: any) {
+      onFailure?.(err.message || "Request failed");
+    }
+  };
+
+  return { post, mutateAsync, isPosting, error };
 }
 
 export function useDelete<TRawResponse, TParsedResponse>(

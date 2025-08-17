@@ -59,6 +59,10 @@ class Settings(BaseSettings):
         "http://localhost:5173",
     ]
     
+    # Google Cloud Storage
+    google_cloud_project: Optional[str] = None
+    gcs_bucket_name: str = "noyes_test"
+    
     class Config:
         """Pydantic 설정"""
         env_file = ".env"

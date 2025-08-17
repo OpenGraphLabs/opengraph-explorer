@@ -3,13 +3,21 @@ import type { ApiListResponse } from "@/shared/api/core";
 
 const IMAGES_BASE = "/api/v1/images";
 
+export enum ImageStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED"
+}
+
 export interface Image {
   id: number;
   fileName: string;
   imageUrl: string;
   width: number;
   height: number;
-  datasetId: number;
+  datasetId?: number;
+  taskId?: string;
+  status?: ImageStatus;
   createdAt: string;
 }
 
@@ -18,7 +26,17 @@ export interface ImageCreateInput {
   imageUrl: string;
   width: number;
   height: number;
-  datasetId: number;
+  datasetId?: number;
+  taskId?: string;
+  status?: ImageStatus;
+}
+
+export interface FirstPersonImageCreateInput {
+  fileName: string;
+  imageUrl: string;  // Can be base64 data URL
+  width: number;
+  height: number;
+  taskId: string;
 }
 
 export interface ImageUpdateInput {
@@ -35,7 +53,9 @@ interface ImageResponse {
   image_url: string;
   width: number;
   height: number;
-  dataset_id: number;
+  dataset_id?: number;
+  task_id?: string;
+  status?: ImageStatus;
   created_at: string;
 }
 
@@ -49,6 +69,8 @@ const parseImage = (resp: ImageResponse): Image => ({
   width: resp.width,
   height: resp.height,
   datasetId: resp.dataset_id,
+  taskId: resp.task_id,
+  status: resp.status,
   createdAt: resp.created_at,
 });
 
@@ -74,6 +96,8 @@ export function useImages(
     page?: number;
     limit?: number;
     datasetId?: number;
+    taskId?: string;
+    status?: ImageStatus;
     search?: string;
     sortBy?: string;
     enabled?: boolean;
@@ -84,6 +108,8 @@ export function useImages(
     page = 1,
     limit = 25,
     datasetId,
+    taskId,
+    status,
     search,
     sortBy,
     enabled = true,
@@ -101,6 +127,8 @@ export function useImages(
     parseData: parseImage,
     setTotalPages,
     ...(datasetId && { dataset_id: datasetId }),
+    ...(taskId && { task_id: taskId }),
+    ...(status && { status }),
   });
 }
 
@@ -130,5 +158,18 @@ export function useDeleteImage(imageId: number) {
     `${IMAGES_BASE}/${imageId}`,
     raw => raw,
     { authenticated: true }
+  );
+}
+
+/**
+ * Create a first-person image
+ */
+export function useCreateFirstPersonImage() {
+  return usePost<FirstPersonImageCreateInput, ImageResponse, Image>(
+    `${IMAGES_BASE}/first-person`,
+    parseImage,
+    {
+      authenticated: true,
+    }
   );
 }

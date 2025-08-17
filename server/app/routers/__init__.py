@@ -12,6 +12,7 @@ from .dictionary_router import router as dictionary_router
 from .category_router import router as category_router
 from .dictionary_category_router import router as dictionary_category_router
 from .annotation_router import router as annotation_router
+from .task_router import router as task_router
 
 __all__ = [
     "auth_router",
@@ -21,5 +22,6 @@ __all__ = [
     "dictionary_router", 
     "category_router",
     "dictionary_category_router",
-    "annotation_router"
+    "annotation_router",
+    "task_router"
 ] 
