@@ -37,6 +37,7 @@ export function AnnotationsProvider({
     page: currentPage,
     limit,
     imageId: config.imageId,
+    search: config.mode,
     enabled: true,
     setTotalPages,
   });

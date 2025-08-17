@@ -73,7 +73,6 @@ function normalizeHeaders(headersInit: Record<string, string> = {}): AxiosHeader
 function requireAuth(authenticated: boolean) {
   if (authenticated && !authService.getAccessToken()) {
     console.error("Authenticated request attempted without valid access token");
-    authService.clearAuthState();
     throw new Error("Authentication required. Please connect your wallet.");
   }
 }
@@ -103,6 +102,13 @@ async function handleError(
   authenticated?: boolean
 ) {
   console.error(`API error (${method.toUpperCase()} ${url}):`, err);
+  
+  // Log detailed error information for debugging
+  if (err.response) {
+    console.error("Error response status:", err.response.status);
+    console.error("Error response data:", err.response.data);
+    console.error("Error response headers:", err.response.headers);
+  }
   
   if (err.response?.status === 401 && authenticated) {
     console.error("Authentication error (401), forcing reauthentication");

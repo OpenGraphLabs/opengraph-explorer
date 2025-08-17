@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAnnotations } from "../data/AnnotationsContext";
 import { useImagesContext } from "../data/ImagesContext";
 import { useDatasets } from "../data/DatasetsContext";
-import { annotationService } from "@/shared/api";
+import { useCreateAnnotationSelectionsBatch } from "@/shared/api/endpoints/annotations";
+import type { AnnotationSelectionBatchCreateInput } from "@/shared/api/endpoints/annotations";
 import type { CategoryRead } from "@/shared/api/generated/models";
 import { BoundingBox } from "@/components/annotation/types/workspace";
 
@@ -49,11 +50,13 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
   const { selectedImage, setRandomSeed } = useImagesContext();
   const { dataset } = useDatasets();
 
+  // Generic CRUD hook for annotation selections batch
+  const { createBatch, isPosting, error: batchError } = useCreateAnnotationSelectionsBatch();
+
   // Annotation states
   const [entities, setEntities] = useState<EntityAnnotation[]>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [currentSelectedMasks, setCurrentSelectedMasks] = useState<number[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isMovingToNext, setIsMovingToNext] = useState(false);
@@ -170,68 +173,80 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
     setRandomSeed(Math.floor(Math.random() * 1000));
   }, [setRandomSeed]);
 
-  // Save annotations
+  // Helper function to convert entities to batch create input format
+  const createBatchDataFromEntities = useCallback((
+    imageId: number,
+    entities: EntityAnnotation[]
+  ): AnnotationSelectionBatchCreateInput => {
+    const validEntities = entities.filter(
+      entity => entity.selectedMaskIds.length > 0 && entity.category?.id
+    );
+
+    const selections = validEntities.map(entity => ({
+      imageId,
+      selectedAnnotationIds: entity.selectedMaskIds,
+      categoryId: entity.category!.id,
+    }));
+
+    return { selections };
+  }, []);
+
+  // Save annotations using generic CRUD hook
   const handleSaveAnnotations = useCallback(async () => {
     if (!selectedImage || entities.length === 0) return;
 
-    setIsSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
 
-    try {
-      // Filter entities that have both masks and categories
-      const validEntities = entities.filter(
-        entity => entity.selectedMaskIds.length > 0 && entity.category?.id
-      );
+    // Filter entities that have both masks and categories
+    const validEntities = entities.filter(
+      entity => entity.selectedMaskIds.length > 0 && entity.category?.id
+    );
 
-      if (validEntities.length === 0) {
-        throw new Error(
-          "No valid entities to save. Each entity must have selected masks and a category."
-        );
-      }
-
-      // Create batch data using the helper method
-      const batchData = annotationService.createBatchDataFromEntities(
-        selectedImage.id,
-        validEntities
-      );
-
-      console.log("Saving annotation selections:", batchData);
-
-      // Call the batch API
-      const result = await annotationService.createAnnotationSelectionsBatch(batchData);
-
-      console.log("Save successful:", result);
-
-      // Show success state
-      setSaveSuccess(true);
-
-      // Auto-hide success message and move to next image after 1.5 seconds
-      setTimeout(() => {
-        setSaveSuccess(false);
-        setIsMovingToNext(true);
-
-        // Small delay to show "moving to next" state
-        setTimeout(() => {
-          moveToNextImage();
-          setIsMovingToNext(false);
-
-          console.log("Moved to next image for continued annotation");
-        }, 800);
-      }, 1500);
-    } catch (error) {
-      console.error("Error saving annotations:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to save annotations";
-      setSaveError(errorMessage);
-
-      // Auto-hide error message after 5 seconds
-      setTimeout(() => {
-        setSaveError(null);
-      }, 5000);
-    } finally {
-      setIsSaving(false);
+    if (validEntities.length === 0) {
+      setSaveError("No valid entities to save. Each entity must have selected masks and a category.");
+      return;
     }
-  }, [entities, selectedImage, moveToNextImage]);
+
+    // Create batch data using the helper method (in camelCase format)
+    const batchData = createBatchDataFromEntities(selectedImage.id, validEntities);
+
+    console.log("Saving annotation selections with generic CRUD:", batchData);
+
+    // Use generic CRUD hook - it will handle camelCase -> snake_case transformation
+    await createBatch(
+      batchData,
+      // onSuccess callback
+      (result) => {
+        console.log("Save successful:", result);
+        setSaveSuccess(true);
+
+        // Auto-hide success message and move to next image after 1.5 seconds
+        setTimeout(() => {
+          setSaveSuccess(false);
+          setIsMovingToNext(true);
+
+          // Small delay to show "moving to next" state
+          setTimeout(() => {
+            moveToNextImage();
+            setIsMovingToNext(false);
+
+            console.log("Moved to next image for continued annotation");
+          }, 800);
+        }, 1500);
+      },
+      // onFailure callback
+      (errorMessage) => {
+        console.error("Error saving annotations:", errorMessage);
+        setSaveError(errorMessage);
+
+        // Auto-hide error message after 5 seconds
+        setTimeout(() => {
+          setSaveError(null);
+        }, 5000);
+      }
+    );
+  }, [entities, selectedImage, createBatchDataFromEntities, createBatch, moveToNextImage]);
 
   return (
     <AnnotationWorkspaceContext.Provider
@@ -244,8 +259,8 @@ export function AnnotationWorkspaceProvider({ children }: { children: ReactNode 
         handleEntitySelect,
         handleEntityDelete,
         handleCategorySelect,
-        isSaving,
-        saveError,
+        isSaving: isPosting, // Use generic CRUD hook's loading state
+        saveError: saveError || batchError, // Combine local and hook errors
         saveSuccess,
         isMovingToNext,
         handleSaveAnnotations,
