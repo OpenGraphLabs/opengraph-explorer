@@ -1,5 +1,5 @@
-import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '../core/hooks';
-import type { ApiListResponse } from '../core';
+import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '@/shared/api/core';
+import type { ApiListResponse } from '@/shared/api/core';
 
 // Base endpoints
 const DATASETS_BASE = '/api/v1/datasets';
@@ -41,8 +41,7 @@ export interface DatasetUpdateInput {
   dictionary_id?: number;  // API expects snake_case
 }
 
-// Raw API response types (snake_case - matching backend)
-interface DatasetRaw {
+interface DatasetResponse {
   id: number;
   name: string;
   description?: string | null;
@@ -52,7 +51,7 @@ interface DatasetRaw {
   created_at: string;
 }
 
-interface DatasetWithStatsRaw {
+interface DatasetWithStatsResponse {
   id: number;
   name: string;
   description?: string | null;
@@ -64,29 +63,29 @@ interface DatasetWithStatsRaw {
   annotation_count: number;
 }
 
-interface DatasetListResponse extends ApiListResponse<DatasetWithStatsRaw> {}
+interface DatasetListResponse extends ApiListResponse<DatasetWithStatsResponse> {}
 
 // Parsing functions to convert API responses to client types
-const parseDataset = (raw: DatasetRaw): Dataset => ({
-  id: raw.id,
-  name: raw.name,
-  description: raw.description || undefined,
-  tags: raw.tags || undefined,
-  dictionaryId: raw.dictionary_id || undefined,
-  createdBy: raw.created_by || undefined,
-  createdAt: raw.created_at,
+const parseDataset = (resp: DatasetResponse): Dataset => ({
+  id: resp.id,
+  name: resp.name,
+  description: resp.description || undefined,
+  tags: resp.tags || undefined,
+  dictionaryId: resp.dictionary_id || undefined,
+  createdBy: resp.created_by || undefined,
+  createdAt: resp.created_at,
 });
 
-const parseDatasetWithStats = (raw: DatasetWithStatsRaw): DatasetWithStats => ({
-  id: raw.id,
-  name: raw.name,
-  description: raw.description || undefined,
-  tags: raw.tags || undefined,
-  dictionaryId: raw.dictionary_id || undefined,
-  createdBy: raw.created_by || undefined,
-  createdAt: raw.created_at,
-  imageCount: raw.image_count,
-  annotationCount: raw.annotation_count,
+const parseDatasetWithStats = (resp: DatasetWithStatsResponse): DatasetWithStats => ({
+  id: resp.id,
+  name: resp.name,
+  description: resp.description || undefined,
+  tags: resp.tags || undefined,
+  dictionaryId: resp.dictionary_id || undefined,
+  createdBy: resp.created_by || undefined,
+  createdAt: resp.created_at,
+  imageCount: resp.image_count,
+  annotationCount: resp.annotation_count,
 });
 
 // API Hooks
@@ -95,7 +94,7 @@ const parseDatasetWithStats = (raw: DatasetWithStatsRaw): DatasetWithStats => ({
  * Get a single dataset by ID
  */
 export function useDataset(datasetId: number, options: { enabled?: boolean } = {}) {
-  return useSingleGet<DatasetRaw, Dataset>({
+  return useSingleGet<DatasetResponse, Dataset>({
     url: `${DATASETS_BASE}/${datasetId}`,
     enabled: options.enabled && !!datasetId,
     authenticated: true,
@@ -124,7 +123,7 @@ export function useDatasets(options: {
   } = options;
 
   return usePaginatedGet<
-    DatasetRaw,
+    DatasetResponse,
     DatasetListResponse,
     Dataset
   >({
@@ -144,7 +143,7 @@ export function useDatasets(options: {
  * Create a new dataset
  */
 export function useCreateDataset() {
-  return usePost<DatasetCreateInput, DatasetRaw, Dataset>(
+  return usePost<DatasetCreateInput, DatasetResponse, Dataset>(
     DATASETS_BASE,
     parseDataset,
     { authenticated: true }
@@ -155,7 +154,7 @@ export function useCreateDataset() {
  * Update an existing dataset
  */
 export function useUpdateDataset(datasetId: number) {
-  return usePut<DatasetUpdateInput, DatasetRaw, Dataset>(
+  return usePut<DatasetUpdateInput, DatasetResponse, Dataset>(
     `${DATASETS_BASE}/${datasetId}`,
     parseDataset,
     { authenticated: true }

@@ -230,23 +230,42 @@ export const isImageType = (dataType: string): boolean => {
 #### Core API Structure
 ```
 shared/api/
-├── generated/          # OpenAPI 생성 코드 (유지용)
+├── generated/          # OpenAPI 생성 코드 (유지, legacy 호환용)
 ├── core/              # Generic API 레이어 
 │   ├── client.ts      # Axios 클라이언트 및 인증
 │   ├── hooks/         # 재사용 가능한 API hooks
-│   └── types/         # 공통 타입 정의
-├── endpoints/         # 도메인별 API 정의
-│   ├── datasets.ts
-│   ├── images.ts
-│   ├── annotations.ts
-│   └── users.ts
-└── services/          # 비즈니스 로직 (legacy)
+│   │   ├── useSingleGet.ts
+│   │   ├── usePaginatedGet.ts
+│   │   ├── usePost.ts
+│   │   └── index.ts
+│   ├── types/         # 공통 타입 정의
+│   └── index.ts
+├── endpoints/         # 도메인별 API 정의 (새로운 패턴)
+│   ├── datasets.ts    # ✅ 구현 완료
+│   ├── users.ts       # ✅ 구현 완료  
+│   ├── images.ts      # 🚧 마이그레이션 예정
+│   ├── annotations.ts # 🚧 마이그레이션 예정
+│   └── index.ts
+└── services/          # 비즈니스 로직 (legacy, 점진적 제거)
 ```
 
 #### Generic Hooks 사용 패턴
 ```typescript
-// 1. Single Get Hook
+// 1. Single Get Hook (기본 데이터)
 import { useSingleGet } from '@/shared/api/core';
+
+const { data, isLoading, error } = useSingleGet<APIResponseType, ClientType>({
+  url: '/api/v1/datasets/1',
+  authenticated: true,
+  parseData: (raw) => ({ id: raw.id, name: raw.name })
+});
+
+// 2. Single Get Hook (통계 포함 데이터)  
+const { data, isLoading, error } = useSingleGet<APIStatsResponseType, ClientStatsType>({
+  url: '/api/v1/datasets/1',  // 또는 전용 엔드포인트
+  authenticated: true,
+  parseData: (raw) => transformWithStats(raw)
+});
 
 const { data, isLoading, error } = useSingleGet<RawType, ParsedType>({
   url: '/api/v1/datasets/1',
@@ -337,6 +356,258 @@ export function useCreateDataset() {
 }
 ```
 
+## Latest Implemented Patterns (Dataset & User)
+
+### Dataset API Pattern - Unified Statistics
+**Status**: ✅ **완전 구현** - 모든 Dataset 엔드포인트 통일
+
+#### 서버 변경사항
+- **DatasetWithStats 통일**: 모든 endpoint에서 `image_count`, `annotation_count` 포함
+- **GET /datasets**: `List[DatasetWithStats]` 반환
+- **GET /datasets/{id}**: `DatasetWithStats` 반환  
+- **POST /datasets**: `DatasetWithStats` 반환
+- **PUT /datasets/{id}**: `DatasetWithStats` 반환
+
+#### 클라이언트 구현
+```typescript
+// shared/api/endpoints/datasets.ts
+
+// 기본 Dataset 타입 (통계 없음) - 사용 안함
+export interface Dataset {
+  id: number;
+  name: string;
+  description?: string;
+  tags?: string[];
+  dictionaryId?: number;
+  createdBy?: number;
+  createdAt: string;
+}
+
+// 통계 포함 Dataset 타입 (실제 사용)
+export interface DatasetWithStats extends Dataset {
+  imageCount: number;
+  annotationCount: number;
+}
+
+// API Response 타입 (snake_case)
+interface DatasetWithStatsResponse {
+  id: number;
+  name: string;
+  description?: string | null;
+  tags?: string[] | null;
+  dictionary_id?: number | null;
+  created_by?: number | null;
+  created_at: string;
+  image_count: number;
+  annotation_count: number;
+}
+
+// 파싱 함수
+const parseDatasetWithStats = (resp: DatasetWithStatsResponse): DatasetWithStats => ({
+  id: resp.id,
+  name: resp.name,
+  description: resp.description || undefined,
+  tags: resp.tags || undefined,
+  dictionaryId: resp.dictionary_id || undefined,
+  createdBy: resp.created_by || undefined,
+  createdAt: resp.created_at,
+  imageCount: resp.image_count,
+  annotationCount: resp.annotation_count,
+});
+
+// CRUD Hooks (모두 DatasetWithStats 반환)
+export function useDataset(datasetId: number, options = {}) {
+  return useSingleGet<DatasetWithStatsResponse, DatasetWithStats>({
+    url: `${DATASETS_BASE}/${datasetId}`,
+    enabled: options.enabled && !!datasetId,
+    authenticated: true,
+    parseData: parseDatasetWithStats,
+  });
+}
+
+export function useDatasets(options = {}) {
+  return usePaginatedGet<DatasetWithStatsResponse, DatasetListResponse, DatasetWithStats>({
+    url: DATASETS_BASE,
+    page: options.page || 1,
+    limit: options.limit || 25,
+    search: options.search,
+    sortBy: options.sortBy,
+    authenticated: true,
+    parseData: parseDatasetWithStats,
+    setTotalPages: options.setTotalPages,
+  });
+}
+```
+
+### User API Pattern - 효율성 최적화
+**Status**: ✅ **완전 구현** - 기본 정보와 통계 정보 분리
+
+#### 서버 효율성 원칙
+- **기본 User 작업**: `UserRead` 사용 (빠른 단일 테이블 쿼리)
+- **통계 필요시**: `UserProfile` 사용 (JOIN 포함)
+
+#### 엔드포인트 분리
+```
+# 기본 정보 (JOIN 없음, 빠름)
+GET /users/me           -> UserRead
+GET /users/{id}         -> UserRead  
+POST /users             -> UserRead
+PUT /users/me           -> UserRead
+PUT /users/{id}         -> UserRead
+
+# 통계 포함 정보 (JOIN 포함)
+GET /users/me/profile   -> UserProfile
+GET /users/{id}/profile -> UserProfile
+```
+
+#### 클라이언트 구현
+```typescript
+// shared/api/endpoints/users.ts
+
+// 기본 User 타입 (빠른 조회용)
+export interface User {
+  id: number;
+  email: string;
+  displayName?: string;
+  profileImageUrl?: string;
+  suiAddress?: string;
+  googleId?: string;
+  createdAt: string;
+}
+
+// 통계 포함 User 타입 (프로필 전용)
+export interface UserProfile extends User {
+  datasetCount: number;
+  annotationCount: number;
+}
+
+// API Response 타입들
+interface UserResponse {
+  id: number;
+  email: string;
+  display_name?: string | null;
+  profile_image_url?: string | null;
+  sui_address?: string | null;
+  google_id?: string | null;
+  created_at: string;
+}
+
+interface UserProfileResponse extends UserResponse {
+  dataset_count: number;
+  annotation_count: number;
+}
+
+// 파싱 함수들
+const parseUser = (resp: UserResponse): User => ({
+  id: resp.id,
+  email: resp.email,
+  displayName: resp.display_name || undefined,
+  profileImageUrl: resp.profile_image_url || undefined,
+  suiAddress: resp.sui_address || undefined,
+  googleId: resp.google_id || undefined,
+  createdAt: resp.created_at,
+});
+
+const parseUserProfile = (resp: UserProfileResponse): UserProfile => ({
+  ...parseUser(resp),
+  datasetCount: resp.dataset_count,
+  annotationCount: resp.annotation_count,
+});
+
+// CRUD Hooks (용도별 분리)
+// 기본 정보 (빠름)
+export function useCurrentUser(options = {}) {
+  return useSingleGet<UserResponse, User>({
+    url: `${USERS_BASE}/me`,
+    enabled: options.enabled,
+    authenticated: true,
+    parseData: parseUser,
+  });
+}
+
+// 통계 포함 정보 (Profile 페이지용)
+export function useCurrentUserProfile(options = {}) {
+  return useSingleGet<UserProfileResponse, UserProfile>({
+    url: `${USERS_BASE}/me/profile`,
+    enabled: options.enabled,
+    authenticated: true,
+    parseData: parseUserProfile,
+  });
+}
+```
+
+#### 사용 예시
+```typescript
+// pages/Profile.tsx - 통계가 필요한 경우
+import { useCurrentUserProfile } from '@/shared/api/endpoints/users';
+
+export function Profile() {
+  const { data: profile, isLoading } = useCurrentUserProfile({ enabled: isAuthenticated });
+  
+  return (
+    <div>
+      <h1>{profile?.displayName}</h1>
+      <p>Datasets: {profile?.datasetCount}</p>
+      <p>Annotations: {profile?.annotationCount}</p>
+    </div>
+  );
+}
+
+// components/Header.tsx - 기본 정보만 필요한 경우
+import { useCurrentUser } from '@/shared/api/endpoints/users';
+
+export function Header() {
+  const { data: user } = useCurrentUser({ enabled: isAuthenticated });
+  
+  return (
+    <div>
+      <span>{user?.displayName}</span>
+      <img src={user?.profileImageUrl} />
+    </div>
+  );
+}
+```
+
+### 공통 구현 패턴
+
+#### 1. Type Conversion Pattern
+```typescript
+// snake_case (API) → camelCase (Client) 자동 변환
+const parseEntity = (resp: APIResponseType): ClientType => ({
+  id: resp.id,
+  createdAt: resp.created_at,           // snake_case → camelCase
+  userId: resp.user_id,                 // snake_case → camelCase
+  imageCount: resp.image_count,         // snake_case → camelCase
+  someOptionalField: resp.some_optional_field || undefined,  // null → undefined
+});
+```
+
+#### 2. Error Handling Pattern
+```typescript
+// 모든 endpoint에서 일관된 에러 처리
+const { data, isLoading, error } = useEndpoint(params);
+
+if (error) {
+  return <ErrorState message={error.message} />;
+}
+
+if (isLoading) {
+  return <LoadingState />;
+}
+```
+
+#### 3. Authentication Pattern
+```typescript
+// 자동 인증 헤더 주입
+export function useEntityHook() {
+  return useSingleGet<RawType, ParsedType>({
+    url: '/api/v1/entity',
+    authenticated: true,  // 자동으로 JWT + User-ID 헤더 추가
+    parseData: parseEntity,
+  });
+}
+```
+
 #### Context Provider with Generic API
 ```typescript
 // contexts/data/DatasetsListContext.tsx
@@ -407,77 +678,95 @@ if (err.response?.status === 401 && authenticated) {
 
 ### ✅ Recommended
 
-1. **Generic API Pattern**
-   - Use generic CRUD hooks for all API calls
-   - Define domain-specific endpoints with type conversion
+1. **Generic API Pattern** (✅ Datasets, Users 구현 완료)
+   - Use `useSingleGet`, `usePaginatedGet`, `usePost`, `usePut`, `useDelete` 
+   - Define domain-specific endpoints with snake_case → camelCase conversion
    - Implement proper error handling and authentication
+   - Example: `useDataset()`, `useCurrentUserProfile()`
 
-2. **Single Responsibility Principle**
-   - UI components handle rendering only
-   - Providers handle data management only
-   - Endpoints handle API logic and type conversion
+2. **Performance-Optimized Endpoint Design**
+   - **Dataset pattern**: 모든 엔드포인트에 통계 포함 (일관성 우선)
+   - **User pattern**: 기본 정보와 통계 정보 분리 (성능 우선)
+   - 용도에 따라 적절한 패턴 선택
 
 3. **Type Safety & Conversion**
-   - Convert snake_case API responses to camelCase client types
-   - Use parsing functions for consistent type transformation
-   - Define clear TypeScript interfaces for all data structures
+   - 모든 API 응답을 `parseEntity()` 함수로 변환
+   - snake_case (API) → camelCase (Client) 자동 변환
+   - `null` → `undefined` 변환으로 TypeScript 호환성 확보
+   - Interface separation: `EntityResponse` (API) vs `Entity` (Client)
 
-4. **Context Optimization**
-   - Include only necessary data in Context
-   - Prevent unnecessary re-renders with useMemo, useCallback
-   - Use generic hooks within Context Providers
+4. **Authentication Integration**
+   - `authenticated: true` 옵션으로 자동 헤더 주입
+   - JWT (sessionStorage) + User-ID (localStorage) 조합
+   - 401 에러 시 자동 로그아웃 처리
 
-5. **Error Handling**
-   - Set error boundaries when using Context
-   - Provide Loading/Error state UI
-   - Handle 401 errors with automatic logout
+5. **Context Optimization**
+   - Context Provider에서 generic hooks 사용
+   - UI component는 순수 렌더링만 담당
+   - Context에서 데이터 변환 및 비즈니스 로직 처리
 
 ### ❌ Avoid
 
 1. **API Anti-patterns**
-   - Don't use generated API clients directly in components
-   - Avoid raw axios calls - use generic hooks instead
-   - Don't mix authentication patterns
+   - ❌ `apiClient.datasets.getDatasets()` (generated client 직접 사용)
+   - ❌ `axios.get('/api/v1/datasets')` (raw axios 호출)
+   - ✅ `useDatasets()` (generic hook 사용)
 
-2. **Context Misuse**
-   - Use useState for local state
-   - Don't use Context for non-global data
-   - Avoid bypassing generic API layer
+2. **Performance Anti-patterns**
+   - ❌ 항상 통계 정보까지 포함하여 조회 (User case)
+   - ❌ 기본 정보와 통계 정보를 별도 호출 (Dataset case)
+   - ✅ 용도에 따른 적절한 endpoint 선택
 
 3. **Type Inconsistencies**
-   - Don't use snake_case in client-side types
-   - Avoid manual API calls without type conversion
-   - Don't skip parseData functions in endpoint definitions
+   - ❌ `user.display_name` (snake_case 사용)
+   - ❌ `dataset.image_count` (snake_case 사용)
+   - ✅ `user.displayName` (camelCase 사용)
+   - ✅ `dataset.imageCount` (camelCase 사용)
 
-4. **Performance Issues**
-   - Ensure reference stability for large objects
-   - Avoid unnecessary Context nesting
-   - Don't forget to implement pagination for large datasets
+4. **Authentication Issues**
+   - ❌ 수동으로 헤더 설정
+   - ❌ 토큰 만료 시 에러 처리 누락
+   - ✅ `authenticated: true` 옵션 사용
+   - ✅ 자동 로그아웃 처리
 
 ## Refactoring Checklist
 
 ### When Adding New API Integration
+- [ ] **성능 패턴 결정**: Dataset-style (통계 통합) vs User-style (정보 분리)
 - [ ] Create endpoint definition in `shared/api/endpoints/`
-- [ ] Define client-side types with camelCase conversion
-- [ ] Implement parseData functions for type transformation
-- [ ] Add CRUD hooks (useGet, usePaginatedGet, usePost, etc.)
+- [ ] Define API response types (`EntityResponse`) with snake_case
+- [ ] Define client types (`Entity`) with camelCase conversion
+- [ ] Implement `parseEntity()` functions for type transformation
+- [ ] Add CRUD hooks using generic patterns:
+  - [ ] `useSingleGet<EntityResponse, Entity>`
+  - [ ] `usePaginatedGet<EntityResponse, EntityListResponse, Entity>`
+  - [ ] `usePost<EntityCreateInput, EntityResponse, Entity>`
+  - [ ] `usePut<EntityUpdateInput, EntityResponse, Entity>`
+  - [ ] `useDelete<{}, EntityResponse, Entity>`
+- [ ] Set `authenticated: true` for protected endpoints
 - [ ] Update Context Providers to use new generic hooks
 - [ ] Test authentication and error handling
 
 ### When Adding New Page
-- [ ] Identify required entity Providers
+- [ ] Identify required entity data (basic vs with statistics)
+- [ ] Choose appropriate hooks based on performance needs
 - [ ] Create page Provider using generic API hooks
 - [ ] Design Provider composition structure
-- [ ] Plan component splitting
-- [ ] Define types and error handling
+- [ ] Plan component splitting (keep UI components pure)
+- [ ] Define loading/error states
+- [ ] Test with actual API responses
 
-### When Refactoring Existing Page
-- [ ] Measure current line count
-- [ ] Replace legacy API calls with generic hooks
-- [ ] Separate data logic from UI logic
-- [ ] Update Context Providers to use endpoint definitions
-- [ ] Convert snake_case types to camelCase
-- [ ] Verify build and tests
+### When Refactoring Existing API Usage
+- [ ] Measure current performance (API calls, loading times)
+- [ ] Replace legacy patterns:
+  - [ ] ❌ `apiClient.entities.getEntities()` → ✅ `useEntities()`
+  - [ ] ❌ `axios.get('/api/v1/entities')` → ✅ `useEntities()`
+  - [ ] ❌ Manual type conversion → ✅ `parseEntity()` function
+- [ ] Update type usage:
+  - [ ] ❌ `entity.field_name` → ✅ `entity.fieldName`
+  - [ ] ❌ Manual null checks → ✅ `|| undefined` in parseData
+- [ ] Test loading states and error handling
+- [ ] Verify build and authentication flow
 
 ## Development Commands
 
@@ -506,25 +795,43 @@ yarn codegen
 - **Maintainability**: Enhanced through Context-based modularization + Generic API
 - **Reusability**: Common Providers, components, and API hooks extracted
 
-## Migration Priority
+## Migration Priority & Status
 
-### Phase 1: Core Entities (✅ Completed)
-- [x] **Datasets**: Generic API pattern implemented
-- [x] **Authentication**: JWT + User ID header integration
-- [x] **Build System**: TypeScript compilation successful
+### Phase 1: Core Entities (✅ **100% 완료**)
+- [x] **Datasets**: ✅ **완전 구현** - DatasetWithStats 통일 패턴
+  - 모든 CRUD 연산에서 `image_count`, `annotation_count` 포함
+  - `useDataset()`, `useDatasets()`, `useCreateDataset()` 등 완성
+  - Context Provider 마이그레이션 완료
+- [x] **Users**: ✅ **최적화 완료** - 성능 우선 분리 패턴  
+  - 기본 정보: `useCurrentUser()`, `useUser()` (빠른 단일 테이블 쿼리)
+  - 통계 정보: `useCurrentUserProfile()` (필요시에만 JOIN)
+  - Profile.tsx 페이지 마이그레이션 완료
+- [x] **Authentication**: ✅ JWT + User-ID 헤더 자동 처리
+- [x] **Build System**: ✅ TypeScript 컴파일 성공
 
-### Phase 2: Primary Entities
-- [ ] **Images**: Convert to generic API pattern
-- [ ] **Annotations**: Convert to generic API pattern  
-- [ ] **Categories**: Convert to generic API pattern
+### Phase 2: Primary Entities (🚧 **마이그레이션 대기**)
+- [ ] **Images**: 🔄 Dataset 패턴 적용 예정
+  - 통계 정보 (annotation_count) 포함 여부 결정 필요
+  - Context Provider 마이그레이션 예정
+- [ ] **Annotations**: 🔄 Dataset 패턴 적용 예정  
+  - 관련 entity 정보 포함 여부 결정 필요
+- [ ] **Categories**: 🔄 User 패턴 적용 예정
+  - 기본 정보와 사용 통계 분리 고려
 
-### Phase 3: Secondary Entities
-- [ ] **Users**: Convert to generic API pattern
-- [ ] **Dictionaries**: Convert to generic API pattern
+### Phase 3: Secondary Entities (⏳ **계획 단계**)
+- [ ] **Dictionaries**: 🔄 User 패턴 적용 예정
+  - DictionaryCategories와의 관계 고려
 
-### Phase 4: Legacy Cleanup
-- [ ] Remove generated API client dependencies
-- [ ] Clean up legacy service classes
-- [ ] Update documentation
+### Phase 4: Legacy Cleanup (⏳ **최종 단계**)
+- [ ] Remove openapi-generator 의존성 완전 제거
+- [ ] Clean up legacy service classes (`shared/api/services/`)
+- [ ] Update all Context Providers to use new patterns
+- [ ] Performance optimization review
+
+### 📊 현재 상태 요약
+- **✅ 완료**: Datasets (통합), Users (분리) - 2개 엔티티
+- **🚧 진행 중**: 없음
+- **⏳ 대기**: Images, Annotations, Categories, Dictionaries - 4개 엔티티
+- **전체 진행률**: **33% (2/6 엔티티 완료)**
 
 Follow this guide to write consistent and maintainable React client code with the new Generic CRUD API pattern.

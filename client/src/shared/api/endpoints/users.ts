@@ -1,16 +1,8 @@
-import { useSingleGet, usePost, usePut } from '../core/hooks';
-import type { 
-  UserRead, 
-  UserCreate,
-  UserUpdate,
-  CurrentUserResponse 
-} from '../generated/models';
+import { useSingleGet, usePost, usePut } from '@/shared/api/core';
 
 // Base endpoints
 const USERS_BASE = '/api/v1/users';
-const AUTH_BASE = '/api/v1/auth';
 
-// Type mappings for better UX
 export interface User {
   id: number;
   email: string;
@@ -21,39 +13,61 @@ export interface User {
   createdAt: string;
 }
 
+export interface UserProfile extends User {
+  datasetCount: number;
+  annotationCount: number;
+}
+
 export interface UserCreateInput {
   email: string;
-  googleId?: string;
-  displayName?: string;
-  profileImageUrl?: string;
+  google_id?: string;  // API expects snake_case
+  display_name?: string;  // API expects snake_case
+  profile_image_url?: string;  // API expects snake_case
 }
 
 export interface UserUpdateInput {
   email?: string;
-  displayName?: string;
-  profileImageUrl?: string;
-  suiAddress?: string;
+  display_name?: string;  // API expects snake_case
+  profile_image_url?: string;  // API expects snake_case
+  sui_address?: string;  // API expects snake_case
 }
 
-// Parsing functions
-const parseUser = (raw: UserRead): User => ({
-  id: raw.id,
-  email: raw.email,
-  displayName: raw.display_name || undefined,
-  profileImageUrl: raw.profile_image_url || undefined,
-  suiAddress: raw.sui_address || undefined,
-  googleId: raw.google_id || undefined,
-  createdAt: raw.created_at,
+interface UserResponse {
+  id: number;
+  email: string;
+  display_name?: string | null;
+  profile_image_url?: string | null;
+  sui_address?: string | null;
+  google_id?: string | null;
+  created_at: string;
+}
+
+interface UserProfileResponse extends UserResponse {
+  dataset_count: number;
+  annotation_count: number;
+}
+
+// Parsing functions to convert API responses to client types
+const parseUser = (resp: UserResponse): User => ({
+  id: resp.id,
+  email: resp.email,
+  displayName: resp.display_name || undefined,
+  profileImageUrl: resp.profile_image_url || undefined,
+  suiAddress: resp.sui_address || undefined,
+  googleId: resp.google_id || undefined,
+  createdAt: resp.created_at,
 });
 
-const parseCurrentUser = (raw: CurrentUserResponse): User => ({
-  id: raw.id,
-  email: raw.email,
-  displayName: raw.display_name || undefined,
-  profileImageUrl: raw.profile_image_url || undefined,
-  suiAddress: raw.sui_address || undefined,
-  googleId: raw.google_id || undefined,
-  createdAt: raw.created_at,
+const parseUserProfile = (resp: UserProfileResponse): UserProfile => ({
+  id: resp.id,
+  email: resp.email,
+  displayName: resp.display_name || undefined,
+  profileImageUrl: resp.profile_image_url || undefined,
+  suiAddress: resp.sui_address || undefined,
+  googleId: resp.google_id || undefined,
+  createdAt: resp.created_at,
+  datasetCount: resp.dataset_count,
+  annotationCount: resp.annotation_count,
 });
 
 // API Hooks
@@ -62,11 +76,11 @@ const parseCurrentUser = (raw: CurrentUserResponse): User => ({
  * Get current authenticated user
  */
 export function useCurrentUser(options: { enabled?: boolean } = {}) {
-  return useSingleGet<CurrentUserResponse, User>({
-    url: `${AUTH_BASE}/me`,
+  return useSingleGet<UserResponse, User>({
+    url: `${USERS_BASE}/me`,
     enabled: options.enabled,
     authenticated: true,
-    parseData: parseCurrentUser,
+    parseData: parseUser,
   });
 }
 
@@ -74,7 +88,7 @@ export function useCurrentUser(options: { enabled?: boolean } = {}) {
  * Get a single user by ID
  */
 export function useUser(userId: number, options: { enabled?: boolean } = {}) {
-  return useSingleGet<UserRead, User>({
+  return useSingleGet<UserResponse, User>({
     url: `${USERS_BASE}/${userId}`,
     enabled: options.enabled && !!userId,
     authenticated: true,
@@ -86,7 +100,7 @@ export function useUser(userId: number, options: { enabled?: boolean } = {}) {
  * Create a new user
  */
 export function useCreateUser() {
-  return usePost<UserCreateInput, UserRead, User>(
+  return usePost<UserCreateInput, UserResponse, User>(
     USERS_BASE,
     parseUser,
     { authenticated: false } // Usually registration doesn't require auth
@@ -97,9 +111,32 @@ export function useCreateUser() {
  * Update user profile
  */
 export function useUpdateUser(userId: number) {
-  return usePut<UserUpdateInput, UserRead, User>(
+  return usePut<UserUpdateInput, UserResponse, User>(
     `${USERS_BASE}/${userId}`,
     parseUser,
     { authenticated: true }
   );
+}
+
+/**
+ * Update current user profile
+ */
+export function useUpdateCurrentUser() {
+  return usePut<UserUpdateInput, UserResponse, User>(
+    `${USERS_BASE}/me`,
+    parseUser,
+    { authenticated: true }
+  );
+}
+
+/**
+ * Get current user profile (with statistics)
+ */
+export function useCurrentUserProfile(options: { enabled?: boolean } = {}) {
+  return useSingleGet<UserProfileResponse, UserProfile>({
+    url: `${USERS_BASE}/me/profile`,
+    enabled: options.enabled,
+    authenticated: true,
+    parseData: parseUserProfile,
+  });
 }
