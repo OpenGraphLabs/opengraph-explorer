@@ -15,16 +15,8 @@ export interface Dataset {
   createdAt: string;
 }
 
-export interface DatasetWithStats {
-  id: number;
-  name: string;
-  description?: string;
-  tags?: string[];
-  dictionaryId?: number;
-  createdBy?: number;
-  createdAt: string;
+export interface DatasetWithStats extends Dataset {
   imageCount: number;
-  annotationCount: number;
 }
 
 export interface DatasetCreateInput {
@@ -51,16 +43,8 @@ interface DatasetResponse {
   created_at: string;
 }
 
-interface DatasetWithStatsResponse {
-  id: number;
-  name: string;
-  description?: string | null;
-  tags?: string[] | null;
-  dictionary_id?: number | null;
-  created_by?: number | null;
-  created_at: string;
+interface DatasetWithStatsResponse extends DatasetResponse {
   image_count: number;
-  annotation_count: number;
 }
 
 interface DatasetListResponse extends ApiListResponse<DatasetWithStatsResponse> {}
@@ -85,7 +69,6 @@ const parseDatasetWithStats = (resp: DatasetWithStatsResponse): DatasetWithStats
   createdBy: resp.created_by || undefined,
   createdAt: resp.created_at,
   imageCount: resp.image_count,
-  annotationCount: resp.annotation_count,
 });
 
 // API Hooks

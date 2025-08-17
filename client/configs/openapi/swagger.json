@@ -3268,12 +3268,6 @@
             "title": "Image Count",
             "description": "Number of images",
             "default": 0
-          },
-          "annotation_count": {
-            "type": "integer",
-            "title": "Annotation Count",
-            "description": "Number of annotations",
-            "default": 0
           }
         },
         "type": "object",
