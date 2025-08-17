@@ -1,11 +1,11 @@
 import { Flex, Text, Badge, Separator } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { useProfilePage } from "@/contexts/page/ProfilePageContext";
+import { useProfilePageContext } from "@/shared/providers/ProfilePageProvider";
 
 export function ProfileAccountOverview() {
   const { theme } = useTheme();
-  const { userProfile, userAddress, formatAddress, formatDate } = useProfilePage();
+  const { userProfile, userAddress, formatAddress, formatDate } = useProfilePageContext();
 
   return (
     <Card
@@ -47,7 +47,7 @@ export function ProfileAccountOverview() {
             </>
           )}
 
-          {userProfile?.display_name && (
+          {userProfile?.displayName && (
             <>
               <Flex justify="between" align="center">
                 <Text size="2" style={{ color: theme.colors.text.secondary }}>
@@ -60,7 +60,7 @@ export function ProfileAccountOverview() {
                     fontWeight: 500,
                   }}
                 >
-                  {userProfile.display_name}
+                  {userProfile.displayName}
                 </Text>
               </Flex>
               <Separator />
@@ -96,7 +96,7 @@ export function ProfileAccountOverview() {
                 fontWeight: 500,
               }}
             >
-              {userProfile?.created_at ? formatDate(userProfile.created_at) : "Unknown"}
+              {userProfile?.createdAt ? formatDate(userProfile.createdAt) : "Unknown"}
             </Text>
           </Flex>
 

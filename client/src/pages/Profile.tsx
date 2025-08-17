@@ -3,7 +3,7 @@ import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
-import { useCurrentUserProfile } from "@/shared/api/endpoints/users";
+import { ProfilePageProvider, useProfilePageContext } from "@/shared/providers/ProfilePageProvider";
 import {
   BarChartIcon,
   PersonIcon,
@@ -16,15 +16,15 @@ import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
 import openLogoUrl from "@/assets/logo/logo.png";
 import usdcLogoUrl from "@/assets/logo/usdc_logo.png";
 
-export function Profile() {
+function ProfileContent() {
   const { theme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { suiAddress } = useZkLogin();
   const {
-    data: profile,
+    userProfile: profile,
     isLoading: loading,
     error,
-  } = useCurrentUserProfile({ enabled: isAuthenticated });
+  } = useProfilePageContext();
   // Token selection state - 모든 Hook을 컴포넌트 최상단에 위치
   const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
 
@@ -786,5 +786,13 @@ export function Profile() {
         `}
       </style>
     </Box>
+  );
+}
+
+export function Profile() {
+  return (
+    <ProfilePageProvider>
+      <ProfileContent />
+    </ProfilePageProvider>
   );
 }

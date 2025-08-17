@@ -2,15 +2,17 @@ import React from "react";
 import { Flex, Button, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
-import { useCategories } from "@/contexts/data/CategoriesContext";
-import { useHomePage } from "@/contexts/page/HomePageContext";
+import { useHomePageContext } from "@/shared/providers/HomePageProvider";
 
 export function HomePagination() {
+  const {
+    currentPage,
+    totalPages,
+    selectedCategory,
+    handlePageChange,
+    isLoading,
+  } = useHomePageContext();
   const { theme } = useTheme();
-  const { currentPage, totalPages } = useAnnotations();
-  const { selectedCategory } = useCategories();
-  const { handlePageChange, isLoading } = useHomePage();
 
   // Don't show pagination when category is selected or there's only one page
   if (selectedCategory || totalPages <= 1) {

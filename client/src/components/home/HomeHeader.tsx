@@ -11,13 +11,10 @@ import {
 import { useTheme } from "@/shared/ui/design-system";
 import { EyeOpenIcon, EyeNoneIcon, CubeIcon, ImageIcon, VideoIcon } from "@radix-ui/react-icons";
 import { CategorySearchInput } from "@/components/annotation";
-import { useHomePage } from "@/contexts/page/HomePageContext";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
-import { useCategories } from "@/contexts/data/CategoriesContext";
-import type { VideoTask } from "@/contexts/page/HomePageContext";
+import { useHomePageContext } from "@/shared/providers/HomePageProvider";
+import type { VideoTask } from "@/shared/hooks/pages/useHomePage";
 
 export function HomeHeader() {
-  const { theme } = useTheme();
   const {
     showGlobalMasks,
     setShowGlobalMasks,
@@ -27,9 +24,11 @@ export function HomeHeader() {
     setDataType,
     selectedVideoTask,
     setSelectedVideoTask,
-  } = useHomePage();
-  const { totalAnnotations } = useAnnotations();
-  const { selectedCategory, setSelectedCategory } = useCategories();
+    totalAnnotations,
+    selectedCategory,
+    handleCategorySelect,
+  } = useHomePageContext();
+  const { theme } = useTheme();
 
   return (
     <Box
@@ -394,7 +393,7 @@ export function HomeHeader() {
               <CategorySearchInput
                 placeholder="Search categories, objects, or scenes in our robotics dataset..."
                 selectedCategory={selectedCategory}
-                onCategorySelect={setSelectedCategory}
+                onCategorySelect={handleCategorySelect}
                 useGlobalCategories={true}
               />
             </Box>

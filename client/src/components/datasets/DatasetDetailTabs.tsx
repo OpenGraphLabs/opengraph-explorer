@@ -1,13 +1,11 @@
 import { Box, Flex, Text, Tabs } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { CheckCircle, Users, Database } from "phosphor-react";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
+import { useDatasetDetailPageContext } from "@/shared/providers/DatasetDetailPageProvider";
 
 export function DatasetDetailTabs() {
   const { theme } = useTheme();
-  const { totalCounts } = useImagesContext();
-  const { activeTab, setActiveTab } = useDatasetDetailPage();
+  const { totalCounts, activeTab, setActiveTab } = useDatasetDetailPageContext();
 
   return (
     <Box

@@ -2,836 +2,498 @@
 
 ## Project Structure and Architecture
 
-### Directory Structure
+### Optimized Directory Structure
 ```
 client/
 ├── src/
 │   ├── app/                    # Application routing and global configuration
-│   ├── pages/                  # Page components
-│   ├── components/             # Reusable UI components
-│   ├── contexts/               # React Context Providers
-│   │   ├── data/              # Data management contexts
-│   │   └── page/              # Page-specific state management contexts
+│   ├── pages/                  # Page components (pure composition)
+│   ├── components/             # Feature-specific UI components
+│   │   ├── home/              # Home page specific components
+│   │   ├── profile/           # Profile page specific components
+│   │   ├── datasets/          # Dataset page specific components
+│   │   └── common/            # Reusable UI components
+│   ├── contexts/               # Global contexts only
+│   │   ├── data/              # Entity data management contexts
+│   │   └── app/               # App-level global state
 │   ├── shared/                 # Shared utilities and components
-│   │   ├── api/               # API clients and services
+│   │   ├── api/               # API clients and endpoints
 │   │   ├── hooks/             # Shared React hooks
+│   │   │   └── pages/         # Page-specific business logic hooks
+│   │   ├── providers/         # ⭐️ Page Context Providers
 │   │   ├── ui/                # Design system
 │   │   └── utils/             # Utility functions
 ```
 
-## Core Architecture Pattern: Context Provider-based "UI Database"
+## Core Architecture Pattern: Page Hook + Provider Pattern
 
 ### Core Concept
-A hierarchical data management system using React Context API where UI components focus purely on rendering while data logic is separated and managed in Providers.
+A clean separation of concerns where **Page Hooks** contain all business logic and data fetching, while **Page Providers** wrap the hooks in Context API for efficient data sharing. UI components remain pure and focused solely on rendering.
 
-### Provider Hierarchy
-
-#### 1. Entity-Level Providers
-```typescript
-// Example: contexts/data/ImagesContext.tsx
-interface ImagesConfig {
-  limit?: number;
-  page?: number;
-  datasetId?: number;
-  randomSeed?: number;
-  fetchAnnotationCounts?: boolean;
-}
-
-export function ImagesProvider({ 
-  children, 
-  config = {} 
-}: {
-  children: ReactNode;
-  config?: ImagesConfig;
-}) {
-  // Data fetching and state management logic
-  // Using custom hooks
-}
+### Architecture Flow
+```
+Page Hook (Business Logic) → Page Provider (Context Wrapper) → UI Components (Pure Rendering)
 ```
 
-#### 2. Page-Level Providers
+### Pattern Structure
+
+#### 1. Page Hook (Business Logic Layer)
 ```typescript
-// Example: contexts/page/HomePageContext.tsx
-export function HomePageProvider({ children }: { children: ReactNode }) {
-  // Page-specific state management
-  // Combining entity data and page logic
-}
-```
-
-### Provider Composition Pattern
-```typescript
-// Example: pages/Home.tsx
-<AnnotationsProvider config={{ mode: 'approved', limit: 24 }}>
-  <ImagesProvider config={{ limit: 100 }}>
-    <CategoriesProvider config={{ dictionaryId: 1, limit: 100 }}>
-      <HomePageProvider>
-        <HomeContent />
-      </HomePageProvider>
-    </CategoriesProvider>
-  </ImagesProvider>
-</AnnotationsProvider>
-```
-
-## Development Guidelines
-
-### 1. Page Component Pattern
-
-#### Page Structure
-```typescript
-// pages/ExamplePage.tsx
-export function ExamplePage() {
-  return (
-    <EntityProvider1 config={config1}>
-      <EntityProvider2 config={config2}>
-        <ExamplePageProvider>
-          <ExamplePageContent />
-        </ExamplePageProvider>
-      </EntityProvider2>
-    </EntityProvider1>
-  );
-}
-
-// Page content as separate component
-function ExamplePageContent() {
-  const { data, loading } = useEntityProvider1();
-  const { handleAction } = useExamplePageProvider();
+// shared/hooks/pages/useHomePage.ts
+export function useHomePage(options: UseHomePageOptions = {}) {
+  // ✅ API data fetching
+  const { data: annotations } = useAnnotations({ 
+    status: "APPROVED", 
+    sourceType: "USER",
+    page: currentPage,
+    limit: options.annotationsLimit 
+  });
   
-  if (loading) return <LoadingState />;
+  // ✅ Page-specific UI state
+  const [selectedAnnotation, setSelectedAnnotation] = useState(null);
+  const [showGlobalMasks, setShowGlobalMasks] = useState(true);
   
-  return (
-    <div>
-      {/* UI rendering logic only */}
-    </div>
-  );
-}
-```
-
-#### Page Split Criteria
-- **Large pages (500+ lines)**: Split by logical units
-- **Data dependencies**: Each component uses only required contexts
-- **Reusability**: Extract common logic to shared folder
-
-### 2. Context Provider Guidelines
-
-#### Entity Provider Pattern
-```typescript
-// contexts/data/EntityContext.tsx
-interface EntityConfig {
-  // Configuration options
-}
-
-export function EntityProvider({ children, config = {} }) {
-  // 1. API calls and data fetching
-  const { data, loading, error } = useApiQuery();
+  // ✅ Business logic and computed values
+  const annotationsWithImages = useMemo(() => {
+    return annotations.map(annotation => ({
+      ...annotation,
+      image: imageMap.get(annotation.imageId),
+      categoryName: categoryMap.get(annotation.categoryId)?.name
+    }));
+  }, [annotations, imageMap, categoryMap]);
   
-  // 2. Data transformation and processing
-  const processedData = useMemo(() => {
-    return transformData(data);
-  }, [data]);
+  // ✅ Page actions
+  const handleAnnotationClick = useCallback((annotation) => {
+    setSelectedAnnotation(annotation);
+  }, []);
   
-  // 3. Context value composition
-  const value = {
-    data: processedData,
-    loading,
+  return {
+    // Data
+    annotationsWithImages,
+    selectedAnnotation,
+    showGlobalMasks,
+    
+    // Actions
+    handleAnnotationClick,
+    setShowGlobalMasks,
+    
+    // Loading states
+    isLoading,
     error,
-    // Required actions
   };
-  
+}
+```
+
+#### 2. Page Provider (Context Wrapper Layer)
+```typescript
+// shared/providers/HomePageProvider.tsx
+const HomePageContext = createContext<ReturnType<typeof useHomePage> | null>(null);
+
+export function HomePageProvider({ children, options = {} }: HomePageProviderProps) {
+  const homePageData = useHomePage({
+    annotationsLimit: 25,
+    categoriesLimit: 100,
+    ...options,
+  });
+
   return (
-    <EntityContext.Provider value={value}>
+    <HomePageContext.Provider value={homePageData}>
       {children}
-    </EntityContext.Provider>
+    </HomePageContext.Provider>
   );
 }
 
-// Custom hook
-export function useEntity() {
-  const context = useContext(EntityContext);
+export function useHomePageContext() {
+  const context = useContext(HomePageContext);
   if (!context) {
-    throw new Error('useEntity must be used within EntityProvider');
+    throw new Error('useHomePageContext must be used within HomePageProvider');
   }
   return context;
 }
 ```
 
-#### Page Provider Pattern
+#### 3. Page Component (Composition Layer)
 ```typescript
-// contexts/page/PageContext.tsx
-export function PageProvider({ children }) {
-  // 1. Use entity contexts
-  const { data1 } = useEntity1();
-  const { data2 } = useEntity2();
+// pages/Home.tsx
+export function Home() {
+  return (
+    <HomePageProvider>
+      <HomeContent />
+    </HomePageProvider>
+  );
+}
+
+function HomeContent() {
+  const { error } = useHomePageContext();
   
-  // 2. Page-specific state management
-  const [pageState, setPageState] = useState();
-  
-  // 3. Page-specific business logic
-  const handlePageAction = useCallback(() => {
-    // Logic implementation
-  }, [data1, data2]);
-  
-  const value = {
-    // Composed data
-    // Page actions
-  };
+  if (error) return <HomeErrorState />;
   
   return (
-    <PageContext.Provider value={value}>
-      {children}
-    </PageContext.Provider>
+    <Box>
+      <HomeHeader />      {/* ← Uses useHomePageContext() */}
+      <HomeGallery />     {/* ← Uses useHomePageContext() */}
+      <HomePagination />  {/* ← Uses useHomePageContext() */}
+    </Box>
   );
 }
 ```
 
-### 3. Component Structure and Naming Conventions
-
-#### Folder Structure
-```
-components/
-├── datasets/           # Domain-specific components
-│   ├── DatasetCard.tsx
-│   ├── DatasetImageGallery.tsx
-│   └── index.ts
-├── annotations/        # Domain-specific components
-└── shared/            # Common components
-```
-
-#### Naming Conventions
-- **Components**: PascalCase (`DatasetCard`)
-- **File names**: PascalCase (`DatasetCard.tsx`)
-- **Hooks**: camelCase with use prefix (`useDatasets`)
-- **Context**: PascalCase with Context suffix (`DatasetsContext`)
-- **Provider**: PascalCase with Provider suffix (`DatasetsProvider`)
-
-### 4. Shared Utilities Management
-
-#### shared/utils Structure
+#### 4. UI Components (Pure Rendering Layer)
 ```typescript
-// shared/utils/dataset.ts
-export type ActiveTab = "all" | "confirmed" | "pending";
-
-export const ANNOTATION_COLORS = [
-  // Color palette
-];
-
-export const DEFAULT_PAGE_SIZE = 25;
-
-export const getAnnotationColor = (index: number) => {
-  return ANNOTATION_COLORS[index % ANNOTATION_COLORS.length];
-};
-
-export const isImageType = (dataType: string): boolean => {
-  return dataType.startsWith("image/");
-};
-```
-
-### 5. API Integration Pattern - Generic CRUD Architecture
-
-#### Core API Structure
-```
-shared/api/
-├── generated/          # OpenAPI 생성 코드 (유지, legacy 호환용)
-├── core/              # Generic API 레이어 
-│   ├── client.ts      # Axios 클라이언트 및 인증
-│   ├── hooks/         # 재사용 가능한 API hooks
-│   │   ├── useSingleGet.ts
-│   │   ├── usePaginatedGet.ts
-│   │   ├── usePost.ts
-│   │   └── index.ts
-│   ├── types/         # 공통 타입 정의
-│   └── index.ts
-├── endpoints/         # 도메인별 API 정의 (새로운 패턴)
-│   ├── datasets.ts    # ✅ 구현 완료
-│   ├── users.ts       # ✅ 구현 완료  
-│   ├── images.ts      # 🚧 마이그레이션 예정
-│   ├── annotations.ts # 🚧 마이그레이션 예정
-│   └── index.ts
-└── services/          # 비즈니스 로직 (legacy, 점진적 제거)
-```
-
-#### Generic Hooks 사용 패턴
-```typescript
-// 1. Single Get Hook (기본 데이터)
-import { useSingleGet } from '@/shared/api/core';
-
-const { data, isLoading, error } = useSingleGet<APIResponseType, ClientType>({
-  url: '/api/v1/datasets/1',
-  authenticated: true,
-  parseData: (raw) => ({ id: raw.id, name: raw.name })
-});
-
-// 2. Single Get Hook (통계 포함 데이터)  
-const { data, isLoading, error } = useSingleGet<APIStatsResponseType, ClientStatsType>({
-  url: '/api/v1/datasets/1',  // 또는 전용 엔드포인트
-  authenticated: true,
-  parseData: (raw) => transformWithStats(raw)
-});
-
-const { data, isLoading, error } = useSingleGet<RawType, ParsedType>({
-  url: '/api/v1/datasets/1',
-  authenticated: true,
-  parseData: (raw) => ({ id: raw.id, name: raw.name })
-});
-
-// 2. Paginated Get Hook  
-import { usePaginatedGet } from '@/shared/api/core';
-
-const { data, totalCount, isLoading } = usePaginatedGet<RawItem, ApiResponse, ParsedItem>({
-  url: '/api/v1/datasets',
-  page: 1,
-  limit: 20,
-  search: 'query',
-  sortBy: 'newest',
-  authenticated: true,
-  parseData: (item) => transformItem(item),
-  setTotalPages: (total) => setPages(total)
-});
-
-// 3. Post/Put/Delete Hooks
-import { usePost, usePut, useDelete } from '@/shared/api/core';
-
-const { post, isPosting, error } = usePost<CreateData, RawResponse, ParsedResponse>(
-  '/api/v1/datasets',
-  (raw) => parseResponse(raw),
-  { authenticated: true }
-);
-```
-
-#### Endpoint Definition Pattern
-```typescript
-// shared/api/endpoints/datasets.ts
-import { useSingleGet, usePaginatedGet, usePost, usePut, useDelete } from '../core/hooks';
-
-// Type definitions with camelCase conversion
-export interface Dataset {
-  id: number;
-  name: string;
-  description?: string;
-  tags?: string[];
-  dictionaryId?: number;  // snake_case → camelCase
-  createdBy?: number;
-  createdAt: string;
-}
-
-// Parsing function for type conversion
-const parseDataset = (raw: DatasetRead): Dataset => ({
-  id: raw.id,
-  name: raw.name,
-  description: raw.description || undefined,
-  tags: raw.tags || undefined,
-  dictionaryId: raw.dictionary_id || undefined,  // 자동 변환
-  createdBy: raw.created_by || undefined,
-  createdAt: raw.created_at,
-});
-
-// CRUD hooks for domain
-export function useDataset(datasetId: number, options = {}) {
-  return useSingleGet<DatasetRead, Dataset>({
-    url: `/api/v1/datasets/${datasetId}`,
-    enabled: options.enabled && !!datasetId,
-    authenticated: true,
-    parseData: parseDataset,
-  });
-}
-
-export function useDatasets(options = {}) {
-  return usePaginatedGet<DatasetListItem, DatasetListResponse, Dataset>({
-    url: '/api/v1/datasets',
-    page: options.page || 1,
-    limit: options.limit || 20,
-    search: options.search,
-    sortBy: options.sortBy,
-    authenticated: true,
-    parseData: parseDatasetListItem,
-    setTotalPages: options.setTotalPages,
-  });
-}
-
-export function useCreateDataset() {
-  return usePost<DatasetCreateInput, DatasetRead, Dataset>(
-    '/api/v1/datasets',
-    parseDataset,
-    { authenticated: true }
-  );
-}
-```
-
-## Latest Implemented Patterns (Dataset & User)
-
-### Dataset API Pattern - Unified Statistics
-**Status**: ✅ **완전 구현** - 모든 Dataset 엔드포인트 통일
-
-#### 서버 변경사항
-- **DatasetWithStats 통일**: 모든 endpoint에서 `image_count`, `annotation_count` 포함
-- **GET /datasets**: `List[DatasetWithStats]` 반환
-- **GET /datasets/{id}**: `DatasetWithStats` 반환  
-- **POST /datasets**: `DatasetWithStats` 반환
-- **PUT /datasets/{id}**: `DatasetWithStats` 반환
-
-#### 클라이언트 구현
-```typescript
-// shared/api/endpoints/datasets.ts
-
-// 기본 Dataset 타입 (통계 없음) - 사용 안함
-export interface Dataset {
-  id: number;
-  name: string;
-  description?: string;
-  tags?: string[];
-  dictionaryId?: number;
-  createdBy?: number;
-  createdAt: string;
-}
-
-// 통계 포함 Dataset 타입 (실제 사용)
-export interface DatasetWithStats extends Dataset {
-  imageCount: number;
-  annotationCount: number;
-}
-
-// API Response 타입 (snake_case)
-interface DatasetWithStatsResponse {
-  id: number;
-  name: string;
-  description?: string | null;
-  tags?: string[] | null;
-  dictionary_id?: number | null;
-  created_by?: number | null;
-  created_at: string;
-  image_count: number;
-  annotation_count: number;
-}
-
-// 파싱 함수
-const parseDatasetWithStats = (resp: DatasetWithStatsResponse): DatasetWithStats => ({
-  id: resp.id,
-  name: resp.name,
-  description: resp.description || undefined,
-  tags: resp.tags || undefined,
-  dictionaryId: resp.dictionary_id || undefined,
-  createdBy: resp.created_by || undefined,
-  createdAt: resp.created_at,
-  imageCount: resp.image_count,
-  annotationCount: resp.annotation_count,
-});
-
-// CRUD Hooks (모두 DatasetWithStats 반환)
-export function useDataset(datasetId: number, options = {}) {
-  return useSingleGet<DatasetWithStatsResponse, DatasetWithStats>({
-    url: `${DATASETS_BASE}/${datasetId}`,
-    enabled: options.enabled && !!datasetId,
-    authenticated: true,
-    parseData: parseDatasetWithStats,
-  });
-}
-
-export function useDatasets(options = {}) {
-  return usePaginatedGet<DatasetWithStatsResponse, DatasetListResponse, DatasetWithStats>({
-    url: DATASETS_BASE,
-    page: options.page || 1,
-    limit: options.limit || 25,
-    search: options.search,
-    sortBy: options.sortBy,
-    authenticated: true,
-    parseData: parseDatasetWithStats,
-    setTotalPages: options.setTotalPages,
-  });
-}
-```
-
-### User API Pattern - 효율성 최적화
-**Status**: ✅ **완전 구현** - 기본 정보와 통계 정보 분리
-
-#### 서버 효율성 원칙
-- **기본 User 작업**: `UserRead` 사용 (빠른 단일 테이블 쿼리)
-- **통계 필요시**: `UserProfile` 사용 (JOIN 포함)
-
-#### 엔드포인트 분리
-```
-# 기본 정보 (JOIN 없음, 빠름)
-GET /users/me           -> UserRead
-GET /users/{id}         -> UserRead  
-POST /users             -> UserRead
-PUT /users/me           -> UserRead
-PUT /users/{id}         -> UserRead
-
-# 통계 포함 정보 (JOIN 포함)
-GET /users/me/profile   -> UserProfile
-GET /users/{id}/profile -> UserProfile
-```
-
-#### 클라이언트 구현
-```typescript
-// shared/api/endpoints/users.ts
-
-// 기본 User 타입 (빠른 조회용)
-export interface User {
-  id: number;
-  email: string;
-  displayName?: string;
-  profileImageUrl?: string;
-  suiAddress?: string;
-  googleId?: string;
-  createdAt: string;
-}
-
-// 통계 포함 User 타입 (프로필 전용)
-export interface UserProfile extends User {
-  datasetCount: number;
-  annotationCount: number;
-}
-
-// API Response 타입들
-interface UserResponse {
-  id: number;
-  email: string;
-  display_name?: string | null;
-  profile_image_url?: string | null;
-  sui_address?: string | null;
-  google_id?: string | null;
-  created_at: string;
-}
-
-interface UserProfileResponse extends UserResponse {
-  dataset_count: number;
-  annotation_count: number;
-}
-
-// 파싱 함수들
-const parseUser = (resp: UserResponse): User => ({
-  id: resp.id,
-  email: resp.email,
-  displayName: resp.display_name || undefined,
-  profileImageUrl: resp.profile_image_url || undefined,
-  suiAddress: resp.sui_address || undefined,
-  googleId: resp.google_id || undefined,
-  createdAt: resp.created_at,
-});
-
-const parseUserProfile = (resp: UserProfileResponse): UserProfile => ({
-  ...parseUser(resp),
-  datasetCount: resp.dataset_count,
-  annotationCount: resp.annotation_count,
-});
-
-// CRUD Hooks (용도별 분리)
-// 기본 정보 (빠름)
-export function useCurrentUser(options = {}) {
-  return useSingleGet<UserResponse, User>({
-    url: `${USERS_BASE}/me`,
-    enabled: options.enabled,
-    authenticated: true,
-    parseData: parseUser,
-  });
-}
-
-// 통계 포함 정보 (Profile 페이지용)
-export function useCurrentUserProfile(options = {}) {
-  return useSingleGet<UserProfileResponse, UserProfile>({
-    url: `${USERS_BASE}/me/profile`,
-    enabled: options.enabled,
-    authenticated: true,
-    parseData: parseUserProfile,
-  });
-}
-```
-
-#### 사용 예시
-```typescript
-// pages/Profile.tsx - 통계가 필요한 경우
-import { useCurrentUserProfile } from '@/shared/api/endpoints/users';
-
-export function Profile() {
-  const { data: profile, isLoading } = useCurrentUserProfile({ enabled: isAuthenticated });
+// components/home/HomeHeader.tsx
+export function HomeHeader() {
+  const { 
+    dataType, 
+    setDataType, 
+    selectedCategory, 
+    handleCategorySelect 
+  } = useHomePageContext(); // ← Only gets what it needs
   
   return (
-    <div>
-      <h1>{profile?.displayName}</h1>
-      <p>Datasets: {profile?.datasetCount}</p>
-      <p>Annotations: {profile?.annotationCount}</p>
-    </div>
+    <Header>
+      <DataTypeToggle value={dataType} onChange={setDataType} />
+      <CategorySearch selected={selectedCategory} onSelect={handleCategorySelect} />
+    </Header>
   );
 }
 
-// components/Header.tsx - 기본 정보만 필요한 경우
-import { useCurrentUser } from '@/shared/api/endpoints/users';
-
-export function Header() {
-  const { data: user } = useCurrentUser({ enabled: isAuthenticated });
+// components/home/HomeGallery.tsx
+export function HomeGallery() {
+  const { 
+    annotationsWithImages, 
+    handleAnnotationClick,
+    showGlobalMasks 
+  } = useHomePageContext(); // ← Only gets what it needs
   
   return (
-    <div>
-      <span>{user?.displayName}</span>
-      <img src={user?.profileImageUrl} />
-    </div>
+    <Grid>
+      {annotationsWithImages.map(item => (
+        <ImageCard 
+          key={item.id}
+          data={item}
+          showMasks={showGlobalMasks}
+          onClick={handleAnnotationClick}
+        />
+      ))}
+    </Grid>
   );
 }
 ```
 
-### 공통 구현 패턴
+## Development Guidelines
 
-#### 1. Type Conversion Pattern
+### 🚀 Benefits of Page Hook + Provider Pattern
+
+1. **🚫 No Props Drilling**: Components get data directly from context, no need to pass props through multiple levels
+2. **🎯 Selective Data Access**: Each component only accesses the data it needs from the page context
+3. **⚡ Performance Optimized**: Page hook runs only once per page, data is shared efficiently via context
+4. **🧩 Pure UI Components**: Components focus solely on rendering, no business logic
+5. **🔄 Easy Testability**: Page hooks can be tested independently from UI components
+6. **♻️ Reusable Logic**: Page hooks can be reused across different page implementations
+
+### 1. Creating a New Page
+
+#### Step 1: Create Page Hook (Business Logic)
 ```typescript
-// snake_case (API) → camelCase (Client) 자동 변환
-const parseEntity = (resp: APIResponseType): ClientType => ({
-  id: resp.id,
-  createdAt: resp.created_at,           // snake_case → camelCase
-  userId: resp.user_id,                 // snake_case → camelCase
-  imageCount: resp.image_count,         // snake_case → camelCase
-  someOptionalField: resp.some_optional_field || undefined,  // null → undefined
-});
-```
+// shared/hooks/pages/useExamplePage.ts
+import { useState, useMemo } from "react";
+import { useApiEndpoint } from "@/shared/api/endpoints/example";
 
-#### 2. Error Handling Pattern
-```typescript
-// 모든 endpoint에서 일관된 에러 처리
-const { data, isLoading, error } = useEndpoint(params);
-
-if (error) {
-  return <ErrorState message={error.message} />;
+export interface UseExamplePageOptions {
+  limit?: number;
+  // Add configuration options
 }
 
-if (isLoading) {
-  return <LoadingState />;
-}
-```
+export function useExamplePage(options: UseExamplePageOptions = {}) {
+  const { limit = 20 } = options;
 
-#### 3. Authentication Pattern
-```typescript
-// 자동 인증 헤더 주입
-export function useEntityHook() {
-  return useSingleGet<RawType, ParsedType>({
-    url: '/api/v1/entity',
-    authenticated: true,  // 자동으로 JWT + User-ID 헤더 추가
-    parseData: parseEntity,
-  });
-}
-```
-
-#### Context Provider with Generic API
-```typescript
-// contexts/data/DatasetsListContext.tsx
-import { useDatasets, type Dataset } from '@/shared/api/endpoints';
-
-export function DatasetsListProvider({ children, config = {} }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-
-  const {
-    data: datasets,
-    totalCount,
+  // ✅ API data fetching
+  const { data, isLoading, error } = useApiEndpoint({ limit });
+  
+  // ✅ Page-specific state
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // ✅ Computed values
+  const filteredData = useMemo(() => {
+    return data?.filter(item => /* filtering logic */);
+  }, [data]);
+  
+  // ✅ Page actions
+  const handleItemSelect = useCallback((item) => {
+    setSelectedItem(item);
+  }, []);
+  
+  return {
+    // Data
+    data: filteredData,
+    selectedItem,
+    viewMode,
+    
+    // Actions  
+    handleItemSelect,
+    setViewMode,
+    
+    // States
     isLoading,
     error,
-    refetch,
-  } = useDatasets({
-    page: currentPage,
-    limit: config.pageSize || 20,
-    search: config.search,
-    sortBy: config.sortBy,
-    setTotalPages,
-  });
+  };
+}
+```
+
+#### Step 2: Create Page Provider (Context Wrapper)
+```typescript
+// shared/providers/ExamplePageProvider.tsx
+import React, { createContext, useContext, ReactNode } from "react";
+import { useExamplePage } from "@/shared/hooks/pages/useExamplePage";
+import type { UseExamplePageOptions } from "@/shared/hooks/pages/useExamplePage";
+
+type ExamplePageContextType = ReturnType<typeof useExamplePage>;
+const ExamplePageContext = createContext<ExamplePageContextType | null>(null);
+
+interface ExamplePageProviderProps {
+  children: ReactNode;
+  options?: UseExamplePageOptions;
+}
+
+export function ExamplePageProvider({ children, options = {} }: ExamplePageProviderProps) {
+  const examplePageData = useExamplePage(options);
 
   return (
-    <DatasetsListContext.Provider value={{
-      datasets,
-      totalDatasets: totalCount,
-      totalPages,
-      currentPage,
-      setCurrentPage,
-      isLoading,
-      error,
-      refetch,
-    }}>
+    <ExamplePageContext.Provider value={examplePageData}>
       {children}
-    </DatasetsListContext.Provider>
+    </ExamplePageContext.Provider>
+  );
+}
+
+export function useExamplePageContext() {
+  const context = useContext(ExamplePageContext);
+  if (!context) {
+    throw new Error('useExamplePageContext must be used within ExamplePageProvider');
+  }
+  return context;
+}
+```
+
+#### Step 3: Create Page Component (Composition)
+```typescript
+// pages/Example.tsx
+import React from "react";
+import { ExamplePageProvider, useExamplePageContext } from "@/shared/providers/ExamplePageProvider";
+import { ExampleHeader } from "@/components/example/ExampleHeader";
+import { ExampleContent } from "@/components/example/ExampleContent";
+
+function ExamplePageContent() {
+  const { error, isLoading } = useExamplePageContext();
+  
+  if (isLoading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
+  
+  return (
+    <div>
+      <ExampleHeader />    {/* Uses useExamplePageContext() */}
+      <ExampleContent />   {/* Uses useExamplePageContext() */}
+    </div>
+  );
+}
+
+export function Example() {
+  return (
+    <ExamplePageProvider options={{ limit: 50 }}>
+      <ExamplePageContent />
+    </ExamplePageProvider>
   );
 }
 ```
 
-#### Authentication Integration
+#### Step 4: Create UI Components (Pure Rendering)
 ```typescript
-// core/client.ts - 인증 헤더 자동 주입
-const authService = {
-  getAuthHeaders: () => {
-    const headers = {};
-    
-    // JWT 토큰 (sessionStorage)
-    const jwt = sessionStorage.getItem("zklogin-jwt");
-    if (jwt) headers.Authorization = `Bearer ${jwt}`;
-    
-    // User ID 헤더 (localStorage)  
-    const userId = localStorage.getItem("opengraph-user-id");
-    if (userId) headers["X-Opengraph-User-Id"] = userId;
-    
-    return headers;
-  }
-};
+// components/example/ExampleHeader.tsx
+import { useExamplePageContext } from "@/shared/providers/ExamplePageProvider";
 
-// 401 에러 시 자동 로그아웃
-if (err.response?.status === 401 && authenticated) {
-  authService.clearAuthState();
-  window.location.reload();
+export function ExampleHeader() {
+  const { viewMode, setViewMode } = useExamplePageContext();
+  
+  return (
+    <Header>
+      <ViewToggle value={viewMode} onChange={setViewMode} />
+    </Header>
+  );
+}
+
+// components/example/ExampleContent.tsx
+export function ExampleContent() {
+  const { data, handleItemSelect, viewMode } = useExamplePageContext();
+  
+  return (
+    <ContentGrid mode={viewMode}>
+      {data.map(item => (
+        <ItemCard key={item.id} data={item} onClick={handleItemSelect} />
+      ))}
+    </ContentGrid>
+  );
 }
 ```
 
-## Best Practices and Considerations
+### 2. Best Practices and Conventions
 
-### ✅ Recommended
+#### Page Hook Guidelines
+- **Single Responsibility**: Each page hook should manage only one page's logic
+- **Clear Naming**: Use descriptive names like `useProfilePage`, `useDatasetDetailPage`
+- **Export Options Interface**: Always export the options interface for type safety
+- **Memoize Expensive Computations**: Use `useMemo` for computed values
+- **Callback Optimization**: Use `useCallback` for event handlers
 
-1. **Generic API Pattern** (✅ Datasets, Users 구현 완료)
-   - Use `useSingleGet`, `usePaginatedGet`, `usePost`, `usePut`, `useDelete` 
-   - Define domain-specific endpoints with snake_case → camelCase conversion
-   - Implement proper error handling and authentication
-   - Example: `useDataset()`, `useCurrentUserProfile()`
+#### Component Guidelines  
+- **Pure Components**: UI components should only render, no business logic
+- **Selective Context Usage**: Only access the specific data/actions needed
+- **Clear Props Interface**: Even though using context, define clear component interfaces
+- **Error Boundaries**: Handle errors at appropriate component levels
 
-2. **Performance-Optimized Endpoint Design**
-   - **Dataset pattern**: 모든 엔드포인트에 통계 포함 (일관성 우선)
-   - **User pattern**: 기본 정보와 통계 정보 분리 (성능 우선)
-   - 용도에 따라 적절한 패턴 선택
+#### Folder Organization
+```
+pages/
+├── Home.tsx                 # ✅ Simple page component
+├── Profile.tsx              # ✅ Simple page component  
+└── DatasetDetail.tsx        # ✅ Simple page component
 
-3. **Type Safety & Conversion**
-   - 모든 API 응답을 `parseEntity()` 함수로 변환
-   - snake_case (API) → camelCase (Client) 자동 변환
-   - `null` → `undefined` 변환으로 TypeScript 호환성 확보
-   - Interface separation: `EntityResponse` (API) vs `Entity` (Client)
+shared/
+├── hooks/pages/
+│   ├── useHomePage.ts       # ✅ Business logic
+│   ├── useProfilePage.ts    # ✅ Business logic
+│   └── useDatasetDetailPage.ts # ✅ Business logic
+└── providers/
+    ├── HomePageProvider.tsx      # ✅ Context wrapper
+    ├── ProfilePageProvider.tsx   # ✅ Context wrapper
+    └── DatasetDetailPageProvider.tsx # ✅ Context wrapper
 
-4. **Authentication Integration**
-   - `authenticated: true` 옵션으로 자동 헤더 주입
-   - JWT (sessionStorage) + User-ID (localStorage) 조합
-   - 401 에러 시 자동 로그아웃 처리
-
-5. **Context Optimization**
-   - Context Provider에서 generic hooks 사용
-   - UI component는 순수 렌더링만 담당
-   - Context에서 데이터 변환 및 비즈니스 로직 처리
-
-### ❌ Avoid
-
-1. **API Anti-patterns**
-   - ❌ `apiClient.datasets.getDatasets()` (generated client 직접 사용)
-   - ❌ `axios.get('/api/v1/datasets')` (raw axios 호출)
-   - ✅ `useDatasets()` (generic hook 사용)
-
-2. **Performance Anti-patterns**
-   - ❌ 항상 통계 정보까지 포함하여 조회 (User case)
-   - ❌ 기본 정보와 통계 정보를 별도 호출 (Dataset case)
-   - ✅ 용도에 따른 적절한 endpoint 선택
-
-3. **Type Inconsistencies**
-   - ❌ `user.display_name` (snake_case 사용)
-   - ❌ `dataset.image_count` (snake_case 사용)
-   - ✅ `user.displayName` (camelCase 사용)
-   - ✅ `dataset.imageCount` (camelCase 사용)
-
-4. **Authentication Issues**
-   - ❌ 수동으로 헤더 설정
-   - ❌ 토큰 만료 시 에러 처리 누락
-   - ✅ `authenticated: true` 옵션 사용
-   - ✅ 자동 로그아웃 처리
-
-## Refactoring Checklist
-
-### When Adding New API Integration
-- [ ] **성능 패턴 결정**: Dataset-style (통계 통합) vs User-style (정보 분리)
-- [ ] Create endpoint definition in `shared/api/endpoints/`
-- [ ] Define API response types (`EntityResponse`) with snake_case
-- [ ] Define client types (`Entity`) with camelCase conversion
-- [ ] Implement `parseEntity()` functions for type transformation
-- [ ] Add CRUD hooks using generic patterns:
-  - [ ] `useSingleGet<EntityResponse, Entity>`
-  - [ ] `usePaginatedGet<EntityResponse, EntityListResponse, Entity>`
-  - [ ] `usePost<EntityCreateInput, EntityResponse, Entity>`
-  - [ ] `usePut<EntityUpdateInput, EntityResponse, Entity>`
-  - [ ] `useDelete<{}, EntityResponse, Entity>`
-- [ ] Set `authenticated: true` for protected endpoints
-- [ ] Update Context Providers to use new generic hooks
-- [ ] Test authentication and error handling
-
-### When Adding New Page
-- [ ] Identify required entity data (basic vs with statistics)
-- [ ] Choose appropriate hooks based on performance needs
-- [ ] Create page Provider using generic API hooks
-- [ ] Design Provider composition structure
-- [ ] Plan component splitting (keep UI components pure)
-- [ ] Define loading/error states
-- [ ] Test with actual API responses
-
-### When Refactoring Existing API Usage
-- [ ] Measure current performance (API calls, loading times)
-- [ ] Replace legacy patterns:
-  - [ ] ❌ `apiClient.entities.getEntities()` → ✅ `useEntities()`
-  - [ ] ❌ `axios.get('/api/v1/entities')` → ✅ `useEntities()`
-  - [ ] ❌ Manual type conversion → ✅ `parseEntity()` function
-- [ ] Update type usage:
-  - [ ] ❌ `entity.field_name` → ✅ `entity.fieldName`
-  - [ ] ❌ Manual null checks → ✅ `|| undefined` in parseData
-- [ ] Test loading states and error handling
-- [ ] Verify build and authentication flow
-
-## Development Commands
-
-```bash
-# Start development server
-yarn dev
-
-# Build and type check
-yarn build
-
-# Code formatting
-yarn prettify
-
-# Regenerate API client
-yarn codegen
+components/
+├── home/                    # ✅ Page-specific UI components
+│   ├── HomeHeader.tsx       # Uses useHomePageContext()
+│   ├── HomeGallery.tsx      # Uses useHomePageContext()
+│   └── HomePagination.tsx   # Uses useHomePageContext()
+├── profile/                 # ✅ Page-specific UI components
+└── datasets/                # ✅ Page-specific UI components
 ```
 
-## Performance Metrics
+### 3. Migration from Old Pattern
 
-### Before/After Refactoring Comparison
-- **Home.tsx**: 542 → 105 lines (80% reduction)
-- **Profile.tsx**: 885 → 70 lines (92% reduction)
-- **DatasetDetail.tsx**: Significantly simplified
-- **API Layer**: Generic CRUD pattern eliminates code duplication
-- **Type Safety**: 100% snake_case → camelCase conversion
-- **Maintainability**: Enhanced through Context-based modularization + Generic API
-- **Reusability**: Common Providers, components, and API hooks extracted
+#### ❌ Old Pattern (Props Drilling)
+```typescript
+// 😖 Props drilling everywhere
+export function Home() {
+  const homeData = useHomePage();
+  return (
+    <>
+      <HomeHeader {...homeData} />
+      <HomeGallery {...homeData} />
+      <HomePagination {...homeData} />
+    </>
+  );
+}
+```
 
-## Migration Priority & Status
+#### ✅ New Pattern (Context-Based)
+```typescript
+// 😍 Clean composition, no props drilling
+export function Home() {
+  return (
+    <HomePageProvider>
+      <HomeHeader />     {/* Gets data from context */}
+      <HomeGallery />    {/* Gets data from context */}
+      <HomePagination /> {/* Gets data from context */}
+    </HomePageProvider>
+  );
+}
+```
 
-### Phase 1: Core Entities (✅ **100% 완료**)
-- [x] **Datasets**: ✅ **완전 구현** - DatasetWithStats 통일 패턴
-  - 모든 CRUD 연산에서 `image_count`, `annotation_count` 포함
-  - `useDataset()`, `useDatasets()`, `useCreateDataset()` 등 완성
-  - Context Provider 마이그레이션 완료
-- [x] **Users**: ✅ **최적화 완료** - 성능 우선 분리 패턴  
-  - 기본 정보: `useCurrentUser()`, `useUser()` (빠른 단일 테이블 쿼리)
-  - 통계 정보: `useCurrentUserProfile()` (필요시에만 JOIN)
-  - Profile.tsx 페이지 마이그레이션 완료
-- [x] **Authentication**: ✅ JWT + User-ID 헤더 자동 처리
-- [x] **Build System**: ✅ TypeScript 컴파일 성공
+### 4. Type Safety and Performance
 
-### Phase 2: Primary Entities (🚧 **마이그레이션 대기**)
-- [ ] **Images**: 🔄 Dataset 패턴 적용 예정
-  - 통계 정보 (annotation_count) 포함 여부 결정 필요
-  - Context Provider 마이그레이션 예정
-- [ ] **Annotations**: 🔄 Dataset 패턴 적용 예정  
-  - 관련 entity 정보 포함 여부 결정 필요
-- [ ] **Categories**: 🔄 User 패턴 적용 예정
-  - 기본 정보와 사용 통계 분리 고려
+#### Type Safety
+```typescript
+// ✅ Full type safety throughout the chain
+const homePageData: ReturnType<typeof useHomePage> = useHomePage();
+// ↓
+const context: ReturnType<typeof useHomePage> | null = useContext(HomePageContext);
+// ↓
+const { selectedAnnotation }: ReturnType<typeof useHomePage> = useHomePageContext();
+```
 
-### Phase 3: Secondary Entities (⏳ **계획 단계**)
-- [ ] **Dictionaries**: 🔄 User 패턴 적용 예정
-  - DictionaryCategories와의 관계 고려
+#### Performance Considerations
+- **Single Hook Execution**: Page hook runs only once per page load
+- **Efficient Context Sharing**: Data shared via context, no re-fetching
+- **Selective Renders**: Components only re-render when their specific data changes
+- **Memoized Computations**: Expensive operations cached with useMemo
 
-### Phase 4: Legacy Cleanup (⏳ **최종 단계**)
-- [ ] Remove openapi-generator 의존성 완전 제거
-- [ ] Clean up legacy service classes (`shared/api/services/`)
-- [ ] Update all Context Providers to use new patterns
-- [ ] Performance optimization review
+### 5. Error Handling and Loading States
 
-### 📊 현재 상태 요약
-- **✅ 완료**: Datasets (통합), Users (분리) - 2개 엔티티
-- **🚧 진행 중**: 없음
-- **⏳ 대기**: Images, Annotations, Categories, Dictionaries - 4개 엔티티
-- **전체 진행률**: **33% (2/6 엔티티 완료)**
+```typescript
+// Page hook handles all error states
+export function useExamplePage() {
+  const { data, isLoading, error } = useApiCall();
+  
+  return {
+    // Always provide loading and error states
+    isLoading,
+    error,
+    // ... other data
+  };
+}
 
-Follow this guide to write consistent and maintainable React client code with the new Generic CRUD API pattern.
+// Page component handles global page states
+function ExamplePageContent() {
+  const { isLoading, error } = useExamplePageContext();
+  
+  if (isLoading) return <PageLoadingState />;
+  if (error) return <PageErrorState error={error} />;
+  
+  // Components focus on success state only
+  return <SuccessfulPageContent />;
+}
+```
+
+## 📊 Pattern Comparison and Benefits
+
+### Before vs After
+
+| Aspect | Old Pattern | New Pattern |
+|--------|-------------|-------------|
+| **Props Passing** | `<Component {...allData} />` | `<Component />` |
+| **Data Access** | Props drilling | `usePageContext()` |
+| **Code Lines** | Home: 542 lines | Home: ~105 lines |
+| **Component Purity** | Mixed concerns | Pure rendering |
+| **Testability** | Coupled to props | Isolated hooks |
+| **Performance** | Re-renders entire tree | Selective re-renders |
+| **Developer Experience** | Complex prop management | Simple context access |
+
+### 🎯 Implementation Results
+
+#### ✅ Successfully Migrated Pages
+- **Home Page**: `useHomePage()` + `HomePageProvider` ✅
+- **Profile Page**: `useProfilePage()` + `ProfilePageProvider` ✅  
+- **DatasetDetail Page**: `useDatasetDetailPage()` + `DatasetDetailPageProvider` ✅
+
+#### 📁 New Folder Structure Established
+- `shared/hooks/pages/` - Business logic hooks ✅
+- `shared/providers/` - Context wrappers ✅
+- Clean separation of concerns ✅
+
+## 🚀 Quick Reference
+
+### Creating a New Page (Checklist)
+- [ ] 1. Create page hook in `shared/hooks/pages/useMyPage.ts`
+- [ ] 2. Create provider in `shared/providers/MyPageProvider.tsx`
+- [ ] 3. Export both in respective index files
+- [ ] 4. Create page component using provider wrapper
+- [ ] 5. Create UI components using `useMyPageContext()`
+- [ ] 6. Test loading states, error states, and functionality
+
+### File Template Locations
+- **Page Hook**: `shared/hooks/pages/useHomePage.ts` (reference implementation)
+- **Page Provider**: `shared/providers/HomePageProvider.tsx` (reference implementation)  
+- **Page Component**: `pages/Home.tsx` (reference implementation)
+- **UI Component**: `components/home/HomeHeader.tsx` (reference implementation)
+
+---
+
+**✨ This pattern provides a clean, scalable, and maintainable architecture for React applications with complex state management needs while keeping components pure and focused on their primary responsibility: rendering UI.**

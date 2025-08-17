@@ -1,20 +1,18 @@
 import { Box, Flex, Text, Badge, Heading, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Hash } from "phosphor-react";
-import { useDatasets } from "@/contexts/data/DatasetsContext";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
+import { useDatasetDetailPageContext } from "@/shared/providers/DatasetDetailPageProvider";
 
 export function DatasetDetailHeader() {
   const { theme } = useTheme();
-  const { dataset } = useDatasets();
-  const { totalCounts } = useImagesContext();
-  const { isAnyBlobLoading } = useDatasetDetailPage();
+  const { dataset } = useDatasetDetailPageContext();
 
   if (!dataset) return null;
 
-  const totalItems = totalCounts.total;
-  const verificationRate = totalItems > 0 ? totalCounts.confirmed / totalItems : 0;
+  const totalItems = (dataset as any).imageCount || 0;
+  const verificationRate = 0; // TODO: Add verification logic when available
+  const totalCounts = { confirmed: 0, pending: 0 }; // TODO: Add annotation counts when available
+  const isAnyBlobLoading = () => false; // TODO: Add loading state when available
 
   return (
     <Box

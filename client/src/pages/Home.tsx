@@ -2,10 +2,7 @@ import React from "react";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ImageDetailSidebar } from "@/components/annotation";
-import { AnnotationsProvider } from "@/contexts/data/AnnotationsContext";
-import { ImagesProvider } from "@/contexts/data/ImagesContext";
-import { CategoriesProvider } from "@/contexts/data/CategoriesContext";
-import { HomePageProvider, useHomePage } from "@/contexts/page/HomePageContext";
+import { HomePageProvider, useHomePageContext } from "@/shared/providers/HomePageProvider";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { HomeGallery } from "@/components/home/HomeGallery";
 import { VideoGallery } from "@/components/home/VideoGallery";
@@ -17,7 +14,7 @@ import { HomeErrorState } from "@/components/home/HomeErrorState";
 
 function HomeContent() {
   const { theme } = useTheme();
-  const {
+  const { 
     error,
     annotationsWithImages,
     selectedAnnotation,
@@ -25,7 +22,7 @@ function HomeContent() {
     isTransitioning,
     hasSearchFilter,
     dataType,
-  } = useHomePage();
+  } = useHomePageContext();
 
   if (error) {
     return <HomeErrorState />;
@@ -190,14 +187,9 @@ function HomeContent() {
 
 export function Home() {
   return (
-    <AnnotationsProvider config={{ mode: "approved", limit: 25 }}>
-      <ImagesProvider config={{ useAnnotationImages: true }}>
-        <CategoriesProvider config={{ useGlobalCategories: true, limit: 100 }}>
-          <HomePageProvider>
-            <HomeContent />
-          </HomePageProvider>
-        </CategoriesProvider>
-      </ImagesProvider>
-    </AnnotationsProvider>
+    <HomePageProvider>
+      <HomeContent />
+    </HomePageProvider>
   );
 }
+

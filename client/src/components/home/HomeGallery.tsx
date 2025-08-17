@@ -2,17 +2,17 @@ import React from "react";
 import { Grid, Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ImageWithSingleAnnotation } from "@/components/annotation";
-import { useHomePage } from "@/contexts/page/HomePageContext";
+import { useHomePageContext } from "@/shared/providers/HomePageProvider";
 
 export function HomeGallery() {
-  const { theme } = useTheme();
   const {
     annotationsWithImages,
     showGlobalMasks,
     handleAnnotationClick,
     isLoading,
     isTransitioning,
-  } = useHomePage();
+  } = useHomePageContext();
+  const { theme } = useTheme();
 
   if (annotationsWithImages.length === 0) {
     return null;

@@ -1,11 +1,11 @@
 import React from "react";
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
+import { useDatasetsPageContext } from "@/shared/providers/DatasetsPageProvider";
 
 export function DatasetsSidebar() {
   const { theme } = useTheme();
-  const { filters, updateFilter, toggleTag, clearTags, allUniqueTags } = useDatasetsPage();
+  const { filters, updateFilter, toggleTag, clearTags, allUniqueTags } = useDatasetsPageContext();
 
   return (
     <Box style={{ padding: theme.spacing.semantic.component.md }}>

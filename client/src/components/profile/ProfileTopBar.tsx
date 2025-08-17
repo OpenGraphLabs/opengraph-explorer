@@ -1,11 +1,11 @@
 import { Box, Flex, Text, Avatar } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { Circle } from "phosphor-react";
-import { useProfilePage } from "@/contexts/page/ProfilePageContext";
+import { useProfilePageContext } from "@/shared/providers/ProfilePageProvider";
 
 export function ProfileTopBar() {
   const { theme } = useTheme();
-  const { userProfile, displayName } = useProfilePage();
+  const { userProfile, displayName } = useProfilePageContext();
 
   return (
     <Flex justify="between" align="center">
@@ -13,7 +13,7 @@ export function ProfileTopBar() {
         <Flex align="center" gap="2">
           <Avatar
             size="3"
-            src={userProfile?.profile_image_url || undefined}
+            src={userProfile?.profileImageUrl || undefined}
             fallback={displayName.charAt(0).toUpperCase()}
             style={{
               background: theme.colors.interactive.primary,
@@ -31,7 +31,7 @@ export function ProfileTopBar() {
             >
               {displayName}
             </Text>
-            {userProfile?.email && userProfile?.display_name && (
+            {userProfile?.email && userProfile?.displayName && (
               <Text
                 size="1"
                 style={{
