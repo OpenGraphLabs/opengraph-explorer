@@ -1,10 +1,2 @@
-export { DatasetService } from "./DatasetService";
-export { UserService } from "./UserService";
-export { AnnotationService } from "./AnnotationService";
-export { ImageService } from "./ImageService";
-
-// Re-export API client
+// Re-export API client (legacy support)
 export { ApiClient, apiClient, type ApiClientConfig } from "../client";
-
-// Re-export generated types
-export * from "../generated/models";

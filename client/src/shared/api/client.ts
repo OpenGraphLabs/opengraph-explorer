@@ -1,14 +1,3 @@
-import { Configuration, ConfigurationParameters } from "./generated";
-import {
-  DatasetsApi,
-  UsersApi,
-  AnnotationsApi,
-  ImagesApi,
-  CategoriesApi,
-  DictionariesApi,
-  DictionaryCategoriesApi,
-  DefaultApi,
-} from "./generated";
 import axios, { AxiosInstance } from "axios";
 
 export interface ApiClientConfig {
@@ -17,19 +6,13 @@ export interface ApiClientConfig {
   headers?: Record<string, string>;
 }
 
+/**
+ * Legacy ApiClient for backward compatibility
+ * Note: This is now a simple wrapper around axios
+ * New code should use the generic API endpoints directly
+ */
 export class ApiClient {
-  private configuration: Configuration;
   private axiosInstance: AxiosInstance;
-
-  // API instances
-  public readonly datasets: DatasetsApi;
-  public readonly users: UsersApi;
-  public readonly annotations: AnnotationsApi;
-  public readonly images: ImagesApi;
-  public readonly categories: CategoriesApi;
-  public readonly dictionaries: DictionariesApi;
-  public readonly dictionaryCategories: DictionaryCategoriesApi;
-  public readonly default: DefaultApi;
 
   constructor(config: ApiClientConfig = {}) {
     const {
@@ -81,37 +64,11 @@ export class ApiClient {
         return Promise.reject(error);
       }
     );
-
-    // Create configuration for OpenAPI clients
-    const configParams: ConfigurationParameters = {
-      basePath: baseURL,
-      // Note: We set axios instance separately for each API
-    };
-    this.configuration = new Configuration(configParams);
-
-    // Initialize API instances with custom axios
-    this.datasets = new DatasetsApi(this.configuration, baseURL, this.axiosInstance);
-    this.users = new UsersApi(this.configuration, baseURL, this.axiosInstance);
-    this.annotations = new AnnotationsApi(this.configuration, baseURL, this.axiosInstance);
-    this.images = new ImagesApi(this.configuration, baseURL, this.axiosInstance);
-    this.categories = new CategoriesApi(this.configuration, baseURL, this.axiosInstance);
-    this.dictionaries = new DictionariesApi(this.configuration, baseURL, this.axiosInstance);
-    this.dictionaryCategories = new DictionaryCategoriesApi(
-      this.configuration,
-      baseURL,
-      this.axiosInstance
-    );
-    this.default = new DefaultApi(this.configuration, baseURL, this.axiosInstance);
   }
 
   // Get raw axios instance for custom requests
   getAxiosInstance(): AxiosInstance {
     return this.axiosInstance;
-  }
-
-  // Get configuration for custom API instances
-  getConfiguration(): Configuration {
-    return this.configuration;
   }
 
   // Utility methods
