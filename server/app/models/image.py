@@ -6,10 +6,18 @@ SQLAlchemy model for image information management
 
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import Column, BigInteger, String, DateTime, func, ForeignKey, Integer
+from sqlalchemy import Column, BigInteger, String, DateTime, func, ForeignKey, Integer, Enum
 from sqlalchemy.orm import relationship, Mapped, mapped_column
+import enum
 
 from ..database import Base
+
+
+class ImageStatus(str, enum.Enum):
+    """Image approval status"""
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
 
 
 class Image(Base):
@@ -24,11 +32,26 @@ class Image(Base):
     width: Mapped[int] = mapped_column(Integer, nullable=False)
     height: Mapped[int] = mapped_column(Integer, nullable=False)
     
+    # Status field for approval workflow
+    status: Mapped[ImageStatus] = mapped_column(
+        Enum(ImageStatus),
+        nullable=False,
+        default=ImageStatus.PENDING,
+        server_default=ImageStatus.PENDING.value
+    )
+    
     # Foreign keys
-    dataset_id: Mapped[int] = mapped_column(
+    dataset_id: Mapped[Optional[int]] = mapped_column(
         BigInteger, 
         ForeignKey("datasets.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,  # Making nullable for first-person images
+        index=True
+    )
+    
+    task_id: Mapped[Optional[str]] = mapped_column(
+        String,
+        ForeignKey("tasks.id", ondelete="SET NULL"),
+        nullable=True,  # Nullable for non-first-person images
         index=True
     )
     
@@ -40,10 +63,16 @@ class Image(Base):
     )
     
     # Relationships
-    dataset: Mapped["Dataset"] = relationship(
+    dataset: Mapped[Optional["Dataset"]] = relationship(
         "Dataset", 
         back_populates="images",
         foreign_keys=[dataset_id]
+    )
+    
+    task: Mapped[Optional["Task"]] = relationship(
+        "Task",
+        back_populates="images",
+        foreign_keys=[task_id]
     )
     
     annotations: Mapped[List["Annotation"]] = relationship(

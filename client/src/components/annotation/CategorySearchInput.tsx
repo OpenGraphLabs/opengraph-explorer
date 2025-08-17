@@ -2,10 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Box, Flex, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
-import {
-  useSearchCategories,
-  useSearchGlobalCategories,
-} from "@/shared/hooks/useDictionaryCategories";
+import { useCategories, useDictionaryCategories } from "@/shared/api/endpoints/categories";
 
 export interface CategorySearchInputProps {
   placeholder?: string;
@@ -35,11 +32,33 @@ export function CategorySearchInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Use global categories or dictionary categories based on prop
-  const dictionaryResult = useSearchCategories(query, dictionaryId);
-  const globalResult = useSearchGlobalCategories(query);
+  // Fetch categories based on prop
+  const { data: allGlobalCategories, isLoading: globalLoading } = useCategories({
+    limit: 100,
+    enabled: useGlobalCategories,
+  });
 
-  const { categories, isLoading } = useGlobalCategories ? globalResult : dictionaryResult;
+  const { data: allDictionaryCategories, isLoading: dictionaryLoading } = useDictionaryCategories({
+    dictionaryId: dictionaryId || 1,
+    limit: 100,
+    enabled: !useGlobalCategories,
+  });
+
+  // Filter categories locally based on search query
+  const categories = useMemo(() => {
+    const allCategories = useGlobalCategories ? allGlobalCategories : allDictionaryCategories;
+    if (!allCategories) return [];
+
+    if (query) {
+      return allCategories.filter(category =>
+        category.name.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    return allCategories.slice(0, 8); // Show first 8 as default
+  }, [allGlobalCategories, allDictionaryCategories, query, useGlobalCategories]);
+
+  const isLoading = useGlobalCategories ? globalLoading : dictionaryLoading;
 
   // Smooth transitions for dropdown visibility
   useEffect(() => {

@@ -1,8 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from "react";
 import { Box, Text, Button, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useTrajectoryWorkspace } from "@/contexts/page/TrajectoryWorkspaceContext";
+import { useTrajectoryWorkspacePageContext } from "@/contexts/TrajectoryWorkspacePageContextProvider";
 import {
   HandGrabbing,
   ArrowRight,
@@ -12,7 +11,7 @@ import {
   CornersOut,
   CrosshairSimple,
 } from "phosphor-react";
-import type { AnnotationClientRead } from "@/shared/api/generated/models";
+import type { Annotation } from "@/shared/api/endpoints/annotations";
 
 interface Point {
   x: number;
@@ -32,23 +31,50 @@ export function TrajectoryCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
-  const { selectedImage } = useImagesContext();
   const {
-    selectedTask,
+    selectedImage,
+    annotations: approvedAnnotations,
+    trajectoryPoints,
     isDrawingMode,
-    trajectoryPath,
-    robotHandPosition,
-    startPoint,
-    endPoint,
-    activeTrajectoryMasks,
-    handleStartDrawing,
-    handleEndDrawing,
-    handleTrajectoryPointAdd,
-    handleRobotHandMove,
-    handleSubmitTrajectory,
-    approvedAnnotations,
-    annotationsLoading,
-  } = useTrajectoryWorkspace();
+    isLoading: annotationsLoading,
+    handleAddTrajectoryPoint,
+    handleToggleDrawingMode,
+  } = useTrajectoryWorkspacePageContext();
+
+  // For trajectory workspace, we need to extract some temporary state
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [trajectoryPath, setTrajectoryPath] = useState<Point[]>([]);
+  const [robotHandPosition, setRobotHandPosition] = useState<Point | null>(null);
+  const [startPoint, setStartPoint] = useState<Point | null>(null);
+  const [endPoint, setEndPoint] = useState<Point | null>(null);
+  const [activeTrajectoryMasks, setActiveTrajectoryMasks] = useState<number[]>([]);
+
+  // Temporary handlers until trajectory logic is properly implemented
+  const handleStartDrawing = useCallback(() => {
+    handleToggleDrawingMode();
+  }, [handleToggleDrawingMode]);
+
+  const handleEndDrawing = useCallback((path: Point[]) => {
+    setTrajectoryPath(path);
+    handleToggleDrawingMode();
+  }, [handleToggleDrawingMode]);
+
+  const handleTrajectoryPointAdd = useCallback((point: any) => {
+    if (point.type === "start") {
+      setStartPoint(point);
+    } else if (point.type === "end") {
+      setEndPoint(point);
+    }
+    handleAddTrajectoryPoint(point);
+  }, [handleAddTrajectoryPoint]);
+
+  const handleRobotHandMove = useCallback((position: Point) => {
+    setRobotHandPosition(position);
+  }, []);
+
+  const handleSubmitTrajectory = useCallback(() => {
+    console.log("Submit trajectory", { startPoint, endPoint, trajectoryPath });
+  }, [startPoint, endPoint, trajectoryPath]);
 
   // Canvas states
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -94,7 +120,7 @@ export function TrajectoryCanvas() {
         fitImageToContainer();
       }, 100);
     };
-    img.src = selectedImage.image_url;
+    img.src = selectedImage.imageUrl;
   }, [selectedImage]);
 
   // Fit image to container
@@ -153,7 +179,7 @@ export function TrajectoryCanvas() {
     let img = imageRef.current;
     if (!img) {
       img = new Image();
-      img.src = selectedImage.image_url;
+      img.src = selectedImage.imageUrl;
       imageRef.current = img;
       return;
     }
@@ -269,7 +295,7 @@ export function TrajectoryCanvas() {
       const imageCoords = screenToImage(x, y);
 
       // Helper function to check if point is inside annotation
-      const isPointInAnnotation = (annotation: AnnotationClientRead, point: Point) => {
+      const isPointInAnnotation = (annotation: Annotation, point: Point) => {
         // Check polygon first if available
         const polygonData = annotation.polygon as any;
         if (
@@ -590,7 +616,7 @@ export function TrajectoryCanvas() {
 
             {/* Render approved annotation masks */}
             {showMasks &&
-              approvedAnnotations.map((annotation: AnnotationClientRead, index: number) => {
+              approvedAnnotations.map((annotation: Annotation, index: number) => {
                 console.log("Rendering annotation:", annotation.id, annotation);
 
                 // Check if this annotation is active based on selected task
@@ -627,7 +653,7 @@ export function TrajectoryCanvas() {
                   hasPolygon: !!(annotation.polygon as any)?.polygons,
                   polygonCount: (annotation.polygon as any)?.polygons?.length || 0,
                   isActive,
-                  categoryId: annotation.category_id,
+                  categoryId: annotation.categoryId,
                 });
 
                 return (

@@ -2,13 +2,11 @@ import React from "react";
 import { Box, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { DatasetCard } from "./DatasetCard";
-import { useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
-import { useDatasetsList } from "@/contexts/data/DatasetsListContext";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsGrid() {
   const { theme } = useTheme();
-  const { filteredDatasets, isLoaded } = useDatasetsPage();
-  const { totalPages } = useDatasetsList();
+  const { datasets: filteredDatasets, isLoaded, totalPages } = useDatasetsPageContext();
 
   return (
     <Box>

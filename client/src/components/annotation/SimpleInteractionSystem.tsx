@@ -124,11 +124,9 @@ export function SimpleInteractionSystem({
   // 상태 업데이트 및 부모 컴포넌트에 알림
   const updateState = useCallback(
     (updates: Partial<SimpleInteractionState>) => {
-      setInteractionState(prev => {
-        const newState = { ...prev, ...updates };
-        onStateChange(updates);
-        return newState;
-      });
+      setInteractionState(prev => ({ ...prev, ...updates }));
+      // state 업데이트 후 별도로 부모에게 알림
+      onStateChange(updates);
     },
     [onStateChange]
   );

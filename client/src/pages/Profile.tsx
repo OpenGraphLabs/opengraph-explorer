@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
-import { apiClient } from "@/shared/api/client";
+import { ProfilePageContextProvider, useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
 import {
   BarChartIcon,
   PersonIcon,
@@ -16,48 +16,17 @@ import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
 import openLogoUrl from "@/assets/logo/logo.png";
 import usdcLogoUrl from "@/assets/logo/usdc_logo.png";
 
-interface UserProfile {
-  id: number;
-  email: string;
-  display_name: string | null;
-  profile_image_url: string | null;
-  sui_address: string | null;
-  created_at: string;
-  dataset_count: number;
-  annotation_count: number;
-}
-
-export function Profile() {
+function ProfileContent() {
   const { theme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { suiAddress } = useZkLogin();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
+  const {
+    userProfile: profile,
+    isLoading: loading,
+    error,
+  } = useProfilePageContext();
   // Token selection state - 모든 Hook을 컴포넌트 최상단에 위치
   const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!isAuthenticated) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // Use API client which automatically adds JWT token
-        const response = await apiClient.getAxiosInstance().get("/api/v1/users/me/profile");
-        setProfile(response.data);
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-        setError(err instanceof Error ? err.message : "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [isAuthenticated]);
 
   if (loading) {
     return (
@@ -164,23 +133,23 @@ export function Profile() {
             Error loading profile
           </Text>
           <Text size="2" style={{ color: theme.colors.text.secondary }}>
-            {error}
+            {error instanceof Error ? error.message : "Failed to load profile"}
           </Text>
         </Box>
       </Box>
     );
   }
 
-  const joinDate = profile ? new Date(profile.created_at).toLocaleDateString() : "";
-  const displayName = profile?.display_name || user?.name || user?.email?.split("@")[0] || "User";
-  const profileImage = profile?.profile_image_url || user?.picture;
-  const userSuiAddress = profile?.sui_address || suiAddress;
+  const joinDate = profile ? new Date(profile.createdAt).toLocaleDateString() : "";
+  const displayName = profile?.displayName || user?.name || user?.email?.split("@")[0] || "User";
+  const profileImage = profile?.profileImageUrl || user?.picture;
+  const userSuiAddress = profile?.suiAddress || suiAddress;
 
   // Mock data for demo purposes
   const mockData = {
-    totalAnnotations: profile?.annotation_count || 1247,
-    datasetsCreated: profile?.dataset_count || 23,
-    weeklyAnnotations: 89,
+    totalAnnotations: profile?.annotationCount,
+    datasetsCreated: profile?.datasetCount,
+    weeklyAnnotations: 0,
     accuracy: 94.2,
     contributionStreak: 14,
     rank: "Advanced Contributor",
@@ -817,5 +786,13 @@ export function Profile() {
         `}
       </style>
     </Box>
+  );
+}
+
+export function Profile() {
+  return (
+    <ProfilePageContextProvider>
+      <ProfileContent />
+    </ProfilePageContextProvider>
   );
 }

@@ -16,8 +16,8 @@ import {
   Brain,
   Sparkle,
 } from "phosphor-react";
-import type { AnnotationRead, AnnotationClientRead } from "@/shared/api/generated/models";
-import { useApprovedAnnotationsByImage } from "@/shared/hooks/useApiQuery";
+import type { Annotation } from "@/shared/api/endpoints/annotations";
+import { useAnnotations } from "@/shared/api/endpoints/annotations";
 
 interface ImageItem {
   id: number;
@@ -30,7 +30,7 @@ interface ImageItem {
 }
 
 interface ImageDetailSidebarProps {
-  annotation: AnnotationRead;
+  annotation: Annotation;
   image: ImageItem;
   categoryName?: string;
   isOpen: boolean;
@@ -56,11 +56,11 @@ export function ImageDetailSidebar({
   const overlayRef = useRef<SVGSVGElement>(null);
 
   // 이미지의 모든 approved 어노테이션 가져오기
-  const { data: allApprovedAnnotations, isLoading: annotationsLoading } =
-    useApprovedAnnotationsByImage(image.id, {
-      enabled: isOpen && !!image.id,
-      refetchOnWindowFocus: false,
-    } as any);
+  const { data: allApprovedAnnotations, isLoading: annotationsLoading } = useAnnotations({
+    imageId: image.id,
+    status: "APPROVED",
+    enabled: isOpen && !!image.id,
+  });
 
   // 이미지 로드 처리
   useEffect(() => {
@@ -135,7 +135,7 @@ export function ImageDetailSidebar({
 
   // 어노테이션이 현재 선택된 어노테이션인지 확인
   const isSelectedAnnotation = useCallback(
-    (annotationToCheck: AnnotationClientRead) => {
+    (annotationToCheck: Annotation) => {
       return annotationToCheck.id === annotation.id;
     },
     [annotation.id]
@@ -159,7 +159,7 @@ export function ImageDetailSidebar({
 
   // 메타데이터 계산
   const metadata = {
-    confidence: Math.round((annotation.stability_score || 0.8) * 100),
+    confidence: Math.round((annotation.stabilityScore || 0.8) * 100),
     area: annotation.bbox ? Math.round(annotation.bbox[2] * annotation.bbox[3]) : 0,
     aspectRatio: image.width / image.height,
     fileSize: "N/A", // API에서 제공되지 않음
@@ -170,12 +170,12 @@ export function ImageDetailSidebar({
   const annotationsToRender = useMemo(() => {
     const annotations = allApprovedAnnotations || [];
 
-    // 현재 어노테이션이 목록에 없으면 추가 (AnnotationClientRead 형식으로 변환)
+    // 현재 어노테이션이 목록에 없으면 추가 (Annotation 형식으로 변환)
     const hasCurrentAnnotation = annotations.some(
-      (ann: AnnotationClientRead) => ann.id === annotation.id
+      (ann: Annotation) => ann.id === annotation.id
     );
     if (!hasCurrentAnnotation && annotation) {
-      const currentAsClientRead: AnnotationClientRead = {
+      const currentAsClientRead: Annotation = {
         ...annotation,
         polygon: annotation.polygon || null,
       };
@@ -461,7 +461,7 @@ A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an ora
 
               {/* 모든 approved 어노테이션의 세그멘테이션 마스크 */}
               {showMask &&
-                annotationsToRender.map((ann: AnnotationClientRead) => {
+                annotationsToRender.map((ann: Annotation) => {
                   const isSelected = isSelectedAnnotation(ann);
                   const color = isSelected ? HIGHLIGHT_COLOR : OTHER_COLOR;
                   const opacity = isSelected ? 0.4 : 0.2; // 다른 annotation 투명도 감소
@@ -498,7 +498,7 @@ A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an ora
 
               {/* 모든 approved 어노테이션의 바운딩 박스 */}
               {showBBox &&
-                annotationsToRender.map((ann: AnnotationClientRead) => {
+                annotationsToRender.map((ann: Annotation) => {
                   if (!ann.bbox || ann.bbox.length < 4) return null;
 
                   const isSelected = isSelectedAnnotation(ann);

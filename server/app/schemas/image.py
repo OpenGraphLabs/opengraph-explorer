@@ -7,6 +7,14 @@ API request/response schemas for image-related operations
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
+from enum import Enum
+
+
+class ImageStatus(str, Enum):
+    """Image approval status"""
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
 
 
 class ImageBase(BaseModel):
@@ -15,7 +23,9 @@ class ImageBase(BaseModel):
     image_url: str = Field(..., description="Image URL")
     width: int = Field(..., description="Image width in pixels")
     height: int = Field(..., description="Image height in pixels")
-    dataset_id: int = Field(..., description="Dataset ID")
+    dataset_id: Optional[int] = Field(None, description="Dataset ID (optional for first-person images)")
+    task_id: Optional[str] = Field(None, description="Task ID for first-person images")
+    status: ImageStatus = Field(ImageStatus.PENDING, description="Image approval status")
 
 
 class ImageCreate(ImageBase):
@@ -29,6 +39,8 @@ class ImageUpdate(BaseModel):
     image_url: Optional[str] = Field(None, description="Image URL")
     width: Optional[int] = Field(None, description="Image width in pixels")
     height: Optional[int] = Field(None, description="Image height in pixels")
+    status: Optional[ImageStatus] = Field(None, description="Image approval status")
+    task_id: Optional[str] = Field(None, description="Task ID for first-person images")
 
 
 class ImageRead(ImageBase):
@@ -51,3 +63,12 @@ class ImageListResponse(BaseModel):
     page: int = Field(..., description="Current page")
     limit: int = Field(..., description="Page size")
     pages: int = Field(..., description="Total pages")
+
+
+class FirstPersonImageCreate(BaseModel):
+    """First-person image creation schema"""
+    file_name: str = Field(..., description="File name")
+    image_url: str = Field(..., description="Image URL or base64 data")
+    width: int = Field(..., description="Image width in pixels")
+    height: int = Field(..., description="Image height in pixels")
+    task_id: str = Field(..., description="Task ID for first-person images")

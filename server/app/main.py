@@ -10,9 +10,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from contextlib import asynccontextmanager
 import time
-import json
-import os
-from pathlib import Path
 
 from .config import settings
 from .database import test_db_connection
@@ -24,31 +21,10 @@ from .routers import (
     category_router,
     dictionary_category_router,
     annotation_router,
-    auth_router
+    auth_router,
+    task_router
 )
 
-
-def save_openapi_schema(app: FastAPI):
-    """
-    Save OpenAPI schema to client folder for code generation
-    """
-    try:
-        # Get OpenAPI schema
-        openapi_schema = app.openapi()
-        
-        # Define client openapi configs directory
-        client_configs_dir = Path(__file__).parent.parent.parent / "client" / "configs" / "openapi"
-        client_configs_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Save schema to client folder
-        schema_path = client_configs_dir / "swagger.json"
-        with open(schema_path, 'w', encoding='utf-8') as f:
-            json.dump(openapi_schema, f, indent=2, ensure_ascii=False)
-        
-        print(f"✅ OpenAPI schema saved to: {schema_path}")
-        
-    except Exception as e:
-        print(f"⚠️  Failed to save OpenAPI schema: {e}")
 
 
 @asynccontextmanager
@@ -64,9 +40,6 @@ async def lifespan(app: FastAPI):
         print("✅ Database connection successful")
     else:
         print("❌ Database connection failed")
-    
-    # Save OpenAPI schema for client code generation
-    save_openapi_schema(app)
     
     yield
     
@@ -159,6 +132,7 @@ app.include_router(dictionary_router, prefix="/api/v1")
 app.include_router(category_router, prefix="/api/v1")
 app.include_router(dictionary_category_router, prefix="/api/v1")
 app.include_router(annotation_router, prefix="/api/v1")
+app.include_router(task_router, prefix="/api/v1")
 
 
 @app.get("/")

@@ -2,13 +2,11 @@ import React from "react";
 import { Flex, Button, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { CaretLeft, CaretRight } from "phosphor-react";
-import { useDatasetsList } from "@/contexts/data/DatasetsListContext";
-import { useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsPagination() {
   const { theme } = useTheme();
-  const { currentPage, totalPages } = useDatasetsList();
-  const { handlePageChange } = useDatasetsPage();
+  const { currentPage, totalPages, handlePageChange } = useDatasetsPageContext();
 
   if (totalPages <= 1) {
     return null;

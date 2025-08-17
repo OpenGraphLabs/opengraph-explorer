@@ -1,13 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Box, Card, Flex, Text, Badge } from "@radix-ui/themes";
 import { FileText, Shield, Archive, Palette } from "phosphor-react";
-import { DatasetRead } from "@/shared/api/generated/models";
+import { type Dataset } from "@/shared/api/endpoints";
 import { formatDataSize, getDataTypeColor, truncateAddress } from "./utils";
 import { useTheme } from "@/shared/ui/design-system";
 import { Button } from "@/shared/ui/design-system/components";
 
-// Extended DatasetRead with image_count from server response
-interface DatasetWithImageCount extends DatasetRead {
+// Extended Dataset with image_count from server response
+interface DatasetWithImageCount extends Dataset {
   image_count?: number;
 }
 
@@ -201,7 +201,7 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
                   fontSize: "10px",
                 }}
               >
-                {formatDate(dataset.created_at)}
+                {formatDate(dataset.createdAt)}
               </Text>
             </Flex>
 

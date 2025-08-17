@@ -2,16 +2,14 @@ import React from "react";
 import { Flex, Box, Heading, Text, Button } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { GridIcon } from "@radix-ui/react-icons";
-import { useCategories } from "@/contexts/data/CategoriesContext";
-import { useAnnotations } from "@/contexts/data/AnnotationsContext";
+import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 export function HomeEmptyState() {
   const { theme } = useTheme();
-  const { selectedCategory, setSelectedCategory, setSearchQuery } = useCategories();
-  const { setCurrentPage } = useAnnotations();
+  const { selectedCategory, handleCategorySelect, setSearchQuery, setCurrentPage } = useHomePageContext();
 
   const handleClearFilter = () => {
-    setSelectedCategory(null);
+    handleCategorySelect(null);
     setSearchQuery("");
     setCurrentPage(1);
     setTimeout(() => {

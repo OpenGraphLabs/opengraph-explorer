@@ -2,13 +2,11 @@ import React from "react";
 import { Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ChartLineUp, MagnifyingGlass } from "phosphor-react";
-import { useDatasetsList } from "@/contexts/data/DatasetsListContext";
-import { useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
+import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsTopBar() {
   const { theme } = useTheme();
-  const { totalDatasets, currentPage, totalPages } = useDatasetsList();
-  const { filters, updateFilter } = useDatasetsPage();
+  const { totalDatasets, currentPage, totalPages, filters, updateFilter } = useDatasetsPageContext();
 
   return (
     <Flex justify="between" align="center">

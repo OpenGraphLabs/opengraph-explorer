@@ -11,7 +11,7 @@ import { TrajectoryDrawingWorkspace } from "@/pages/TrajectoryDrawingWorkspace";
 import { AuthCallback } from "@/components/auth";
 import { AuthSuccess } from "@/pages/AuthSuccess";
 import { AuthError } from "@/pages/AuthError";
-import { Login } from "@/pages/Login.tsx";
+import { Login } from "@/pages/Login";
 import { Earn } from "@/pages/Earn";
 import { SpaceSelection } from "@/pages/SpaceSelection";
 import { FirstPersonCapture } from "@/pages/FirstPersonCapture";

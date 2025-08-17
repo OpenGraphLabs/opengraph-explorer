@@ -431,6 +431,87 @@ class AnnotationService:
             limit=pagination.limit,
             pages=pages
         )
+    
+    async def get_annotations_with_filters(
+        self,
+        pagination: Pagination,
+        sort_by: Optional[str] = None,
+        image_id: Optional[int] = None,
+        category_id: Optional[int] = None,
+        status: Optional[str] = None,
+        source_type: Optional[str] = None
+    ) -> AnnotationListResponse:
+        """
+        Get annotations with various filters
+        
+        Args:
+            pagination: Pagination
+            sort_by: Sort field (created_at, updated_at, area)
+            image_id: Filter by image ID
+            category_id: Filter by category ID  
+            status: Filter by status (PENDING, APPROVED, REJECTED)
+            source_type: Filter by source type (AUTO, USER)
+            
+        Returns:
+            AnnotationListResponse: List of annotations with pagination information
+        """
+        # Build filter conditions
+        conditions = []
+        
+        if image_id:
+            conditions.append(Annotation.image_id == image_id)
+        if category_id:
+            conditions.append(Annotation.category_id == category_id)
+        if status:
+            conditions.append(Annotation.status == status.upper())
+        if source_type:
+            conditions.append(Annotation.source_type == source_type.upper())
+        
+        # Count total items
+        count_query = select(func.count(Annotation.id))
+        if conditions:
+            count_query = count_query.where(*conditions)
+        
+        total_result = await self.db.execute(count_query)
+        total = total_result.scalar() or 0
+        
+        # Build main query
+        query = select(Annotation)
+        if conditions:
+            query = query.where(*conditions)
+        
+        # Apply sorting
+        if sort_by:
+            if sort_by == "created_at":
+                query = query.order_by(Annotation.created_at.desc())
+            elif sort_by == "updated_at":
+                query = query.order_by(Annotation.updated_at.desc())
+            elif sort_by == "area":
+                query = query.order_by(Annotation.area.desc())
+            else:
+                query = query.order_by(Annotation.updated_at.desc())  # default
+        else:
+            query = query.order_by(Annotation.updated_at.desc())  # default
+        
+        # Apply pagination
+        offset = (pagination.page - 1) * pagination.limit
+        query = query.offset(offset).limit(pagination.limit)
+        
+        result = await self.db.execute(query)
+        annotations = result.scalars().all()
+        
+        pages = (total + pagination.limit - 1) // pagination.limit
+        
+        # Use batch processing
+        items = await self._batch_create_annotation_read_with_mask_info(annotations)
+        
+        return AnnotationListResponse(
+            items=items,
+            total=total,
+            page=pagination.page,
+            limit=pagination.limit,
+            pages=pages
+        )
 
     
     async def update_annotation(self, annotation_id: int, annotation_data: AnnotationUpdate) -> Optional[AnnotationRead]:

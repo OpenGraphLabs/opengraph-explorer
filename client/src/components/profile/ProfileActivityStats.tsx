@@ -2,11 +2,11 @@ import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { Database, Target, ChartBar } from "phosphor-react";
-import { useProfilePage } from "@/contexts/page/ProfilePageContext";
+import { useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
 
 export function ProfileActivityStats() {
   const { theme } = useTheme();
-  const { userProfile } = useProfilePage();
+  const { userProfile } = useProfilePageContext();
 
   return (
     <Card
@@ -61,7 +61,7 @@ export function ProfileActivityStats() {
                     marginBottom: "2px",
                   }}
                 >
-                  {userProfile?.dataset_count || 0}
+                  {userProfile?.datasetCount || 0}
                 </Text>
                 <Text
                   size="2"
@@ -109,7 +109,7 @@ export function ProfileActivityStats() {
                     marginBottom: "2px",
                   }}
                 >
-                  {userProfile?.annotation_count || 0}
+                  {userProfile?.annotationCount || 0}
                 </Text>
                 <Text
                   size="2"
@@ -143,7 +143,7 @@ export function ProfileActivityStats() {
                 }}
               >
                 Total Contributions:{" "}
-                {(userProfile?.dataset_count || 0) + (userProfile?.annotation_count || 0)}
+                {(userProfile?.datasetCount || 0) + (userProfile?.annotationCount || 0)}
               </Text>
             </Flex>
           </Box>

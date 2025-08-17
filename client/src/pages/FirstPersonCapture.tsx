@@ -7,6 +7,8 @@ import { RobotVisionHUD } from "@/components/robot-vision/RobotVisionHUD";
 import { MobileCameraUI } from "@/components/robot-vision/MobileCameraUI";
 import { useMobileCamera } from "@/shared/hooks/useMobileCamera";
 import { CAPTURE_TASKS, SPACE_TASKS, CaptureTask } from "@/components/robot-vision/types";
+import { useCreateFirstPersonImage } from "@/shared/api/endpoints/images";
+import { toast } from "@/shared/ui/toast";
 
 export function FirstPersonCapture() {
   const navigate = useNavigate();
@@ -265,8 +267,11 @@ export function FirstPersonCapture() {
     void startCamera();
   }, [startCamera]);
 
+  // API mutation
+  const createFirstPersonImage = useCreateFirstPersonImage();
+
   // Submit photo
-  const submitPhoto = useCallback(() => {
+  const submitPhoto = useCallback(async () => {
     if (!capturedImage || !currentTask) return;
 
     const detectedClasses = detections.map(d => d.class);
@@ -280,9 +285,30 @@ export function FirstPersonCapture() {
       vibrate([100, 50, 100]);
     }
 
-    // TODO: Submit to backend
-    navigate("/earn");
-  }, [capturedImage, currentTask, detections, navigate, isMobile, vibrate]);
+    try {
+      // Get image dimensions from canvas or video
+      const width = canvasRef.current?.width || videoDimensions.width;
+      const height = canvasRef.current?.height || videoDimensions.height;
+
+      // Submit to backend
+      const result = await createFirstPersonImage.mutateAsync({
+        fileName: `first-person-${currentTask.id}-${Date.now()}.jpg`,
+        imageUrl: capturedImage, // base64 data URL
+        width,
+        height,
+        taskId: currentTask.id,
+      });
+
+      console.log("Image uploaded successfully:", result);
+      toast.success("Image uploaded successfully!");
+      
+      // Navigate to home or continue with next task
+      navigate("/");
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      toast.error("Failed to upload image. Please try again.");
+    }
+  }, [capturedImage, currentTask, detections, isMobile, vibrate, createFirstPersonImage, videoDimensions, navigate]);
 
   // Flip camera (mobile only)
   const handleFlipCamera = useCallback(() => {

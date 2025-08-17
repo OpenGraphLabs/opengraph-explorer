@@ -3,9 +3,7 @@ import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/shared/components/SidebarLayout";
 import { Database, UploadSimple, Circle, Sparkle } from "phosphor-react";
-import { DatasetsListProvider } from "@/contexts/data/DatasetsListContext";
-import { DatasetsPageProvider, useDatasetsPage } from "@/contexts/page/DatasetsPageContext";
-import { useDatasetsList } from "@/contexts/data/DatasetsListContext";
+import { DatasetsPageContextProvider, useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 import {
   DatasetsLoadingState,
   DatasetsErrorState,
@@ -18,15 +16,20 @@ import {
 
 function DatasetsContent() {
   const { theme } = useTheme();
-  const { isLoading, error, refetch, totalDatasets, totalPages } = useDatasetsList();
-  const { filteredDatasets } = useDatasetsPage();
+  const { 
+    isLoading, 
+    error, 
+    datasets: filteredDatasets, 
+    totalDatasets, 
+    totalPages 
+  } = useDatasetsPageContext();
 
   if (isLoading) {
     return <DatasetsLoadingState />;
   }
 
   if (error) {
-    return <DatasetsErrorState error={error} onRetry={refetch} />;
+    return <DatasetsErrorState error={error} onRetry={() => window.location.reload()} />;
   }
 
   // Sidebar configuration
@@ -110,10 +113,8 @@ function DatasetsContent() {
 
 export function Datasets() {
   return (
-    <DatasetsListProvider config={{ pageSize: 20 }}>
-      <DatasetsPageProvider>
-        <DatasetsContent />
-      </DatasetsPageProvider>
-    </DatasetsListProvider>
+    <DatasetsPageContextProvider options={{ limit: 20 }}>
+      <DatasetsContent />
+    </DatasetsPageContextProvider>
   );
 }

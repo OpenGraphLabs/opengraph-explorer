@@ -2,10 +2,7 @@ import React from "react";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ImageDetailSidebar } from "@/components/annotation";
-import { AnnotationsProvider } from "@/contexts/data/AnnotationsContext";
-import { ImagesProvider } from "@/contexts/data/ImagesContext";
-import { CategoriesProvider } from "@/contexts/data/CategoriesContext";
-import { HomePageProvider, useHomePage } from "@/contexts/page/HomePageContext";
+import { HomePageContextProvider, useHomePageContext } from "@/contexts/HomePageContextProvider";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { HomeGallery } from "@/components/home/HomeGallery";
 import { VideoGallery } from "@/components/home/VideoGallery";
@@ -14,10 +11,11 @@ import { HomeLoadingState } from "@/components/home/HomeLoadingState";
 import { HomeEmptyState } from "@/components/home/HomeEmptyState";
 import { SearchEmptyState } from "@/components/home/SearchEmptyState";
 import { HomeErrorState } from "@/components/home/HomeErrorState";
+import { FirstPersonImageGallery } from "@/components/home/FirstPersonImageGallery";
 
 function HomeContent() {
   const { theme } = useTheme();
-  const {
+  const { 
     error,
     annotationsWithImages,
     selectedAnnotation,
@@ -25,7 +23,7 @@ function HomeContent() {
     isTransitioning,
     hasSearchFilter,
     dataType,
-  } = useHomePage();
+  } = useHomePageContext();
 
   if (error) {
     return <HomeErrorState />;
@@ -61,13 +59,21 @@ function HomeContent() {
             transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {dataType === "video" ? (
+          {dataType === "action-video" ? (
             <Box
               style={{
                 animation: "contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
               <VideoGallery />
+            </Box>
+          ) : dataType === "first-person" ? (
+            <Box
+              style={{
+                animation: "contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            >
+              <FirstPersonImageGallery />
             </Box>
           ) : (
             <Box
@@ -159,8 +165,26 @@ function HomeContent() {
       {/* Image Detail Sidebar */}
       {selectedAnnotation && selectedAnnotation.image && (
         <ImageDetailSidebar
-          annotation={selectedAnnotation}
-          image={selectedAnnotation.image}
+          annotation={
+            {
+              ...selectedAnnotation,
+              source_type: selectedAnnotation.sourceType,
+              image_id: selectedAnnotation.imageId,
+              category_id: selectedAnnotation.categoryId,
+              created_by: selectedAnnotation.createdBy,
+              created_at: selectedAnnotation.createdAt,
+              updated_at: selectedAnnotation.updatedAt,
+            } as any
+          }
+          image={
+            {
+              ...selectedAnnotation.image,
+              file_name: selectedAnnotation.image.fileName,
+              image_url: selectedAnnotation.image.imageUrl,
+              dataset_id: selectedAnnotation.image.datasetId,
+              created_at: selectedAnnotation.image.createdAt,
+            } as any
+          }
           categoryName={selectedAnnotation.categoryName}
           isOpen={!!selectedAnnotation}
           onClose={handleCloseSidebar}
@@ -172,14 +196,9 @@ function HomeContent() {
 
 export function Home() {
   return (
-    <AnnotationsProvider config={{ mode: "approved", limit: 25 }}>
-      <ImagesProvider config={{ useAnnotationImages: true }}>
-        <CategoriesProvider config={{ useGlobalCategories: true, limit: 100 }}>
-          <HomePageProvider>
-            <HomeContent />
-          </HomePageProvider>
-        </CategoriesProvider>
-      </ImagesProvider>
-    </AnnotationsProvider>
+    <HomePageContextProvider>
+      <HomeContent />
+    </HomePageContextProvider>
   );
 }
+

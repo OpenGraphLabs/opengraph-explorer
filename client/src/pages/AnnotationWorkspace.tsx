@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { AnnotationsProvider } from "@/contexts/data/AnnotationsContext";
-import { ImagesProvider } from "@/contexts/data/ImagesContext";
-import { CategoriesProvider } from "@/contexts/data/CategoriesContext";
-import { DatasetsProvider } from "@/contexts/data/DatasetsContext";
-import { AnnotationWorkspaceProvider } from "@/contexts/page/AnnotationWorkspaceContext";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useDatasets } from "@/contexts/data/DatasetsContext";
+import { AnnotationWorkspacePageContextProvider, useAnnotationWorkspacePageContext } from "@/contexts/AnnotationWorkspacePageContextProvider";
 import { WorkspaceCanvas } from "@/components/annotation-workspace/WorkspaceCanvas";
 import { WorkspaceSidebar } from "@/components/annotation-workspace/WorkspaceSidebar";
 import { WorkspaceLoadingState } from "@/components/annotation-workspace/WorkspaceLoadingState";
@@ -16,21 +10,20 @@ import { WorkspaceErrorState } from "@/components/annotation-workspace/Workspace
 
 function WorkspaceContent() {
   const { theme } = useTheme();
-  const { selectedImage, isLoading: imagesLoading, error: imagesError } = useImagesContext();
-  const { dataset, isLoading: datasetLoading, error: datasetError } = useDatasets();
+  const { selectedImage, dataset, isLoading, error } = useAnnotationWorkspacePageContext();
 
   // Loading state
-  if (imagesLoading || datasetLoading) {
+  if (isLoading) {
     return <WorkspaceLoadingState />;
   }
 
   // Error state
-  if (imagesError || datasetError || !selectedImage || !dataset) {
+  if (error || !selectedImage || !dataset) {
     return (
       <WorkspaceErrorState
-        error={imagesError || datasetError}
-        imagesError={imagesError}
-        datasetError={datasetError}
+        error={error}
+        imagesError={error}
+        datasetError={error}
         hasNoImages={!selectedImage}
       />
     );
@@ -76,32 +69,6 @@ function WorkspaceContent() {
   );
 }
 
-// Inner wrapper that has access to dataset and images context
-function WorkspaceInner() {
-  const { dataset } = useDatasets();
-  const { selectedImage } = useImagesContext();
-
-  return (
-    <AnnotationsProvider
-      config={{
-        mode: "byImage",
-        imageId: selectedImage?.id || 0,
-      }}
-    >
-      <CategoriesProvider
-        config={{
-          dictionaryId: dataset?.dictionary_id,
-          useDictionaryFromDataset: false,
-        }}
-      >
-        <AnnotationWorkspaceProvider>
-          <WorkspaceContent />
-        </AnnotationWorkspaceProvider>
-      </CategoriesProvider>
-    </AnnotationsProvider>
-  );
-}
-
 export function AnnotationWorkspace() {
   const { id: datasetIdParam } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -118,10 +85,13 @@ export function AnnotationWorkspace() {
   const specificImageId = imageIdParam ? parseInt(imageIdParam) : undefined;
 
   return (
-    <DatasetsProvider config={{ datasetId }}>
-      <ImagesProvider config={{ datasetId, limit: 100, specificImageId }}>
-        <WorkspaceInner />
-      </ImagesProvider>
-    </DatasetsProvider>
+    <AnnotationWorkspacePageContextProvider
+      options={{ 
+        datasetId,
+        specificImageId 
+      }}
+    >
+      <WorkspaceContent />
+    </AnnotationWorkspacePageContextProvider>
   );
 }

@@ -30,10 +30,55 @@ router = APIRouter(
 )
 
 
+@router.get("/", response_model=AnnotationListResponse)
+async def get_annotations(
+    page: int = Query(1, ge=1),
+    limit: int = Query(25, ge=1, le=100),
+    sort_by: Optional[str] = Query(None, description="Sort by field (created_at, updated_at, area)"),
+    image_id: Optional[int] = Query(None, description="Filter by image ID"),
+    category_id: Optional[int] = Query(None, description="Filter by category ID"),
+    status: Optional[str] = Query(None, description="Filter by exact status (PENDING, APPROVED, REJECTED)"),
+    source_type: Optional[str] = Query(None, description="Filter by exact source type (AUTO, USER)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List all annotations with optional filtering and sorting.
+    """
+    annotation_service = AnnotationService(db)
+    return await annotation_service.get_annotations_with_filters(
+        pagination=Pagination(page=page, limit=limit),
+        sort_by=sort_by,
+        image_id=image_id,
+        category_id=category_id,
+        status=status,
+        source_type=source_type
+    )
+
+
+@router.post("/", response_model=AnnotationRead, status_code=status.HTTP_201_CREATED)
+async def create_annotation(
+    annotation_data: AnnotationCreate,
+    current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create a new annotation.
+    """
+    annotation_service = AnnotationService(db)
+    
+    try:
+        return await annotation_service.create_annotation(annotation_data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 @router.get("/approved", response_model=AnnotationListResponse)
 async def get_approved_annotations(
     page: int = Query(1, ge=1),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(25, ge=1, le=100),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -241,6 +286,70 @@ async def get_image_selection_stats(
     """
     selection_service = UserAnnotationSelectionService(db)
     return await selection_service.get_image_selection_stats(image_id)
+
+
+# ==================== Core Annotation CRUD Operations ====================
+
+@router.put("/{annotation_id}", response_model=AnnotationRead)
+async def update_annotation(
+    annotation_id: int,
+    annotation_data: AnnotationUpdate,
+    current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update an existing annotation.
+    
+    Args:
+        annotation_id: ID of the annotation to update
+        annotation_data: Updated annotation data
+        current_user: Current authenticated user
+        db: Database session
+    
+    Returns:
+        AnnotationRead: Updated annotation
+    """
+    annotation_service = AnnotationService(db)
+    
+    updated_annotation = await annotation_service.update_annotation(annotation_id, annotation_data)
+    
+    if not updated_annotation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Annotation not found"
+        )
+    
+    return updated_annotation
+
+
+@router.delete("/{annotation_id}")
+async def delete_annotation(
+    annotation_id: int,
+    current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Delete an annotation.
+    
+    Args:
+        annotation_id: ID of the annotation to delete
+        current_user: Current authenticated user
+        db: Database session
+    
+    Returns:
+        dict: Success message
+    """
+    annotation_service = AnnotationService(db)
+    
+    deleted = await annotation_service.delete_annotation(annotation_id)
+    
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Annotation not found"
+        )
+    
+    return {"message": "Annotation successfully deleted"}
 
 
 

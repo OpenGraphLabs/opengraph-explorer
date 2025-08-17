@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { useHomePage } from "@/contexts/page/HomePageContext";
+import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 const YOUTUBE_VIDEOS = [
   { id: "YpZcIwDrsfY", task: "wipe_spill" },
@@ -12,8 +12,8 @@ const YOUTUBE_VIDEOS = [
 ];
 
 export function VideoGallery() {
+  const { selectedVideoTask } = useHomePageContext();
   const { theme } = useTheme();
-  const { selectedVideoTask } = useHomePage();
 
   const getEmbedUrl = (videoId: string) => {
     return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&disablekb=1&fs=0&color=white&playsinline=1`;

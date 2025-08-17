@@ -1,16 +1,16 @@
-import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
+import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 import { DatasetImageModal } from "./DatasetImageModal";
 import { getAnnotationColor } from "@/shared/utils/dataset";
 
 export function DatasetDetailModal() {
   const { selectedImage, selectedImageData, selectedImageIndex, handleCloseModal } =
-    useDatasetDetailPage();
+    useDatasetDetailPageContext();
 
   return (
     <DatasetImageModal
       isOpen={!!selectedImage}
       onClose={handleCloseModal}
-      selectedImage={selectedImage}
+      selectedImage={selectedImage?.imageUrl || null}
       selectedImageData={selectedImageData}
       selectedImageIndex={selectedImageIndex}
       onCloseModal={handleCloseModal}

@@ -1,9 +1,7 @@
 import { Box, Tabs } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
-import { useDatasets } from "@/contexts/data/DatasetsContext";
-import { useImagesContext } from "@/contexts/data/ImagesContext";
-import { useDatasetDetailPage } from "@/contexts/page/DatasetDetailPageContext";
+import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 import { DatasetDetailTabs } from "./DatasetDetailTabs";
 import { DatasetImageGallery } from "./DatasetImageGallery";
 import { DatasetPagination } from "./DatasetPagination";
@@ -11,9 +9,9 @@ import { getAnnotationColor, DEFAULT_PAGE_SIZE } from "@/shared/utils/dataset";
 
 export function DatasetDetailDataBrowser() {
   const { theme } = useTheme();
-  const { dataset } = useDatasets();
-  const { totalCounts } = useImagesContext();
   const {
+    dataset,
+    totalCounts,
     activeTab,
     setActiveTab,
     getPaginatedItems,
@@ -27,7 +25,7 @@ export function DatasetDetailDataBrowser() {
     isItemLoading,
     isAnyBlobLoading,
     hasConfirmedAnnotations,
-  } = useDatasetDetailPage();
+  } = useDatasetDetailPageContext();
 
   return (
     <Card
@@ -57,7 +55,7 @@ export function DatasetDetailDataBrowser() {
             loading={isAnyBlobLoading()}
             activeTab={activeTab}
             onTabChange={tab => setActiveTab(tab)}
-            onImageClick={(item, index) => handleImageClick(item, index, getImageUrl)}
+            onImageClick={(item, index) => handleImageClick(item.id)}
             getImageUrl={getImageUrl}
             isItemLoading={isItemLoading}
             hasConfirmedAnnotations={hasConfirmedAnnotations}
@@ -106,7 +104,11 @@ export function DatasetDetailDataBrowser() {
                     : totalCounts.pending
               }
               pageSize={DEFAULT_PAGE_SIZE}
-              onLoadPage={loadPage}
+              onLoadPage={(direction) => {
+                const currentPage = activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
+                const newPage = direction === "next" ? currentPage + 1 : currentPage - 1;
+                loadPage(newPage);
+              }}
             />
           </Box>
         </Box>
