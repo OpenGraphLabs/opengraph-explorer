@@ -5,13 +5,8 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 export function HomePagination() {
-  const {
-    currentPage,
-    totalPages,
-    selectedCategory,
-    handlePageChange,
-    isLoading,
-  } = useHomePageContext();
+  const { currentPage, totalPages, selectedCategory, handlePageChange, isLoading } =
+    useHomePageContext();
   const { theme } = useTheme();
 
   // Don't show pagination when category is selected or there's only one page

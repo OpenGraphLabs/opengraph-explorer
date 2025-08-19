@@ -4,14 +4,19 @@ import type { UseAnnotationWorkspacePageOptions } from "@/hooks/useAnnotationWor
 
 type AnnotationWorkspacePageContextType = ReturnType<typeof useAnnotationWorkspacePage>;
 
-const AnnotationWorkspacePageContext = createContext<AnnotationWorkspacePageContextType | null>(null);
+const AnnotationWorkspacePageContext = createContext<AnnotationWorkspacePageContextType | null>(
+  null
+);
 
 interface AnnotationWorkspacePageContextProviderProps {
   children: ReactNode;
   options?: UseAnnotationWorkspacePageOptions;
 }
 
-export function AnnotationWorkspacePageContextProvider({ children, options = {} }: AnnotationWorkspacePageContextProviderProps) {
+export function AnnotationWorkspacePageContextProvider({
+  children,
+  options = {},
+}: AnnotationWorkspacePageContextProviderProps) {
   const annotationWorkspacePageData = useAnnotationWorkspacePage(options);
 
   return (
@@ -24,7 +29,9 @@ export function AnnotationWorkspacePageContextProvider({ children, options = {} 
 export function useAnnotationWorkspacePageContext() {
   const context = useContext(AnnotationWorkspacePageContext);
   if (!context) {
-    throw new Error('useAnnotationWorkspacePageContext must be used within AnnotationWorkspacePageProvider');
+    throw new Error(
+      "useAnnotationWorkspacePageContext must be used within AnnotationWorkspacePageProvider"
+    );
   }
   return context;
 }

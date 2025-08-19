@@ -2,7 +2,10 @@ import React from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { TrajectoryWorkspacePageContextProvider, useTrajectoryWorkspacePageContext } from "@/contexts/TrajectoryWorkspacePageContextProvider";
+import {
+  TrajectoryWorkspacePageContextProvider,
+  useTrajectoryWorkspacePageContext,
+} from "@/contexts/TrajectoryWorkspacePageContextProvider";
 import { TrajectoryCanvas } from "@/components/trajectory-workspace/TrajectoryCanvas";
 import { TrajectoryTaskSidebar } from "@/components/trajectory-workspace/TrajectoryTaskSidebar";
 import { TrajectoryLoadingState } from "@/components/trajectory-workspace/TrajectoryLoadingState";
@@ -11,7 +14,8 @@ import { Modal } from "@/shared/ui/components/Modal";
 
 function TrajectoryWorkspaceContent() {
   const { theme } = useTheme();
-  const { selectedImage, dataset, isLoading, error, modalState, closeModal } = useTrajectoryWorkspacePageContext();
+  const { selectedImage, dataset, isLoading, error, modalState, closeModal } =
+    useTrajectoryWorkspacePageContext();
 
   // Loading state
   if (isLoading) {
@@ -135,7 +139,7 @@ export function TrajectoryDrawingWorkspace() {
     <TrajectoryWorkspacePageContextProvider
       options={{
         datasetId,
-        specificImageId
+        specificImageId,
       }}
     >
       <TrajectoryWorkspaceContent />

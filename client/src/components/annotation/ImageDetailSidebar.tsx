@@ -171,9 +171,7 @@ export function ImageDetailSidebar({
     const annotations = allApprovedAnnotations || [];
 
     // 현재 어노테이션이 목록에 없으면 추가 (Annotation 형식으로 변환)
-    const hasCurrentAnnotation = annotations.some(
-      (ann: Annotation) => ann.id === annotation.id
-    );
+    const hasCurrentAnnotation = annotations.some((ann: Annotation) => ann.id === annotation.id);
     if (!hasCurrentAnnotation && annotation) {
       const currentAsClientRead: Annotation = {
         ...annotation,

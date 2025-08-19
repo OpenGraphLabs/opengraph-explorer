@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Badge,
-} from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
@@ -110,8 +104,8 @@ export function FirstPersonImageGallery() {
             {filteredImages.length} images
           </Badge>
         </Flex>
-        
-        <Box style={{ position: "relative", maxWidth: "300px" }}>
+
+        <Box style={{ position: "relative", maxWidth: "360px" }}>
           <Button
             variant="secondary"
             onClick={() => setIsTaskFilterOpen(!isTaskFilterOpen)}
@@ -120,77 +114,172 @@ export function FirstPersonImageGallery() {
               alignItems: "center",
               justifyContent: "space-between",
               width: "100%",
-              padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+              padding: `12px 16px`,
               background: theme.colors.background.card,
-              border: `1px solid ${theme.colors.border.primary}`,
+              border: `1.5px solid ${isTaskFilterOpen ? theme.colors.interactive.primary : theme.colors.border.secondary}`,
               borderRadius: theme.borders.radius.md,
+              boxShadow: isTaskFilterOpen
+                ? `0 0 0 3px ${theme.colors.interactive.primary}15`
+                : "none",
+              transition: "all 0.2s ease",
+              cursor: "pointer",
             }}
           >
-            <Text style={{ color: theme.colors.text.primary }}>
-              {selectedTaskId ? getTaskName(selectedTaskId) : "All Tasks"}
-            </Text>
-            {isTaskFilterOpen ? (
-              <ChevronUpIcon width="16" height="16" />
-            ) : (
-              <ChevronDownIcon width="16" height="16" />
-            )}
+            <Flex align="center" gap="3">
+              {selectedTaskId && (
+                <Text style={{ fontSize: "16px" }}>
+                  {tasks.find(t => t.id === selectedTaskId)?.icon}
+                </Text>
+              )}
+              <Text
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: selectedTaskId ? "500" : "400",
+                  fontSize: "14px",
+                }}
+              >
+                {selectedTaskId ? getTaskName(selectedTaskId) : "All Tasks"}
+              </Text>
+            </Flex>
+            <Box
+              style={{
+                color: theme.colors.text.secondary,
+                transition: "transform 0.2s ease",
+                transform: isTaskFilterOpen ? "rotate(180deg)" : "rotate(0deg)",
+              }}
+            >
+              <ChevronDownIcon width="18" height="18" />
+            </Box>
           </Button>
 
           {isTaskFilterOpen && (
             <Box
               style={{
                 position: "absolute",
-                top: "100%",
+                top: "calc(100% + 6px)",
                 left: 0,
                 right: 0,
-                zIndex: 10,
-                marginTop: "4px",
+                zIndex: 50,
                 background: theme.colors.background.card,
-                border: `1px solid ${theme.colors.border.primary}`,
+                border: `1.5px solid ${theme.colors.border.secondary}`,
                 borderRadius: theme.borders.radius.md,
-                boxShadow: theme.shadows.semantic.overlay.dropdown,
-                maxHeight: "200px",
+                boxShadow: `0 4px 12px rgba(0, 0, 0, 0.1), 0 0 0 1px ${theme.colors.border.subtle}20`,
+                maxHeight: "280px",
                 overflowY: "auto",
+                overflowX: "hidden",
               }}
             >
-              <Button
-                variant="tertiary"
-                onClick={() => {
-                  setSelectedTaskId(null);
-                  setIsTaskFilterOpen(false);
-                }}
-                style={{
-                  width: "100%",
-                  justifyContent: "flex-start",
-                  padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                  borderRadius: 0,
-                  background: !selectedTaskId ? theme.colors.interactive.primary + "10" : "transparent",
-                }}
-              >
-                All Tasks
-              </Button>
-              {tasks.map(task => (
-                <Button
-                  key={task.id}
-                  variant="tertiary"
+              <Box style={{ padding: "4px" }}>
+                <Box
                   onClick={() => {
-                    setSelectedTaskId(task.id);
+                    setSelectedTaskId(null);
                     setIsTaskFilterOpen(false);
                   }}
                   style={{
                     width: "100%",
+                    display: "flex",
+                    alignItems: "center",
                     justifyContent: "flex-start",
-                    padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                    borderRadius: 0,
-                    background: selectedTaskId === task.id ? theme.colors.interactive.primary + "10" : "transparent",
+                    padding: "10px 12px",
+                    borderRadius: theme.borders.radius.sm,
+                    background: !selectedTaskId
+                      ? `${theme.colors.interactive.primary}12`
+                      : "transparent",
+                    border: !selectedTaskId
+                      ? `1px solid ${theme.colors.interactive.primary}20`
+                      : "1px solid transparent",
+                    transition: "all 0.15s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={e => {
+                    if (selectedTaskId) {
+                      e.currentTarget.style.background = `${theme.colors.background.secondary}50`;
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (selectedTaskId) {
+                      e.currentTarget.style.background = "transparent";
+                    }
                   }}
                 >
-                  <Flex align="center" gap="2">
-                    <Text style={{ fontSize: "16px" }}>{task.icon}</Text>
-                    <Text>{task.title}</Text>
-                  </Flex>
-                </Button>
-              ))}
+                  <Text
+                    style={{
+                      color: !selectedTaskId
+                        ? theme.colors.interactive.primary
+                        : theme.colors.text.primary,
+                      fontSize: "14px",
+                      fontWeight: !selectedTaskId ? "500" : "400",
+                    }}
+                  >
+                    All Tasks
+                  </Text>
+                </Box>
+
+                {tasks.length > 0 && (
+                  <Box
+                    style={{
+                      height: "1px",
+                      background: theme.colors.border.subtle,
+                      margin: "4px 8px",
+                    }}
+                  />
+                )}
+
+                {tasks.map(task => {
+                  const isSelected = selectedTaskId === task.id;
+                  return (
+                    <Box
+                      key={task.id}
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setIsTaskFilterOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-start",
+                        padding: "10px 12px",
+                        borderRadius: theme.borders.radius.sm,
+                        background: isSelected
+                          ? `${theme.colors.interactive.primary}12`
+                          : "transparent",
+                        border: isSelected
+                          ? `1px solid ${theme.colors.interactive.primary}20`
+                          : "1px solid transparent",
+                        transition: "all 0.15s ease",
+                        marginBottom: "2px",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={e => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = `${theme.colors.background.secondary}50`;
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = "transparent";
+                        }
+                      }}
+                    >
+                      <Flex align="center" gap="3">
+                        <Text style={{ fontSize: "16px", lineHeight: 1 }}>{task.icon}</Text>
+                        <Text
+                          style={{
+                            color: isSelected
+                              ? theme.colors.interactive.primary
+                              : theme.colors.text.primary,
+                            fontSize: "14px",
+                            fontWeight: isSelected ? "500" : "400",
+                          }}
+                        >
+                          {task.title}
+                        </Text>
+                      </Flex>
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
           )}
         </Box>
@@ -204,7 +293,7 @@ export function FirstPersonImageGallery() {
           gap: theme.spacing.semantic.layout.md,
         }}
       >
-        {filteredImages.map((image) => (
+        {filteredImages.map(image => (
           <Box
             key={image.id}
             style={{
@@ -230,7 +319,7 @@ export function FirstPersonImageGallery() {
                 }}
                 loading="lazy"
               />
-              
+
               {/* Status Badge */}
               <Box
                 style={{
@@ -274,7 +363,7 @@ export function FirstPersonImageGallery() {
                     {image.width} × {image.height}
                   </Text>
                 </Flex>
-                
+
                 <Text
                   style={{
                     fontSize: "12px",

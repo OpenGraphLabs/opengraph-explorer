@@ -13,46 +13,44 @@ export function AdminLoginForm() {
     setError(null);
 
     const result = await handleLogin(credentials);
-    
+
     if (!result.success) {
       setError(result.error || "Login failed");
     }
-    
+
     setIsLoggingIn(false);
   };
 
   return (
-    <div 
+    <div
       style={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: "#f8f9fa"
+        backgroundColor: "#f8f9fa",
       }}
     >
-      <div 
+      <div
         style={{
           backgroundColor: "white",
           padding: "32px",
           borderRadius: "8px",
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           width: "100%",
-          maxWidth: "400px"
+          maxWidth: "400px",
         }}
       >
-        <h2 style={{ marginBottom: "24px", textAlign: "center" }}>
-          Admin Dashboard Login
-        </h2>
-        
+        <h2 style={{ marginBottom: "24px", textAlign: "center" }}>Admin Dashboard Login</h2>
+
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "16px" }}>
-            <label 
+            <label
               htmlFor="username"
-              style={{ 
-                display: "block", 
+              style={{
+                display: "block",
                 marginBottom: "8px",
-                fontWeight: "500"
+                fontWeight: "500",
               }}
             >
               Username
@@ -61,25 +59,25 @@ export function AdminLoginForm() {
               id="username"
               type="text"
               value={credentials.username}
-              onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+              onChange={e => setCredentials(prev => ({ ...prev, username: e.target.value }))}
               style={{
                 width: "100%",
                 padding: "12px",
                 border: "1px solid #d1d5db",
                 borderRadius: "4px",
-                fontSize: "14px"
+                fontSize: "14px",
               }}
               required
             />
           </div>
-          
+
           <div style={{ marginBottom: "24px" }}>
-            <label 
+            <label
               htmlFor="password"
-              style={{ 
-                display: "block", 
+              style={{
+                display: "block",
                 marginBottom: "8px",
-                fontWeight: "500"
+                fontWeight: "500",
               }}
             >
               Password
@@ -88,31 +86,31 @@ export function AdminLoginForm() {
               id="password"
               type="password"
               value={credentials.password}
-              onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+              onChange={e => setCredentials(prev => ({ ...prev, password: e.target.value }))}
               style={{
                 width: "100%",
                 padding: "12px",
                 border: "1px solid #d1d5db",
                 borderRadius: "4px",
-                fontSize: "14px"
+                fontSize: "14px",
               }}
               required
             />
           </div>
-          
+
           {error && (
-            <div 
+            <div
               style={{
                 color: "#ef4444",
                 marginBottom: "16px",
                 fontSize: "14px",
-                textAlign: "center"
+                textAlign: "center",
               }}
             >
               {error}
             </div>
           )}
-          
+
           <button
             type="submit"
             disabled={isLoggingIn}
@@ -126,24 +124,25 @@ export function AdminLoginForm() {
               fontSize: "16px",
               fontWeight: "500",
               cursor: isLoggingIn ? "not-allowed" : "pointer",
-              opacity: isLoggingIn ? 0.6 : 1
+              opacity: isLoggingIn ? 0.6 : 1,
             }}
           >
             {isLoggingIn ? "Logging in..." : "Login"}
           </button>
         </form>
-        
-        <div 
+
+        <div
           style={{
             marginTop: "24px",
             padding: "16px",
             backgroundColor: "#f3f4f6",
             borderRadius: "4px",
             fontSize: "12px",
-            color: "#6b7280"
+            color: "#6b7280",
           }}
         >
-          <strong>OpenGraph Internal Use Only</strong><br />
+          <strong>OpenGraph Internal Use Only</strong>
+          <br />
           This admin dashboard is for authorized OpenGraph staff only.
         </div>
       </div>

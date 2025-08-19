@@ -35,11 +35,11 @@ export async function adminApiRequest<T>({
   method = "get",
   params,
   body,
-  credentials
+  credentials,
 }: AdminRequestConfig): Promise<T> {
   try {
     const fullUrl = `${API_BASE_URL}${url}`;
-    
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -85,7 +85,7 @@ export async function adminApiRequest<T>({
     if (err.response) {
       status = err.response.status;
       data = err.response.data;
-      
+
       if (status === 401) {
         errorMessage = "Invalid admin credentials";
       } else if (err.response.data?.detail) {
@@ -112,7 +112,7 @@ export const adminApi = {
         url: "/api/v1/admin/images/pending",
         method: "get",
         params: { limit: 1 },
-        credentials
+        credentials,
       });
       return true;
     } catch (error) {
@@ -132,7 +132,7 @@ export const adminApi = {
       url: "/api/v1/admin/images/pending",
       method: "get",
       params,
-      credentials
+      credentials,
     });
   },
 
@@ -144,7 +144,7 @@ export const adminApi = {
     return adminApiRequest({
       url: `/api/v1/admin/images/${imageId}/approve`,
       method: "put",
-      credentials
+      credentials,
     });
   },
 
@@ -156,7 +156,7 @@ export const adminApi = {
     return adminApiRequest({
       url: `/api/v1/admin/images/${imageId}/reject`,
       method: "put",
-      credentials
+      credentials,
     });
   },
 
@@ -168,7 +168,7 @@ export const adminApi = {
     return adminApiRequest({
       url: `/api/v1/admin/images/${imageId}`,
       method: "get",
-      credentials
+      credentials,
     });
-  }
+  },
 };

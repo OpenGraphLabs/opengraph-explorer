@@ -301,14 +301,23 @@ export function FirstPersonCapture() {
 
       console.log("Image uploaded successfully:", result);
       toast.success("Image uploaded successfully!");
-      
+
       // Navigate to home or continue with next task
       navigate("/");
     } catch (error) {
       console.error("Failed to upload image:", error);
       toast.error("Failed to upload image. Please try again.");
     }
-  }, [capturedImage, currentTask, detections, isMobile, vibrate, createFirstPersonImage, videoDimensions, navigate]);
+  }, [
+    capturedImage,
+    currentTask,
+    detections,
+    isMobile,
+    vibrate,
+    createFirstPersonImage,
+    videoDimensions,
+    navigate,
+  ]);
 
   // Flip camera (mobile only)
   const handleFlipCamera = useCallback(() => {

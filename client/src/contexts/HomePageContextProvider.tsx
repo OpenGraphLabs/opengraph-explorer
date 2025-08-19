@@ -18,17 +18,13 @@ export function HomePageContextProvider({ children, options = {} }: HomePageCont
     ...options,
   });
 
-  return (
-    <HomePageContext.Provider value={homePageData}>
-      {children}
-    </HomePageContext.Provider>
-  );
+  return <HomePageContext.Provider value={homePageData}>{children}</HomePageContext.Provider>;
 }
 
 export function useHomePageContext() {
   const context = useContext(HomePageContext);
   if (!context) {
-    throw new Error('useHomePageContext must be used within HomePageProvider');
+    throw new Error("useHomePageContext must be used within HomePageProvider");
   }
   return context;
 }

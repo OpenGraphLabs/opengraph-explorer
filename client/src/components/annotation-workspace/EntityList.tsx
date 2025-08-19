@@ -6,7 +6,7 @@ import { useAnnotationWorkspacePageContext } from "@/contexts/AnnotationWorkspac
 
 export function EntityList() {
   const { theme } = useTheme();
-  const { 
+  const {
     annotations,
     entities,
     selectedEntityId,
@@ -16,7 +16,7 @@ export function EntityList() {
     saveSuccess,
     setSelectedEntityId,
     setEntities,
-    handleSaveAnnotations
+    handleSaveAnnotations,
   } = useAnnotationWorkspacePageContext();
 
   const handleEntitySelect = (entityId: string) => {

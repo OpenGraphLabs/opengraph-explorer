@@ -17,13 +17,13 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authCredentials, setAuthCredentials] = useState<AdminCredentials | null>(null);
-  
+
   // UI state
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
   const [processingImages, setProcessingImages] = useState<Set<number>>(new Set());
-  
+
   // Data state
   const [pendingImagesResponse, setPendingImagesResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,12 +39,12 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     setError(null);
 
     try {
-      const params = { 
-        page: currentPage, 
-        limit, 
-        ...(searchQuery && { search: searchQuery })
+      const params = {
+        page: currentPage,
+        limit,
+        ...(searchQuery && { search: searchQuery }),
       };
-      
+
       const response = await adminApi.getPendingImages(params, authCredentials);
       setPendingImagesResponse(response);
     } catch (err: any) {
@@ -73,7 +73,6 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     return () => clearInterval(interval);
   }, [isAuthenticated, refreshInterval, fetchPendingImages]);
 
-
   // Computed values
   const pendingImages = useMemo(() => {
     return pendingImagesResponse?.items || [];
@@ -89,7 +88,7 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
 
   const filteredImages = useMemo(() => {
     if (!searchQuery) return pendingImages;
-    return pendingImages.filter(image => 
+    return pendingImages.filter(image =>
       image.file_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [pendingImages, searchQuery]);
@@ -98,7 +97,7 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
   const handleLogin = useCallback(async (credentials: AdminCredentials) => {
     try {
       const isValid = await adminApi.testAuth(credentials);
-      
+
       if (isValid) {
         setAuthCredentials(credentials);
         setIsAuthenticated(true);
@@ -108,9 +107,9 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
       }
     } catch (error: any) {
       console.error("Authentication failed:", error);
-      return { 
-        success: false, 
-        error: error instanceof AdminApiError ? error.message : "Authentication failed" 
+      return {
+        success: false,
+        error: error instanceof AdminApiError ? error.message : "Authentication failed",
       };
     }
   }, []);
@@ -122,62 +121,68 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
   }, []);
 
   // Image action handlers
-  const handleApproveImage = useCallback(async (imageId: number) => {
-    if (!authCredentials) return;
-    
-    setProcessingImages(prev => new Set(prev).add(imageId));
-    
-    try {
-      await adminApi.approveImage(imageId, authCredentials);
-      setSelectedImages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(imageId);
-        return newSet;
-      });
-      // Refetch to update the list
-      fetchPendingImages();
-    } catch (error) {
-      console.error("Failed to approve image:", error);
-    } finally {
-      setProcessingImages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(imageId);
-        return newSet;
-      });
-    }
-  }, [authCredentials, fetchPendingImages]);
+  const handleApproveImage = useCallback(
+    async (imageId: number) => {
+      if (!authCredentials) return;
 
-  const handleRejectImage = useCallback(async (imageId: number) => {
-    if (!authCredentials) return;
-    
-    setProcessingImages(prev => new Set(prev).add(imageId));
-    
-    try {
-      await adminApi.rejectImage(imageId, authCredentials);
-      setSelectedImages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(imageId);
-        return newSet;
-      });
-      // Refetch to update the list
-      fetchPendingImages();
-    } catch (error) {
-      console.error("Failed to reject image:", error);
-    } finally {
-      setProcessingImages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(imageId);
-        return newSet;
-      });
-    }
-  }, [authCredentials, fetchPendingImages]);
+      setProcessingImages(prev => new Set(prev).add(imageId));
+
+      try {
+        await adminApi.approveImage(imageId, authCredentials);
+        setSelectedImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(imageId);
+          return newSet;
+        });
+        // Refetch to update the list
+        fetchPendingImages();
+      } catch (error) {
+        console.error("Failed to approve image:", error);
+      } finally {
+        setProcessingImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(imageId);
+          return newSet;
+        });
+      }
+    },
+    [authCredentials, fetchPendingImages]
+  );
+
+  const handleRejectImage = useCallback(
+    async (imageId: number) => {
+      if (!authCredentials) return;
+
+      setProcessingImages(prev => new Set(prev).add(imageId));
+
+      try {
+        await adminApi.rejectImage(imageId, authCredentials);
+        setSelectedImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(imageId);
+          return newSet;
+        });
+        // Refetch to update the list
+        fetchPendingImages();
+      } catch (error) {
+        console.error("Failed to reject image:", error);
+      } finally {
+        setProcessingImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(imageId);
+          return newSet;
+        });
+      }
+    },
+    [authCredentials, fetchPendingImages]
+  );
 
   const handleBulkApprove = useCallback(async () => {
     if (!authCredentials) return;
-    
+
     const imageIds = Array.from(selectedImages);
     setProcessingImages(prev => new Set([...prev, ...imageIds]));
-    
+
     try {
       await Promise.all(imageIds.map(id => adminApi.approveImage(id, authCredentials)));
       setSelectedImages(new Set());
@@ -195,10 +200,10 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
 
   const handleBulkReject = useCallback(async () => {
     if (!authCredentials) return;
-    
+
     const imageIds = Array.from(selectedImages);
     setProcessingImages(prev => new Set([...prev, ...imageIds]));
-    
+
     try {
       await Promise.all(imageIds.map(id => adminApi.rejectImage(id, authCredentials)));
       setSelectedImages(new Set());
@@ -252,17 +257,17 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     isAuthenticated,
     handleLogin,
     handleLogout,
-    
+
     // Data
     pendingImages: filteredImages,
     totalImages,
     totalPages,
     currentPage,
     searchQuery,
-    
+
     // Selection
     selectedImages,
-    
+
     // Actions
     handleApproveImage,
     handleRejectImage,
@@ -271,16 +276,16 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     handleImageSelect,
     handleSelectAll,
     handleDeselectAll,
-    
+
     // Navigation
     handlePageChange,
     handleSearchChange,
-    
+
     // States
     isLoading,
     error,
     processingImages,
-    
+
     // Utils
     refetchPendingImages: fetchPendingImages,
   };

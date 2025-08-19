@@ -6,15 +6,15 @@ export function AdminImageGrid() {
   const { pendingImages } = useAdminDashboardContext();
 
   return (
-    <div 
+    <div
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
         gap: "20px",
-        marginBottom: "32px"
+        marginBottom: "32px",
       }}
     >
-      {pendingImages.map((image) => (
+      {pendingImages.map(image => (
         <AdminImageCard key={image.id} image={image} />
       ))}
     </div>

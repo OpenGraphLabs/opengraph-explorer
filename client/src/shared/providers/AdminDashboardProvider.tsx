@@ -27,7 +27,7 @@ export function AdminDashboardProvider({ children, options = {} }: AdminDashboar
 export function useAdminDashboardContext() {
   const context = useContext(AdminDashboardContext);
   if (!context) {
-    throw new Error('useAdminDashboardContext must be used within AdminDashboardProvider');
+    throw new Error("useAdminDashboardContext must be used within AdminDashboardProvider");
   }
   return context;
 }

@@ -27,7 +27,7 @@ export default function App() {
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/auth/error" element={<AuthError />} />
         <Route path="/login" element={<Login />} />
-        
+
         {/* Admin dashboard - completely independent from main app */}
         <Route path="/admin" element={<AdminDashboard />} />
 

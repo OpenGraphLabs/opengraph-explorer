@@ -104,8 +104,13 @@ export function DatasetDetailDataBrowser() {
                     : totalCounts.pending
               }
               pageSize={DEFAULT_PAGE_SIZE}
-              onLoadPage={(direction) => {
-                const currentPage = activeTab === "all" ? allPage : activeTab === "confirmed" ? confirmedPage : pendingPage;
+              onLoadPage={direction => {
+                const currentPage =
+                  activeTab === "all"
+                    ? allPage
+                    : activeTab === "confirmed"
+                      ? confirmedPage
+                      : pendingPage;
                 const newPage = direction === "next" ? currentPage + 1 : currentPage - 1;
                 loadPage(newPage);
               }}

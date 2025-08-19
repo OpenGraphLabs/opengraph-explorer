@@ -15,18 +15,18 @@ interface AdminImageCardProps {
 }
 
 export function AdminImageCard({ image }: AdminImageCardProps) {
-  const { 
-    handleApproveImage, 
+  const {
+    handleApproveImage,
     handleRejectImage,
     handleImageSelect,
     selectedImages,
-    processingImages
+    processingImages,
   } = useAdminDashboardContext();
-  
+
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  
+
   const isSelected = selectedImages.has(image.id);
   const isProcessing = processingImages.has(image.id);
 
@@ -47,7 +47,7 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
   };
 
   return (
-    <div 
+    <div
       style={{
         backgroundColor: "white",
         borderRadius: "8px",
@@ -55,16 +55,16 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
         overflow: "hidden",
         transition: "all 0.2s ease",
         opacity: isProcessing ? 0.6 : 1,
-        position: "relative"
+        position: "relative",
       }}
     >
       {/* Selection Checkbox */}
-      <div 
+      <div
         style={{
           position: "absolute",
           top: "12px",
           left: "12px",
-          zIndex: 10
+          zIndex: 10,
         }}
       >
         <input
@@ -75,14 +75,14 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
           style={{
             width: "18px",
             height: "18px",
-            cursor: isProcessing ? "not-allowed" : "pointer"
+            cursor: isProcessing ? "not-allowed" : "pointer",
           }}
         />
       </div>
 
       {/* Processing Indicator */}
       {isProcessing && (
-        <div 
+        <div
           style={{
             position: "absolute",
             top: "50%",
@@ -94,7 +94,7 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
             padding: "12px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "center",
           }}
         >
           <Spinner size={24} className="animate-spin" />
@@ -102,7 +102,7 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
       )}
 
       {/* Image */}
-      <div 
+      <div
         style={{
           position: "relative",
           aspectRatio: "16 / 9",
@@ -110,14 +110,12 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          cursor: "pointer"
+          cursor: "pointer",
         }}
         onClick={() => setShowDetails(!showDetails)}
       >
-        {!imageLoaded && !imageError && (
-          <ImageIcon size={48} color="#9ca3af" />
-        )}
-        
+        {!imageLoaded && !imageError && <ImageIcon size={48} color="#9ca3af" />}
+
         {imageError ? (
           <div style={{ textAlign: "center", color: "#6b7280" }}>
             <ImageIcon size={48} />
@@ -133,7 +131,7 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              display: imageLoaded ? "block" : "none"
+              display: imageLoaded ? "block" : "none",
             }}
           />
         )}
@@ -142,12 +140,12 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
       {/* Content */}
       <div style={{ padding: "16px" }}>
         {/* File Name */}
-        <h3 
+        <h3
           style={{
             margin: "0 0 8px 0",
             fontSize: "16px",
             fontWeight: "600",
-            wordBreak: "break-word"
+            wordBreak: "break-word",
           }}
         >
           {image.file_name}
@@ -162,27 +160,28 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
           <div>
             Dimensions: {image.width} × {image.height}
           </div>
-          {image.task_id && (
-            <div style={{ marginTop: "4px" }}>
-              Task: {image.task_id}
-            </div>
-          )}
+          {image.task_id && <div style={{ marginTop: "4px" }}>Task: {image.task_id}</div>}
         </div>
 
         {/* Details (expandable) */}
         {showDetails && (
-          <div 
+          <div
             style={{
               padding: "12px",
               backgroundColor: "#f8f9fa",
               borderRadius: "4px",
               marginBottom: "12px",
               fontSize: "12px",
-              color: "#4b5563"
+              color: "#4b5563",
             }}
           >
-            <div><strong>ID:</strong> {image.id}</div>
-            <div><strong>URL:</strong> <span style={{ wordBreak: "break-all" }}>{image.image_url}</span></div>
+            <div>
+              <strong>ID:</strong> {image.id}
+            </div>
+            <div>
+              <strong>URL:</strong>{" "}
+              <span style={{ wordBreak: "break-all" }}>{image.image_url}</span>
+            </div>
           </div>
         )}
 
@@ -205,13 +204,13 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
               fontSize: "14px",
               fontWeight: "500",
               cursor: isProcessing ? "not-allowed" : "pointer",
-              opacity: isProcessing ? 0.6 : 1
+              opacity: isProcessing ? 0.6 : 1,
             }}
           >
             <CheckCircle size={16} />
             Approve
           </button>
-          
+
           <button
             onClick={handleReject}
             disabled={isProcessing}
@@ -229,7 +228,7 @@ export function AdminImageCard({ image }: AdminImageCardProps) {
               fontSize: "14px",
               fontWeight: "500",
               cursor: isProcessing ? "not-allowed" : "pointer",
-              opacity: isProcessing ? 0.6 : 1
+              opacity: isProcessing ? 0.6 : 1,
             }}
           >
             <XCircle size={16} />

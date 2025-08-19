@@ -14,7 +14,7 @@ export function AdminErrorState({ error }: AdminErrorStateProps) {
   };
 
   return (
-    <div 
+    <div
       style={{
         display: "flex",
         flexDirection: "column",
@@ -22,40 +22,45 @@ export function AdminErrorState({ error }: AdminErrorStateProps) {
         alignItems: "center",
         minHeight: "100vh",
         backgroundColor: "#f8f9fa",
-        padding: "32px"
+        padding: "32px",
       }}
     >
-      <div 
+      <div
         style={{
           backgroundColor: "white",
           padding: "48px 32px",
           borderRadius: "8px",
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           textAlign: "center",
-          maxWidth: "500px"
+          maxWidth: "500px",
         }}
       >
         <Warning size={64} style={{ color: "#ef4444", marginBottom: "24px" }} />
-        
-        <h2 style={{ 
-          fontSize: "24px", 
-          fontWeight: "bold", 
-          marginBottom: "16px",
-          color: "#1f2937"
-        }}>
+
+        <h2
+          style={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            marginBottom: "16px",
+            color: "#1f2937",
+          }}
+        >
           Failed to Load Images
         </h2>
-        
-        <p style={{ 
-          color: "#6b7280", 
-          marginBottom: "24px",
-          lineHeight: "1.5"
-        }}>
-          There was an error loading the pending images. This could be due to a network issue or server problem.
+
+        <p
+          style={{
+            color: "#6b7280",
+            marginBottom: "24px",
+            lineHeight: "1.5",
+          }}
+        >
+          There was an error loading the pending images. This could be due to a network issue or
+          server problem.
         </p>
-        
+
         {error && (
-          <div 
+          <div
             style={{
               backgroundColor: "#fef2f2",
               border: "1px solid #fecaca",
@@ -64,14 +69,15 @@ export function AdminErrorState({ error }: AdminErrorStateProps) {
               marginBottom: "24px",
               fontSize: "14px",
               color: "#dc2626",
-              textAlign: "left"
+              textAlign: "left",
             }}
           >
-            <strong>Error details:</strong><br />
+            <strong>Error details:</strong>
+            <br />
             {error.message || error.toString()}
           </div>
         )}
-        
+
         <button
           onClick={handleRetry}
           style={{
@@ -86,7 +92,7 @@ export function AdminErrorState({ error }: AdminErrorStateProps) {
             fontSize: "16px",
             fontWeight: "500",
             cursor: "pointer",
-            margin: "0 auto"
+            margin: "0 auto",
           }}
         >
           <ArrowClockwise size={16} />

@@ -3,7 +3,10 @@ import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
-import { ProfilePageContextProvider, useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
+import {
+  ProfilePageContextProvider,
+  useProfilePageContext,
+} from "@/contexts/ProfilePageContextProvider";
 import {
   BarChartIcon,
   PersonIcon,
@@ -20,11 +23,7 @@ function ProfileContent() {
   const { theme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { suiAddress } = useZkLogin();
-  const {
-    userProfile: profile,
-    isLoading: loading,
-    error,
-  } = useProfilePageContext();
+  const { userProfile: profile, isLoading: loading, error } = useProfilePageContext();
   // Token selection state - 모든 Hook을 컴포넌트 최상단에 위치
   const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
 

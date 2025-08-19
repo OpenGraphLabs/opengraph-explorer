@@ -11,7 +11,10 @@ interface DatasetDetailPageContextProviderProps {
   options: UseDatasetDetailPageOptions;
 }
 
-export function DatasetDetailPageContextProvider({ children, options }: DatasetDetailPageContextProviderProps) {
+export function DatasetDetailPageContextProvider({
+  children,
+  options,
+}: DatasetDetailPageContextProviderProps) {
   const datasetDetailPageData = useDatasetDetailPage(options);
 
   return (
@@ -24,7 +27,7 @@ export function DatasetDetailPageContextProvider({ children, options }: DatasetD
 export function useDatasetDetailPageContext() {
   const context = useContext(DatasetDetailPageContext);
   if (!context) {
-    throw new Error('useDatasetDetailPageContext must be used within DatasetDetailPageProvider');
+    throw new Error("useDatasetDetailPageContext must be used within DatasetDetailPageProvider");
   }
   return context;
 }

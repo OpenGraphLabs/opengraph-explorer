@@ -26,12 +26,16 @@ export function useHomePage(options: UseHomePageOptions = {}) {
 
   // Page-specific UI state
   const [showGlobalMasks, setShowGlobalMasks] = useState(true);
-  const [selectedAnnotation, setSelectedAnnotation] = useState<ApprovedAnnotationWithImage | null>(null);
+  const [selectedAnnotation, setSelectedAnnotation] = useState<ApprovedAnnotationWithImage | null>(
+    null
+  );
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   const [dataType, setDataType] = useState<DataType>("first-person");
   const [selectedVideoTask, setSelectedVideoTask] = useState<VideoTask>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState("");
 
   // API data fetching
@@ -42,7 +46,7 @@ export function useHomePage(options: UseHomePageOptions = {}) {
     error: annotationsError,
   } = useAnnotations({
     status: "APPROVED",
-    sourceType: "USER", 
+    sourceType: "USER",
     page: currentPage,
     limit: annotationsLimit,
     enabled: dataType === "object-detection",
@@ -119,7 +123,7 @@ export function useHomePage(options: UseHomePageOptions = {}) {
     return annotations.map((annotation): ApprovedAnnotationWithImage => {
       const image = imageMap.get(annotation.imageId);
       const category = annotation.categoryId ? categoryMap.get(annotation.categoryId) : undefined;
-      
+
       return {
         ...annotation,
         image,
@@ -129,17 +133,19 @@ export function useHomePage(options: UseHomePageOptions = {}) {
   }, [annotations, imageMap, categoryMap]);
 
   // Loading and error states
-  const isLoading = dataType === "first-person" 
-    ? (firstPersonImagesLoading || tasksLoading)
-    : dataType === "object-detection"
-    ? (annotationsLoading || categoriesLoading || imagesLoading)
-    : false; // action-video not implemented yet
-  
-  const error = dataType === "first-person"
-    ? (firstPersonImagesError || tasksError)
-    : dataType === "object-detection"
-    ? (annotationsError || categoriesError || imagesError)
-    : null;
+  const isLoading =
+    dataType === "first-person"
+      ? firstPersonImagesLoading || tasksLoading
+      : dataType === "object-detection"
+        ? annotationsLoading || categoriesLoading || imagesLoading
+        : false; // action-video not implemented yet
+
+  const error =
+    dataType === "first-person"
+      ? firstPersonImagesError || tasksError
+      : dataType === "object-detection"
+        ? annotationsError || categoriesError || imagesError
+        : null;
 
   // Search and filter states
   const hasSearchFilter = false; // TODO: Implement search functionality
@@ -173,9 +179,10 @@ export function useHomePage(options: UseHomePageOptions = {}) {
   };
 
   // Calculate total pages
-  const totalPages = dataType === "first-person" 
-    ? Math.ceil(totalFirstPersonImages / annotationsLimit)
-    : Math.ceil(totalAnnotations / annotationsLimit);
+  const totalPages =
+    dataType === "first-person"
+      ? Math.ceil(totalFirstPersonImages / annotationsLimit)
+      : Math.ceil(totalAnnotations / annotationsLimit);
 
   return {
     // Combined data
