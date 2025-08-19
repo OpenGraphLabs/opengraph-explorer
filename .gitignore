@@ -104,6 +104,3 @@ target/
 # Database
 *.sqlite
 *.db
-
-# Secrets
-server/secrets/
