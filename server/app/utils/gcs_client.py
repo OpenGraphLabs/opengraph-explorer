@@ -28,6 +28,10 @@ class GCSClient:
         # Use bucket name from settings if not provided
         self.bucket_name = bucket_name or settings.gcs_bucket_name
         
+        # Set the service account credentials if configured
+        if settings.google_application_credentials:
+            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.google_application_credentials
+        
         # Initialize client with project from settings
         self.client = storage.Client(project=settings.google_cloud_project)
         self.bucket = self.client.bucket(self.bucket_name)

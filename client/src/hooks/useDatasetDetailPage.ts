@@ -44,7 +44,7 @@ export function useDatasetDetailPage(options: UseDatasetDetailPageOptions) {
   // Filter images based on active tab
   const filteredImages = useMemo(() => {
     if (activeTab === "all") return images;
-    
+
     // TODO: Implement filtering by annotation status when API supports it
     // For now, return all images
     return images;
@@ -78,9 +78,7 @@ export function useDatasetDetailPage(options: UseDatasetDetailPageOptions) {
   const totalImagesPages = Math.ceil(totalImagesCount / imagesLimit);
 
   // Get selected image data
-  const selectedImage = selectedImageId 
-    ? images.find(img => img.id === selectedImageId) 
-    : null;
+  const selectedImage = selectedImageId ? images.find(img => img.id === selectedImageId) : null;
 
   // Mock data for properties expected by components (TODO: implement proper logic)
   const totalCounts = {
@@ -104,7 +102,9 @@ export function useDatasetDetailPage(options: UseDatasetDetailPageOptions) {
   const hasConfirmedAnnotations = (image: Image) => true;
   const handleCloseModal = handleModalClose;
   const selectedImageData = selectedImage;
-  const selectedImageIndex = selectedImage ? images.findIndex(img => img.id === selectedImage.id) : -1;
+  const selectedImageIndex = selectedImage
+    ? images.findIndex(img => img.id === selectedImage.id)
+    : -1;
 
   return {
     // Dataset data

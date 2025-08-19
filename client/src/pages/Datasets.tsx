@@ -3,7 +3,10 @@ import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { SidebarLayout } from "@/shared/components/SidebarLayout";
 import { Database, UploadSimple, Circle, Sparkle } from "phosphor-react";
-import { DatasetsPageContextProvider, useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
+import {
+  DatasetsPageContextProvider,
+  useDatasetsPageContext,
+} from "@/contexts/DatasetsPageContextProvider";
 import {
   DatasetsLoadingState,
   DatasetsErrorState,
@@ -16,12 +19,12 @@ import {
 
 function DatasetsContent() {
   const { theme } = useTheme();
-  const { 
-    isLoading, 
-    error, 
-    datasets: filteredDatasets, 
-    totalDatasets, 
-    totalPages 
+  const {
+    isLoading,
+    error,
+    datasets: filteredDatasets,
+    totalDatasets,
+    totalPages,
   } = useDatasetsPageContext();
 
   if (isLoading) {

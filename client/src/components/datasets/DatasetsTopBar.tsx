@@ -6,7 +6,8 @@ import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsTopBar() {
   const { theme } = useTheme();
-  const { totalDatasets, currentPage, totalPages, filters, updateFilter } = useDatasetsPageContext();
+  const { totalDatasets, currentPage, totalPages, filters, updateFilter } =
+    useDatasetsPageContext();
 
   return (
     <Flex justify="between" align="center">

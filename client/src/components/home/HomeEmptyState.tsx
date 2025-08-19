@@ -6,7 +6,8 @@ import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 export function HomeEmptyState() {
   const { theme } = useTheme();
-  const { selectedCategory, handleCategorySelect, setSearchQuery, setCurrentPage } = useHomePageContext();
+  const { selectedCategory, handleCategorySelect, setSearchQuery, setCurrentPage } =
+    useHomePageContext();
 
   const handleClearFilter = () => {
     handleCategorySelect(null);

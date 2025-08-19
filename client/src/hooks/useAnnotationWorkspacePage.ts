@@ -1,5 +1,8 @@
 import { useState, useMemo, useCallback } from "react";
-import { useAnnotations, useCreateAnnotationSelectionsBatch } from "@/shared/api/endpoints/annotations";
+import {
+  useAnnotations,
+  useCreateAnnotationSelectionsBatch,
+} from "@/shared/api/endpoints/annotations";
 import { useImages } from "@/shared/api/endpoints/images";
 import { useDictionaryCategories } from "@/shared/api/endpoints/categories";
 import { useDataset } from "@/shared/api/endpoints/datasets";
@@ -87,31 +90,31 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
   const error = datasetError || imagesError || annotationsError || categoriesError;
 
   // Entity management
-  const handleCategorySelect = useCallback((category: Category) => {
-    if (!selectedEntityId) return;
+  const handleCategorySelect = useCallback(
+    (category: Category) => {
+      if (!selectedEntityId) return;
 
-    setEntities(prev => 
-      prev.map(entity => 
-        entity.id === selectedEntityId 
-          ? { ...entity, category }
-          : entity
-      )
-    );
-  }, [selectedEntityId]);
+      setEntities(prev =>
+        prev.map(entity => (entity.id === selectedEntityId ? { ...entity, category } : entity))
+      );
+    },
+    [selectedEntityId]
+  );
 
-  const handleMaskSelectionChange = useCallback((maskIds: number[]) => {
-    setCurrentSelectedMasks(maskIds);
+  const handleMaskSelectionChange = useCallback(
+    (maskIds: number[]) => {
+      setCurrentSelectedMasks(maskIds);
 
-    if (!selectedEntityId) return;
+      if (!selectedEntityId) return;
 
-    setEntities(prev => 
-      prev.map(entity => 
-        entity.id === selectedEntityId 
-          ? { ...entity, selectedMaskIds: maskIds }
-          : entity
-      )
-    );
-  }, [selectedEntityId]);
+      setEntities(prev =>
+        prev.map(entity =>
+          entity.id === selectedEntityId ? { ...entity, selectedMaskIds: maskIds } : entity
+        )
+      );
+    },
+    [selectedEntityId]
+  );
 
   const moveToNextImage = useCallback(() => {
     // Clear current state
@@ -136,7 +139,9 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
     );
 
     if (validEntities.length === 0) {
-      setSaveError("No valid entities to save. Each entity must have selected masks and a category.");
+      setSaveError(
+        "No valid entities to save. Each entity must have selected masks and a category."
+      );
       return;
     }
 
@@ -146,12 +151,12 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
         imageId: selectedImage.id,
         selectedAnnotationIds: entity.selectedMaskIds,
         categoryId: entity.category!.id,
-      }))
+      })),
     };
 
     createBatch(
       batchData,
-      (result) => {
+      result => {
         console.log("Save successful:", result);
         setSaveSuccess(true);
 
@@ -166,7 +171,7 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
           }, 800);
         }, 1500);
       },
-      (error) => {
+      error => {
         console.error("Error saving annotations:", error);
         setSaveError(error || "Failed to save annotations");
 

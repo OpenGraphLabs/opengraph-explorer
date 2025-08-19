@@ -87,7 +87,7 @@ export function useDatasetsPage(options: UseDatasetsPageOptions = {}) {
       ...prev,
       selectedTags: prev.selectedTags.includes(tag)
         ? prev.selectedTags.filter(t => t !== tag)
-        : [...prev.selectedTags, tag]
+        : [...prev.selectedTags, tag],
     }));
   }, []);
 

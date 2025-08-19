@@ -80,7 +80,7 @@ export function useTasks(
         params: queryParams,
         authenticated: false, // Tasks are public
       }),
-    select: (resp) => resp.map(parseTask),
+    select: resp => resp.map(parseTask),
     enabled,
     retry: false,
   });

@@ -2,7 +2,10 @@ import React from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { AnnotationWorkspacePageContextProvider, useAnnotationWorkspacePageContext } from "@/contexts/AnnotationWorkspacePageContextProvider";
+import {
+  AnnotationWorkspacePageContextProvider,
+  useAnnotationWorkspacePageContext,
+} from "@/contexts/AnnotationWorkspacePageContextProvider";
 import { WorkspaceCanvas } from "@/components/annotation-workspace/WorkspaceCanvas";
 import { WorkspaceSidebar } from "@/components/annotation-workspace/WorkspaceSidebar";
 import { WorkspaceLoadingState } from "@/components/annotation-workspace/WorkspaceLoadingState";
@@ -86,9 +89,9 @@ export function AnnotationWorkspace() {
 
   return (
     <AnnotationWorkspacePageContextProvider
-      options={{ 
+      options={{
         datasetId,
-        specificImageId 
+        specificImageId,
       }}
     >
       <WorkspaceContent />

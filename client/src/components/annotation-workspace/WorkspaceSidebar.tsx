@@ -9,14 +9,14 @@ import type { Annotation as NewAnnotation } from "@/shared/api/endpoints/annotat
 
 export function WorkspaceSidebar() {
   const { theme } = useTheme();
-  const { 
-    annotations, 
-    dataset, 
-    currentSelectedMasks, 
+  const {
+    annotations,
+    dataset,
+    currentSelectedMasks,
     entities,
     selectedEntityId,
     handleCategorySelect,
-    handleMaskSelectionChange 
+    handleMaskSelectionChange,
   } = useAnnotationWorkspacePageContext();
 
   const selectedEntity = entities.find(e => e.id === selectedEntityId);

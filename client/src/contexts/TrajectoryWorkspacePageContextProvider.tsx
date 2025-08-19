@@ -4,14 +4,19 @@ import type { UseTrajectoryWorkspacePageOptions } from "@/hooks/useTrajectoryWor
 
 type TrajectoryWorkspacePageContextType = ReturnType<typeof useTrajectoryWorkspacePage>;
 
-const TrajectoryWorkspacePageContext = createContext<TrajectoryWorkspacePageContextType | null>(null);
+const TrajectoryWorkspacePageContext = createContext<TrajectoryWorkspacePageContextType | null>(
+  null
+);
 
 interface TrajectoryWorkspacePageContextProviderProps {
   children: ReactNode;
   options: UseTrajectoryWorkspacePageOptions;
 }
 
-export function TrajectoryWorkspacePageContextProvider({ children, options }: TrajectoryWorkspacePageContextProviderProps) {
+export function TrajectoryWorkspacePageContextProvider({
+  children,
+  options,
+}: TrajectoryWorkspacePageContextProviderProps) {
   const trajectoryWorkspacePageData = useTrajectoryWorkspacePage(options);
 
   return (
@@ -24,7 +29,9 @@ export function TrajectoryWorkspacePageContextProvider({ children, options }: Tr
 export function useTrajectoryWorkspacePageContext() {
   const context = useContext(TrajectoryWorkspacePageContext);
   if (!context) {
-    throw new Error('useTrajectoryWorkspacePageContext must be used within TrajectoryWorkspacePageProvider');
+    throw new Error(
+      "useTrajectoryWorkspacePageContext must be used within TrajectoryWorkspacePageProvider"
+    );
   }
   return context;
 }

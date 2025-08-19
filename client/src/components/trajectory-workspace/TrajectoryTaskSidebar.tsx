@@ -21,7 +21,7 @@ export function TrajectoryTaskSidebar() {
   const [trajectoryPath, setTrajectoryPath] = useState([]);
 
   // Temporary handlers
-  const handleTaskSelect = (task) => setSelectedTask(task);
+  const handleTaskSelect = task => setSelectedTask(task);
   const handleStartDrawing = () => handleToggleDrawingMode();
   const handleStopDrawing = () => handleToggleDrawingMode();
   const handleResetTrajectory = () => {

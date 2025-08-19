@@ -2,7 +2,10 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { DatasetDetailPageContextProvider, useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
+import {
+  DatasetDetailPageContextProvider,
+  useDatasetDetailPageContext,
+} from "@/contexts/DatasetDetailPageContextProvider";
 import {
   DatasetDetailHeader,
   DatasetDetailDataBrowser,

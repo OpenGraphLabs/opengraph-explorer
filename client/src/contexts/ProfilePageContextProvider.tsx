@@ -11,20 +11,21 @@ interface ProfilePageContextProviderProps {
   options?: UseProfilePageOptions;
 }
 
-export function ProfilePageContextProvider({ children, options = {} }: ProfilePageContextProviderProps) {
+export function ProfilePageContextProvider({
+  children,
+  options = {},
+}: ProfilePageContextProviderProps) {
   const profilePageData = useProfilePage(options);
 
   return (
-    <ProfilePageContext.Provider value={profilePageData}>
-      {children}
-    </ProfilePageContext.Provider>
+    <ProfilePageContext.Provider value={profilePageData}>{children}</ProfilePageContext.Provider>
   );
 }
 
 export function useProfilePageContext() {
   const context = useContext(ProfilePageContext);
   if (!context) {
-    throw new Error('useProfilePageContext must be used within ProfilePageProvider');
+    throw new Error("useProfilePageContext must be used within ProfilePageProvider");
   }
   return context;
 }

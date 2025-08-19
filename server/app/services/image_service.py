@@ -56,16 +56,22 @@ class ImageService:
         Returns:
             ImageRead: Created image information
         """
-        gcs_client = GCSClient()
+        from ..config import settings
         
-        # Upload image to GCS if it's base64 data
-        if image_data.image_url.startswith('data:image'):
+        # For development, just store the base64 data directly 
+        # In production, this should upload to GCS
+        if image_data.image_url.startswith('data:image') and not settings.google_cloud_project:
+            # Development mode: store base64 data directly
+            image_url = image_data.image_url
+            width = image_data.width
+            height = image_data.height
+        elif image_data.image_url.startswith('data:image'):
+            # Production mode: upload to GCS
+            gcs_client = GCSClient()
             blob_name, width, height = gcs_client.upload_image(
                 image_data.image_url,
                 file_name=image_data.file_name
             )
-            # Store blob name as image_url for now
-            # We'll generate signed URLs when retrieving
             image_url = blob_name
         else:
             # If it's already a URL, use as is
@@ -75,7 +81,7 @@ class ImageService:
         
         db_image = Image(
             file_name=image_data.file_name,
-            image_url=image_url,  # Store blob name or URL
+            image_url=image_url,
             width=width,
             height=height,
             task_id=image_data.task_id,
@@ -87,9 +93,9 @@ class ImageService:
         await self.db.commit()
         await self.db.refresh(db_image)
         
-        # Generate signed URL if stored in GCS
+        # Generate signed URL if stored in GCS and not development mode
         result = ImageRead.model_validate(db_image)
-        if not result.image_url.startswith('http'):
+        if not result.image_url.startswith(('http', 'data:')) and settings.google_cloud_project:
             # It's a blob name, generate signed URL
             gcs_client = GCSClient()
             result.image_url = gcs_client.generate_signed_url(result.image_url)

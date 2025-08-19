@@ -1,5 +1,5 @@
 # Secrets and sensitive data
-secrets/
+server/secrets/
 *.secret
 *.key
 .env.production

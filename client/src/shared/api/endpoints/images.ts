@@ -6,7 +6,7 @@ const IMAGES_BASE = "/api/v1/images";
 export enum ImageStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED"
+  REJECTED = "REJECTED",
 }
 
 export interface Image {
@@ -33,7 +33,7 @@ export interface ImageCreateInput {
 
 export interface FirstPersonImageCreateInput {
   fileName: string;
-  imageUrl: string;  // Can be base64 data URL
+  imageUrl: string; // Can be base64 data URL
   width: number;
   height: number;
   taskId: string;
@@ -170,6 +170,13 @@ export function useCreateFirstPersonImage() {
     parseImage,
     {
       authenticated: true,
+      transformRequest: (data: FirstPersonImageCreateInput) => ({
+        file_name: data.fileName,
+        image_url: data.imageUrl,
+        width: data.width,
+        height: data.height,
+        task_id: data.taskId,
+      }),
     }
   );
 }

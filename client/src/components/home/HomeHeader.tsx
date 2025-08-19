@@ -9,7 +9,14 @@ import {
   Tabs,
 } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
-import { EyeOpenIcon, EyeNoneIcon, CubeIcon, ImageIcon, VideoIcon, CameraIcon } from "@radix-ui/react-icons";
+import {
+  EyeOpenIcon,
+  EyeNoneIcon,
+  CubeIcon,
+  ImageIcon,
+  VideoIcon,
+  CameraIcon,
+} from "@radix-ui/react-icons";
 import { CategorySearchInput } from "@/components/annotation";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 import type { VideoTask } from "@/hooks/useHomePage";
@@ -214,7 +221,9 @@ export function HomeHeader() {
           <Box style={{ position: "relative", display: "inline-block" }}>
             <Tabs.Root
               value={dataType}
-              onValueChange={value => setDataType(value as "first-person" | "object-detection" | "action-video")}
+              onValueChange={value =>
+                setDataType(value as "first-person" | "object-detection" | "action-video")
+              }
             >
               <Tabs.List
                 size="2"
@@ -294,7 +303,7 @@ export function HomeHeader() {
                   />
                   <span>First Person Image</span>
                 </Tabs.Trigger>
-                
+
                 <Tabs.Trigger
                   value="object-detection"
                   style={{

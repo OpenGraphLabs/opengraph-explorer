@@ -15,7 +15,7 @@ import { FirstPersonImageGallery } from "@/components/home/FirstPersonImageGalle
 
 function HomeContent() {
   const { theme } = useTheme();
-  const { 
+  const {
     error,
     annotationsWithImages,
     selectedAnnotation,
@@ -201,4 +201,3 @@ export function Home() {
     </HomePageContextProvider>
   );
 }
-

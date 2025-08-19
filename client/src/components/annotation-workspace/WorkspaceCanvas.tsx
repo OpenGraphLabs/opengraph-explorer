@@ -8,12 +8,8 @@ import type { Annotation as NewAnnotation } from "@/shared/api/endpoints/annotat
 
 export function WorkspaceCanvas() {
   const { theme } = useTheme();
-  const { 
-    selectedImage, 
-    annotations, 
-    currentSelectedMasks, 
-    handleMaskSelectionChange 
-  } = useAnnotationWorkspacePageContext();
+  const { selectedImage, annotations, currentSelectedMasks, handleMaskSelectionChange } =
+    useAnnotationWorkspacePageContext();
 
   const handleBboxComplete = (bbox: any) => {
     console.log("Bbox complete:", bbox);

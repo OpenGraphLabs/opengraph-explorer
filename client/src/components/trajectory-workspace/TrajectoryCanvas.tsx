@@ -54,19 +54,25 @@ export function TrajectoryCanvas() {
     handleToggleDrawingMode();
   }, [handleToggleDrawingMode]);
 
-  const handleEndDrawing = useCallback((path: Point[]) => {
-    setTrajectoryPath(path);
-    handleToggleDrawingMode();
-  }, [handleToggleDrawingMode]);
+  const handleEndDrawing = useCallback(
+    (path: Point[]) => {
+      setTrajectoryPath(path);
+      handleToggleDrawingMode();
+    },
+    [handleToggleDrawingMode]
+  );
 
-  const handleTrajectoryPointAdd = useCallback((point: any) => {
-    if (point.type === "start") {
-      setStartPoint(point);
-    } else if (point.type === "end") {
-      setEndPoint(point);
-    }
-    handleAddTrajectoryPoint(point);
-  }, [handleAddTrajectoryPoint]);
+  const handleTrajectoryPointAdd = useCallback(
+    (point: any) => {
+      if (point.type === "start") {
+        setStartPoint(point);
+      } else if (point.type === "end") {
+        setEndPoint(point);
+      }
+      handleAddTrajectoryPoint(point);
+    },
+    [handleAddTrajectoryPoint]
+  );
 
   const handleRobotHandMove = useCallback((position: Point) => {
     setRobotHandPosition(position);

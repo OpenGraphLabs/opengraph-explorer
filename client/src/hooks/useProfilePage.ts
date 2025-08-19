@@ -56,20 +56,26 @@ export function useProfilePage(options: UseProfilePageOptions = {}) {
 
   // Computed values and utility functions
   const userAddress = userProfile?.suiAddress || currentWallet?.accounts[0]?.address || "";
-  
-  const formatAddress = useMemo(() => (address: string) => {
-    return `${address.slice(0, 8)}...${address.slice(-6)}`;
-  }, []);
+
+  const formatAddress = useMemo(
+    () => (address: string) => {
+      return `${address.slice(0, 8)}...${address.slice(-6)}`;
+    },
+    []
+  );
 
   const displayName = userProfile?.displayName || userProfile?.email || formatAddress(userAddress);
 
-  const formatDate = useMemo(() => (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }, []);
+  const formatDate = useMemo(
+    () => (dateString: string) => {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    },
+    []
+  );
 
   return {
     // Authentication state
