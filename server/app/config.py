@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     ]
     
     # Google Cloud Storage
+    google_application_credentials: Optional[str] = None
     google_cloud_project: Optional[str] = None
     gcs_bucket_name: str = "noyes_test"
     

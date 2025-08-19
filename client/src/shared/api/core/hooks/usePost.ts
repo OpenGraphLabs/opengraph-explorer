@@ -35,13 +35,13 @@ export function usePost<TBody, TRawResponse, TParsedResponse>(
 
     try {
       const requestBody = transformRequest ? transformRequest(body) : body;
-      const response = await postData<{}, typeof requestBody, { success?: boolean; data: TRawResponse }>({
+      const response = await postData<{}, typeof requestBody, TRawResponse>({
         url,
         body: requestBody,
         authenticated,
       });
 
-      const parsedResponse = parseResponse(response.data);
+      const parsedResponse = parseResponse(response);
       return parsedResponse;
     } catch (err: any) {
       console.error("Failed to post request:", err);
@@ -103,14 +103,14 @@ export function usePut<TBody, TRawResponse, TParsedResponse>(
 
     try {
       const requestBody = transformRequest ? transformRequest(body) : body;
-      const response = await postData<{}, typeof requestBody, { success?: boolean; data: TRawResponse }>({
+      const response = await postData<{}, typeof requestBody, TRawResponse>({
         url,
         method: "put",
         body: requestBody,
         authenticated,
       });
 
-      const parsedResponse = parseResponse(response.data);
+      const parsedResponse = parseResponse(response);
       return parsedResponse;
     } catch (err: any) {
       console.error("Failed to put request:", err);
@@ -168,13 +168,13 @@ export function useDelete<TRawResponse, TParsedResponse>(
     setError(null);
 
     try {
-      const response = await postData<{}, undefined, { success?: boolean; data: TRawResponse }>({
+      const response = await postData<{}, undefined, TRawResponse>({
         url,
         method: "delete",
         authenticated,
       });
 
-      const parsedResponse = parseResponse(response.data);
+      const parsedResponse = parseResponse(response);
       onSuccess?.(parsedResponse);
     } catch (err: any) {
       console.error("Failed to delete request:", err);
