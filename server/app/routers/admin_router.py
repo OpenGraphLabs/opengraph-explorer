@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.admin import verify_admin
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.image import ImageRead, ImageListResponse, ImageStatus
 from ..services import ImageService
 
@@ -34,7 +34,7 @@ async def get_pending_images(
     """
     image_service = ImageService(db)
     return await image_service.get_images_with_filters(
-        pagination=Pagination(page=page, limit=limit),
+        pagination=PaginationInput(page=page, limit=limit),
         search=search,
         sort_by=sort_by,
         status=ImageStatus.PENDING

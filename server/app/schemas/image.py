@@ -24,7 +24,7 @@ class ImageBase(BaseModel):
     width: int = Field(..., description="Image width in pixels")
     height: int = Field(..., description="Image height in pixels")
     dataset_id: Optional[int] = Field(None, description="Dataset ID (optional for first-person images)")
-    task_id: Optional[str] = Field(None, description="Task ID for first-person images")
+    task_id: Optional[int] = Field(None, description="Task ID for first-person images")
     status: ImageStatus = Field(ImageStatus.PENDING, description="Image approval status")
 
 
@@ -40,7 +40,7 @@ class ImageUpdate(BaseModel):
     width: Optional[int] = Field(None, description="Image width in pixels")
     height: Optional[int] = Field(None, description="Image height in pixels")
     status: Optional[ImageStatus] = Field(None, description="Image approval status")
-    task_id: Optional[str] = Field(None, description="Task ID for first-person images")
+    task_id: Optional[int] = Field(None, description="Task ID for first-person images")
 
 
 class ImageRead(ImageBase):
@@ -71,4 +71,4 @@ class FirstPersonImageCreate(BaseModel):
     image_url: str = Field(..., description="Image URL or base64 data")
     width: int = Field(..., description="Image width in pixels")
     height: int = Field(..., description="Image height in pixels")
-    task_id: str = Field(..., description="Task ID for first-person images")
+    task_id: int = Field(..., description="Task ID for first-person images")

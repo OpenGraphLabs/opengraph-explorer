@@ -7,7 +7,7 @@ import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 export function FirstPersonImageGallery() {
   const { theme } = useTheme();
   const { firstPersonImages, tasks, isLoading } = useHomePageContext();
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [isTaskFilterOpen, setIsTaskFilterOpen] = useState(false);
 
   // Filter images by task if selected
@@ -16,10 +16,10 @@ export function FirstPersonImageGallery() {
     : firstPersonImages;
 
   // Get task name by ID
-  const getTaskName = (taskId: string | undefined) => {
+  const getTaskName = (taskId: number | undefined) => {
     if (!taskId) return "Unknown Task";
     const task = tasks.find(t => t.id === taskId);
-    return task ? task.title : taskId;
+    return task ? task.name : `Task ${taskId}`;
   };
 
   if (isLoading) {
@@ -126,11 +126,6 @@ export function FirstPersonImageGallery() {
             }}
           >
             <Flex align="center" gap="3">
-              {selectedTaskId && (
-                <Text style={{ fontSize: "16px" }}>
-                  {tasks.find(t => t.id === selectedTaskId)?.icon}
-                </Text>
-              )}
               <Text
                 style={{
                   color: theme.colors.text.primary,
@@ -263,7 +258,6 @@ export function FirstPersonImageGallery() {
                       }}
                     >
                       <Flex align="center" gap="3">
-                        <Text style={{ fontSize: "16px", lineHeight: 1 }}>{task.icon}</Text>
                         <Text
                           style={{
                             color: isSelected
@@ -273,7 +267,7 @@ export function FirstPersonImageGallery() {
                             fontWeight: isSelected ? "500" : "400",
                           }}
                         >
-                          {task.title}
+                          {task.name}
                         </Text>
                       </Flex>
                     </Box>

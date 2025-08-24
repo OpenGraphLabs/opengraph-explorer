@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
 from ..schemas.category import CategoryListResponse
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.dictionary_category import DictionaryCategoryCreate, DictionaryCategoryRead, DictionaryCategoryBatchCreate
 from ..services import DictionaryCategoryService
 
@@ -46,7 +46,7 @@ async def get_dictionary_categories(
     dictionary_category_service = DictionaryCategoryService(db)
     return await dictionary_category_service.get_categories_by_dictionary_id(
         dictionary_id,
-        pagination=Pagination(page=page, limit=limit),
+        pagination=PaginationInput(page=page, limit=limit),
     )
 
 

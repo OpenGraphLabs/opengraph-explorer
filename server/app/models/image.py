@@ -48,8 +48,8 @@ class Image(Base):
         index=True
     )
     
-    task_id: Mapped[Optional[str]] = mapped_column(
-        String,
+    task_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
         ForeignKey("tasks.id", ondelete="SET NULL"),
         nullable=True,  # Nullable for non-first-person images
         index=True

@@ -16,7 +16,7 @@ export interface Image {
   width: number;
   height: number;
   datasetId?: number;
-  taskId?: string;
+  taskId?: number;
   status?: ImageStatus;
   createdAt: string;
 }
@@ -27,7 +27,7 @@ export interface ImageCreateInput {
   width: number;
   height: number;
   datasetId?: number;
-  taskId?: string;
+  taskId?: number;
   status?: ImageStatus;
 }
 
@@ -36,7 +36,7 @@ export interface FirstPersonImageCreateInput {
   imageUrl: string; // Can be base64 data URL
   width: number;
   height: number;
-  taskId: string;
+  taskId: number;
 }
 
 export interface ImageUpdateInput {
@@ -54,7 +54,7 @@ interface ImageResponse {
   width: number;
   height: number;
   dataset_id?: number;
-  task_id?: string;
+  task_id?: number;
   status?: ImageStatus;
   created_at: string;
 }
@@ -96,7 +96,7 @@ export function useImages(
     page?: number;
     limit?: number;
     datasetId?: number;
-    taskId?: string;
+    taskId?: number;
     status?: ImageStatus;
     search?: string;
     sortBy?: string;

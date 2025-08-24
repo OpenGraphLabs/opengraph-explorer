@@ -468,7 +468,7 @@ function TaskCard({
                 } else if (task.id === "segmentation-mask") {
                   navigate(`/datasets/${task.datasetId}/annotate?imageId=1013`);
                 } else if (task.id === "picture-upload") {
-                  navigate(`/datasets/${task.datasetId}/space-selection`);
+                  navigate(`/datasets/${task.datasetId}/task-selection`);
                 } else {
                   navigate(`/datasets/${task.datasetId}/annotate`);
                 }

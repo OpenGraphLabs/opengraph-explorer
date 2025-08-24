@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.annotation import Annotation
 from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationListResponse, AnnotationClientRead
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..utils.segmentation import get_mask_info_for_client
 from ..utils.annotation_validation import validate_category_for_dataset
 from ..utils.mask_processing import process_mask_info_batch, process_single_mask_info
@@ -387,13 +387,13 @@ class AnnotationService:
     
     async def get_approved_user_annotations(
         self,
-        pagination: Pagination,
+        pagination: PaginationInput,
     ) -> AnnotationListResponse:
         """
         List of approved user annotations
         
         Args:
-            pagination: Pagination
+            pagination: PaginationInput
             
         Returns:
             AnnotationListResponse: List of approved annotations with pagination information
@@ -434,7 +434,7 @@ class AnnotationService:
     
     async def get_annotations_with_filters(
         self,
-        pagination: Pagination,
+        pagination: PaginationInput,
         sort_by: Optional[str] = None,
         image_id: Optional[int] = None,
         category_id: Optional[int] = None,
@@ -445,7 +445,7 @@ class AnnotationService:
         Get annotations with various filters
         
         Args:
-            pagination: Pagination
+            pagination: PaginationInput
             sort_by: Sort field (created_at, updated_at, area)
             image_id: Filter by image ID
             category_id: Filter by category ID  

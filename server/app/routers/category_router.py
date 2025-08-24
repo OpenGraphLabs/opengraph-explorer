@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.category import CategoryCreate, CategoryUpdate, CategoryRead, CategoryListResponse
 from ..services import CategoryService
 
@@ -40,7 +40,7 @@ async def get_categories(
     """
     category_service = CategoryService(db)
     return await category_service.get_categories(
-        pagination=Pagination(page=page, limit=limit),
+        pagination=PaginationInput(page=page, limit=limit),
     )
 
 @router.get("/{category_id}", response_model=CategoryRead)
