@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..models.dictionary_category import DictionaryCategory
 from ..models.category import Category
 from ..schemas.category import CategoryListResponse, CategoryRead
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.dictionary_category import DictionaryCategoryCreate, DictionaryCategoryRead, DictionaryCategoryBatchCreate
 
 
@@ -45,14 +45,14 @@ class DictionaryCategoryService:
     async def get_categories_by_dictionary_id(
             self,
             dictionary_id: int,
-            pagination: Pagination,
+            pagination: PaginationInput,
     ) -> CategoryListResponse:
         """
         Get all categories associated with a dictionary.
 
         Args:
             dictionary_id: ID of the dictionary.
-            pagination: Pagination
+            pagination: PaginationInput
 
         Returns:
             List[DictionaryCategoryRead]: List of dictionaries category associations

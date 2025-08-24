@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.category import Category
 from ..schemas.category import CategoryCreate, CategoryUpdate, CategoryRead, CategoryListResponse
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 
 
 class CategoryService:
@@ -42,13 +42,13 @@ class CategoryService:
 
     async def get_categories(
         self,
-        pagination: Pagination,
+        pagination: PaginationInput,
     ) -> CategoryListResponse:
         """
         List all categories with pagination.
 
         Args:
-            pagination: Pagination
+            pagination: PaginationInput
 
         Returns:
             CategoryListResponse: List of categories with pagination info.

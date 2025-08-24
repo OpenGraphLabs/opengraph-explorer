@@ -18,7 +18,7 @@ from ..schemas.dataset import (
     DatasetFilter,
     DatasetListResponse
 )
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 
 
 class DatasetService:
@@ -142,7 +142,7 @@ class DatasetService:
     
     async def get_datasets_list(
         self,
-        pagination: Pagination,
+        pagination: PaginationInput,
         filter_params: Optional[DatasetFilter] = None,
         created_by: Optional[int] = None
     ) -> DatasetListResponse:
@@ -150,7 +150,7 @@ class DatasetService:
         List datasets with pagination and optional filters.
         
         Args:
-            pagination: Pagination parameters
+            pagination: PaginationInput parameters
             filter_params: Optional filter parameters
             created_by: Optional creator filter
             

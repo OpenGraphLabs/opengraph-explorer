@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
 from ..schemas.annotation import AnnotationCreate, AnnotationUpdate, AnnotationRead, AnnotationUserCreate, AnnotationListResponse, AnnotationClientRead
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.user_annotation_selection import (
     UserAnnotationSelectionCreate,
     UserAnnotationSelectionBatchCreate,
@@ -46,7 +46,7 @@ async def get_annotations(
     """
     annotation_service = AnnotationService(db)
     return await annotation_service.get_annotations_with_filters(
-        pagination=Pagination(page=page, limit=limit),
+        pagination=PaginationInput(page=page, limit=limit),
         sort_by=sort_by,
         image_id=image_id,
         category_id=category_id,
@@ -86,7 +86,7 @@ async def get_approved_annotations(
     """
     annotation_service = AnnotationService(db)
     return await annotation_service.get_approved_user_annotations(
-        pagination=Pagination(page=page, limit=limit)
+        pagination=PaginationInput(page=page, limit=limit)
     )
 
 

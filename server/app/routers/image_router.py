@@ -12,7 +12,7 @@ import io
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.image import ImageCreate, ImageUpdate, ImageRead, ImageListResponse, FirstPersonImageCreate, ImageStatus
 from ..services import ImageService, DatasetService
 
@@ -86,7 +86,7 @@ async def get_images(
     search: Optional[str] = Query(None, description="Search in file names"),
     sort_by: Optional[str] = Query(None, description="Sort by field (created_at, file_name, width, height)"),
     dataset_id: Optional[int] = Query(None, description="Filter by dataset ID"),
-    task_id: Optional[str] = Query(None, description="Filter by task ID"),
+    task_id: Optional[int] = Query(None, description="Filter by task ID"),
     status: Optional[ImageStatus] = Query(None, description="Filter by image status"),
     db: AsyncSession = Depends(get_db)
 ):
@@ -95,7 +95,7 @@ async def get_images(
     """
     image_service = ImageService(db)
     return await image_service.get_images_with_filters(
-        pagination=Pagination(page=page, limit=limit),
+        pagination=PaginationInput(page=page, limit=limit),
         search=search,
         sort_by=sort_by,
         dataset_id=dataset_id,

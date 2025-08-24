@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies.database import get_db
 from ..dependencies.auth import get_current_active_user
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.dataset import (
     DatasetCreate,
     DatasetUpdate,
@@ -74,7 +74,7 @@ async def get_datasets(
     if sort_by == "oldest":
         order = "asc"
     
-    pagination = Pagination(
+    pagination = PaginationInput(
         page=page, 
         limit=limit,
         order_by=order_by,

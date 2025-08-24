@@ -5,8 +5,8 @@ SQLAlchemy model for first-person capture tasks
 """
 
 from datetime import datetime
-from typing import Optional, List
-from sqlalchemy import Column, BigInteger, String, DateTime, func, Text
+from typing import List
+from sqlalchemy import BigInteger, String, DateTime, func
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from ..database import Base
@@ -18,15 +18,8 @@ class Task(Base):
     __tablename__ = "tasks"
     
     # Basic fields
-    id: Mapped[str] = mapped_column(String, primary_key=True)  # Using string ID to match frontend
-    title: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    space: Mapped[str] = mapped_column(String, nullable=False)  # kitchen, living-room, closet, dining-room, etc.
-    icon: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    
-    # JSON fields stored as string (can be parsed on retrieval)
-    target_objects: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array of strings
-    required_count: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
     
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
@@ -43,7 +36,7 @@ class Task(Base):
     )
     
     def __repr__(self) -> str:
-        return f"<Task(id={self.id}, title={self.title}, space={self.space})>"
+        return f"<Task(id={self.id}, name={self.name})>"
     
     def __str__(self) -> str:
-        return f"Task({self.id}: {self.title})"
+        return f"Task({self.id}: {self.name})"

@@ -1,243 +1,126 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Text, Heading, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Knife,
-  Television,
-  TShirt,
-  ForkKnife,
   ArrowRight,
-  House,
-  Robot,
-  Sparkle,
+  MagnifyingGlass,
+  Target,
+  CheckCircle,
+  Eye,
+  Activity,
+  CircleNotch,
 } from "phosphor-react";
+import { useTasks, Task } from "@/shared/api/endpoints/tasks";
 
-interface SpaceType {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactElement;
-  gradient: string;
-  tasks: string[];
-  difficulty: "Beginner" | "Intermediate";
-}
-
-const SPACE_TYPES: SpaceType[] = [
-  {
-    id: "kitchen",
-    name: "Kitchen",
-    description: "Capture cooking areas, appliances, and food preparation spaces",
-    icon: <Knife size={32} weight="duotone" />,
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    tasks: ["Countertop organization", "Appliance placement", "Cabinet contents"],
-    difficulty: "Beginner",
-  },
-  {
-    id: "living-room",
-    name: "Living Room",
-    description: "Document furniture arrangements, entertainment systems, and common areas",
-    icon: <Television size={32} weight="duotone" />,
-    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-    tasks: ["Furniture layout", "Entertainment setup", "Decorative elements"],
-    difficulty: "Beginner",
-  },
-  {
-    id: "closet",
-    name: "Closet",
-    description: "Record clothing organization, storage solutions, and wardrobe items",
-    icon: <TShirt size={32} weight="duotone" />,
-    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-    tasks: ["Clothing arrangement", "Storage systems", "Accessory organization"],
-    difficulty: "Intermediate",
-  },
-  {
-    id: "dining-room",
-    name: "Dining Room",
-    description: "Capture dining setups, table arrangements, and eating areas",
-    icon: <ForkKnife size={32} weight="duotone" />,
-    gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-    tasks: ["Table settings", "Chair arrangements", "Storage furniture"],
-    difficulty: "Beginner",
-  },
-];
-
-function SpaceCard({ space, index }: { space: SpaceType; index: number }) {
+function TaskCard({ task, onSelect }: { 
+  task: Task; 
+  onSelect: (task: Task) => void;
+}) {
   const { theme } = useTheme();
-  const navigate = useNavigate();
-  const { id: datasetId } = useParams();
-  const [isHovered, setIsHovered] = React.useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
-  const handleSelectSpace = () => {
-    navigate(`/datasets/${datasetId}/first-person-capture?space=${space.id}`);
+  const getTaskIcon = (taskName: string): React.ReactElement => {
+    const lowerName = taskName.toLowerCase();
+    if (lowerName.includes("open") || lowerName.includes("close")) {
+      return <Target size={18} weight="duotone" />;
+    }
+    if (lowerName.includes("check") || lowerName.includes("look") || lowerName.includes("see")) {
+      return <Eye size={18} weight="duotone" />;
+    }
+    if (lowerName.includes("count") || lowerName.includes("measure")) {
+      return <Activity size={18} weight="duotone" />;
+    }
+    return <CheckCircle size={18} weight="duotone" />;
   };
+
+  const taskIcon = getTaskIcon(task.name);
 
   return (
     <Box
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={handleSelectSpace}
+      onClick={() => onSelect(task)}
       style={{
-        position: "relative",
-        padding: theme.spacing.semantic.component.lg,
-        borderRadius: theme.borders.radius.lg,
+        padding: "20px",
+        borderRadius: "12px",
         backgroundColor: theme.colors.background.card,
-        border: `1px solid ${theme.colors.border.primary}`,
+        border: `1px solid ${isHovered ? theme.colors.interactive.primary + "40" : theme.colors.border.primary}`,
         cursor: "pointer",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        transform: isHovered ? "translateY(-4px)" : "translateY(0)",
+        transition: "all 0.2s ease",
+        transform: isHovered ? "translateY(-2px)" : "translateY(0)",
         boxShadow: isHovered
-          ? `0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px ${theme.colors.interactive.primary}30`
-          : theme.shadows.semantic.card.medium,
-        overflow: "hidden",
-        animation: `fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.1}s both`,
+          ? `0 8px 25px rgba(0, 0, 0, 0.1), 0 0 0 1px ${theme.colors.interactive.primary}15`
+          : `0 2px 4px rgba(0, 0, 0, 0.06)`,
       }}
     >
-      {/* Gradient Background Overlay */}
-      <Box
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "120px",
-          background: space.gradient,
-          opacity: 0.1,
-          transition: "opacity 0.3s ease",
-        }}
-      />
-
-      {/* Icon Container */}
-      <Flex
-        align="center"
-        justify="center"
-        style={{
-          width: "64px",
-          height: "64px",
-          borderRadius: theme.borders.radius.lg,
-          background: space.gradient,
-          marginBottom: theme.spacing.semantic.component.md,
-          position: "relative",
-          boxShadow: `0 8px 16px rgba(0, 0, 0, 0.1)`,
-          transform: isHovered ? "scale(1.05)" : "scale(1)",
-          transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
-      >
-        <Box style={{ color: "white" }}>{space.icon}</Box>
-      </Flex>
-
-      {/* Content */}
       <Flex direction="column" gap="3">
-        <Box>
-          <Flex align="center" justify="between" style={{ marginBottom: "8px" }}>
-            <Heading
-              size="4"
-              style={{
-                color: theme.colors.text.primary,
-                fontWeight: 700,
-              }}
-            >
-              {space.name}
-            </Heading>
+        {/* Header */}
+        <Flex align="center" justify="between">
+          <Flex align="center" gap="3">
             <Box
               style={{
-                padding: "4px 8px",
-                borderRadius: theme.borders.radius.sm,
-                backgroundColor:
-                  space.difficulty === "Beginner"
-                    ? `${theme.colors.status.success}15`
-                    : `${theme.colors.status.warning}15`,
-                color:
-                  space.difficulty === "Beginner"
-                    ? theme.colors.status.success
-                    : theme.colors.status.warning,
-                border: `1px solid ${
-                  space.difficulty === "Beginner"
-                    ? theme.colors.status.success + "30"
-                    : theme.colors.status.warning + "30"
-                }`,
-                fontSize: "11px",
-                fontWeight: 600,
+                width: "40px",
+                height: "40px",
+                borderRadius: "8px",
+                background: `${theme.colors.interactive.primary}12`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: theme.colors.interactive.primary,
               }}
             >
-              {space.difficulty}
+              {taskIcon}
             </Box>
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.tertiary,
+                fontSize: "11px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              #{task.id.toString().padStart(3, '0')}
+            </Text>
           </Flex>
-          <Text
-            size="2"
+          
+          <Flex
+            align="center"
+            gap="2"
             style={{
-              color: theme.colors.text.secondary,
-              lineHeight: 1.5,
+              color: theme.colors.interactive.primary,
+              opacity: isHovered ? 1 : 0.6,
+              transition: "opacity 0.2s ease",
             }}
           >
-            {space.description}
-          </Text>
-        </Box>
+            <Text
+              size="2"
+              style={{
+                fontWeight: 500,
+                fontSize: "12px",
+              }}
+            >
+              Start
+            </Text>
+            <ArrowRight size={14} weight="bold" />
+          </Flex>
+        </Flex>
 
-        {/* Task Examples */}
+        {/* Task Name */}
         <Box>
           <Text
-            size="1"
             style={{
-              color: theme.colors.text.tertiary,
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              marginBottom: "8px",
-              fontSize: "11px",
+              color: theme.colors.text.primary,
+              fontSize: "15px",
+              lineHeight: 1.4,
+              fontWeight: 500,
             }}
           >
-            Example Tasks
+            {task.name}
           </Text>
-          <Flex direction="column" gap="2">
-            {space.tasks.map((task, idx) => (
-              <Flex key={idx} align="center" gap="2">
-                <Box
-                  style={{
-                    width: "4px",
-                    height: "4px",
-                    borderRadius: "50%",
-                    backgroundColor: theme.colors.interactive.primary,
-                    opacity: 0.6,
-                  }}
-                />
-                <Text
-                  size="1"
-                  style={{
-                    color: theme.colors.text.tertiary,
-                    fontSize: "12px",
-                  }}
-                >
-                  {task}
-                </Text>
-              </Flex>
-            ))}
-          </Flex>
         </Box>
-
-        {/* Hover Action */}
-        <Flex
-          align="center"
-          gap="2"
-          style={{
-            marginTop: theme.spacing.semantic.component.sm,
-            color: theme.colors.interactive.primary,
-            opacity: isHovered ? 1 : 0,
-            transform: isHovered ? "translateX(0)" : "translateX(-4px)",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-        >
-          <Text
-            size="2"
-            style={{
-              fontWeight: 600,
-              fontSize: "13px",
-            }}
-          >
-            Start Capture
-          </Text>
-          <ArrowRight size={16} weight="bold" />
-        </Flex>
       </Flex>
     </Box>
   );
@@ -246,6 +129,39 @@ function SpaceCard({ space, index }: { space: SpaceType; index: number }) {
 export function SpaceSelection() {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { id: datasetId } = useParams();
+  const { data: tasks, isLoading, error } = useTasks({ size: 50 });
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleTaskSelect = (task: Task) => {
+    navigate(`/datasets/${datasetId}/first-person-capture?taskId=${task.id}`);
+  };
+
+  const filteredTasks = React.useMemo(() => {
+    if (!tasks) return [];
+    
+    if (!searchQuery) return tasks;
+    
+    return tasks.filter(task =>
+      task.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [tasks, searchQuery]);
+
+  if (error) {
+    return (
+      <Box style={{ 
+        minHeight: "100vh",
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center",
+        padding: theme.spacing.semantic.layout.lg 
+      }}>
+        <Text style={{ color: theme.colors.status.error, fontSize: "16px" }}>
+          Failed to load tasks. Please try again later.
+        </Text>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -254,169 +170,169 @@ export function SpaceSelection() {
         background: `linear-gradient(to bottom, ${theme.colors.background.secondary}40, ${theme.colors.background.primary})`,
       }}
     >
+      {/* Header */}
       <Box
         style={{
-          maxWidth: "1200px",
+          borderBottom: `1px solid ${theme.colors.border.primary}`,
+          backgroundColor: theme.colors.background.card,
+          padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.md}`,
+        }}
+      >
+        <Box
+          style={{
+            maxWidth: "1800px",
+            margin: "0 auto",
+          }}
+        >
+          <Flex align="center" justify="between">
+            <Box>
+              <Heading
+                size="6"
+                style={{
+                  color: theme.colors.text.primary,
+                  fontWeight: 600,
+                  marginBottom: "4px",
+                }}
+              >
+                Select Task
+              </Heading>
+              <Text
+                size="3"
+                style={{
+                  color: theme.colors.text.secondary,
+                }}
+              >
+                Choose a robotics task to complete through first-person capture
+              </Text>
+            </Box>
+            
+            <Flex align="center" gap="4">
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  fontWeight: 500,
+                }}
+              >
+                {tasks?.length || 0} available tasks
+              </Text>
+            </Flex>
+          </Flex>
+        </Box>
+      </Box>
+
+      {/* Main Content */}
+      <Box
+        style={{
+          maxWidth: "1800px",
           margin: "0 auto",
           padding: `${theme.spacing.semantic.layout.lg} ${theme.spacing.semantic.container.md}`,
         }}
       >
-        {/* Header */}
-        <Box
-          style={{
-            textAlign: "center",
-            marginBottom: theme.spacing.semantic.layout.xl,
-            animation: "fadeIn 0.6s ease",
-          }}
-        >
-          {/* Icon Badge */}
-          <Flex
-            align="center"
-            justify="center"
-            style={{
-              width: "80px",
-              height: "80px",
-              borderRadius: theme.borders.radius.full,
-              background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-              margin: "0 auto",
-              marginBottom: theme.spacing.semantic.component.lg,
-              boxShadow: `0 12px 24px ${theme.colors.interactive.primary}30`,
-            }}
-          >
-            <House size={40} color="white" weight="duotone" />
-          </Flex>
-
-          <Heading
-            size="6"
-            style={{
-              color: theme.colors.text.primary,
-              marginBottom: theme.spacing.semantic.component.sm,
-              fontWeight: 700,
-            }}
-          >
-            Select Capture Space
-          </Heading>
-          <Text
-            as="p"
-            size="3"
-            style={{
-              color: theme.colors.text.secondary,
-              maxWidth: "600px",
-              margin: "0 auto",
-              lineHeight: 1.6,
-            }}
-          >
-            Choose the room or area where you'll capture first-person view images. <br />
-            This helps train robots to understand different home environments.
-          </Text>
-
-          {/* Info Badge */}
-          <Flex
-            align="center"
-            justify="center"
-            gap="2"
-            style={{
-              marginTop: theme.spacing.semantic.component.md,
-              padding: "8px 16px",
-              borderRadius: theme.borders.radius.full,
-              backgroundColor: `${theme.colors.interactive.primary}10`,
-              border: `1px solid ${theme.colors.interactive.primary}20`,
-              display: "inline-flex",
-            }}
-          >
-            <Robot size={16} color={theme.colors.interactive.primary} weight="duotone" />
-            <Text
-              size="2"
+        {/* Search Bar */}
+        <Box style={{ marginBottom: "32px" }}>
+          <Box style={{ position: "relative", maxWidth: "500px" }}>
+            <Box
               style={{
-                color: theme.colors.interactive.primary,
-                fontWeight: 600,
-                fontSize: "12px",
+                position: "absolute",
+                left: "16px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: theme.colors.text.tertiary,
+                zIndex: 1,
               }}
             >
-              Training Data for Home Robotics AI
-            </Text>
+              <MagnifyingGlass size={18} weight="duotone" />
+            </Box>
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px 16px 12px 44px",
+                fontSize: "14px",
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border.secondary}`,
+                backgroundColor: theme.colors.background.card,
+                transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+                outline: "none",
+                color: theme.colors.text.primary,
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = theme.colors.interactive.primary;
+                e.target.style.boxShadow = `0 0 0 3px ${theme.colors.interactive.primary}15`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = theme.colors.border.secondary;
+                e.target.style.boxShadow = "none";
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Task Grid */}
+        {isLoading ? (
+          <Flex align="center" justify="center" style={{ minHeight: "400px" }}>
+            <Flex align="center" gap="3">
+              <CircleNotch size={20} color={theme.colors.interactive.primary} className="animate-spin" />
+              <Text style={{ color: theme.colors.text.secondary }}>Loading tasks...</Text>
+            </Flex>
           </Flex>
-        </Box>
-
-        {/* Space Grid */}
-        <Box
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: theme.spacing.semantic.layout.md,
-            marginBottom: theme.spacing.semantic.layout.lg,
-          }}
-        >
-          {SPACE_TYPES.map((space, index) => (
-            <SpaceCard key={space.id} space={space} index={index} />
-          ))}
-        </Box>
-
-        {/* Footer Tip */}
-        <Box
-          style={{
-            textAlign: "center",
-            padding: theme.spacing.semantic.component.lg,
-            borderRadius: theme.borders.radius.lg,
-            backgroundColor: `${theme.colors.background.secondary}50`,
-            border: `1px solid ${theme.colors.border.secondary}`,
-            animation: "fadeIn 0.8s ease 0.4s both",
-          }}
-        >
-          <Flex align="center" justify="center" gap="2" style={{ marginBottom: "8px" }}>
-            <Sparkle size={16} color={theme.colors.text.tertiary} weight="fill" />
+        ) : filteredTasks.length > 0 ? (
+          <Box
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+              gap: "20px",
+            }}
+          >
+            {filteredTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onSelect={handleTaskSelect}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Box
+            style={{
+              textAlign: "center",
+              padding: "60px 20px",
+              borderRadius: "12px",
+              border: `1px dashed ${theme.colors.border.secondary}`,
+              backgroundColor: `${theme.colors.background.secondary}30`,
+            }}
+          >
+            <MagnifyingGlass 
+              size={32} 
+              color={theme.colors.text.tertiary} 
+              weight="duotone" 
+              style={{ marginBottom: "12px" }}
+            />
+            <Text
+              size="3"
+              style={{
+                color: theme.colors.text.secondary,
+                marginBottom: "4px",
+                fontWeight: 500,
+              }}
+            >
+              No tasks found
+            </Text>
             <Text
               size="2"
               style={{
                 color: theme.colors.text.tertiary,
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontSize: "11px",
               }}
             >
-              Pro Tip
+              Try a different search term
             </Text>
-          </Flex>
-          <Text
-            size="2"
-            style={{
-              color: theme.colors.text.secondary,
-              maxWidth: "500px",
-              margin: "0 auto",
-              lineHeight: 1.5,
-            }}
-          >
-            Start with familiar spaces where you spend the most time. Clear, well-lit images from
-            various angles provide the best training data.
-          </Text>
-        </Box>
+          </Box>
+        )}
       </Box>
-
-      {/* Animations */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-            }
-            to {
-              opacity: 1;
-            }
-          }
-          
-          @keyframes fadeInUp {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-        `}
-      </style>
     </Box>
   );
 }

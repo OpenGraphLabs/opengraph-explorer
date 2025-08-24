@@ -6,7 +6,7 @@ import { ObjectDetectionOverlay } from "@/components/robot-vision/ObjectDetectio
 import { RobotVisionHUD } from "@/components/robot-vision/RobotVisionHUD";
 import { MobileCameraUI } from "@/components/robot-vision/MobileCameraUI";
 import { useMobileCamera } from "@/shared/hooks/useMobileCamera";
-import { CAPTURE_TASKS, SPACE_TASKS, CaptureTask } from "@/components/robot-vision/types";
+import { Task, useTask } from "@/shared/api/endpoints/tasks";
 import { useCreateFirstPersonImage } from "@/shared/api/endpoints/images";
 import { toast } from "@/shared/ui/toast";
 
@@ -24,7 +24,7 @@ export function FirstPersonCapture() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [videoDimensions, setVideoDimensions] = useState({ width: 640, height: 480 });
-  const [currentTask, setCurrentTask] = useState<CaptureTask | null>(null);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [detectionEnabled, setDetectionEnabled] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -66,42 +66,28 @@ export function FirstPersonCapture() {
     maxDetections: 10,
   });
 
-  // Load tasks based on selected space
-  const [availableTasks, setAvailableTasks] = useState<CaptureTask[]>([]);
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  // Load specific task from URL parameter
+  const taskIdParam = searchParams.get("taskId");
+  const taskId = taskIdParam ? parseInt(taskIdParam, 10) : null;
+  
+  const { data: taskData, isLoading: isTaskLoading, error: taskError } = useTask(
+    taskId || 0,
+    { enabled: !!taskId }
+  );
 
   useEffect(() => {
-    const space = searchParams.get("space");
-    const taskId = searchParams.get("task");
-
-    // Get tasks for the selected space
-    let tasks: CaptureTask[] = [];
-    if (space && SPACE_TASKS[space]) {
-      tasks = SPACE_TASKS[space];
-    } else {
-      // Fallback to default tasks
-      tasks = CAPTURE_TASKS;
+    if (taskData) {
+      setCurrentTask(taskData);
+      setIsLoading(false);
+    } else if (taskError) {
+      setError("Failed to load task");
+      setIsLoading(false);
+    } else if (!taskId) {
+      setError("No task ID provided");
+      setIsLoading(false);
     }
+  }, [taskData, taskError, taskId]);
 
-    setAvailableTasks(tasks);
-
-    // Find specific task if provided, otherwise use the first task
-    if (taskId) {
-      const taskIndex = tasks.findIndex(t => t.id === taskId);
-      setCurrentTaskIndex(taskIndex >= 0 ? taskIndex : 0);
-    } else {
-      setCurrentTaskIndex(0);
-    }
-
-    setCurrentTask(tasks[0] || null);
-  }, [searchParams]);
-
-  // Update current task when index changes
-  useEffect(() => {
-    if (availableTasks.length > 0) {
-      setCurrentTask(availableTasks[currentTaskIndex]);
-    }
-  }, [currentTaskIndex, availableTasks]);
 
   // Core camera start function
   const startCamera = useCallback(async () => {
@@ -275,10 +261,8 @@ export function FirstPersonCapture() {
     if (!capturedImage || !currentTask) return;
 
     const detectedClasses = detections.map(d => d.class);
-    const taskMet = currentTask.targetObjects?.some(target => detectedClasses.includes(target));
 
-    console.log("Submitting photo for task:", currentTask.title);
-    console.log("Task requirements met:", taskMet);
+    console.log("Submitting photo for task:", currentTask.name);
     console.log("Detected objects:", detectedClasses);
 
     if (isMobile) {
@@ -518,7 +502,7 @@ export function FirstPersonCapture() {
               objectCount={detections.length}
               isDetecting={isStreaming && detectionEnabled}
               isLoading={isModelLoading}
-              currentTask={currentTask?.title}
+              currentTask={currentTask?.name}
             />
           )}
 
@@ -558,29 +542,9 @@ export function FirstPersonCapture() {
                 });
               }}
               onFlipCamera={handleFlipCamera}
-              currentTask={currentTask?.title}
+              currentTask={currentTask?.name}
               detectionCount={detections.length}
               fps={fps}
-              onNextTask={() => {
-                if (currentTaskIndex < availableTasks.length - 1) {
-                  setCurrentTaskIndex(prev => prev + 1);
-                  // Vibrate on task change
-                  if (isMobile) {
-                    vibrate([30]);
-                  }
-                }
-              }}
-              onPrevTask={() => {
-                if (currentTaskIndex > 0) {
-                  setCurrentTaskIndex(prev => prev - 1);
-                  // Vibrate on task change
-                  if (isMobile) {
-                    vibrate([30]);
-                  }
-                }
-              }}
-              currentTaskIndex={currentTaskIndex}
-              totalTasks={availableTasks.length}
             />
           </div>
         </>
@@ -593,7 +557,7 @@ export function FirstPersonCapture() {
               objectCount={detections.length}
               isDetecting={isStreaming && detectionEnabled}
               isLoading={isModelLoading}
-              currentTask={currentTask?.title}
+              currentTask={currentTask?.name}
             />
           )}
 
@@ -674,8 +638,7 @@ export function FirstPersonCapture() {
                       gap: "10px",
                     }}
                   >
-                    <span style={{ fontSize: "18px" }}>{currentTask.icon}</span>
-                    <span>{currentTask.title}</span>
+                    <span>{currentTask.name}</span>
                   </div>
                 </div>
               )}

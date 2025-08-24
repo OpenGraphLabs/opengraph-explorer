@@ -9,7 +9,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.image import Image, ImageStatus
-from ..schemas.common import Pagination
+from ..schemas.common import PaginationInput
 from ..schemas.image import ImageCreate, ImageUpdate, ImageRead, ImageListResponse, FirstPersonImageCreate
 from ..utils.gcs_client import GCSClient
 
@@ -145,13 +145,13 @@ class ImageService:
 
     async def get_images_list(
         self,
-        pagination: Pagination,
+        pagination: PaginationInput,
     ) -> ImageListResponse:
         """
         Get all images list.
 
         Args:
-            pagination: Pagination
+            pagination: PaginationInput
 
         Returns:
             ImageListResponse: List of images with pagination information
@@ -183,18 +183,18 @@ class ImageService:
     
     async def get_images_with_filters(
         self,
-        pagination: Pagination,
+        pagination: PaginationInput,
         search: Optional[str] = None,
         sort_by: Optional[str] = None,
         dataset_id: Optional[int] = None,
-        task_id: Optional[str] = None,
+        task_id: Optional[int] = None,
         status: Optional[ImageStatus] = None
     ) -> ImageListResponse:
         """
         Get images with various filters
         
         Args:
-            pagination: Pagination
+            pagination: PaginationInput
             search: Search text (searches in file_name)
             sort_by: Sort field (created_at, file_name, width, height)
             dataset_id: Filter by dataset ID
