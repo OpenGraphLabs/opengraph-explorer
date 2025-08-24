@@ -1,15 +1,12 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Camera, X, ArrowLeft, Eye, CameraRotate, CircleNotch } from "phosphor-react";
 import { useObjectDetection } from "@/shared/hooks/useObjectDetection";
-import { ObjectDetectionOverlay } from "@/components/robot-vision/ObjectDetectionOverlay";
-import { RobotVisionHUD } from "@/components/robot-vision/RobotVisionHUD";
-import { MobileCameraUI } from "@/components/robot-vision/MobileCameraUI";
 import { useMobile } from "@/shared/hooks";
 import { useMobileCamera } from "@/shared/hooks/useMobileCamera";
 import { Task, useTask } from "@/shared/api/endpoints/tasks";
 import { useCreateFirstPersonImage } from "@/shared/api/endpoints/images";
 import { toast } from "@/shared/ui/toast";
+import { FirstPersonCaptureDesktop, FirstPersonCaptureMobile } from "@/components/first-person";
 
 export function FirstPersonCapture() {
   const navigate = useNavigate();
@@ -30,30 +27,22 @@ export function FirstPersonCapture() {
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Mobile detection hook (unified pattern)
   const { isMobile } = useMobile();
   
-  // Mobile camera specialized features
   const { orientation, vibrate } = useMobileCamera({
     enabled: true,
   });
 
-  // Handle orientation change separately to avoid infinite renders
+  // Handle orientation change
   useEffect(() => {
     if (isMobile && isStreaming) {
-      // Start transition for UI elements only (not overlay)
       setIsTransitioning(true);
-
-      // End transition after a short delay
       const timer = setTimeout(() => {
         setIsTransitioning(false);
       }, 300);
-
       return () => clearTimeout(timer);
     }
   }, [orientation, isMobile, isStreaming]);
-
-  // Removed touch gestures as per user request
 
   // Object detection hook
   const {
@@ -70,7 +59,7 @@ export function FirstPersonCapture() {
     maxDetections: 10,
   });
 
-  // Load specific task from URL parameter
+  // Load task from URL parameter
   const taskIdParam = searchParams.get("taskId");
   const taskId = taskIdParam ? parseInt(taskIdParam, 10) : null;
   
@@ -92,16 +81,12 @@ export function FirstPersonCapture() {
     }
   }, [taskData, taskError, taskId]);
 
-
-  // Core camera start function
+  // Core camera functions
   const startCamera = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      console.log("Starting robot vision camera...");
-
-      // Request camera permission
       const constraints = {
         video: {
           facingMode: facingMode,
@@ -117,14 +102,12 @@ export function FirstPersonCapture() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
 
-        // Wait for video to be ready
         await new Promise(resolve => {
           if (videoRef.current) {
             videoRef.current.onloadedmetadata = () => {
               if (videoRef.current) {
                 const { videoWidth, videoHeight } = videoRef.current;
                 setVideoDimensions({ width: videoWidth, height: videoHeight });
-                console.log("Video dimensions:", videoWidth, "x", videoHeight);
                 resolve(true);
               }
             };
@@ -133,17 +116,13 @@ export function FirstPersonCapture() {
 
         setIsStreaming(true);
 
-        // Start object detection when ready
         if (isModelReady && videoRef.current) {
           startDetection(videoRef.current);
         }
 
-        // Vibration feedback on mobile
         if (isMobile) {
           vibrate([50, 50, 50]);
         }
-
-        console.log("Robot vision activated");
       }
     } catch (err) {
       console.error("Camera failed:", err);
@@ -163,14 +142,10 @@ export function FirstPersonCapture() {
     }
   }, [facingMode, isMobile, isModelReady, startDetection, vibrate]);
 
-  // Stop camera
   const stopCamera = useCallback(() => {
-    console.log("Deactivating robot vision...");
-
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.stop();
-        console.log("Stopped track:", track.kind);
       });
       streamRef.current = null;
     }
@@ -181,39 +156,22 @@ export function FirstPersonCapture() {
 
     stopDetection();
     setIsStreaming(false);
-    console.log("Robot vision deactivated");
   }, [stopDetection]);
 
-  // Capture photo
   const capturePhoto = useCallback(() => {
-    console.log("capturePhoto called!");
-
-    if (!videoRef.current || !canvasRef.current) {
-      console.error("Video or canvas ref not available", {
-        videoRef: !!videoRef.current,
-        canvasRef: !!canvasRef.current,
-      });
-      return;
-    }
+    if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    if (!context) {
-      console.error("Canvas context not available");
-      return;
-    }
-
-    console.log("Starting photo capture...");
+    if (!context) return;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    // Draw video frame
     context.drawImage(video, 0, 0);
 
-    // Draw detection overlays if enabled
     if (detectionEnabled && detections.length > 0) {
       context.strokeStyle = "#00ff41";
       context.lineWidth = 3;
@@ -221,14 +179,9 @@ export function FirstPersonCapture() {
 
       detections.forEach(detection => {
         const [x, y, width, height] = detection.bbox;
-
-        // Draw bounding box
         context.strokeRect(x, y, width, height);
-
-        // Draw label
         const label = `${detection.class.toUpperCase()} (${Math.round(detection.score * 100)}%)`;
         const textWidth = context.measureText(label).width;
-
         context.fillStyle = "#00ff41";
         context.fillRect(x, y - 30, textWidth + 15, 30);
         context.fillStyle = "#000";
@@ -240,124 +193,82 @@ export function FirstPersonCapture() {
     setCapturedImage(imageDataUrl);
     stopCamera();
 
-    // Vibration feedback
     if (isMobile) {
       vibrate(100);
     }
-
-    console.log(
-      "Photo captured with detections:",
-      detections.map(d => d.class)
-    );
   }, [detections, detectionEnabled, stopCamera, isMobile, vibrate]);
 
-  // Retake photo
   const retakePhoto = useCallback(() => {
     setCapturedImage(null);
     void startCamera();
   }, [startCamera]);
 
-  // API mutation
   const createFirstPersonImage = useCreateFirstPersonImage();
 
-  // Submit photo
   const submitPhoto = useCallback(async () => {
     if (!capturedImage || !currentTask) return;
-
-    const detectedClasses = detections.map(d => d.class);
-
-    console.log("Submitting photo for task:", currentTask.name);
-    console.log("Detected objects:", detectedClasses);
 
     if (isMobile) {
       vibrate([100, 50, 100]);
     }
 
     try {
-      // Get image dimensions from canvas or video
       const width = canvasRef.current?.width || videoDimensions.width;
       const height = canvasRef.current?.height || videoDimensions.height;
 
-      // Submit to backend
-      const result = await createFirstPersonImage.mutateAsync({
+      await createFirstPersonImage.mutateAsync({
         fileName: `first-person-${currentTask.id}-${Date.now()}.jpg`,
-        imageUrl: capturedImage, // base64 data URL
+        imageUrl: capturedImage,
         width,
         height,
         taskId: currentTask.id,
       });
 
-      console.log("Image uploaded successfully:", result);
       toast.success("Image uploaded successfully!");
-
-      // Navigate to home or continue with next task
       navigate("/");
     } catch (error) {
       console.error("Failed to upload image:", error);
       toast.error("Failed to upload image. Please try again.");
     }
-  }, [
-    capturedImage,
-    currentTask,
-    detections,
-    isMobile,
-    vibrate,
-    createFirstPersonImage,
-    videoDimensions,
-    navigate,
-  ]);
+  }, [capturedImage, currentTask, isMobile, vibrate, createFirstPersonImage, videoDimensions, navigate]);
 
-  // Flip camera (mobile only)
   const handleFlipCamera = useCallback(() => {
-    console.log("handleFlipCamera called! Current facingMode:", facingMode);
-    setFacingMode(prev => {
-      const newMode = prev === "user" ? "environment" : "user";
-      console.log("Switching camera from", prev, "to", newMode);
-      return newMode;
-    });
-
+    setFacingMode(prev => prev === "user" ? "environment" : "user");
     if (isStreaming) {
-      console.log("Stopping camera to switch...");
       stopCamera();
       setTimeout(() => {
-        console.log("Restarting camera with new facing mode...");
         void startCamera();
       }, 100);
-    } else {
-      console.log("Camera not streaming, mode changed but camera not restarted");
     }
-  }, [facingMode, isStreaming, stopCamera, startCamera]);
+  }, [isStreaming, stopCamera, startCamera]);
 
-  // Close and navigate back
   const handleClose = useCallback(() => {
     stopCamera();
-
-    // Immediately restore page styles before navigation
     document.documentElement.style.height = "";
     document.documentElement.style.overflow = "";
     document.body.style.height = "";
     document.body.style.overflow = "";
     document.body.style.position = "";
     document.body.style.width = "";
-
-    // Use setTimeout to ensure cleanup happens before navigation
     setTimeout(() => {
       navigate(-1);
     }, 100);
   }, [stopCamera, navigate]);
 
-  // AUTO-START CAMERA ON PAGE LOAD
+  const handleToggleDetection = useCallback(() => {
+    setDetectionEnabled(prev => !prev);
+  }, []);
+
+  // AUTO-START CAMERA
   useEffect(() => {
-    // Small delay to ensure everything is mounted
     const timer = setTimeout(() => {
       void startCamera();
     }, 500);
-
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency to run only once on mount
+  }, []);
 
-  // Start detection when model becomes ready
+  // Start detection when model ready
   useEffect(() => {
     if (isModelReady && isStreaming && videoRef.current) {
       startDetection(videoRef.current);
@@ -366,7 +277,6 @@ export function FirstPersonCapture() {
 
   // Cleanup on unmount
   useEffect(() => {
-    // Apply fullscreen styles when component mounts
     if (isMobile) {
       document.documentElement.style.height = "100%";
       document.documentElement.style.overflow = "hidden";
@@ -377,13 +287,10 @@ export function FirstPersonCapture() {
     }
 
     return () => {
-      // Cleanup on unmount - restore original styles
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
       stopDetection();
-
-      // Restore normal page styles
       document.documentElement.style.height = "";
       document.documentElement.style.overflow = "";
       document.body.style.height = "";
@@ -393,7 +300,26 @@ export function FirstPersonCapture() {
     };
   }, [stopDetection, isMobile]);
 
-  // UNIFIED FULLSCREEN EXPERIENCE FOR BOTH PC AND MOBILE
+  const commonProps = {
+    videoRef,
+    containerRef,
+    isStreaming,
+    capturedImage,
+    isLoading,
+    error,
+    videoDimensions,
+    detectionEnabled,
+    detections,
+    isModelLoading,
+    fps,
+    currentTask,
+    onCapture: capturePhoto,
+    onRetake: retakePhoto,
+    onSubmit: submitPhoto,
+    onClose: handleClose,
+    onToggleDetection: handleToggleDetection,
+  };
+
   return (
     <div
       ref={containerRef}
@@ -412,498 +338,22 @@ export function FirstPersonCapture() {
         zIndex: 9999,
         userSelect: "none",
         WebkitUserSelect: "none",
-        // Mobile web optimization
         WebkitOverflowScrolling: "touch",
-        // Prevent body scroll
         touchAction: isMobile ? "none" : "auto",
       }}
     >
-      {/* Video Element */}
-      <video
-        ref={videoRef}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          maxWidth: "100%",
-          maxHeight: "100%",
-          objectFit: isMobile ? "cover" : "contain",
-          display: isStreaming ? "block" : "none",
-          transition: isTransitioning ? "none" : "all 0.3s ease",
-          opacity: isTransitioning ? 0.8 : 1,
-          // Mobile specific optimizations
-          ...(isMobile && {
-            WebkitTransform: "translateZ(0)",
-            transform: "translateZ(0)",
-            WebkitBackfaceVisibility: "hidden",
-            backfaceVisibility: "hidden",
-          }),
-        }}
-        playsInline
-        autoPlay
-        muted
-      />
-
-      {/* Object Detection Overlay */}
-      {isStreaming && !capturedImage && detectionEnabled && (
-        <div
-          style={{
-            opacity: 1,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            maxWidth: "100%",
-            maxHeight: "100%",
-            zIndex: isMobile ? 25 : 15,
-            pointerEvents: "none",
-            // Mobile specific optimizations
-            ...(isMobile && {
-              WebkitTransform: "translateZ(0)",
-              transform: "translateZ(0)",
-              willChange: "transform",
-            }),
-          }}
-        >
-          <ObjectDetectionOverlay
-            detections={detections}
-            videoWidth={videoDimensions.width}
-            videoHeight={videoDimensions.height}
-            containerWidth={containerRef.current?.clientWidth || window.innerWidth}
-            containerHeight={containerRef.current?.clientHeight || window.innerHeight}
-          />
-        </div>
-      )}
-
-      {/* Captured Image */}
-      {capturedImage && (
-        <img
-          src={capturedImage}
-          alt="Captured"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            maxWidth: "100%",
-            maxHeight: "100%",
-            objectFit: isMobile ? "cover" : "contain",
-          }}
-        />
-      )}
-
-      {/* Mobile UI with Robot HUD - Show on mobile */}
       {isMobile ? (
-        <>
-          {/* Robot HUD for Mobile */}
-          {isStreaming && !capturedImage && (
-            <RobotVisionHUD
-              fps={fps}
-              objectCount={detections.length}
-              isDetecting={isStreaming && detectionEnabled}
-              isLoading={isModelLoading}
-              currentTask={currentTask?.name}
-            />
-          )}
-
-          <div
-            style={{
-              transition: "opacity 0.2s ease",
-              opacity: isTransitioning ? 0.8 : 1,
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 1000,
-              pointerEvents: "auto", // Enable pointer events for button interactions
-              // Mobile specific optimizations
-              WebkitTransform: "translateZ(0)",
-              transform: "translateZ(0)",
-              WebkitBackfaceVisibility: "hidden",
-              backfaceVisibility: "hidden",
-            }}
-          >
-            <MobileCameraUI
-              orientation={orientation}
-              isCapturing={false}
-              isDetecting={detectionEnabled}
-              capturedImage={capturedImage}
-              onCapture={capturePhoto}
-              onRetake={retakePhoto}
-              onSubmit={submitPhoto}
-              onClose={handleClose}
-              onToggleDetection={() => {
-                console.log("onToggleDetection called! Current state:", detectionEnabled);
-                setDetectionEnabled(prev => {
-                  const newState = !prev;
-                  console.log("Detection enabled changing from", prev, "to", newState);
-                  return newState;
-                });
-              }}
-              onFlipCamera={handleFlipCamera}
-              currentTask={currentTask?.name}
-              detectionCount={detections.length}
-              fps={fps}
-            />
-          </div>
-        </>
+        <FirstPersonCaptureMobile
+          {...commonProps}
+          isTransitioning={isTransitioning}
+          orientation={orientation}
+          onFlipCamera={handleFlipCamera}
+        />
       ) : (
-        <>
-          {/* Desktop HUD Overlay */}
-          {isStreaming && !capturedImage && (
-            <RobotVisionHUD
-              fps={fps}
-              objectCount={detections.length}
-              isDetecting={isStreaming && detectionEnabled}
-              isLoading={isModelLoading}
-              currentTask={currentTask?.name}
-            />
-          )}
-
-          {/* Desktop Controls */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              pointerEvents: "none",
-              zIndex: 100,
-            }}
-          >
-            {/* Top Bar with Back Button and Task */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                padding: "20px",
-                background: "linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                pointerEvents: "auto",
-              }}
-            >
-              {/* Back Button */}
-              <button
-                onClick={handleClose}
-                style={{
-                  padding: "10px",
-                  borderRadius: "50%",
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  border: "2px solid rgba(0, 255, 65, 0.3)",
-                  color: "#00ff41",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  backdropFilter: "blur(10px)",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = "rgba(0, 255, 65, 0.2)";
-                  e.currentTarget.style.borderColor = "#00ff41";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-                  e.currentTarget.style.borderColor = "rgba(0, 255, 65, 0.3)";
-                }}
-              >
-                <ArrowLeft size={24} weight="bold" />
-              </button>
-
-              {/* Task Display */}
-              {currentTask && isStreaming && (
-                <div
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "rgba(0, 0, 0, 0.7)",
-                    borderRadius: "25px",
-                    border: "1px solid rgba(0, 255, 65, 0.3)",
-                    backdropFilter: "blur(10px)",
-                  }}
-                >
-                  <div
-                    style={{
-                      color: "#00ff41",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      fontFamily: "monospace",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                    }}
-                  >
-                    <span>{currentTask.name}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Controls */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "40px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                display: "flex",
-                gap: "30px",
-                alignItems: "center",
-                pointerEvents: "auto",
-                zIndex: 200,
-              }}
-            >
-              {isStreaming && !capturedImage ? (
-                <>
-                  {/* Stop Button */}
-                  <button
-                    onClick={stopCamera}
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      borderRadius: "50%",
-                      backgroundColor: "rgba(255, 0, 65, 0.8)",
-                      border: "3px solid #ff0041",
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      boxShadow: "0 0 30px rgba(255, 0, 65, 0.4)",
-                      transition: "transform 0.2s ease",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = "scale(1.1)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
-                  >
-                    <X size={28} weight="bold" />
-                  </button>
-
-                  {/* Capture Button */}
-                  <button
-                    onClick={capturePhoto}
-                    style={{
-                      width: "90px",
-                      height: "90px",
-                      borderRadius: "50%",
-                      border: "5px solid #00ff41",
-                      backgroundColor: "rgba(0, 255, 65, 0.2)",
-                      color: "#00ff41",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      boxShadow: "0 0 40px rgba(0, 255, 65, 0.5)",
-                      transition: "all 0.2s ease",
-                      position: "relative",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = "scale(1.1)";
-                      e.currentTarget.style.backgroundColor = "rgba(0, 255, 65, 0.4)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.backgroundColor = "rgba(0, 255, 65, 0.2)";
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "70px",
-                        height: "70px",
-                        borderRadius: "50%",
-                        backgroundColor: "#00ff41",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Camera size={36} weight="fill" color="#000" />
-                    </div>
-                  </button>
-
-                  {/* AI Toggle Button */}
-                  <button
-                    onClick={() => setDetectionEnabled(!detectionEnabled)}
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      borderRadius: "50%",
-                      backgroundColor: detectionEnabled
-                        ? "rgba(0, 255, 65, 0.2)"
-                        : "rgba(128, 128, 128, 0.3)",
-                      border: `3px solid ${detectionEnabled ? "#00ff41" : "#808080"}`,
-                      color: detectionEnabled ? "#00ff41" : "#808080",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      boxShadow: `0 0 30px ${detectionEnabled ? "rgba(0, 255, 65, 0.3)" : "rgba(128, 128, 128, 0.2)"}`,
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = "scale(1.1)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
-                  >
-                    <Eye size={28} weight="bold" />
-                  </button>
-                </>
-              ) : capturedImage ? (
-                <>
-                  {/* Retake Button */}
-                  <button
-                    onClick={retakePhoto}
-                    style={{
-                      padding: "16px 32px",
-                      borderRadius: "30px",
-                      backgroundColor: "rgba(128, 128, 128, 0.8)",
-                      border: "2px solid #808080",
-                      color: "white",
-                      fontSize: "16px",
-                      fontWeight: 600,
-                      fontFamily: "monospace",
-                      cursor: "pointer",
-                      backdropFilter: "blur(10px)",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = "scale(1.05)";
-                      e.currentTarget.style.backgroundColor = "rgba(128, 128, 128, 0.9)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.backgroundColor = "rgba(128, 128, 128, 0.8)";
-                    }}
-                  >
-                    RETAKE
-                  </button>
-
-                  {/* Submit Button */}
-                  <button
-                    onClick={submitPhoto}
-                    style={{
-                      padding: "16px 40px",
-                      borderRadius: "30px",
-                      background: "linear-gradient(135deg, #00ff41, #00cc33)",
-                      color: "#000",
-                      border: "none",
-                      fontWeight: 700,
-                      fontSize: "16px",
-                      fontFamily: "monospace",
-                      letterSpacing: "0.5px",
-                      cursor: "pointer",
-                      boxShadow: "0 0 30px rgba(0, 255, 65, 0.5)",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = "scale(1.05)";
-                      e.currentTarget.style.boxShadow = "0 0 40px rgba(0, 255, 65, 0.7)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = "0 0 30px rgba(0, 255, 65, 0.5)";
-                    }}
-                  >
-                    SUBMIT CAPTURE
-                  </button>
-                </>
-              ) : null}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Loading/Error States */}
-      {!isStreaming && !capturedImage && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            textAlign: "center",
-            color: "#00ff41",
-            fontFamily: "monospace",
-          }}
-        >
-          {isLoading ? (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <CircleNotch
-                size={48}
-                weight="bold"
-                style={{ animation: "spin 1s linear infinite" }}
-              />
-              <div style={{ fontSize: "18px", letterSpacing: "1px" }}>
-                INITIALIZING ROBOT VISION...
-              </div>
-              {isModelLoading && (
-                <div style={{ fontSize: "14px", opacity: 0.7 }}>Loading AI Model...</div>
-              )}
-            </div>
-          ) : error ? (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <div
-                style={{
-                  padding: "20px 30px",
-                  backgroundColor: "rgba(255, 0, 65, 0.1)",
-                  border: "2px solid #ff0041",
-                  borderRadius: "10px",
-                  maxWidth: "400px",
-                }}
-              >
-                <div style={{ color: "#ff0041", fontSize: "16px", marginBottom: "10px" }}>
-                  ERROR
-                </div>
-                <div style={{ color: "#ff0041", fontSize: "14px", opacity: 0.9 }}>{error}</div>
-              </div>
-              <button
-                onClick={() => window.location.reload()}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "rgba(0, 255, 65, 0.2)",
-                  border: "2px solid #00ff41",
-                  borderRadius: "8px",
-                  color: "#00ff41",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  fontFamily: "monospace",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                RELOAD PAGE
-              </button>
-            </div>
-          ) : null}
-        </div>
+        <FirstPersonCaptureDesktop
+          {...commonProps}
+          onStopCamera={stopCamera}
+        />
       )}
 
       {/* Hidden canvas for photo capture */}
@@ -912,24 +362,9 @@ export function FirstPersonCapture() {
       <style>
         {`
           @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
-
-          @keyframes pulse {
-            0%, 100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.5;
-            }
-          }
-
-          /* Mobile web optimization */
           * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;

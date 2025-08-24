@@ -37,42 +37,6 @@ ROBOT_TASKS = [
     "Check if any lights are turned on in the room",
     "Look for any electronic devices that are charging",
     "Check the floor for any items that need to be picked up",
-    
-    # Bedroom tasks
-    "Check if the bed is made or unmade",
-    "Look at the nightstand and identify all items on it",
-    "Check if the closet door is open or closed",
-    "Look for clothes that might be on the floor or chair",
-    "Check if the curtains or blinds are open",
-    "Look at the dresser and see what's on top of it",
-    "Check if there are any electronics plugged in",
-    "Look under the bed and see if anything is stored there",
-    "Check if any shoes are left around the room",
-    "Look at the mirror and check if it's clean",
-    
-    # Bathroom tasks
-    "Check if the toilet seat is up or down",
-    "Look at the sink and see if it's clean",
-    "Check how many towels are hanging up",
-    "Look in the medicine cabinet and see what's inside",
-    "Check if the shower curtain is open or closed",
-    "Look at the bathroom counter and identify all items",
-    "Check if the trash can needs to be emptied",
-    "Look for any wet towels on the floor",
-    "Check if the toilet paper roll needs replacing",
-    "Look at the bathtub and see if it's clean",
-    
-    # General household tasks
-    "Walk around and check all doors to see if they're locked",
-    "Look at each room and count how many lights are on",
-    "Check all windows to see which ones are open",
-    "Look for any water bottles around the house",
-    "Check the front door area for any packages or mail",
-    "Look around and identify any electronics that are left on",
-    "Check all trash cans and see which ones are full",
-    "Look for any items left on stairs or walkways",
-    "Check the laundry area and see if clothes need washing",
-    "Look around and identify any safety hazards or spills"
 ]
 
 
