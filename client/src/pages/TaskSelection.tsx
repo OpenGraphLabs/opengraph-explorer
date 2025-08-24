@@ -5,10 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
   MagnifyingGlass,
-  Target,
-  CheckCircle,
-  Eye,
-  Activity,
   CircleNotch,
 } from "phosphor-react";
 import { useTasks, Task } from "@/shared/api/endpoints/tasks";
@@ -20,113 +16,70 @@ function TaskCard({ task, onSelect }: {
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
 
-  const getTaskIcon = (taskName: string): React.ReactElement => {
-    const lowerName = taskName.toLowerCase();
-    if (lowerName.includes("open") || lowerName.includes("close")) {
-      return <Target size={18} weight="duotone" />;
-    }
-    if (lowerName.includes("check") || lowerName.includes("look") || lowerName.includes("see")) {
-      return <Eye size={18} weight="duotone" />;
-    }
-    if (lowerName.includes("count") || lowerName.includes("measure")) {
-      return <Activity size={18} weight="duotone" />;
-    }
-    return <CheckCircle size={18} weight="duotone" />;
-  };
-
-  const taskIcon = getTaskIcon(task.name);
-
   return (
     <Box
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onSelect(task)}
       style={{
-        padding: "20px",
-        borderRadius: "12px",
+        padding: "24px",
+        borderRadius: "8px",
         backgroundColor: theme.colors.background.card,
-        border: `1px solid ${isHovered ? theme.colors.interactive.primary + "40" : theme.colors.border.primary}`,
+        border: `1px solid ${isHovered ? theme.colors.interactive.primary + "30" : theme.colors.border.primary}`,
         cursor: "pointer",
-        transition: "all 0.2s ease",
-        transform: isHovered ? "translateY(-2px)" : "translateY(0)",
+        transition: "all 0.15s ease",
         boxShadow: isHovered
-          ? `0 8px 25px rgba(0, 0, 0, 0.1), 0 0 0 1px ${theme.colors.interactive.primary}15`
-          : `0 2px 4px rgba(0, 0, 0, 0.06)`,
+          ? `0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px ${theme.colors.interactive.primary}10`
+          : `0 1px 3px rgba(0, 0, 0, 0.04)`,
       }}
     >
-      <Flex direction="column" gap="3">
+      <Flex direction="column" gap="2">
         {/* Header */}
-        <Flex align="center" justify="between">
-          <Flex align="center" gap="3">
-            <Box
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "8px",
-                background: `${theme.colors.interactive.primary}12`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: theme.colors.interactive.primary,
-              }}
-            >
-              {taskIcon}
-            </Box>
-            <Text
-              size="1"
-              style={{
-                color: theme.colors.text.tertiary,
-                fontSize: "11px",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              #{task.id.toString().padStart(3, '0')}
-            </Text>
-          </Flex>
+        <Flex align="center" justify="between" style={{ marginBottom: "8px" }}>
+          <Text
+            size="1"
+            style={{
+              color: theme.colors.text.tertiary,
+              fontSize: "11px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Task #{task.id.toString().padStart(3, '0')}
+          </Text>
           
           <Flex
             align="center"
-            gap="2"
+            gap="1"
             style={{
               color: theme.colors.interactive.primary,
-              opacity: isHovered ? 1 : 0.6,
-              transition: "opacity 0.2s ease",
+              opacity: isHovered ? 1 : 0.5,
+              transition: "opacity 0.15s ease",
             }}
           >
-            <Text
-              size="2"
-              style={{
-                fontWeight: 500,
-                fontSize: "12px",
-              }}
-            >
-              Start
-            </Text>
-            <ArrowRight size={14} weight="bold" />
+            <ArrowRight size={16} weight="regular" />
           </Flex>
         </Flex>
 
         {/* Task Name */}
-        <Box>
-          <Text
-            style={{
-              color: theme.colors.text.primary,
-              fontSize: "15px",
-              lineHeight: 1.4,
-              fontWeight: 500,
-            }}
-          >
-            {task.name}
-          </Text>
-        </Box>
+        <Text
+          style={{
+            color: theme.colors.text.primary,
+            fontSize: "16px",
+            lineHeight: 1.5,
+            fontWeight: 500,
+            letterSpacing: "-0.005em",
+          }}
+        >
+          {task.name}
+        </Text>
       </Flex>
     </Box>
   );
 }
 
-export function SpaceSelection() {
+export function TaskSelection() {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { id: datasetId } = useParams();

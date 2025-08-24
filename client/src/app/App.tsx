@@ -13,7 +13,7 @@ import { AuthSuccess } from "@/pages/AuthSuccess";
 import { AuthError } from "@/pages/AuthError";
 import { Login } from "@/pages/Login";
 import { Earn } from "@/pages/Earn";
-import { SpaceSelection } from "@/pages/SpaceSelection";
+import { TaskSelection } from "@/pages/TaskSelection.tsx";
 import { FirstPersonCapture } from "@/pages/FirstPersonCapture";
 import { AdminDashboard } from "@/pages/AdminDashboard";
 
@@ -90,10 +90,10 @@ export default function App() {
           }
         />
         <Route
-          path="/datasets/:id/space-selection"
+          path="/datasets/:id/task-selection"
           element={
             <ProtectedRoute>
-              <SpaceSelection />
+              <TaskSelection />
             </ProtectedRoute>
           }
         />
