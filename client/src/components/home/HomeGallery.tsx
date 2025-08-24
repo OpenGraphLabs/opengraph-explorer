@@ -3,6 +3,7 @@ import { Grid, Box } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ImageWithSingleAnnotation } from "@/components/annotation";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
+import { useMobile } from "@/shared/hooks";
 
 export function HomeGallery() {
   const {
@@ -13,6 +14,14 @@ export function HomeGallery() {
     isTransitioning,
   } = useHomePageContext();
   const { theme } = useTheme();
+  const { isMobile, isTablet, breakpoint } = useMobile();
+
+  // Get responsive grid columns based on device
+  const getGridColumns = () => {
+    if (isMobile) return "1";
+    if (isTablet) return "2";
+    return "5"; // Desktop
+  };
 
   if (annotationsWithImages.length === 0) {
     return null;
@@ -20,16 +29,12 @@ export function HomeGallery() {
 
   return (
     <Grid
-      columns={{
-        initial: "1",
-        sm: "2",
-        md: "3",
-        lg: "5",
-        xl: "5",
-      }}
-      gap="5"
+      columns={getGridColumns()}
+      gap={isMobile ? "3" : "5"}
       style={{
-        marginBottom: theme.spacing.semantic.layout.xl,
+        marginBottom: isMobile 
+          ? theme.spacing.semantic.layout.md
+          : theme.spacing.semantic.layout.xl,
         opacity: isTransitioning ? 0.8 : 1,
         transform: isTransitioning ? "scale(0.99)" : "scale(1)",
         transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)",
@@ -44,14 +49,16 @@ export function HomeGallery() {
         return (
           <Box
             key={annotation.id}
-            className="image-card"
+            className={`image-card ${isMobile ? "mobile-touch-card" : ""}`}
             style={{
-              borderRadius: "12px",
+              borderRadius: isMobile ? "8px" : "12px",
               overflow: "hidden",
               background: theme.colors.background.secondary,
               border: `1px solid ${theme.colors.border.subtle}30`,
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-              cursor: "pointer",
+              boxShadow: isMobile 
+                ? "0 1px 4px rgba(0, 0, 0, 0.08)"
+                : "0 2px 8px rgba(0, 0, 0, 0.04)",
+              cursor: isMobile ? "default" : "pointer",
             }}
           >
             <ImageWithSingleAnnotation
