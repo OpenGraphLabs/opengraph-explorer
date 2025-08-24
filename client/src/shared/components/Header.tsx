@@ -122,9 +122,15 @@ export function Header() {
                 padding: theme.spacing.base[1],
                 minHeight: "32px",
                 minWidth: "32px",
+                color: theme.colors.text.primary, // Ensure visibility in both themes
+                border: `1px solid ${theme.colors.border.secondary}`,
               }}
             >
-              <HamburgerMenuIcon width="16" height="16" />
+              <HamburgerMenuIcon 
+                width="16" 
+                height="16" 
+                style={{ color: theme.colors.text.primary }}
+              />
             </Button>
           )}
           {/* Compact Theme Toggle */}
@@ -299,8 +305,6 @@ export function Header() {
           }}
         >
           <Flex direction="column" gap="1">
-            {" "}
-            {/* Reduced gap */}
             <MobileNavLink
               to="/"
               current={location.pathname === "/"}
@@ -310,12 +314,12 @@ export function Header() {
               Home
             </MobileNavLink>
             <MobileNavLink
-              to="/models"
-              current={location.pathname === "/models"}
+              to="/earn"
+              current={location.pathname === "/earn"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/models")}
+              disabled={!isAuthenticated && requiresAuth("/earn")}
             >
-              Models
+              Earn
             </MobileNavLink>
             <MobileNavLink
               to="/datasets"
@@ -323,31 +327,7 @@ export function Header() {
               onClick={() => setIsMobileMenuOpen(false)}
               disabled={!isAuthenticated && requiresAuth("/datasets")}
             >
-              Datasets
-            </MobileNavLink>
-            <MobileNavLink
-              to="/models/upload"
-              current={location.pathname === "/models/upload"}
-              onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/models/upload")}
-            >
-              Upload Model
-            </MobileNavLink>
-            <MobileNavLink
-              to="/annotator"
-              current={location.pathname === "/annotator"}
-              onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/annotator")}
-            >
-              Annotator
-            </MobileNavLink>
-            <MobileNavLink
-              to="/profile"
-              current={location.pathname === "/profile"}
-              onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/profile")}
-            >
-              Profile
+              Dataset
             </MobileNavLink>
           </Flex>
         </Box>

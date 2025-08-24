@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { GoogleLoginButton } from "@/components/auth";
 import { Box, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { Shield, CheckCircle } from "phosphor-react";
 import logoImage from "@/assets/logo/logo.png";
 
 export function Login() {
   const [error, setError] = useState<string>("");
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
 
   return (
     <Box
@@ -17,16 +19,20 @@ export function Login() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: theme.spacing.semantic.layout.lg,
+        padding: isMobile 
+          ? theme.spacing.semantic.layout.sm
+          : theme.spacing.semantic.layout.lg,
       }}
     >
       <Box
         style={{
           width: "100%",
-          maxWidth: "480px",
+          maxWidth: isMobile ? "100%" : "480px",
           display: "flex",
           flexDirection: "column",
-          gap: theme.spacing.semantic.component.lg,
+          gap: isMobile 
+            ? theme.spacing.semantic.component.md
+            : theme.spacing.semantic.component.lg,
         }}
       >
         {/* Main Card */}
@@ -34,9 +40,13 @@ export function Login() {
           style={{
             background: theme.colors.background.card,
             border: `1px solid ${theme.colors.border.primary}`,
-            borderRadius: theme.borders.radius.lg,
-            boxShadow: `0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)`,
-            padding: theme.spacing.semantic.layout.lg,
+            borderRadius: isMobile ? theme.borders.radius.md : theme.borders.radius.lg,
+            boxShadow: isMobile 
+              ? `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`
+              : `0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)`,
+            padding: isMobile 
+              ? theme.spacing.semantic.layout.md
+              : theme.spacing.semantic.layout.lg,
             position: "relative",
             overflow: "hidden",
           }}
@@ -66,17 +76,19 @@ export function Login() {
               {/* OpenGraph Logo */}
               <Box
                 style={{
-                  width: "72px",
-                  height: "72px",
+                  width: isMobile ? "60px" : "72px",
+                  height: isMobile ? "60px" : "72px",
                   margin: "0 auto",
-                  marginBottom: theme.spacing.semantic.component.lg,
+                  marginBottom: isMobile 
+                    ? theme.spacing.semantic.component.md
+                    : theme.spacing.semantic.component.lg,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   background: theme.colors.background.card,
                   borderRadius: "50%",
                   boxShadow: `0 4px 8px rgba(0, 0, 0, 0.1)`,
-                  padding: "12px",
+                  padding: isMobile ? "10px" : "12px",
                 }}
               >
                 <img
@@ -92,7 +104,7 @@ export function Login() {
 
               <Text
                 as="p"
-                size="5"
+                size={isMobile ? "4" : "5"}
                 style={{
                   color: theme.colors.text.primary,
                   fontWeight: 600,
@@ -105,7 +117,7 @@ export function Login() {
 
               <Text
                 as="p"
-                size="2"
+                size={isMobile ? "1" : "2"}
                 style={{
                   color: theme.colors.text.secondary,
                   lineHeight: 1.5,

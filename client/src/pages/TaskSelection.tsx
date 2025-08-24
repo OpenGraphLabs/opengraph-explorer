@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Box, Text, Heading, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate, useParams } from "react-router-dom";
+import { useMobile } from "@/shared/hooks";
 import {
   ArrowRight,
   MagnifyingGlass,
@@ -14,6 +15,7 @@ function TaskCard({ task, onSelect }: {
   onSelect: (task: Task) => void;
 }) {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -22,7 +24,7 @@ function TaskCard({ task, onSelect }: {
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onSelect(task)}
       style={{
-        padding: "24px",
+        padding: isMobile ? theme.spacing.semantic.component.md : "24px",
         borderRadius: "8px",
         backgroundColor: theme.colors.background.card,
         border: `1px solid ${isHovered ? theme.colors.interactive.primary + "30" : theme.colors.border.primary}`,
@@ -31,6 +33,7 @@ function TaskCard({ task, onSelect }: {
         boxShadow: isHovered
           ? `0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px ${theme.colors.interactive.primary}10`
           : `0 1px 3px rgba(0, 0, 0, 0.04)`,
+        minHeight: isMobile ? "44px" : "auto", // Touch-friendly minimum
       }}
     >
       <Flex direction="column" gap="2">
@@ -81,6 +84,7 @@ function TaskCard({ task, onSelect }: {
 
 export function TaskSelection() {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const navigate = useNavigate();
   const { id: datasetId } = useParams();
   const { data: tasks, isLoading, error } = useTasks({ size: 50 });
@@ -128,7 +132,9 @@ export function TaskSelection() {
         style={{
           borderBottom: `1px solid ${theme.colors.border.primary}`,
           backgroundColor: theme.colors.background.card,
-          padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.md}`,
+          padding: isMobile 
+            ? `${theme.spacing.semantic.layout.sm} ${theme.spacing.semantic.layout.sm}`
+            : `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.md}`,
         }}
       >
         <Box
@@ -137,10 +143,15 @@ export function TaskSelection() {
             margin: "0 auto",
           }}
         >
-          <Flex align="center" justify="between">
+          <Flex 
+            align={isMobile ? "start" : "center"} 
+            justify="between" 
+            direction={isMobile ? "column" : "row"}
+            gap={isMobile ? "3" : "0"}
+          >
             <Box>
               <Heading
-                size="6"
+                size={isMobile ? "5" : "6"}
                 style={{
                   color: theme.colors.text.primary,
                   fontWeight: 600,
@@ -150,7 +161,7 @@ export function TaskSelection() {
                 Select Task
               </Heading>
               <Text
-                size="3"
+                size={isMobile ? "2" : "3"}
                 style={{
                   color: theme.colors.text.secondary,
                 }}
@@ -179,12 +190,14 @@ export function TaskSelection() {
         style={{
           maxWidth: "1800px",
           margin: "0 auto",
-          padding: `${theme.spacing.semantic.layout.lg} ${theme.spacing.semantic.container.md}`,
+          padding: isMobile
+            ? `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.layout.sm}`
+            : `${theme.spacing.semantic.layout.lg} ${theme.spacing.semantic.container.md}`,
         }}
       >
         {/* Search Bar */}
-        <Box style={{ marginBottom: "32px" }}>
-          <Box style={{ position: "relative", maxWidth: "500px" }}>
+        <Box style={{ marginBottom: isMobile ? "24px" : "32px" }}>
+          <Box style={{ position: "relative", maxWidth: isMobile ? "100%" : "500px" }}>
             <Box
               style={{
                 position: "absolute",
@@ -204,14 +217,15 @@ export function TaskSelection() {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: "100%",
-                padding: "12px 16px 12px 44px",
-                fontSize: "14px",
+                padding: isMobile ? "14px 16px 14px 44px" : "12px 16px 12px 44px",
+                fontSize: isMobile ? "16px" : "14px", // Prevent zoom on mobile
                 borderRadius: "8px",
                 border: `1px solid ${theme.colors.border.secondary}`,
                 backgroundColor: theme.colors.background.card,
                 transition: "border-color 0.2s ease, box-shadow 0.2s ease",
                 outline: "none",
                 color: theme.colors.text.primary,
+                minHeight: isMobile ? "44px" : "auto", // Touch-friendly minimum
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = theme.colors.interactive.primary;
@@ -237,8 +251,10 @@ export function TaskSelection() {
           <Box
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-              gap: "20px",
+              gridTemplateColumns: isMobile 
+                ? "1fr"
+                : "repeat(auto-fill, minmax(350px, 1fr))",
+              gap: isMobile ? "16px" : "20px",
             }}
           >
             {filteredTasks.map((task) => (

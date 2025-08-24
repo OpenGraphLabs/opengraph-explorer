@@ -1,5 +1,6 @@
 import { Box, Flex, Text, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { Tag, FileImage, Clock, CheckCircle, Hash, Database, ArrowRight } from "phosphor-react";
 import { isImageType } from "@/shared/utils/dataset";
 import { ActiveTab } from "@/shared/utils/dataset";
@@ -30,6 +31,7 @@ export function DatasetImageGallery({
   hasConfirmedAnnotations,
 }: DatasetImageGalleryProps) {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
 
   if (loading) {
     return (

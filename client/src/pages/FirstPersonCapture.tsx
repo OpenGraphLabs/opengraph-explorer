@@ -5,6 +5,7 @@ import { useObjectDetection } from "@/shared/hooks/useObjectDetection";
 import { ObjectDetectionOverlay } from "@/components/robot-vision/ObjectDetectionOverlay";
 import { RobotVisionHUD } from "@/components/robot-vision/RobotVisionHUD";
 import { MobileCameraUI } from "@/components/robot-vision/MobileCameraUI";
+import { useMobile } from "@/shared/hooks";
 import { useMobileCamera } from "@/shared/hooks/useMobileCamera";
 import { Task, useTask } from "@/shared/api/endpoints/tasks";
 import { useCreateFirstPersonImage } from "@/shared/api/endpoints/images";
@@ -29,8 +30,11 @@ export function FirstPersonCapture() {
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Mobile camera hooks
-  const { isMobile, orientation, vibrate } = useMobileCamera({
+  // Mobile detection hook (unified pattern)
+  const { isMobile } = useMobile();
+  
+  // Mobile camera specialized features
+  const { orientation, vibrate } = useMobileCamera({
     enabled: true,
   });
 

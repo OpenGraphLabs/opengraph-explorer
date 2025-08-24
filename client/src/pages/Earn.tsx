@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate } from "react-router-dom";
+import { useMobile } from "@/shared/hooks";
 import {
   MaskHappy,
   Path,
@@ -94,15 +95,14 @@ function TaskCard({
   task,
   index,
   isLoaded,
-  isMobile,
 }: {
   task: TaskType;
   index: number;
   isLoaded: boolean;
-  isMobile: boolean;
 }) {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { isMobile } = useMobile();
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -509,24 +509,12 @@ function TaskCard({
 
 function EarnContent() {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
-  }, []);
-
-  // Mobile detection
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return (
@@ -584,7 +572,6 @@ function EarnContent() {
             task={task}
             index={index}
             isLoaded={isLoaded}
-            isMobile={isMobile}
           />
         ))}
       </Box>

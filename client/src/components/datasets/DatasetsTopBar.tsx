@@ -1,21 +1,33 @@
 import React from "react";
 import { Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { ChartLineUp, MagnifyingGlass } from "phosphor-react";
 import { useDatasetsPageContext } from "@/contexts/DatasetsPageContextProvider";
 
 export function DatasetsTopBar() {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const { totalDatasets, currentPage, totalPages, filters, updateFilter } =
     useDatasetsPageContext();
 
   return (
-    <Flex justify="between" align="center">
-      <Flex align="center" gap="4">
+    <Flex 
+      justify="between" 
+      align="center"
+      style={{ 
+        padding: isMobile 
+          ? `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`
+          : `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
+        flexWrap: isMobile ? "wrap" : "nowrap",
+        gap: isMobile ? theme.spacing.semantic.component.sm : "0"
+      }}
+    >
+      <Flex align="center" gap={isMobile ? "2" : "4"}>
         <Flex align="center" gap="2">
           <ChartLineUp size={18} style={{ color: theme.colors.interactive.primary }} />
           <Text
-            size="3"
+            size={isMobile ? "2" : "3"}
             style={{
               fontWeight: 600,
               color: theme.colors.text.primary,
@@ -23,7 +35,7 @@ export function DatasetsTopBar() {
           >
             {totalDatasets} {totalDatasets === 1 ? "Dataset" : "Datasets"}
           </Text>
-          {totalPages > 1 && (
+          {totalPages > 1 && !isMobile && (
             <Text
               size="2"
               style={{

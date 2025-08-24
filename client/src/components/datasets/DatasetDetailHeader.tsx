@@ -1,10 +1,12 @@
 import { Box, Flex, Text, Badge, Heading, Grid } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { Hash } from "phosphor-react";
 import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 
 export function DatasetDetailHeader() {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const { dataset } = useDatasetDetailPageContext();
 
   if (!dataset) return null;
@@ -17,18 +19,24 @@ export function DatasetDetailHeader() {
   return (
     <Box
       style={{
-        marginBottom: theme.spacing.semantic.component.lg,
+        marginBottom: isMobile 
+          ? theme.spacing.semantic.component.md
+          : theme.spacing.semantic.component.lg,
         paddingBottom: theme.spacing.semantic.component.md,
         borderBottom: `1px solid ${theme.colors.border.primary}`,
       }}
     >
-      <Grid columns={{ initial: "1", lg: "4" }} gap="6" align="start">
+      <Grid 
+        columns={{ initial: "1", lg: isMobile ? "1" : "4" }} 
+        gap={isMobile ? "4" : "6"} 
+        align="start"
+      >
         {/* Main Content */}
-        <Box style={{ gridColumn: "1 / 4" }}>
+        <Box style={{ gridColumn: isMobile ? "1" : "1 / 4" }}>
           <Flex direction="column" gap="4">
             {/* Title */}
             <Heading
-              size="7"
+              size={isMobile ? "5" : "7"}
               style={{
                 fontWeight: 600,
                 color: theme.colors.text.primary,
@@ -42,11 +50,11 @@ export function DatasetDetailHeader() {
 
             {/* Description */}
             <Text
-              size="3"
+              size={isMobile ? "2" : "3"}
               style={{
                 color: theme.colors.text.secondary,
                 lineHeight: 1.6,
-                maxWidth: "600px",
+                maxWidth: isMobile ? "100%" : "600px",
               }}
             >
               {dataset.description}
