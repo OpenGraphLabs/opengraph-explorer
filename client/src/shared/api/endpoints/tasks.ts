@@ -57,10 +57,10 @@ export function useTasks(
   const queryParams = { page, size };
   const queryKey = [TASKS_BASE, queryParams] as const;
 
-  const { data, isLoading, error, refetch } = useQuery<{items: TaskResponse[]}, Error, Task[]>({
+  const { data, isLoading, error, refetch } = useQuery<{ items: TaskResponse[] }, Error, Task[]>({
     queryKey,
     queryFn: async () =>
-      fetchData<typeof queryParams, {items: TaskResponse[]}>({
+      fetchData<typeof queryParams, { items: TaskResponse[] }>({
         url: TASKS_BASE,
         method: "get",
         params: queryParams,

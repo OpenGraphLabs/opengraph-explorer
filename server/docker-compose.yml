@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - opengraph_server_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U opengraph_user -d opengraph"]
       interval: 10s
@@ -17,4 +17,4 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
+  opengraph_server_postgres_data:

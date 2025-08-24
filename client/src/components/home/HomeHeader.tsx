@@ -19,6 +19,8 @@ import {
 } from "@radix-ui/react-icons";
 import { CategorySearchInput } from "@/components/annotation";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
+import { useMobile } from "@/shared/hooks";
+import { HomeHeaderMobile } from "./HomeHeaderMobile";
 import type { VideoTask } from "@/hooks/useHomePage";
 
 export function HomeHeader() {
@@ -38,6 +40,12 @@ export function HomeHeader() {
     handleCategorySelect,
   } = useHomePageContext();
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
+
+  // Use mobile-optimized header for mobile devices
+  if (isMobile) {
+    return <HomeHeaderMobile />;
+  }
 
   return (
     <Box

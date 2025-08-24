@@ -497,3 +497,338 @@ function ExamplePageContent() {
 ---
 
 **✨ This pattern provides a clean, scalable, and maintainable architecture for React applications with complex state management needs while keeping components pure and focused on their primary responsibility: rendering UI.**
+
+## 📱 Mobile/Desktop Responsive Design Pattern
+
+### Core Mobile Support Architecture
+
+Our application uses a **device-aware component architecture** that provides optimal experiences for both mobile and desktop users while maintaining code maintainability.
+
+#### Architecture Overview
+```
+Page (Device Detection Hub)
+├── PageLayoutMobile (Mobile-Optimized)
+└── PageLayoutDesktop (Desktop-Optimized)
+    ├── Shared Business Logic (Context Provider)
+    └── Device-Specific UI Components
+```
+
+### useMobile() Hook
+
+#### Core Hook Implementation
+```typescript
+// shared/hooks/useMobile.ts
+export function useMobile(options: UseMobileOptions = {}): DeviceInfo {
+  return {
+    isMobile: boolean,     // xs to sm breakpoint (< 768px)
+    isTablet: boolean,     // md breakpoint (768px - 1024px) 
+    isDesktop: boolean,    // lg+ breakpoint (> 1024px)
+    screenWidth: number,   // Current viewport width
+    screenHeight: number,  // Current viewport height
+    hasTouch: boolean,     // Touch capability detection
+    isPortrait: boolean,   // Orientation detection
+    isLandscape: boolean,  // Orientation detection
+    breakpoint: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" // Current breakpoint
+  };
+}
+
+// Utility hooks for common use cases
+export function useIsMobile(): boolean;
+export function useBreakpoint(): string;
+```
+
+#### Breakpoint System
+Based on existing design tokens in `shared/ui/design-system/tokens/breakpoints.ts`:
+- **xs**: 320px (Mobile small)
+- **sm**: 640px (Mobile large) 
+- **md**: 768px (Tablet)
+- **lg**: 1024px (Desktop small)
+- **xl**: 1280px (Desktop large)
+- **2xl**: 1536px (Desktop extra large)
+
+### Page-Level Responsive Pattern
+
+#### Implementation Structure
+```typescript
+// pages/Home.tsx
+import { useMobile } from "@/shared/hooks";
+import { HomeLayoutDesktop } from "@/components/home/HomeLayoutDesktop";
+import { HomeLayoutMobile } from "@/components/home/HomeLayoutMobile";
+
+function HomeContent() {
+  const { error } = useHomePageContext();
+  const { isMobile } = useMobile();
+
+  // Handle error state first
+  if (error) return <HomeErrorState />;
+
+  // Device-specific layout rendering
+  if (isMobile) return <HomeLayoutMobile />;
+  return <HomeLayoutDesktop />;
+}
+
+export function Home() {
+  return (
+    <HomePageContextProvider>
+      <HomeContent />
+    </HomePageContextProvider>
+  );
+}
+```
+
+### Component-Level Responsive Patterns
+
+#### 1. Conditional Component Rendering
+```typescript
+// components/home/HomeHeader.tsx
+export function HomeHeader() {
+  const { isMobile } = useMobile();
+  
+  // Use dedicated mobile component
+  if (isMobile) {
+    return <HomeHeaderMobile />;
+  }
+  
+  return <HomeHeaderDesktop />;
+}
+```
+
+#### 2. Responsive Styling within Components
+```typescript
+// components/home/HomeGallery.tsx
+export function HomeGallery() {
+  const { isMobile, isTablet } = useMobile();
+  
+  const getGridColumns = () => {
+    if (isMobile) return "1";
+    if (isTablet) return "2"; 
+    return "5"; // Desktop
+  };
+
+  return (
+    <Grid
+      columns={getGridColumns()}
+      gap={isMobile ? "3" : "5"}
+      style={{
+        marginBottom: isMobile 
+          ? theme.spacing.semantic.layout.md
+          : theme.spacing.semantic.layout.xl
+      }}
+    >
+      {/* Grid items */}
+    </Grid>
+  );
+}
+```
+
+#### 3. Mobile-First UI Patterns
+```typescript
+// Mobile-specific modal instead of desktop sidebar
+{selectedItem && (
+  isMobile ? (
+    <ItemDetailModalMobile 
+      item={selectedItem} 
+      onClose={handleClose} 
+    />
+  ) : (
+    <ItemDetailSidebar 
+      item={selectedItem} 
+      onClose={handleClose} 
+    />
+  )
+)}
+```
+
+### Layout Components Structure
+
+#### Desktop Layout Pattern
+```typescript
+// components/home/HomeLayoutDesktop.tsx
+export function HomeLayoutDesktop() {
+  return (
+    <Box style={{
+      paddingRight: selectedItem ? "480px" : "0", // Sidebar space
+      transition: "padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)"
+    }}>
+      <HomeHeader />
+      <HomeContent />
+      {selectedItem && <ItemSidebar />}
+    </Box>
+  );
+}
+```
+
+#### Mobile Layout Pattern  
+```typescript
+// components/home/HomeLayoutMobile.tsx
+export function HomeLayoutMobile() {
+  return (
+    <Box style={{
+      padding: theme.spacing.semantic.container.sm,
+      paddingBottom: "env(safe-area-inset-bottom, 20px)" // iOS safe areas
+    }}>
+      <HomeHeader />
+      <HomeContent />
+      {selectedItem && <ItemModalMobile />}
+    </Box>
+  );
+}
+```
+
+### Mobile Optimization Guidelines
+
+#### Touch-First Design
+- **Minimum Touch Targets**: 44px minimum (iOS/Android standard)
+- **Touch Action Optimization**: Remove hover states on touch devices
+- **Safe Area Support**: Handle iOS notch and bottom indicator
+
+```css
+/* Mobile-specific styles in layout components */
+button, a {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-optimized {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Only apply hover effects on devices that support hover */
+@media (hover: hover) {
+  .image-card:hover {
+    transform: translateY(-2px);
+  }
+}
+```
+
+#### Performance Optimizations
+- **Reduced Animations**: Lighter animations for mobile devices
+- **Optimized Images**: Responsive image loading
+- **Memory Management**: Efficient component unmounting
+
+### Mobile UI Patterns
+
+#### Modal vs Sidebar Pattern
+```typescript
+// Desktop: Side panel for detailed views
+<ItemDetailSidebar item={selectedItem} />
+
+// Mobile: Fullscreen modal for detailed views  
+<ItemDetailModalMobile 
+  item={selectedItem}
+  onClose={() => setSelectedItem(null)}
+  // Includes swipe-to-close functionality
+  onSwipeDown={() => setSelectedItem(null)}
+/>
+```
+
+#### Navigation Pattern
+```typescript
+// Desktop: Horizontal navigation bar
+<NavBar>
+  <NavLink to="/datasets">Datasets</NavLink>
+  <NavLink to="/models">Models</NavLink>
+</NavBar>
+
+// Mobile: Hamburger menu + bottom navigation  
+<MobileHeader>
+  <HamburgerMenu />
+  <UserActions />
+</MobileHeader>
+```
+
+### Development Workflow
+
+#### Creating Mobile-Responsive Pages
+
+1. **Start with Page Structure**
+   ```typescript
+   // pages/NewPage.tsx
+   function NewPageContent() {
+     const { isMobile } = useMobile();
+     
+     if (isMobile) return <NewPageLayoutMobile />;
+     return <NewPageLayoutDesktop />;
+   }
+   ```
+
+2. **Create Layout Components**
+   ```
+   components/new-page/
+   ├── NewPageLayoutDesktop.tsx
+   ├── NewPageLayoutMobile.tsx  
+   ├── NewPageHeader.tsx (shared)
+   ├── NewPageHeaderMobile.tsx (mobile-specific)
+   └── NewPageContent.tsx (shared business logic)
+   ```
+
+3. **Apply Responsive Patterns**
+   - Use `useMobile()` hook for device detection
+   - Create mobile-specific components when needed
+   - Share business logic through context providers
+   - Optimize touch interactions for mobile
+
+#### Best Practices
+
+- **Mobile-First Thinking**: Design for mobile constraints first
+- **Progressive Enhancement**: Add desktop features progressively
+- **Shared Business Logic**: Keep data fetching and state management shared
+- **Separate UI Concerns**: Create distinct mobile/desktop UI components
+- **Performance Conscious**: Optimize for mobile performance
+
+#### Testing Strategy
+```typescript
+// Test responsive behavior
+describe('HomePage Responsive', () => {
+  it('renders mobile layout on mobile devices', () => {
+    mockUseMobile({ isMobile: true });
+    render(<Home />);
+    expect(screen.getByTestId('mobile-layout')).toBeInTheDocument();
+  });
+  
+  it('renders desktop layout on desktop devices', () => {
+    mockUseMobile({ isMobile: false });
+    render(<Home />);
+    expect(screen.getByTestId('desktop-layout')).toBeInTheDocument();
+  });
+});
+```
+
+### File Organization
+
+```
+src/
+├── pages/
+│   └── Home.tsx                    # Device detection hub
+├── components/
+│   └── home/
+│       ├── HomeLayoutDesktop.tsx   # Desktop-optimized layout
+│       ├── HomeLayoutMobile.tsx    # Mobile-optimized layout
+│       ├── HomeHeader.tsx          # Shared header (with mobile detection)
+│       ├── HomeHeaderMobile.tsx    # Mobile-specific header
+│       ├── HomeContent.tsx         # Shared business logic component
+│       └── ImageDetailModalMobile.tsx # Mobile-specific modal
+└── shared/
+    └── hooks/
+        └── useMobile.ts            # Device detection hook
+```
+
+### Migration Checklist
+
+When adding mobile support to existing pages:
+
+- [ ] Add `useMobile()` hook to page component
+- [ ] Create mobile-specific layout component  
+- [ ] Identify components that need mobile variants
+- [ ] Update existing components with responsive styles
+- [ ] Replace desktop-only patterns (sidebars → modals)
+- [ ] Add touch optimization and safe area handling
+- [ ] Test on actual mobile devices
+- [ ] Verify accessibility on mobile
+
+---
+
+**🎯 This mobile-responsive architecture ensures optimal user experiences across all devices while maintaining clean, maintainable code separation.**

@@ -1,6 +1,7 @@
 import { Box, Tabs } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 import { DatasetDetailTabs } from "./DatasetDetailTabs";
 import { DatasetImageGallery } from "./DatasetImageGallery";
@@ -9,6 +10,7 @@ import { getAnnotationColor, DEFAULT_PAGE_SIZE } from "@/shared/utils/dataset";
 
 export function DatasetDetailDataBrowser() {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const {
     dataset,
     totalCounts,
@@ -32,8 +34,9 @@ export function DatasetDetailDataBrowser() {
       style={{
         background: theme.colors.background.card,
         border: `1px solid ${theme.colors.border.primary}`,
-        borderRadius: theme.borders.radius.md,
+        borderRadius: isMobile ? theme.borders.radius.sm : theme.borders.radius.md,
         overflow: "hidden",
+        margin: isMobile ? "0" : "auto",
       }}
     >
       <Tabs.Root

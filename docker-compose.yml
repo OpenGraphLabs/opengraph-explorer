@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - opengraph_postgres_data:/var/lib/postgresql/data
     networks:
       - opengraph-network
     command: postgres -c listen_addresses='*'
@@ -134,5 +134,5 @@ networks:
 
 # Persistent volumes
 volumes:
-  postgres_data:
+  opengraph_postgres_data:
   uploads: 

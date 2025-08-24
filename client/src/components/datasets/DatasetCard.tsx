@@ -4,6 +4,7 @@ import { FileText, Shield, Archive, Palette } from "phosphor-react";
 import { type Dataset } from "@/shared/api/endpoints";
 import { formatDataSize, getDataTypeColor, truncateAddress } from "./utils";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { Button } from "@/shared/ui/design-system/components";
 
 // Extended Dataset with image_count from server response
@@ -25,6 +26,7 @@ const formatNumber = (num: number) => {
 
 export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
@@ -52,27 +54,37 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
       <Link to={`/datasets/${dataset.id}`} style={{ textDecoration: "none" }}>
         <Card
           style={{
-            padding: theme.spacing.semantic.component.lg,
+            padding: isMobile
+              ? theme.spacing.semantic.component.md
+              : theme.spacing.semantic.component.lg,
             borderRadius: theme.borders.radius.lg,
             border: `1px solid ${theme.colors.border.primary}`,
             backgroundColor: theme.colors.background.card,
             display: "flex",
             flexDirection: "column",
-            minHeight: "220px",
+            minHeight: isMobile ? "180px" : "220px", // Shorter on mobile
             height: "auto",
             transition: theme.animations.transitions.hover,
             cursor: "pointer",
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = theme.shadows.semantic.card.medium;
-            e.currentTarget.style.borderColor = `${theme.colors.interactive.primary}40`;
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
-            e.currentTarget.style.borderColor = theme.colors.border.primary;
-          }}
+          onMouseEnter={
+            !isMobile
+              ? e => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.medium;
+                  e.currentTarget.style.borderColor = `${theme.colors.interactive.primary}40`;
+                }
+              : undefined
+          }
+          onMouseLeave={
+            !isMobile
+              ? e => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
+                  e.currentTarget.style.borderColor = theme.colors.border.primary;
+                }
+              : undefined
+          }
         >
           <Flex direction="column" gap="4" style={{ height: "100%" }}>
             {/* Header: Dataset Name */}

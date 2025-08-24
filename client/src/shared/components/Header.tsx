@@ -13,6 +13,7 @@ import {
 import { requiresAuth } from "@/shared/config/routePermissions";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
+import { useMobile } from "@/shared/hooks";
 import logoImage from "@/assets/logo/logo.png";
 
 export function Header() {
@@ -22,6 +23,7 @@ export function Header() {
   const { clearSession } = useZkLogin();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { mode, toggleTheme, theme } = useTheme();
+  const { isMobile, isTablet, breakpoint } = useMobile();
 
   const handleLogout = () => {
     // Clear auth contexts
@@ -62,61 +64,57 @@ export function Header() {
                   objectFit: "contain",
                 }}
               />
-              <Text
-                size="3" // Smaller brand text
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: theme.typography.h4.fontWeight,
-                  letterSpacing: "-0.01em",
-                }}
-                className="sm:block"
-              >
-                OpenGraph
-              </Text>
+              {/* Show brand text only on non-mobile devices */}
+              {!isMobile && (
+                <Text
+                  size="3"
+                  style={{
+                    color: theme.colors.text.primary,
+                    fontWeight: theme.typography.h4.fontWeight,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  OpenGraph
+                </Text>
+              )}
             </Flex>
           </Link>
 
-          {/* Compact Desktop Navigation */}
-          <Flex gap="1" className="hidden md:flex">
-            {" "}
-            {/* Reduced gap */}
-            {/* <NavLink
+          {/* Desktop Navigation - Show only on non-mobile devices */}
+          {!isMobile && (
+            <Flex gap="1">
+              {/* Reduced gap */}
+              {/* <NavLink
               to="/models"
               current={location.pathname === "/models"}
               disabled={!isConnected && requiresWallet("/models")}
             >
               Models
             </NavLink> */}
-            <NavLink
-              to="/earn"
-              current={location.pathname === "/earn"}
-              disabled={!isAuthenticated && requiresAuth("/earn")}
-            >
-              Earn
-            </NavLink>
-            <NavLink
-              to="/datasets"
-              current={location.pathname === "/datasets"}
-              disabled={!isAuthenticated && requiresAuth("/datasets")}
-            >
-              Dataset
-            </NavLink>
-          </Flex>
+              <NavLink
+                to="/earn"
+                current={location.pathname === "/earn"}
+                disabled={!isAuthenticated && requiresAuth("/earn")}
+              >
+                Earn
+              </NavLink>
+              <NavLink
+                to="/datasets"
+                current={location.pathname === "/datasets"}
+                disabled={!isAuthenticated && requiresAuth("/datasets")}
+              >
+                Dataset
+              </NavLink>
+            </Flex>
+          )}
         </Flex>
 
         {/* Right Side - Compact Actions */}
         <Flex align="center" gap="2">
           {" "}
           {/* Reduced gap */}
-          {/* Mobile Menu Button - RadixUI responsive display */}
-          <Box
-            display={{ initial: "block", md: "none" }}
-            style={{
-              padding: theme.spacing.base[1], // Smaller padding
-              minHeight: "32px",
-              minWidth: "32px",
-            }}
-          >
+          {/* Mobile Menu Button - Show only on mobile */}
+          {isMobile && (
             <Button
               variant="tertiary"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -124,11 +122,17 @@ export function Header() {
                 padding: theme.spacing.base[1],
                 minHeight: "32px",
                 minWidth: "32px",
+                color: theme.colors.text.primary, // Ensure visibility in both themes
+                border: `1px solid ${theme.colors.border.secondary}`,
               }}
             >
-              <HamburgerMenuIcon width="16" height="16" />
+              <HamburgerMenuIcon
+                width="16"
+                height="16"
+                style={{ color: theme.colors.text.primary }}
+              />
             </Button>
-          </Box>
+          )}
           {/* Compact Theme Toggle */}
           <Button
             variant="tertiary"
@@ -190,37 +194,42 @@ export function Header() {
                   }}
                 />
               </Link>
-              {/* User Info */}
-              <Text
-                size="2"
-                className="hidden sm:block"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: 500,
-                  maxWidth: "120px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {user.name || user.email?.split("@")[0] || "User"}
-              </Text>
+              {/* User Info - Hide on mobile, show abbreviated on tablet */}
+              {!isMobile && (
+                <Text
+                  size="2"
+                  style={{
+                    color: theme.colors.text.primary,
+                    fontWeight: 500,
+                    maxWidth: isTablet ? "80px" : "120px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {user.name || user.email?.split("@")[0] || "User"}
+                </Text>
+              )}
 
-              {/* Logout Button - Minimal */}
+              {/* Logout Button - Responsive */}
               <button
                 onClick={handleLogout}
                 style={{
                   background: "transparent",
                   border: `1px solid ${theme.colors.border.secondary}`,
                   borderRadius: theme.borders.radius.sm,
-                  padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                  padding: isMobile
+                    ? `${theme.spacing.base[1]}`
+                    : `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
                   fontSize: "13px",
                   fontWeight: 500,
                   color: theme.colors.text.secondary,
                   cursor: "pointer",
                   height: "32px",
+                  minWidth: isMobile ? "32px" : "auto",
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   transition: "all 150ms ease",
                 }}
                 onMouseEnter={e => {
@@ -231,9 +240,16 @@ export function Header() {
                   e.currentTarget.style.borderColor = theme.colors.border.secondary;
                   e.currentTarget.style.color = theme.colors.text.secondary;
                 }}
+                title={isMobile ? "Sign out" : undefined}
               >
-                <ExitIcon width="14" height="14" style={{ marginRight: "4px" }} />
-                Sign out
+                <ExitIcon
+                  width="14"
+                  height="14"
+                  style={{
+                    marginRight: isMobile ? "0" : "4px",
+                  }}
+                />
+                {!isMobile && "Sign out"}
               </button>
             </Flex>
           ) : (
@@ -272,8 +288,8 @@ export function Header() {
         </Flex>
       </Flex>
 
-      {/* Compact Mobile Navigation Menu */}
-      {isMobileMenuOpen && (
+      {/* Mobile Navigation Menu - Show only on mobile */}
+      {isMobile && isMobileMenuOpen && (
         <Box
           style={{
             position: "fixed",
@@ -283,14 +299,12 @@ export function Header() {
             backgroundColor: theme.colors.background.primary,
             borderBottom: `1px solid ${theme.colors.border.primary}`,
             zIndex: 99,
-            padding: theme.spacing.base[3], // Smaller padding
+            padding: theme.spacing.base[3],
             boxShadow: theme.shadows.semantic.overlay.dropdown,
+            backdropFilter: "blur(10px)",
           }}
-          className="block md:hidden"
         >
           <Flex direction="column" gap="1">
-            {" "}
-            {/* Reduced gap */}
             <MobileNavLink
               to="/"
               current={location.pathname === "/"}
@@ -300,12 +314,12 @@ export function Header() {
               Home
             </MobileNavLink>
             <MobileNavLink
-              to="/models"
-              current={location.pathname === "/models"}
+              to="/earn"
+              current={location.pathname === "/earn"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/models")}
+              disabled={!isAuthenticated && requiresAuth("/earn")}
             >
-              Models
+              Earn
             </MobileNavLink>
             <MobileNavLink
               to="/datasets"
@@ -313,31 +327,7 @@ export function Header() {
               onClick={() => setIsMobileMenuOpen(false)}
               disabled={!isAuthenticated && requiresAuth("/datasets")}
             >
-              Datasets
-            </MobileNavLink>
-            <MobileNavLink
-              to="/models/upload"
-              current={location.pathname === "/models/upload"}
-              onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/models/upload")}
-            >
-              Upload Model
-            </MobileNavLink>
-            <MobileNavLink
-              to="/annotator"
-              current={location.pathname === "/annotator"}
-              onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/annotator")}
-            >
-              Annotator
-            </MobileNavLink>
-            <MobileNavLink
-              to="/profile"
-              current={location.pathname === "/profile"}
-              onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/profile")}
-            >
-              Profile
+              Dataset
             </MobileNavLink>
           </Flex>
         </Box>

@@ -1,16 +1,20 @@
 import { Box, Flex, Text, Tabs } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { CheckCircle, Users, Database } from "phosphor-react";
 import { useDatasetDetailPageContext } from "@/contexts/DatasetDetailPageContextProvider";
 
 export function DatasetDetailTabs() {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
   const { totalCounts, activeTab, setActiveTab } = useDatasetDetailPageContext();
 
   return (
     <Box
       style={{
-        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+        padding: isMobile
+          ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`
+          : `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
         borderBottom: `1px solid ${theme.colors.border.primary}`,
         background: theme.colors.background.tertiary,
       }}
@@ -20,7 +24,12 @@ export function DatasetDetailTabs() {
           style={{
             background: "transparent",
             padding: 0,
-            gap: theme.spacing.semantic.component.xs,
+            gap: isMobile
+              ? theme.spacing.semantic.component.xs
+              : theme.spacing.semantic.component.xs,
+            width: isMobile ? "100%" : "auto",
+            display: "flex",
+            justifyContent: isMobile ? "space-around" : "flex-start",
           }}
         >
           <Tabs.Trigger
@@ -34,13 +43,17 @@ export function DatasetDetailTabs() {
                 activeTab === "all" ? theme.colors.border.primary : "transparent"
               }`,
               borderRadius: theme.borders.radius.sm,
-              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+              padding: isMobile
+                ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.xs}`
+                : `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
               transition: "all 0.2s ease",
-              fontSize: "13px",
+              fontSize: isMobile ? "12px" : "13px",
+              minHeight: isMobile ? "40px" : "auto",
+              flex: isMobile ? "1" : "none",
             }}
           >
-            <Flex align="center" gap="2">
-              <Database size={12} />
+            <Flex align="center" gap={isMobile ? "1" : "2"}>
+              <Database size={isMobile ? 10 : 12} />
               <span>All</span>
               <Text
                 size="1"
@@ -72,14 +85,18 @@ export function DatasetDetailTabs() {
                 activeTab === "confirmed" ? theme.colors.border.primary : "transparent"
               }`,
               borderRadius: theme.borders.radius.sm,
-              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+              padding: isMobile
+                ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.xs}`
+                : `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
               transition: "all 0.2s ease",
-              fontSize: "13px",
+              fontSize: isMobile ? "12px" : "13px",
+              minHeight: isMobile ? "40px" : "auto",
+              flex: isMobile ? "1" : "none",
             }}
           >
-            <Flex align="center" gap="2">
-              <CheckCircle size={12} />
-              <span>Verified</span>
+            <Flex align="center" gap={isMobile ? "1" : "2"}>
+              <CheckCircle size={isMobile ? 10 : 12} />
+              <span>{isMobile ? "Verified" : "Verified"}</span>
               <Text
                 size="1"
                 style={{
@@ -109,14 +126,18 @@ export function DatasetDetailTabs() {
                 activeTab === "pending" ? theme.colors.border.primary : "transparent"
               }`,
               borderRadius: theme.borders.radius.sm,
-              padding: `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
+              padding: isMobile
+                ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.xs}`
+                : `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
               transition: "all 0.2s ease",
-              fontSize: "13px",
+              fontSize: isMobile ? "12px" : "13px",
+              minHeight: isMobile ? "40px" : "auto",
+              flex: isMobile ? "1" : "none",
             }}
           >
-            <Flex align="center" gap="2">
-              <Users size={12} />
-              <span>Under Review</span>
+            <Flex align="center" gap={isMobile ? "1" : "2"}>
+              <Users size={isMobile ? 10 : 12} />
+              <span>{isMobile ? "Review" : "Under Review"}</span>
               <Text
                 size="1"
                 style={{

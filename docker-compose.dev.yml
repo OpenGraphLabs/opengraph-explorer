@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - opengraph_postgres_data:/var/lib/postgresql/data
     networks:
       - opengraph-backend-network
     command: postgres -c listen_addresses='*'
@@ -88,4 +88,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
+  opengraph_postgres_data:
