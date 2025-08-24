@@ -10,7 +10,7 @@ interface FirstPersonCaptureMobileProps {
   // Video refs
   videoRef: React.RefObject<HTMLVideoElement>;
   containerRef: React.RefObject<HTMLDivElement>;
-  
+
   // State
   isStreaming: boolean;
   capturedImage: string | null;
@@ -19,18 +19,18 @@ interface FirstPersonCaptureMobileProps {
   videoDimensions: { width: number; height: number };
   detectionEnabled: boolean;
   isTransitioning: boolean;
-  
+
   // Detection
   detections: Detection[];
   isModelLoading: boolean;
   fps: number;
-  
+
   // Task
   currentTask: Task | null;
-  
+
   // Mobile specific
   orientation: any;
-  
+
   // Handlers
   onCapture: () => void;
   onRetake: () => void;

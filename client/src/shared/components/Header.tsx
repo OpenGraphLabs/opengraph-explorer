@@ -84,27 +84,27 @@ export function Header() {
           {!isMobile && (
             <Flex gap="1">
               {/* Reduced gap */}
-            {/* <NavLink
+              {/* <NavLink
               to="/models"
               current={location.pathname === "/models"}
               disabled={!isConnected && requiresWallet("/models")}
             >
               Models
             </NavLink> */}
-            <NavLink
-              to="/earn"
-              current={location.pathname === "/earn"}
-              disabled={!isAuthenticated && requiresAuth("/earn")}
-            >
-              Earn
-            </NavLink>
-            <NavLink
-              to="/datasets"
-              current={location.pathname === "/datasets"}
-              disabled={!isAuthenticated && requiresAuth("/datasets")}
-            >
-              Dataset
-            </NavLink>
+              <NavLink
+                to="/earn"
+                current={location.pathname === "/earn"}
+                disabled={!isAuthenticated && requiresAuth("/earn")}
+              >
+                Earn
+              </NavLink>
+              <NavLink
+                to="/datasets"
+                current={location.pathname === "/datasets"}
+                disabled={!isAuthenticated && requiresAuth("/datasets")}
+              >
+                Dataset
+              </NavLink>
             </Flex>
           )}
         </Flex>
@@ -126,9 +126,9 @@ export function Header() {
                 border: `1px solid ${theme.colors.border.secondary}`,
               }}
             >
-              <HamburgerMenuIcon 
-                width="16" 
-                height="16" 
+              <HamburgerMenuIcon
+                width="16"
+                height="16"
                 style={{ color: theme.colors.text.primary }}
               />
             </Button>
@@ -218,7 +218,7 @@ export function Header() {
                   background: "transparent",
                   border: `1px solid ${theme.colors.border.secondary}`,
                   borderRadius: theme.borders.radius.sm,
-                  padding: isMobile 
+                  padding: isMobile
                     ? `${theme.spacing.base[1]}`
                     : `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
                   fontSize: "13px",
@@ -242,12 +242,12 @@ export function Header() {
                 }}
                 title={isMobile ? "Sign out" : undefined}
               >
-                <ExitIcon 
-                  width="14" 
-                  height="14" 
-                  style={{ 
-                    marginRight: isMobile ? "0" : "4px" 
-                  }} 
+                <ExitIcon
+                  width="14"
+                  height="14"
+                  style={{
+                    marginRight: isMobile ? "0" : "4px",
+                  }}
                 />
                 {!isMobile && "Sign out"}
               </button>

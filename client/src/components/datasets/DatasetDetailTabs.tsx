@@ -12,7 +12,7 @@ export function DatasetDetailTabs() {
   return (
     <Box
       style={{
-        padding: isMobile 
+        padding: isMobile
           ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`
           : `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
         borderBottom: `1px solid ${theme.colors.border.primary}`,
@@ -24,7 +24,7 @@ export function DatasetDetailTabs() {
           style={{
             background: "transparent",
             padding: 0,
-            gap: isMobile 
+            gap: isMobile
               ? theme.spacing.semantic.component.xs
               : theme.spacing.semantic.component.xs,
             width: isMobile ? "100%" : "auto",
@@ -43,7 +43,7 @@ export function DatasetDetailTabs() {
                 activeTab === "all" ? theme.colors.border.primary : "transparent"
               }`,
               borderRadius: theme.borders.radius.sm,
-              padding: isMobile 
+              padding: isMobile
                 ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.xs}`
                 : `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
               transition: "all 0.2s ease",
@@ -85,7 +85,7 @@ export function DatasetDetailTabs() {
                 activeTab === "confirmed" ? theme.colors.border.primary : "transparent"
               }`,
               borderRadius: theme.borders.radius.sm,
-              padding: isMobile 
+              padding: isMobile
                 ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.xs}`
                 : `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
               transition: "all 0.2s ease",
@@ -126,7 +126,7 @@ export function DatasetDetailTabs() {
                 activeTab === "pending" ? theme.colors.border.primary : "transparent"
               }`,
               borderRadius: theme.borders.radius.sm,
-              padding: isMobile 
+              padding: isMobile
                 ? `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.xs}`
                 : `${theme.spacing.semantic.component.xs} ${theme.spacing.semantic.component.sm}`,
               transition: "all 0.2s ease",

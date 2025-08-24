@@ -44,28 +44,31 @@ export function ImageDetailModalMobile({
   }, [isOpen]);
 
   // Handle swipe down to close (basic implementation)
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const startY = e.touches[0].clientY;
-    
-    const handleTouchMove = (moveEvent: TouchEvent) => {
-      const currentY = moveEvent.touches[0].clientY;
-      const diffY = currentY - startY;
-      
-      // If swiped down significantly, close modal
-      if (diffY > 100) {
-        onClose();
-        document.removeEventListener('touchmove', handleTouchMove);
-      }
-    };
-    
-    document.addEventListener('touchmove', handleTouchMove, { passive: true });
-    
-    const cleanup = () => {
-      document.removeEventListener('touchmove', handleTouchMove);
-    };
-    
-    setTimeout(cleanup, 1000); // Cleanup after 1 second if no action
-  }, [onClose]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      const startY = e.touches[0].clientY;
+
+      const handleTouchMove = (moveEvent: TouchEvent) => {
+        const currentY = moveEvent.touches[0].clientY;
+        const diffY = currentY - startY;
+
+        // If swiped down significantly, close modal
+        if (diffY > 100) {
+          onClose();
+          document.removeEventListener("touchmove", handleTouchMove);
+        }
+      };
+
+      document.addEventListener("touchmove", handleTouchMove, { passive: true });
+
+      const cleanup = () => {
+        document.removeEventListener("touchmove", handleTouchMove);
+      };
+
+      setTimeout(cleanup, 1000); // Cleanup after 1 second if no action
+    },
+    [onClose]
+  );
 
   if (!isOpen) return null;
 
@@ -153,7 +156,7 @@ export function ImageDetailModalMobile({
                 )}
               </Box>
             </Flex>
-            
+
             <Button
               variant="tertiary"
               size="sm"
@@ -235,21 +238,19 @@ export function ImageDetailModalMobile({
             >
               Annotation Information
             </Text>
-            
+
             <Flex direction="column" gap="3">
-              {categoryName && (
-                <InfoRow label="Category" value={categoryName} theme={theme} />
-              )}
-              
+              {categoryName && <InfoRow label="Category" value={categoryName} theme={theme} />}
+
               {annotation.id && (
                 <InfoRow label="ID" value={annotation.id.toString()} theme={theme} />
               )}
-              
+
               {annotation.created_at && (
-                <InfoRow 
-                  label="Created" 
-                  value={new Date(annotation.created_at).toLocaleDateString()} 
-                  theme={theme} 
+                <InfoRow
+                  label="Created"
+                  value={new Date(annotation.created_at).toLocaleDateString()}
+                  theme={theme}
                 />
               )}
             </Flex>
@@ -274,21 +275,19 @@ export function ImageDetailModalMobile({
             >
               Image Information
             </Text>
-            
+
             <Flex direction="column" gap="3">
               {image.file_name && (
                 <InfoRow label="Filename" value={image.file_name} theme={theme} />
               )}
-              
-              {image.id && (
-                <InfoRow label="Image ID" value={image.id.toString()} theme={theme} />
-              )}
-              
+
+              {image.id && <InfoRow label="Image ID" value={image.id.toString()} theme={theme} />}
+
               {image.created_at && (
-                <InfoRow 
-                  label="Uploaded" 
-                  value={new Date(image.created_at).toLocaleDateString()} 
-                  theme={theme} 
+                <InfoRow
+                  label="Uploaded"
+                  value={new Date(image.created_at).toLocaleDateString()}
+                  theme={theme}
                 />
               )}
             </Flex>
@@ -327,15 +326,7 @@ export function ImageDetailModalMobile({
 /**
  * Helper component for displaying information rows
  */
-function InfoRow({ 
-  label, 
-  value, 
-  theme 
-}: { 
-  label: string; 
-  value: string; 
-  theme: any; 
-}) {
+function InfoRow({ label, value, theme }: { label: string; value: string; theme: any }) {
   return (
     <Flex justify="between" align="start">
       <Text

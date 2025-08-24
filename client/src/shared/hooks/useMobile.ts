@@ -33,16 +33,16 @@ export interface UseMobileOptions {
 
 /**
  * Hook for detecting mobile devices and responsive breakpoints
- * 
+ *
  * @example
  * ```tsx
  * function MyComponent() {
  *   const { isMobile, isTablet, breakpoint } = useMobile();
- *   
+ *
  *   if (isMobile) {
  *     return <MobileModeComponent />;
  *   }
- *   
+ *
  *   return <DesktopComponent />;
  * }
  * ```
@@ -66,7 +66,7 @@ export function useMobile(options: UseMobileOptions = {}): DeviceInfo {
   // Debounced resize handler
   const debouncedResize = useCallback(() => {
     let timeoutId: number;
-    
+
     return () => {
       clearTimeout(timeoutId);
       timeoutId = window.setTimeout(updateDeviceInfo, debounceDelay);
@@ -77,7 +77,7 @@ export function useMobile(options: UseMobileOptions = {}): DeviceInfo {
     if (!enableResize) return;
 
     const handleResize = debouncedResize();
-    
+
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", updateDeviceInfo);
 
@@ -99,26 +99,30 @@ export function useMobile(options: UseMobileOptions = {}): DeviceInfo {
 function calculateDeviceInfo(mobileBreakpoint: number): DeviceInfo {
   const width = typeof window !== "undefined" ? window.innerWidth : 1024;
   const height = typeof window !== "undefined" ? window.innerHeight : 768;
-  
+
   // User agent based mobile detection
-  const isMobileUserAgent = typeof navigator !== "undefined" 
-    ? /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    : false;
-  
+  const isMobileUserAgent =
+    typeof navigator !== "undefined"
+      ? /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      : false;
+
   // Touch support detection
-  const hasTouch = typeof window !== "undefined" 
-    ? "ontouchstart" in window || navigator.maxTouchPoints > 0
-    : false;
+  const hasTouch =
+    typeof window !== "undefined"
+      ? "ontouchstart" in window || navigator.maxTouchPoints > 0
+      : false;
 
   // Determine current breakpoint
   const breakpoint = getBreakpointName(width);
-  
+
   // Device classification
   const isMobileBySize = width < mobileBreakpoint;
-  const isMobile = isMobileUserAgent || isMobileBySize || (hasTouch && width < parseInt(breakpoints.md));
-  const isTablet = !isMobile && width >= parseInt(breakpoints.md) && width < parseInt(breakpoints.lg);
+  const isMobile =
+    isMobileUserAgent || isMobileBySize || (hasTouch && width < parseInt(breakpoints.md));
+  const isTablet =
+    !isMobile && width >= parseInt(breakpoints.md) && width < parseInt(breakpoints.lg);
   const isDesktop = width >= parseInt(breakpoints.lg);
-  
+
   // Orientation
   const isPortrait = height > width;
   const isLandscape = width >= height;

@@ -17,12 +17,10 @@ export function TaskSelection() {
 
   const filteredTasks = React.useMemo(() => {
     if (!tasks) return [];
-    
+
     if (!searchQuery) return tasks;
-    
-    return tasks.filter(task =>
-      task.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+
+    return tasks.filter(task => task.name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [tasks, searchQuery]);
 
   const commonProps = {

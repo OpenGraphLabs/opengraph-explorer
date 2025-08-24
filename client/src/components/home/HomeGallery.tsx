@@ -32,7 +32,7 @@ export function HomeGallery() {
       columns={getGridColumns()}
       gap={isMobile ? "3" : "5"}
       style={{
-        marginBottom: isMobile 
+        marginBottom: isMobile
           ? theme.spacing.semantic.layout.md
           : theme.spacing.semantic.layout.xl,
         opacity: isTransitioning ? 0.8 : 1,
@@ -55,7 +55,7 @@ export function HomeGallery() {
               overflow: "hidden",
               background: theme.colors.background.secondary,
               border: `1px solid ${theme.colors.border.subtle}30`,
-              boxShadow: isMobile 
+              boxShadow: isMobile
                 ? "0 1px 4px rgba(0, 0, 0, 0.08)"
                 : "0 2px 8px rgba(0, 0, 0, 0.04)",
               cursor: isMobile ? "default" : "pointer",

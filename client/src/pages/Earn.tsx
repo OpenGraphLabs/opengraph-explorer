@@ -20,11 +20,7 @@ export function Earn() {
         padding: "0 16px",
       }}
     >
-      {isMobile ? (
-        <EarnMobile isLoaded={isLoaded} />
-      ) : (
-        <EarnDesktop isLoaded={isLoaded} />
-      )}
+      {isMobile ? <EarnMobile isLoaded={isLoaded} /> : <EarnDesktop isLoaded={isLoaded} />}
     </Box>
   );
 }

@@ -15,12 +15,8 @@ import { FirstPersonImageGallery } from "./FirstPersonImageGallery";
  */
 export function HomeContent() {
   const { theme } = useTheme();
-  const {
-    annotationsWithImages,
-    isTransitioning,
-    hasSearchFilter,
-    dataType,
-  } = useHomePageContext();
+  const { annotationsWithImages, isTransitioning, hasSearchFilter, dataType } =
+    useHomePageContext();
 
   return (
     <Box

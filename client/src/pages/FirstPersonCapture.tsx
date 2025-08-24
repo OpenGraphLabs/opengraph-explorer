@@ -28,7 +28,7 @@ export function FirstPersonCapture() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const { isMobile } = useMobile();
-  
+
   const { orientation, vibrate } = useMobileCamera({
     enabled: true,
   });
@@ -62,11 +62,12 @@ export function FirstPersonCapture() {
   // Load task from URL parameter
   const taskIdParam = searchParams.get("taskId");
   const taskId = taskIdParam ? parseInt(taskIdParam, 10) : null;
-  
-  const { data: taskData, isLoading: isTaskLoading, error: taskError } = useTask(
-    taskId || 0,
-    { enabled: !!taskId }
-  );
+
+  const {
+    data: taskData,
+    isLoading: isTaskLoading,
+    error: taskError,
+  } = useTask(taskId || 0, { enabled: !!taskId });
 
   useEffect(() => {
     if (taskData) {
@@ -230,10 +231,18 @@ export function FirstPersonCapture() {
       console.error("Failed to upload image:", error);
       toast.error("Failed to upload image. Please try again.");
     }
-  }, [capturedImage, currentTask, isMobile, vibrate, createFirstPersonImage, videoDimensions, navigate]);
+  }, [
+    capturedImage,
+    currentTask,
+    isMobile,
+    vibrate,
+    createFirstPersonImage,
+    videoDimensions,
+    navigate,
+  ]);
 
   const handleFlipCamera = useCallback(() => {
-    setFacingMode(prev => prev === "user" ? "environment" : "user");
+    setFacingMode(prev => (prev === "user" ? "environment" : "user"));
     if (isStreaming) {
       stopCamera();
       setTimeout(() => {
@@ -350,10 +359,7 @@ export function FirstPersonCapture() {
           onFlipCamera={handleFlipCamera}
         />
       ) : (
-        <FirstPersonCaptureDesktop
-          {...commonProps}
-          onStopCamera={stopCamera}
-        />
+        <FirstPersonCaptureDesktop {...commonProps} onStopCamera={stopCamera} />
       )}
 
       {/* Hidden canvas for photo capture */}

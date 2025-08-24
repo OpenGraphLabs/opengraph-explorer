@@ -1,2 +1,2 @@
-export { FirstPersonCaptureDesktop } from './FirstPersonCaptureDesktop';
-export { FirstPersonCaptureMobile } from './FirstPersonCaptureMobile';
+export { FirstPersonCaptureDesktop } from "./FirstPersonCaptureDesktop";
+export { FirstPersonCaptureMobile } from "./FirstPersonCaptureMobile";

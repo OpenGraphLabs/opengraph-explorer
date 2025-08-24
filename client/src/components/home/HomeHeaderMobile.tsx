@@ -311,9 +311,7 @@ function MobileTabTrigger({
         border: isActive
           ? `1px solid ${theme.colors.interactive.primary}40`
           : "1px solid transparent",
-        boxShadow: isActive
-          ? `0 2px 8px ${theme.colors.interactive.primary}30`
-          : "none",
+        boxShadow: isActive ? `0 2px 8px ${theme.colors.interactive.primary}30` : "none",
         cursor: "pointer",
         width: "100%",
       }}

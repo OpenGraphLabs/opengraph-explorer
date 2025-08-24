@@ -1,2 +1,2 @@
-export { LoginDesktop } from './LoginDesktop';
-export { LoginMobile } from './LoginMobile';
+export { LoginDesktop } from "./LoginDesktop";
+export { LoginMobile } from "./LoginMobile";

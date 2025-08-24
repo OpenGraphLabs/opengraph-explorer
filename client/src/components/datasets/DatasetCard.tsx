@@ -54,8 +54,8 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
       <Link to={`/datasets/${dataset.id}`} style={{ textDecoration: "none" }}>
         <Card
           style={{
-            padding: isMobile 
-              ? theme.spacing.semantic.component.md 
+            padding: isMobile
+              ? theme.spacing.semantic.component.md
               : theme.spacing.semantic.component.lg,
             borderRadius: theme.borders.radius.lg,
             border: `1px solid ${theme.colors.border.primary}`,
@@ -67,16 +67,24 @@ export const DatasetCard = ({ dataset, index, isLoaded }: DatasetCardProps) => {
             transition: theme.animations.transitions.hover,
             cursor: "pointer",
           }}
-          onMouseEnter={!isMobile ? e => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = theme.shadows.semantic.card.medium;
-            e.currentTarget.style.borderColor = `${theme.colors.interactive.primary}40`;
-          } : undefined}
-          onMouseLeave={!isMobile ? e => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
-            e.currentTarget.style.borderColor = theme.colors.border.primary;
-          } : undefined}
+          onMouseEnter={
+            !isMobile
+              ? e => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.medium;
+                  e.currentTarget.style.borderColor = `${theme.colors.interactive.primary}40`;
+                }
+              : undefined
+          }
+          onMouseLeave={
+            !isMobile
+              ? e => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = theme.shadows.semantic.card.low;
+                  e.currentTarget.style.borderColor = theme.colors.border.primary;
+                }
+              : undefined
+          }
         >
           <Flex direction="column" gap="4" style={{ height: "100%" }}>
             {/* Header: Dataset Name */}

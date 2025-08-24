@@ -349,10 +349,7 @@ export function ProfileLayoutMobile() {
 
             {/* Progress Bar - Mobile */}
             <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
-              <Flex
-                justify="between"
-                style={{ marginBottom: theme.spacing.semantic.component.xs }}
-              >
+              <Flex justify="between" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
                 <Text size="1" style={{ color: theme.colors.text.secondary }}>
                   Next Level Progress
                 </Text>
@@ -629,9 +626,7 @@ export function ProfileLayoutMobile() {
                 }`,
                 borderRadius: theme.borders.radius.sm,
                 color:
-                  mockData.tokens[selectedToken].pending > 0
-                    ? "white"
-                    : theme.colors.text.tertiary,
+                  mockData.tokens[selectedToken].pending > 0 ? "white" : theme.colors.text.tertiary,
                 fontSize: "14px",
                 fontWeight: "600",
                 cursor: mockData.tokens[selectedToken].pending > 0 ? "pointer" : "not-allowed",

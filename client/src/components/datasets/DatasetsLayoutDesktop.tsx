@@ -18,11 +18,7 @@ import {
  */
 export function DatasetsLayoutDesktop() {
   const { theme } = useTheme();
-  const {
-    datasets: filteredDatasets,
-    totalDatasets,
-    totalPages,
-  } = useDatasetsPageContext();
+  const { datasets: filteredDatasets, totalDatasets, totalPages } = useDatasetsPageContext();
 
   // Sidebar configuration for desktop
   const sidebarConfig = {

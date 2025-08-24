@@ -19,16 +19,16 @@ export function DatasetDetailHeader() {
   return (
     <Box
       style={{
-        marginBottom: isMobile 
+        marginBottom: isMobile
           ? theme.spacing.semantic.component.md
           : theme.spacing.semantic.component.lg,
         paddingBottom: theme.spacing.semantic.component.md,
         borderBottom: `1px solid ${theme.colors.border.primary}`,
       }}
     >
-      <Grid 
-        columns={{ initial: "1", lg: isMobile ? "1" : "4" }} 
-        gap={isMobile ? "4" : "6"} 
+      <Grid
+        columns={{ initial: "1", lg: isMobile ? "1" : "4" }}
+        gap={isMobile ? "4" : "6"}
         align="start"
       >
         {/* Main Content */}

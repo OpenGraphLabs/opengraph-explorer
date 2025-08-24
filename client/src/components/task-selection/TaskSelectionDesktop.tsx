@@ -28,13 +28,15 @@ export function TaskSelectionDesktop({
 
   if (error) {
     return (
-      <Box style={{ 
-        minHeight: "100vh",
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center",
-        padding: theme.spacing.semantic.layout.lg 
-      }}>
+      <Box
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.semantic.layout.lg,
+        }}
+      >
         <Text style={{ color: theme.colors.status.error, fontSize: "16px" }}>
           Failed to load tasks. Please try again later.
         </Text>
@@ -84,7 +86,7 @@ export function TaskSelectionDesktop({
                 Choose a robotics task to complete through first-person capture
               </Text>
             </Box>
-            
+
             <Flex align="center" gap="4">
               <Text
                 size="2"
@@ -127,7 +129,7 @@ export function TaskSelectionDesktop({
               type="text"
               placeholder="Search tasks..."
               value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={e => onSearchChange(e.target.value)}
               style={{
                 width: "100%",
                 padding: "12px 16px 12px 44px",
@@ -139,11 +141,11 @@ export function TaskSelectionDesktop({
                 outline: "none",
                 color: theme.colors.text.primary,
               }}
-              onFocus={(e) => {
+              onFocus={e => {
                 e.target.style.borderColor = theme.colors.interactive.primary;
                 e.target.style.boxShadow = `0 0 0 3px ${theme.colors.interactive.primary}15`;
               }}
-              onBlur={(e) => {
+              onBlur={e => {
                 e.target.style.borderColor = theme.colors.border.secondary;
                 e.target.style.boxShadow = "none";
               }}
@@ -155,7 +157,11 @@ export function TaskSelectionDesktop({
         {isLoading ? (
           <Flex align="center" justify="center" style={{ minHeight: "400px" }}>
             <Flex align="center" gap="3">
-              <CircleNotch size={20} color={theme.colors.interactive.primary} className="animate-spin" />
+              <CircleNotch
+                size={20}
+                color={theme.colors.interactive.primary}
+                className="animate-spin"
+              />
               <Text style={{ color: theme.colors.text.secondary }}>Loading tasks...</Text>
             </Flex>
           </Flex>
@@ -167,12 +173,8 @@ export function TaskSelectionDesktop({
               gap: "20px",
             }}
           >
-            {filteredTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onSelect={onTaskSelect}
-              />
+            {filteredTasks.map(task => (
+              <TaskCard key={task.id} task={task} onSelect={onTaskSelect} />
             ))}
           </Box>
         ) : (
@@ -185,10 +187,10 @@ export function TaskSelectionDesktop({
               backgroundColor: `${theme.colors.background.secondary}30`,
             }}
           >
-            <MagnifyingGlass 
-              size={32} 
-              color={theme.colors.text.tertiary} 
-              weight="duotone" 
+            <MagnifyingGlass
+              size={32}
+              color={theme.colors.text.tertiary}
+              weight="duotone"
               style={{ marginBottom: "12px" }}
             />
             <Text

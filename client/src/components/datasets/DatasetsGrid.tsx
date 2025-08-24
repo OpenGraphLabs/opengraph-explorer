@@ -16,7 +16,7 @@ export function DatasetsGrid() {
         columns={{ initial: "1", sm: "1", md: "2" }}
         gap={isMobile ? "3" : "4"}
         style={{
-          gridTemplateColumns: isMobile 
+          gridTemplateColumns: isMobile
             ? "1fr" // Single column on mobile
             : "repeat(auto-fill, minmax(480px, 1fr))", // Responsive grid on desktop
           marginBottom: totalPages > 1 ? theme.spacing.semantic.layout.lg : 0,

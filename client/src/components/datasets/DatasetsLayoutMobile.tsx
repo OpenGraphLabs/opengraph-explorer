@@ -18,11 +18,7 @@ import {
 export function DatasetsLayoutMobile() {
   const { theme } = useTheme();
   const [showFilters, setShowFilters] = useState(false);
-  const {
-    datasets: filteredDatasets,
-    totalDatasets,
-    totalPages,
-  } = useDatasetsPageContext();
+  const { datasets: filteredDatasets, totalDatasets, totalPages } = useDatasetsPageContext();
 
   return (
     <Box

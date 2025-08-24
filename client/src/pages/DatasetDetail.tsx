@@ -5,10 +5,7 @@ import {
   DatasetDetailPageContextProvider,
   useDatasetDetailPageContext,
 } from "@/contexts/DatasetDetailPageContextProvider";
-import {
-  DatasetDetailLoadingState,
-  DatasetDetailErrorState,
-} from "@/components/datasets";
+import { DatasetDetailLoadingState, DatasetDetailErrorState } from "@/components/datasets";
 import { DatasetDetailLayoutDesktop } from "@/components/datasets/DatasetDetailLayoutDesktop";
 import { DatasetDetailLayoutMobile } from "@/components/datasets/DatasetDetailLayoutMobile";
 

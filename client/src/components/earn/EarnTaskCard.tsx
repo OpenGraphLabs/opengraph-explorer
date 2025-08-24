@@ -3,13 +3,7 @@ import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/compon
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate } from "react-router-dom";
 import { useMobile } from "@/shared/hooks";
-import {
-  ArrowRight,
-  Coins,
-  CheckCircle,
-  Sparkle,
-  Image,
-} from "phosphor-react";
+import { ArrowRight, Coins, CheckCircle, Sparkle, Image } from "phosphor-react";
 
 interface TaskType {
   id: string;

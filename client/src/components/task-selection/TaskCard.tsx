@@ -46,9 +46,9 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
               letterSpacing: "0.08em",
             }}
           >
-            Task #{task.id.toString().padStart(3, '0')}
+            Task #{task.id.toString().padStart(3, "0")}
           </Text>
-          
+
           <Flex
             align="center"
             gap="1"

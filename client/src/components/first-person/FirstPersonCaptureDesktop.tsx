@@ -9,7 +9,7 @@ interface FirstPersonCaptureDesktopProps {
   // Video refs
   videoRef: React.RefObject<HTMLVideoElement>;
   containerRef: React.RefObject<HTMLDivElement>;
-  
+
   // State
   isStreaming: boolean;
   capturedImage: string | null;
@@ -17,15 +17,15 @@ interface FirstPersonCaptureDesktopProps {
   error: string | null;
   videoDimensions: { width: number; height: number };
   detectionEnabled: boolean;
-  
+
   // Detection
   detections: Detection[];
   isModelLoading: boolean;
   fps: number;
-  
+
   // Task
   currentTask: Task | null;
-  
+
   // Handlers
   onCapture: () => void;
   onRetake: () => void;

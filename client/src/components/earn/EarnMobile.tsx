@@ -3,12 +3,7 @@ import { Box, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { EarnTaskCard } from "./EarnTaskCard";
 import actionDemoVideo from "@/assets/thumbnail/earn_thumbnail_action_demonstration.mov";
-import {
-  MaskHappy,
-  Path,
-  Camera,
-  PlayCircle,
-} from "phosphor-react";
+import { MaskHappy, Path, Camera, PlayCircle } from "phosphor-react";
 
 interface TaskType {
   id: string;
@@ -140,12 +135,7 @@ export function EarnMobile({ isLoaded }: EarnMobileProps) {
         }}
       >
         {TASK_TYPES.map((task, index) => (
-          <EarnTaskCard
-            key={task.id}
-            task={task}
-            index={index}
-            isLoaded={isLoaded}
-          />
+          <EarnTaskCard key={task.id} task={task} index={index} isLoaded={isLoaded} />
         ))}
       </Box>
 

@@ -12,15 +12,15 @@ export function DatasetsTopBar() {
     useDatasetsPageContext();
 
   return (
-    <Flex 
-      justify="between" 
+    <Flex
+      justify="between"
       align="center"
-      style={{ 
-        padding: isMobile 
+      style={{
+        padding: isMobile
           ? `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`
           : `${theme.spacing.semantic.component.md} ${theme.spacing.semantic.component.lg}`,
         flexWrap: isMobile ? "wrap" : "nowrap",
-        gap: isMobile ? theme.spacing.semantic.component.sm : "0"
+        gap: isMobile ? theme.spacing.semantic.component.sm : "0",
       }}
     >
       <Flex align="center" gap={isMobile ? "2" : "4"}>

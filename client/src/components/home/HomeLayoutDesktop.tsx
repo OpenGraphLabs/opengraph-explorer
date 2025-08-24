@@ -12,10 +12,7 @@ import { HomeContent } from "./HomeContent";
  */
 export function HomeLayoutDesktop() {
   const { theme } = useTheme();
-  const {
-    selectedAnnotation,
-    handleCloseSidebar,
-  } = useHomePageContext();
+  const { selectedAnnotation, handleCloseSidebar } = useHomePageContext();
 
   return (
     <Box
