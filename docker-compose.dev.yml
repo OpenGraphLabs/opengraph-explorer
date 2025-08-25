@@ -20,6 +20,28 @@ services:
       timeout: 5s
       retries: 5
 
+  # DB Migration Service for Development
+  migration:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    container_name: opengraph-migration-dev
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - ./server:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - opengraph-network
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+
   # Python FastAPI Backend Server for Development
   fastapi:
     build:
@@ -54,6 +76,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     networks:
       - opengraph-network
     healthcheck:
@@ -113,7 +137,7 @@ services:
         VITE_SERVER_BASE_URL: ${CLIENT_VITE_SERVER_BASE_URL}
     container_name: opengraph-client-dev
     ports:
-      - "3001:3001"
+      - "3001:80"
     volumes:
       - ./client:/app
       - /app/node_modules

@@ -4,9 +4,9 @@ services:
     image: postgres:15
     container_name: opengraph-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -24,6 +24,31 @@ services:
         limits:
           cpus: "2"
           memory: 2G
+
+  # DB Migration Service
+  migration:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    container_name: opengraph-migration
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - opengraph-network
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
 
   # Python FastAPI Backend Server
   fastapi:
@@ -52,12 +77,11 @@ services:
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
       GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT}
       GCS_BUCKET_NAME: ${GCS_BUCKET_NAME}
-    volumes:
-      - ./server:/app
-      - ./server/secrets:/app/secrets
     depends_on:
       postgres:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     networks:
       - opengraph-network
     healthcheck:

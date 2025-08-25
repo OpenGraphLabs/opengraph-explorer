@@ -59,11 +59,6 @@ COPY --chown=appuser:appuser ../../server/app ./app
 COPY --chown=appuser:appuser ../../server/alembic ./alembic
 COPY --chown=appuser:appuser ../../server/alembic.ini ./alembic.ini
 
-# Copy only essential scripts (exclude test data)
-COPY --chown=appuser:appuser ../../server/app/scripts/load_annotations.py ./app/scripts/
-COPY --chown=appuser:appuser ../../server/app/scripts/annotations/ ./app/scripts/annotations/
-COPY --chown=appuser:appuser ../../server/app/scripts/annotations_first_person/ ./app/scripts/annotations_first_person/
-
 # Copy secrets directory if it exists
 COPY --chown=appuser:appuser ../../server/secrets ./secrets
 

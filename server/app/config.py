@@ -7,7 +7,7 @@
 import os
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import PostgresDsn, validator
+from pydantic import validator
 
 
 class Settings(BaseSettings):
@@ -19,26 +19,25 @@ class Settings(BaseSettings):
     debug: bool = True
     
     # Database
-    database_url: Optional[PostgresDsn] = None
+    database_url: Optional[str] = None
     database_host: str = "localhost"
     database_port: int = 5432
-    database_name: str = "opengraph"
+    database_name: str = "opengraph_db"
     database_user: str = "opengraph_user"
-    database_password: str = "opengraph_pw"
+    database_password: str = "opengraph_password"
     
     @validator("database_url", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: dict) -> str:
         """데이터베이스 URL 조립"""
         if isinstance(v, str):
             return v
-        return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=values.get("database_user", "opengraph_user"),
-            password=values.get("database_password", "opengraph_pw"),
-            host=values.get("database_host", "localhost"),
-            port=values.get("database_port", 5432),
-            path=values.get("database_name", "opengraph")
-        )
+        host = values.get("database_host", "localhost")
+        port = values.get("database_port", 5432)
+        user = values.get("database_user", "opengraph_user")
+        password = values.get("database_password", "opengraph_pw")
+        db_name = values.get("database_name", "opengraph")
+        
+        return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}"
     
     # Authentication
     jwt_secret_key: str = "your-jwt-secret-key-change-this-in-production"

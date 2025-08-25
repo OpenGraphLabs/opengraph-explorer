@@ -4,6 +4,7 @@
 SQLAlchemy를 사용한 비동기 데이터베이스 연결과 세션 관리
 """
 
+import os
 from typing import AsyncGenerator
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -12,16 +13,29 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from .config import settings
 
+def get_database_url() -> str:
+    """환경변수에서 직접 데이터베이스 URL을 구성합니다."""
+    host = os.environ.get("DATABASE_HOST", settings.database_host)
+    port = os.environ.get("DATABASE_PORT", settings.database_port)
+    user = os.environ.get("DATABASE_USER", settings.database_user)
+    password = os.environ.get("DATABASE_PASSWORD", settings.database_password)
+    db_name = os.environ.get("DATABASE_NAME", settings.database_name)
+    
+    return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}"
+
+# 데이터베이스 URL 가져오기
+database_url = get_database_url()
+
 # 동기 엔진 (Alembic 마이그레이션용)
 sync_engine = create_engine(
-    str(settings.database_url).replace("postgresql+asyncpg", "postgresql"),
+    database_url.replace("postgresql+asyncpg", "postgresql"),
     pool_pre_ping=True,
     echo=settings.debug
 )
 
 # 비동기 엔진 (애플리케이션용)
 async_engine = create_async_engine(
-    str(settings.database_url),
+    database_url,
     pool_pre_ping=True,
     echo=settings.debug
 )
