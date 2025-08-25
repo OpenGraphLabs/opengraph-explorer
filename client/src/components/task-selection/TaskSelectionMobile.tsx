@@ -631,6 +631,7 @@ export function TaskSelectionMobile({
               style={{ marginBottom: "12px", opacity: 0.5 }}
             />
             <Text
+              as="p"
               size="3"
               style={{
                 color: theme.colors.text.secondary,
@@ -641,6 +642,7 @@ export function TaskSelectionMobile({
               No tasks found
             </Text>
             <Text
+              as="p"
               size="2"
               style={{
                 color: theme.colors.text.tertiary,

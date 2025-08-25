@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from contextlib import asynccontextmanager
 import time
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 from .config import settings
 from .database import test_db_connection
@@ -27,6 +29,30 @@ from .routers import (
 )
 
 
+# Custom Prometheus metrics
+REQUEST_COUNT = Counter(
+    "opengraph_http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status_code"]
+)
+
+REQUEST_DURATION = Histogram(
+    "opengraph_http_request_duration_seconds", 
+    "HTTP request duration in seconds",
+    ["method", "endpoint"]
+)
+
+DATABASE_CONNECTION_STATUS = Gauge(
+    "opengraph_database_connection_status",
+    "Database connection status (1=connected, 0=disconnected)"
+)
+
+ACTIVE_CONNECTIONS = Gauge(
+    "opengraph_active_connections",
+    "Number of active database connections"
+)
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,16 +62,19 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting OpenGraph API Server...")
     
-    # Test database connection
+    # Test database connection and update metrics
     if await test_db_connection():
         print("✅ Database connection successful")
+        DATABASE_CONNECTION_STATUS.set(1)
     else:
         print("❌ Database connection failed")
+        DATABASE_CONNECTION_STATUS.set(0)
     
     yield
     
     # Shutdown
     print("🔄 Shutting down OpenGraph API Server...")
+    DATABASE_CONNECTION_STATUS.set(0)
 
 
 app = FastAPI(
@@ -56,6 +85,11 @@ app = FastAPI(
     redoc_url="/redoc" if settings.debug else None,
     lifespan=lifespan
 )
+
+# Initialize Prometheus instrumentator
+instrumentator = Instrumentator()
+instrumentator.instrument(app).expose(app)
+print("📊 Prometheus metrics initialized")
 
 app.add_middleware(
     CORSMiddleware,
@@ -87,9 +121,23 @@ async def extract_user_id_header(request: Request, call_next):
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
+    
+    # Extract method and path for metrics
+    method = request.method
+    path = request.url.path
+    
+    # Call the endpoint
     response = await call_next(request)
+    
+    # Calculate process time
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
+    
+    # Update Prometheus metrics
+    status_code = str(response.status_code)
+    REQUEST_COUNT.labels(method=method, endpoint=path, status_code=status_code).inc()
+    REQUEST_DURATION.labels(method=method, endpoint=path).observe(process_time)
+    
     return response
 
 
@@ -117,12 +165,31 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.get("/health")
 async def health_check():
+    # Test database connection for health check
+    db_healthy = await test_db_connection()
+    DATABASE_CONNECTION_STATUS.set(1 if db_healthy else 0)
+    
     return {
-        "status": "healthy",
+        "status": "healthy" if db_healthy else "unhealthy",
         "app_name": settings.app_name,
         "version": settings.app_version,
-        "debug": settings.debug
+        "debug": settings.debug,
+        "database": "connected" if db_healthy else "disconnected",
+        "metrics": {
+            "endpoint": "/metrics",
+            "enabled": True
+        }
     }
+
+
+@app.get("/metrics")
+async def get_metrics():
+    """
+    Prometheus metrics endpoint
+    Note: This endpoint is also automatically exposed by Instrumentator
+    """
+    from fastapi.responses import Response
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 app.include_router(auth_router, prefix="/api/v1")

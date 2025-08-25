@@ -25,49 +25,43 @@ services:
           cpus: "2"
           memory: 2G
 
-  # PostgreSQL Database Initialization
-  migrate:
-    build:
-      context: .
-      dockerfile: docker/migrate/Dockerfile
-    container_name: opengraph-migrate
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: >
-      bash -c "
-        cargo sqlx database create &&
-        cargo sqlx migrate run &&
-        cargo sqlx prepare --check
-      "
-    environment:
-      DATABASE_URL: ${SERVER_DATABASE_URL}
-    volumes:
-      - ./server_archived:/app
-    networks:
-      - opengraph-network
-
-  # Rust Backend Server
-  server:
+  # Python FastAPI Backend Server
+  fastapi:
     build:
       context: .
       dockerfile: docker/server/Dockerfile
-    container_name: opengraph-server_archived
+    container_name: opengraph-fastapi
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
-      DATABASE_URL: ${SERVER_DATABASE_URL}
-      PORT: ${SERVER_PORT}
-      RUST_LOG: ${SERVER_RUST_LOG}
+      DATABASE_URL: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      APP_NAME: ${APP_NAME}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT}
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME}
+    volumes:
+      - ./server:/app
+      - ./server/secrets:/app/secrets
     depends_on:
       postgres:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - opengraph-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -77,6 +71,57 @@ services:
           cpus: "2"
           memory: 2G
 
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: opengraph-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - opengraph_prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - fastapi
+    networks:
+      - opengraph-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: opengraph-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - opengraph_grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - opengraph-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+
   # React Frontend Client
   client:
     build:
@@ -84,7 +129,6 @@ services:
       dockerfile: docker/client/Dockerfile
       args:
         VITE_SERVER_BASE_URL: ${CLIENT_VITE_SERVER_BASE_URL}
-        VITE_CONVERTER_BASE_URL: ${CLIENT_VITE_CONVERTER_BASE_URL}
     container_name: opengraph-client
     ports:
       - "80:80"
@@ -93,10 +137,8 @@ services:
       - /etc/letsencrypt/live/explorer.opengraphlabs.xyz:/etc/letsencrypt/live/explorer.opengraphlabs.xyz
       - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/letsencrypt/archive/explorer.opengraphlabs.xyz
     depends_on:
-      - server
-      - converter
+      - fastapi
     environment:
-      - VITE_CONVERTER_BASE_URL=${CLIENT_VITE_CONVERTER_BASE_URL}
       - VITE_SERVER_BASE_URL=${CLIENT_VITE_SERVER_BASE_URL}
     networks:
       - opengraph-network
@@ -114,4 +156,6 @@ networks:
 # Persistent volumes
 volumes:
   opengraph_postgres_data:
+  opengraph_prometheus_data:
+  opengraph_grafana_data:
   uploads: 

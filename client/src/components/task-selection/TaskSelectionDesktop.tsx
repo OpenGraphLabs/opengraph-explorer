@@ -644,6 +644,7 @@ export function TaskSelectionDesktop({
               style={{ marginBottom: "16px", opacity: 0.5 }}
             />
             <Text
+              as="p"
               size="4"
               style={{
                 color: theme.colors.text.secondary,
@@ -654,6 +655,7 @@ export function TaskSelectionDesktop({
               No tasks found
             </Text>
             <Text
+              as="p"
               size="2"
               style={{
                 color: theme.colors.text.tertiary,
