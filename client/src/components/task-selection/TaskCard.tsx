@@ -26,38 +26,43 @@ interface TaskCardProps {
 const getTaskMetadata = (task: Task) => {
   const hash = task.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-  const difficulties = ["Easy", "Medium", "Hard"];
+  const difficulties = ["Beginner", "Intermediate", "Advanced"];
   const difficulty = difficulties[hash % 3];
 
   const difficultyColors = {
-    Easy: { bg: "#10b98115", text: "#10b981", icon: Lightning },
-    Medium: { bg: "#f5970015", text: "#f59700", icon: Target },
-    Hard: { bg: "#ef444415", text: "#ef4444", icon: Fire },
+    Beginner: { bg: "#10b98108", text: "#059669", icon: Lightning },
+    Intermediate: { bg: "#f5970008", text: "#d97706", icon: Target },
+    Advanced: { bg: "#ef444408", text: "#dc2626", icon: Fire },
   };
 
   const categories = [
-    { name: "Object Detection", icon: Camera, color: "#8b5cf6" },
-    { name: "Scene Capture", icon: Target, color: "#3b82f6" },
-    { name: "Action Recording", icon: Trophy, color: "#ec4899" },
+    { name: "Computer Vision", icon: Camera, color: "#6366f1" },
+    { name: "Data Collection", icon: Target, color: "#0891b2" },
+    { name: "Behavioral AI", icon: Trophy, color: "#7c3aed" },
   ];
 
   const category = categories[hash % categories.length];
-  const points = difficulty === "Easy" ? 50 : difficulty === "Medium" ? 100 : 200;
+  const reward =
+    difficulty === "Beginner"
+      ? "2-5 $OPEN"
+      : difficulty === "Intermediate"
+        ? "5-12 $OPEN"
+        : "10-25 $OPEN";
   const estimatedTime =
-    difficulty === "Easy" ? "5-10 min" : difficulty === "Medium" ? "10-20 min" : "20-30 min";
-  const completions = Math.floor(Math.random() * 1000) + 100;
-  const isPopular = completions > 500;
-  const isNew = hash % 5 === 0;
+    difficulty === "Beginner" ? "~5 min" : difficulty === "Intermediate" ? "~15 min" : "~25 min";
+  const completions = Math.floor(Math.random() * 500) + 50;
+  const isPopular = completions > 300;
+  const isFeatured = hash % 7 === 0;
 
   return {
     difficulty,
     difficultyColor: difficultyColors[difficulty as keyof typeof difficultyColors],
     category,
-    points,
+    reward,
     estimatedTime,
     completions,
     isPopular,
-    isNew,
+    isFeatured,
   };
 };
 
@@ -85,70 +90,69 @@ export function TaskCard({ task, onSelect, index = 0 }: TaskCardProps) {
         }`,
         cursor: "pointer",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        transform: isHovered ? "translateY(-4px) scale(1.02)" : "translateY(0) scale(1)",
+        transform: isHovered ? "translateY(-2px)" : "translateY(0)",
         boxShadow: isHovered
-          ? `0 20px 40px rgba(0, 0, 0, 0.12), 0 0 0 2px ${theme.colors.interactive.primary}20`
-          : `0 2px 8px rgba(0, 0, 0, 0.04)`,
+          ? `0 8px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px ${theme.colors.interactive.primary}15`
+          : `0 1px 3px rgba(0, 0, 0, 0.04)`,
         minHeight: isMobile ? "140px" : "160px",
         overflow: "hidden",
         animation: `fadeInUp 0.5s ease-out ${index * 0.05}s both`,
       }}
     >
-      {/* Background Gradient */}
+      {/* Subtle Background */}
       <Box
         style={{
           position: "absolute",
           top: 0,
           right: 0,
-          width: "40%",
+          width: "30%",
           height: "100%",
-          background: `linear-gradient(135deg, transparent, ${metadata.category.color}08)`,
+          background: `linear-gradient(135deg, transparent, ${metadata.category.color}04)`,
           borderRadius: "12px",
-          opacity: isHovered ? 1 : 0.5,
-          transition: "opacity 0.3s ease",
+          opacity: isHovered ? 1 : 0.7,
+          transition: "opacity 0.2s ease",
         }}
       />
 
-      {/* Badges */}
+      {/* Status Badges */}
       <Flex
         style={{
           position: "absolute",
           top: "16px",
           right: "16px",
-          gap: "8px",
+          gap: "6px",
         }}
       >
-        {metadata.isNew && (
+        {metadata.isFeatured && (
           <Badge
             style={{
-              background: `linear-gradient(135deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}dd)`,
-              color: "white",
-              border: "none",
-              fontSize: "10px",
-              padding: "4px 8px",
+              background: theme.colors.background.card,
+              color: theme.colors.interactive.primary,
+              border: `1px solid ${theme.colors.interactive.primary}30`,
+              fontSize: "9px",
+              padding: "3px 6px",
               fontWeight: 600,
-              animation: "pulse 2s infinite",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
             }}
           >
-            NEW
+            Featured
           </Badge>
         )}
         {metadata.isPopular && (
           <Badge
             style={{
-              background: `linear-gradient(135deg, #f59e0b, #dc2626)`,
-              color: "white",
-              border: "none",
-              fontSize: "10px",
-              padding: "4px 8px",
+              background: theme.colors.background.card,
+              color: theme.colors.status.warning,
+              border: `1px solid ${theme.colors.status.warning}30`,
+              fontSize: "9px",
+              padding: "3px 6px",
               fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: "2px",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
             }}
           >
-            <Fire size={10} weight="fill" />
-            HOT
+            Popular
           </Badge>
         )}
       </Flex>
@@ -177,9 +181,8 @@ export function TaskCard({ task, onSelect, index = 0 }: TaskCardProps) {
               style={{
                 color: metadata.category.color,
                 fontSize: "11px",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
+                fontWeight: 500,
+                letterSpacing: "0.05em",
               }}
             >
               {metadata.category.name}
@@ -235,9 +238,9 @@ export function TaskCard({ task, onSelect, index = 0 }: TaskCardProps) {
             </Text>
           </Flex>
 
-          {/* Points */}
+          {/* Reward */}
           <Flex align="center" gap="1">
-            <Coins size={14} color={theme.colors.status.warning} weight="fill" />
+            <Coins size={14} color={theme.colors.status.warning} weight="duotone" />
             <Text
               size="2"
               style={{
@@ -246,7 +249,7 @@ export function TaskCard({ task, onSelect, index = 0 }: TaskCardProps) {
                 fontSize: "13px",
               }}
             >
-              {metadata.points} pts
+              {metadata.reward}
             </Text>
           </Flex>
 
@@ -279,74 +282,20 @@ export function TaskCard({ task, onSelect, index = 0 }: TaskCardProps) {
           </Flex>
         </Flex>
 
-        {/* Progress Bar (if task in progress - mock) */}
-        {Math.random() > 0.7 && (
-          <Box style={{ marginTop: "4px" }}>
-            <Flex align="center" justify="between" style={{ marginBottom: "4px" }}>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.tertiary,
-                  fontSize: "10px",
-                  fontWeight: 500,
-                }}
-              >
-                IN PROGRESS
-              </Text>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.interactive.primary,
-                  fontSize: "10px",
-                  fontWeight: 600,
-                }}
-              >
-                {Math.floor(Math.random() * 80) + 10}%
-              </Text>
-            </Flex>
-            <Box
-              style={{
-                width: "100%",
-                height: "3px",
-                background: theme.colors.border.secondary,
-                borderRadius: "2px",
-                overflow: "hidden",
-              }}
-            >
-              <Box
-                style={{
-                  width: `${Math.floor(Math.random() * 80) + 10}%`,
-                  height: "100%",
-                  background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.primary}dd)`,
-                  borderRadius: "2px",
-                  transition: "width 0.3s ease",
-                }}
-              />
-            </Box>
-          </Box>
-        )}
-
-        {/* Hover Action */}
-        <Flex
-          align="center"
-          justify="center"
+        {/* Hover Indicator */}
+        <ArrowRight
+          size={16}
           style={{
             position: "absolute",
-            bottom: "-40px",
+            bottom: "20px",
             right: "20px",
-            width: "36px",
-            height: "36px",
-            borderRadius: "50%",
-            background: theme.colors.interactive.primary,
-            color: "white",
-            opacity: isHovered ? 1 : 0,
-            transform: isHovered ? "translateY(-60px)" : "translateY(0)",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            color: theme.colors.text.tertiary,
+            opacity: isHovered ? 1 : 0.4,
+            transform: isHovered ? "translateX(2px)" : "translateX(0)",
+            transition: "all 0.2s ease",
           }}
-        >
-          <ArrowRight size={18} weight="bold" />
-        </Flex>
+          weight="regular"
+        />
       </Flex>
 
       <style>
@@ -362,14 +311,6 @@ export function TaskCard({ task, onSelect, index = 0 }: TaskCardProps) {
             }
           }
 
-          @keyframes pulse {
-            0%, 100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.8;
-            }
-          }
         `}
       </style>
     </Box>

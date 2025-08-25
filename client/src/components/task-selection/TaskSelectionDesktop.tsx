@@ -29,12 +29,12 @@ interface TaskSelectionDesktopProps {
 
 // Mock user stats - in real app, this would come from API
 const getUserStats = () => ({
-  totalEarned: 2450,
-  tasksCompleted: 48,
-  currentStreak: 7,
-  level: 12,
-  nextLevelProgress: 65,
-  rank: "Gold Contributor",
+  totalEarned: 148,
+  tasksCompleted: 23,
+  currentStreak: 5,
+  level: 8,
+  nextLevelProgress: 42,
+  rank: "Contributor",
 });
 
 export function TaskSelectionDesktop({
@@ -52,10 +52,10 @@ export function TaskSelectionDesktop({
 
   const filters = [
     { id: "all", label: "All Tasks", icon: ChartBar },
-    { id: "easy", label: "Beginner", icon: Lightning, color: "#10b981" },
-    { id: "medium", label: "Intermediate", icon: Target, color: "#f59700" },
-    { id: "hard", label: "Expert", icon: Trophy, color: "#ef4444" },
-    { id: "popular", label: "Popular", icon: TrendUp, color: "#8b5cf6" },
+    { id: "beginner", label: "Beginner", icon: Lightning, color: "#059669" },
+    { id: "intermediate", label: "Intermediate", icon: Target, color: "#d97706" },
+    { id: "advanced", label: "Advanced", icon: Trophy, color: "#dc2626" },
+    { id: "featured", label: "Featured", icon: Star, color: "#6366f1" },
   ];
 
   if (error) {
@@ -80,7 +80,7 @@ export function TaskSelectionDesktop({
     <Box
       style={{
         minHeight: "100vh",
-        background: `linear-gradient(180deg, ${theme.colors.background.secondary}20 0%, ${theme.colors.background.primary} 100%)`,
+        background: `linear-gradient(180deg, ${theme.colors.background.secondary}10 0%, ${theme.colors.background.primary} 100%)`,
       }}
     >
       {/* Header with Stats */}
@@ -239,9 +239,9 @@ export function TaskSelectionDesktop({
                     style={{
                       color: theme.colors.text.tertiary,
                       fontSize: "11px",
-                      fontWeight: 600,
+                      fontWeight: 500,
                       textTransform: "uppercase",
-                      letterSpacing: "0.08em",
+                      letterSpacing: "0.05em",
                       marginBottom: "8px",
                     }}
                   >
@@ -249,23 +249,23 @@ export function TaskSelectionDesktop({
                   </Text>
                   <Flex align="baseline" gap="1">
                     <Text
-                      size="6"
+                      size="5"
                       style={{
                         color: theme.colors.text.primary,
-                        fontWeight: 700,
-                        fontSize: "28px",
+                        fontWeight: 600,
+                        fontSize: "24px",
                       }}
                     >
-                      {userStats.totalEarned.toLocaleString()}
+                      {userStats.totalEarned}
                     </Text>
                     <Text
                       size="2"
                       style={{
                         color: theme.colors.status.warning,
-                        fontWeight: 600,
+                        fontWeight: 500,
                       }}
                     >
-                      pts
+                      $OPEN
                     </Text>
                   </Flex>
                 </Box>
@@ -477,15 +477,15 @@ export function TaskSelectionDesktop({
             </Text>
             <Badge
               style={{
-                background: `linear-gradient(135deg, ${theme.colors.status.success}, ${theme.colors.status.success}dd)`,
-                color: "white",
-                border: "none",
+                background: theme.colors.background.secondary,
+                color: theme.colors.status.success,
+                border: `1px solid ${theme.colors.status.success}30`,
                 fontSize: "10px",
                 padding: "2px 8px",
-                fontWeight: 600,
+                fontWeight: 500,
               }}
             >
-              LIVE
+              Available
             </Badge>
           </Flex>
         </Box>
@@ -612,7 +612,7 @@ export function TaskSelectionDesktop({
                   animation: "spin 1s linear infinite",
                 }}
               />
-              <Text style={{ color: theme.colors.text.secondary }}>Loading amazing tasks...</Text>
+              <Text style={{ color: theme.colors.text.secondary }}>Loading tasks...</Text>
             </Flex>
           </Flex>
         ) : filteredTasks.length > 0 ? (

@@ -29,12 +29,12 @@ interface TaskSelectionMobileProps {
 
 // Mock user stats - in real app, this would come from API
 const getUserStats = () => ({
-  totalEarned: 2450,
-  tasksCompleted: 48,
-  currentStreak: 7,
-  level: 12,
-  nextLevelProgress: 65,
-  rank: "Gold",
+  totalEarned: 148,
+  tasksCompleted: 23,
+  currentStreak: 5,
+  level: 8,
+  nextLevelProgress: 42,
+  rank: "Contributor",
 });
 
 export function TaskSelectionMobile({
@@ -53,10 +53,10 @@ export function TaskSelectionMobile({
 
   const filters = [
     { id: "all", label: "All", icon: ChartBar },
-    { id: "easy", label: "Easy", icon: Lightning, color: "#10b981" },
-    { id: "medium", label: "Medium", icon: Target, color: "#f59700" },
-    { id: "hard", label: "Hard", icon: Trophy, color: "#ef4444" },
-    { id: "popular", label: "Hot", icon: TrendUp, color: "#8b5cf6" },
+    { id: "beginner", label: "Beginner", icon: Lightning, color: "#059669" },
+    { id: "intermediate", label: "Intermediate", icon: Target, color: "#d97706" },
+    { id: "advanced", label: "Advanced", icon: Trophy, color: "#dc2626" },
+    { id: "featured", label: "Featured", icon: Star, color: "#6366f1" },
   ];
 
   if (error) {
@@ -81,7 +81,7 @@ export function TaskSelectionMobile({
     <Box
       style={{
         minHeight: "100vh",
-        background: `linear-gradient(180deg, ${theme.colors.background.secondary}20 0%, ${theme.colors.background.primary} 100%)`,
+        background: `linear-gradient(180deg, ${theme.colors.background.secondary}10 0%, ${theme.colors.background.primary} 100%)`,
       }}
     >
       {/* Mobile Header */}
@@ -405,15 +405,15 @@ export function TaskSelectionMobile({
               </Text>
               <Badge
                 style={{
-                  background: `linear-gradient(135deg, ${theme.colors.status.success}, ${theme.colors.status.success}dd)`,
-                  color: "white",
-                  border: "none",
+                  background: theme.colors.background.secondary,
+                  color: theme.colors.status.success,
+                  border: `1px solid ${theme.colors.status.success}30`,
                   fontSize: "9px",
                   padding: "2px 6px",
-                  fontWeight: 600,
+                  fontWeight: 500,
                 }}
               >
-                LIVE
+                Available
               </Badge>
             </Flex>
           </Flex>
