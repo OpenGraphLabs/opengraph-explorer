@@ -1,4 +1,4 @@
-import { Box, Flex, Text, Grid } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Grid, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useMobile } from "@/shared/hooks";
 import { Tag, FileImage, Clock, CheckCircle, Hash, Database, ArrowRight } from "phosphor-react";
@@ -117,6 +117,220 @@ export function DatasetImageGallery({
     );
   }
 
+  // Mobile Card Layout
+  if (isMobile) {
+    return (
+      <Box>
+        <Grid
+          columns="1"
+          gap="3"
+          style={{
+            padding: theme.spacing.semantic.component.sm,
+          }}
+        >
+          {items.map((item: any, index: number) => {
+            const isLoading = isItemLoading(item);
+            const hasAnnotations = hasConfirmedAnnotations(item);
+            const annotationCount = item.approvedAnnotationsCount || 0;
+
+            return (
+              <Box
+                key={`${item.blobId}_${item.path}_${index}`}
+                style={{
+                  background: theme.colors.background.card,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.sm,
+                  padding: theme.spacing.semantic.component.md,
+                  cursor: isLoading ? "default" : "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onClick={() => !isLoading && onImageClick(item, index, getImageUrl)}
+              >
+                <Flex direction="column" gap="3">
+                  {/* Image Preview and Title */}
+                  <Flex align="start" gap="3">
+                    <Box
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        borderRadius: theme.borders.radius.sm,
+                        overflow: "hidden",
+                        background: theme.colors.background.secondary,
+                        border: `1px solid ${theme.colors.border.primary}`,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isLoading ? (
+                        <Box
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            background: `linear-gradient(90deg, ${theme.colors.background.secondary} 25%, ${theme.colors.border.primary} 50%, ${theme.colors.background.secondary} 75%)`,
+                            backgroundSize: "200% 100%",
+                            animation: "shimmer 1.5s infinite ease-in-out",
+                          }}
+                        />
+                      ) : isImageType(item.dataType || "image/jpeg") ? (
+                        <img
+                          src={getImageUrl(item, index)}
+                          alt={`Dataset item ${index + 1}`}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                          onError={e => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                            (e.target as HTMLImageElement).parentElement!.innerHTML =
+                              `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: ${theme.colors.text.tertiary}"><svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M216,42H40A14,14,0,0,0,26,56V200a14,14,0,0,0,14,14H216a14,14,0,0,0,14-14V56A14,14,0,0,0,216,42ZM40,54H216a2,2,0,0,1,2,2v92.2L188.8,119a14.1,14.1,0,0,0-19.6,0l-20.6,20.6L116.8,107.8a14.1,14.1,0,0,0-19.6,0L38,167V56A2,2,0,0,1,40,54ZM38,180.8l68-68a2.1,2.1,0,0,1,2.8,0l37.8,37.8a6,6,0,0,0,8.4,0L175.6,130a2.1,2.1,0,0,1,2.8,0L218,169.6V200a2,2,0,0,1-2,2H40a2,2,0,0,1-2-2ZM98,96a10,10,0,1,1,10,10A10,10,0,0,1,98,96Z"/></svg></div>`;
+                          }}
+                        />
+                      ) : (
+                        <Flex align="center" justify="center" style={{ height: "100%" }}>
+                          <FileImage size={20} style={{ color: theme.colors.text.tertiary }} />
+                        </Flex>
+                      )}
+                    </Box>
+
+                    <Flex direction="column" gap="1" style={{ flex: 1 }}>
+                      <Text
+                        size="2"
+                        style={{
+                          color: theme.colors.text.primary,
+                          fontWeight: 500,
+                          fontFamily: "monospace",
+                          lineHeight: 1.2,
+                          wordBreak: "break-all",
+                        }}
+                      >
+                        {item.path?.split("/").pop() || `item_${index + 1}`}
+                      </Text>
+                      <Flex align="center" gap="1">
+                        <Hash size={10} style={{ color: theme.colors.text.tertiary }} />
+                        <Text
+                          size="1"
+                          style={{
+                            color: theme.colors.text.tertiary,
+                            fontFamily: "monospace",
+                            fontSize: "10px",
+                          }}
+                        >
+                          {item.blobId?.slice(0, 8) || "loading..."}
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  </Flex>
+
+                  {/* Mobile Metadata */}
+                  <Flex wrap="wrap" gap="2">
+                    {/* Type Badge */}
+                    <Badge
+                      style={{
+                        background: theme.colors.background.secondary,
+                        color: theme.colors.text.secondary,
+                        border: `1px solid ${theme.colors.border.primary}`,
+                        fontSize: "10px",
+                        padding: "2px 6px",
+                      }}
+                    >
+                      {item.dataType?.split("/")[0] || "image"}
+                    </Badge>
+
+                    {/* Status Badge */}
+                    {isLoading ? (
+                      <Badge
+                        style={{
+                          background: theme.colors.background.secondary,
+                          color: theme.colors.text.secondary,
+                          border: `1px solid ${theme.colors.border.primary}`,
+                          fontSize: "10px",
+                          padding: "2px 6px",
+                        }}
+                      >
+                        Loading...
+                      </Badge>
+                    ) : activeTab === "all" ? (
+                      hasAnnotations ? (
+                        <Badge
+                          style={{
+                            background: `${theme.colors.status.success}15`,
+                            color: theme.colors.status.success,
+                            border: `1px solid ${theme.colors.status.success}30`,
+                            fontSize: "10px",
+                            padding: "2px 6px",
+                          }}
+                        >
+                          <CheckCircle size={10} weight="fill" style={{ marginRight: "2px" }} />
+                          Verified
+                        </Badge>
+                      ) : (
+                        <Badge
+                          style={{
+                            background: `${theme.colors.status.warning}15`,
+                            color: theme.colors.status.warning,
+                            border: `1px solid ${theme.colors.status.warning}30`,
+                            fontSize: "10px",
+                            padding: "2px 6px",
+                          }}
+                        >
+                          <Clock size={10} style={{ marginRight: "2px" }} />
+                          Pending
+                        </Badge>
+                      )
+                    ) : activeTab === "confirmed" ? (
+                      <Badge
+                        style={{
+                          background: `${theme.colors.status.success}15`,
+                          color: theme.colors.status.success,
+                          border: `1px solid ${theme.colors.status.success}30`,
+                          fontSize: "10px",
+                          padding: "2px 6px",
+                        }}
+                      >
+                        <CheckCircle size={10} weight="fill" style={{ marginRight: "2px" }} />
+                        Verified
+                      </Badge>
+                    ) : (
+                      <Badge
+                        style={{
+                          background: `${theme.colors.status.warning}15`,
+                          color: theme.colors.status.warning,
+                          border: `1px solid ${theme.colors.status.warning}30`,
+                          fontSize: "10px",
+                          padding: "2px 6px",
+                        }}
+                      >
+                        <Clock size={10} style={{ marginRight: "2px" }} />
+                        Pending
+                      </Badge>
+                    )}
+
+                    {/* Annotation Count */}
+                    {annotationCount > 0 && (
+                      <Badge
+                        style={{
+                          background: theme.colors.background.secondary,
+                          color: theme.colors.text.primary,
+                          border: `1px solid ${theme.colors.border.primary}`,
+                          fontSize: "10px",
+                          padding: "2px 6px",
+                        }}
+                      >
+                        <Tag size={10} style={{ marginRight: "2px" }} />
+                        {annotationCount} annotations
+                      </Badge>
+                    )}
+                  </Flex>
+                </Flex>
+              </Box>
+            );
+          })}
+        </Grid>
+      </Box>
+    );
+  }
+
+  // Desktop Table Layout
   return (
     <Box>
       {/* Data Table Header */}

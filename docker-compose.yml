@@ -77,27 +77,6 @@ services:
           cpus: "2"
           memory: 2G
 
-  # Python ML Converter Service
-  converter:
-    build:
-      context: .
-      dockerfile: docker/converter/Dockerfile
-    container_name: opengraph-converter
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./converter/uploads:/app/uploads
-    environment:
-      - PORT=${CONVERTER_PORT}
-      - MAX_UPLOAD_SIZE=${CONVERTER_MAX_UPLOAD_SIZE}
-    networks:
-      - opengraph-network
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 1G
-
   # React Frontend Client
   client:
     build:

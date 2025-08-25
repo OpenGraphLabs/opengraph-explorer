@@ -42,22 +42,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Python ML Converter Service for Development
-  converter:
-    build:
-      context: .
-      dockerfile: docker/converter/Dockerfile
-    container_name: opengraph-converter
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./converter/uploads:/app/uploads
-    environment:
-      - PORT=${CONVERTER_PORT}
-      - MAX_UPLOAD_SIZE=${CONVERTER_MAX_UPLOAD_SIZE}
-    networks:
-      - opengraph-frontend-network
-
   # React Frontend Client
   client:
     build:
