@@ -1,37 +1,73 @@
+# ===== Build Stage =====
+FROM python:3.11-slim as builder
+
+# Set environment variables for build
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install build dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        libc-dev \
+        libffi-dev \
+        libssl-dev \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy and install Python dependencies
+COPY ../../server/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r /tmp/requirements.txt
+
+# ===== Runtime Stage =====
 FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install only runtime dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+        libpq5 \
+        libssl3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get autoremove -y \
+    && apt-get clean
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
 
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        curl \
-        gcc \
-        libc-dev \
-        libffi-dev \
-        libssl-dev \
-        postgresql-client \
-        libglib2.0-0 \
-        libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
+# Create a non-root user first
+RUN groupadd --gid 1000 appuser \
+    && useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
 
-# Copy requirements and install Python dependencies
-COPY ../../server/requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy only essential application code
+COPY --chown=appuser:appuser ../../server/app ./app
+COPY --chown=appuser:appuser ../../server/alembic ./alembic
+COPY --chown=appuser:appuser ../../server/alembic.ini ./alembic.ini
 
-# Copy application code
-COPY ../../server .
+# Copy only essential scripts (exclude test data)
+COPY --chown=appuser:appuser ../../server/app/scripts/load_annotations.py ./app/scripts/
+COPY --chown=appuser:appuser ../../server/app/scripts/annotations/ ./app/scripts/annotations/
+COPY --chown=appuser:appuser ../../server/app/scripts/annotations_first_person/ ./app/scripts/annotations_first_person/
 
-# Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser
-RUN chown -R appuser:appuser /app
+# Copy secrets directory if it exists
+COPY --chown=appuser:appuser ../../server/secrets ./secrets
+
+# Switch to non-root user
 USER appuser
 
 # Expose port
