@@ -1,0 +1,117 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "OpenGraph FastAPI Metrics",
+    "tags": ["fastapi", "opengraph"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "HTTP Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(opengraph_http_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests per second"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "HTTP Request Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(opengraph_http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(opengraph_http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Seconds"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Database Connection Status",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "opengraph_database_connection_status",
+            "refId": "A"
+          }
+        ],
+        "valueMaps": [
+          {
+            "value": "1",
+            "text": "Connected"
+          },
+          {
+            "value": "0",
+            "text": "Disconnected"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "HTTP Errors Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(opengraph_http_requests_total{status_code=~\"4..|5..\"}[5m])",
+            "legendFormat": "{{status_code}} errors",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Errors per second"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 18,
+          "x": 6,
+          "y": 8
+        }
+      }
+    ],
+    "version": 1
+  }
+}

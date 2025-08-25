@@ -9,9 +9,8 @@ export interface RouteConfig {
 export const ROUTE_PERMISSIONS: RouteConfig[] = [
   // All routes now require authentication (wallet or demo login)
   { path: "/", permission: "auth-required" },
-  { path: "/models", permission: "auth-required" },
+  { path: "/earn", permission: "auth-required" },
   { path: "/datasets", permission: "auth-required" },
-  { path: "/datasets/upload", permission: "auth-required" },
   { path: "/datasets/:id", permission: "auth-required" },
   { path: "/profile", permission: "auth-required" },
 ];
