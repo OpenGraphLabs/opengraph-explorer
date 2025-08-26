@@ -1,6 +1,7 @@
 import { Box, Flex, Text, Badge } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
+import { useMobile } from "@/shared/hooks";
 import { ArrowLeft, ArrowRight, ChartBar } from "phosphor-react";
 
 interface DatasetPaginationProps {
@@ -23,11 +24,163 @@ export function DatasetPagination({
   onLoadPage,
 }: DatasetPaginationProps) {
   const { theme } = useTheme();
+  const { isMobile } = useMobile();
 
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
   const totalPages = Math.ceil(totalItems / pageSize);
 
+  // Mobile Pagination
+  if (isMobile) {
+    return (
+      <Card
+        style={{
+          background: theme.colors.background.card,
+          border: `1px solid ${theme.colors.border.primary}`,
+          borderRadius: theme.borders.radius.sm,
+          padding: theme.spacing.semantic.component.md,
+        }}
+      >
+        <Flex direction="column" gap="3">
+          {/* Page Info */}
+          <Flex align="center" justify="center">
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                fontWeight: 500,
+              }}
+            >
+              Page {currentPage} of {totalPages}
+            </Text>
+          </Flex>
+
+          {/* Navigation Buttons */}
+          <Flex align="center" justify="between" gap="3">
+            {/* Previous Button */}
+            <Box
+              style={{
+                flex: 1,
+                background:
+                  hasPrevPage && !loading
+                    ? theme.colors.interactive.primary
+                    : theme.colors.background.secondary,
+                color: hasPrevPage && !loading ? "white" : theme.colors.text.tertiary,
+                borderRadius: theme.borders.radius.sm,
+                padding: theme.spacing.semantic.component.sm,
+                cursor: hasPrevPage && !loading ? "pointer" : "not-allowed",
+                transition: "all 0.2s ease",
+                fontWeight: 500,
+                textAlign: "center",
+                minHeight: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={() => hasPrevPage && !loading && onLoadPage("prev")}
+            >
+              <Flex align="center" justify="center" gap="2">
+                <ArrowLeft size={16} />
+                <Text size="2" style={{ fontWeight: 500 }}>
+                  Previous
+                </Text>
+              </Flex>
+            </Box>
+
+            {/* Loading Indicator */}
+            {loading && (
+              <Box
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  border: `2px solid ${theme.colors.border.secondary}`,
+                  borderTop: `2px solid ${theme.colors.text.primary}`,
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                }}
+              />
+            )}
+
+            {/* Next Button */}
+            <Box
+              style={{
+                flex: 1,
+                background:
+                  hasNextPage && !loading
+                    ? theme.colors.interactive.primary
+                    : theme.colors.background.secondary,
+                color: hasNextPage && !loading ? "white" : theme.colors.text.tertiary,
+                borderRadius: theme.borders.radius.sm,
+                padding: theme.spacing.semantic.component.sm,
+                cursor: hasNextPage && !loading ? "pointer" : "not-allowed",
+                transition: "all 0.2s ease",
+                fontWeight: 500,
+                textAlign: "center",
+                minHeight: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={() => hasNextPage && !loading && onLoadPage("next")}
+            >
+              <Flex align="center" justify="center" gap="2">
+                <Text size="2" style={{ fontWeight: 500 }}>
+                  Next
+                </Text>
+                <ArrowRight size={16} />
+              </Flex>
+            </Box>
+          </Flex>
+
+          {/* Progress Bar */}
+          <Box
+            style={{
+              width: "100%",
+              height: "4px",
+              background: theme.colors.border.secondary,
+              borderRadius: "2px",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              style={{
+                width: `${(currentPage / totalPages) * 100}%`,
+                height: "100%",
+                background: theme.colors.interactive.primary,
+                borderRadius: "2px",
+                transition: "width 0.3s ease",
+              }}
+            />
+          </Box>
+
+          {/* Item Range */}
+          <Flex align="center" justify="center">
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.tertiary,
+                fontFeatureSettings: '"tnum"',
+              }}
+            >
+              {startItem.toLocaleString()}-{endItem.toLocaleString()} of{" "}
+              {totalItems.toLocaleString()} items
+            </Text>
+          </Flex>
+        </Flex>
+
+        <style>
+          {`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+      </Card>
+    );
+  }
+
+  // Desktop Pagination
   return (
     <Card
       style={{

@@ -106,10 +106,9 @@ async def zklogin_init(
         )
     
     # Generate Google OAuth URL - redirect to SERVER callback
-    server_callback_uri = f"http://localhost:8000/api/v1/auth/google/callback"
     oauth_params = {
         "client_id": settings.google_client_id,
-        "redirect_uri": server_callback_uri,
+        "redirect_uri": settings.google_redirect_uri,
         "response_type": "code",
         "scope": "openid email profile",
         "nonce": nonce,
@@ -152,8 +151,7 @@ async def google_callback(
             )
 
         # Exchange authorization code for tokens using Google Auth Service
-        server_callback_uri = f"http://localhost:8000/api/v1/auth/google/callback"
-        token_data = await GoogleAuthService.exchange_code_for_tokens(code, server_callback_uri)
+        token_data = await GoogleAuthService.exchange_code_for_tokens(code, settings.google_redirect_uri)
         
         id_token_str = token_data.get("id_token")
         if not id_token_str:
@@ -216,14 +214,14 @@ async def google_callback(
         # Redirect to frontend with token, JWT, and zklogin_salt for client-side processing
         zklogin_salt = user.zklogin_salt or ""
         
-        redirect_url = f"http://localhost:5173/auth/success?token={access_token}&jwt={id_token_str}&zklogin_salt={zklogin_salt}"
+        redirect_url = f"{settings.client_url}/auth/success?token={access_token}&jwt={id_token_str}&zklogin_salt={zklogin_salt}"
         return RedirectResponse(url=redirect_url)
             
     except Exception as e:
         print(f"Error during Google OAuth callback: {str(e)}")
 
         # Redirect to frontend with error
-        error_url = f"http://localhost:5173/auth/error?message={str(e)}"
+        error_url = f"{settings.client_url}/auth/error?message={str(e)}"
         return RedirectResponse(url=error_url)
 
 

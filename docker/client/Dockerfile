@@ -13,7 +13,6 @@ RUN yarn install --frozen-lockfile
 COPY client/ ./
 
 ENV VITE_SERVER_BASE_URL=$VITE_SERVER_BASE_URL
-ENV VITE_CONVERTER_BASE_URL=$VITE_CONVERTER_BASE_URL
 
 # 애플리케이션 빌드
 RUN yarn build

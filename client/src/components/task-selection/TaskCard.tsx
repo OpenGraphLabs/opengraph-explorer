@@ -1,19 +1,79 @@
 import React, { useState } from "react";
-import { Box, Text, Flex } from "@/shared/ui/design-system/components";
+import { Box, Text, Flex, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useMobile } from "@/shared/hooks";
-import { ArrowRight } from "phosphor-react";
+import {
+  ArrowRight,
+  Coins,
+  Timer,
+  Trophy,
+  Camera,
+  Target,
+  Lightning,
+  Star,
+  TrendUp,
+  Fire,
+} from "phosphor-react";
 import { Task } from "@/shared/api/endpoints/tasks";
 
 interface TaskCardProps {
   task: Task;
   onSelect: (task: Task) => void;
+  index?: number;
 }
 
-export function TaskCard({ task, onSelect }: TaskCardProps) {
+// Mock data for demonstration - in real app, this would come from API
+const getTaskMetadata = (task: Task) => {
+  const hash = task.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  const difficulties = ["Beginner", "Intermediate", "Advanced"];
+  const difficulty = difficulties[hash % 3];
+
+  const difficultyColors = {
+    Beginner: { bg: "#10b98108", text: "#059669", icon: Lightning },
+    Intermediate: { bg: "#f5970008", text: "#d97706", icon: Target },
+    Advanced: { bg: "#ef444408", text: "#dc2626", icon: Fire },
+  };
+
+  const categories = [
+    { name: "Computer Vision", icon: Camera, color: "#6366f1" },
+    { name: "Data Collection", icon: Target, color: "#0891b2" },
+    { name: "Behavioral AI", icon: Trophy, color: "#7c3aed" },
+  ];
+
+  const category = categories[hash % categories.length];
+  const reward =
+    difficulty === "Beginner"
+      ? "2-5 $OPEN"
+      : difficulty === "Intermediate"
+        ? "5-12 $OPEN"
+        : "10-25 $OPEN";
+  const estimatedTime =
+    difficulty === "Beginner" ? "~5 min" : difficulty === "Intermediate" ? "~15 min" : "~25 min";
+  const completions = Math.floor(Math.random() * 500) + 50;
+  const isPopular = completions > 300;
+  const isFeatured = hash % 7 === 0;
+
+  return {
+    difficulty,
+    difficultyColor: difficultyColors[difficulty as keyof typeof difficultyColors],
+    category,
+    reward,
+    estimatedTime,
+    completions,
+    isPopular,
+    isFeatured,
+  };
+};
+
+export function TaskCard({ task, onSelect, index = 0 }: TaskCardProps) {
   const { theme } = useTheme();
   const { isMobile } = useMobile();
   const [isHovered, setIsHovered] = useState(false);
+
+  const metadata = getTaskMetadata(task);
+  const CategoryIcon = metadata.category.icon;
+  const DifficultyIcon = metadata.difficultyColor.icon;
 
   return (
     <Box
@@ -21,44 +81,121 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onSelect(task)}
       style={{
-        padding: isMobile ? theme.spacing.semantic.component.md : "24px",
-        borderRadius: "8px",
+        position: "relative",
+        padding: isMobile ? "20px" : "24px",
+        borderRadius: "12px",
         backgroundColor: theme.colors.background.card,
-        border: `1px solid ${isHovered ? theme.colors.interactive.primary + "30" : theme.colors.border.primary}`,
+        border: `1px solid ${
+          isHovered ? theme.colors.interactive.primary + "50" : theme.colors.border.primary
+        }`,
         cursor: "pointer",
-        transition: "all 0.15s ease",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transform: isHovered ? "translateY(-2px)" : "translateY(0)",
         boxShadow: isHovered
-          ? `0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px ${theme.colors.interactive.primary}10`
+          ? `0 8px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px ${theme.colors.interactive.primary}15`
           : `0 1px 3px rgba(0, 0, 0, 0.04)`,
-        minHeight: isMobile ? "44px" : "auto",
+        minHeight: isMobile ? "140px" : "160px",
+        overflow: "hidden",
+        animation: `fadeInUp 0.5s ease-out ${index * 0.05}s both`,
       }}
     >
-      <Flex direction="column" gap="2">
-        {/* Header */}
-        <Flex align="center" justify="between" style={{ marginBottom: "8px" }}>
-          <Text
-            size="1"
+      {/* Subtle Background */}
+      <Box
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: "30%",
+          height: "100%",
+          background: `linear-gradient(135deg, transparent, ${metadata.category.color}04)`,
+          borderRadius: "12px",
+          opacity: isHovered ? 1 : 0.7,
+          transition: "opacity 0.2s ease",
+        }}
+      />
+
+      {/* Status Badges */}
+      <Flex
+        style={{
+          position: "absolute",
+          top: "16px",
+          right: "16px",
+          gap: "6px",
+        }}
+      >
+        {metadata.isFeatured && (
+          <Badge
             style={{
-              color: theme.colors.text.tertiary,
-              fontSize: "11px",
+              background: theme.colors.background.card,
+              color: theme.colors.interactive.primary,
+              border: `1px solid ${theme.colors.interactive.primary}30`,
+              fontSize: "9px",
+              padding: "3px 6px",
               fontWeight: 600,
               textTransform: "uppercase",
-              letterSpacing: "0.08em",
+              letterSpacing: "0.05em",
             }}
           >
-            Task #{task.id.toString().padStart(3, "0")}
-          </Text>
-
-          <Flex
-            align="center"
-            gap="1"
+            Featured
+          </Badge>
+        )}
+        {metadata.isPopular && (
+          <Badge
             style={{
-              color: theme.colors.interactive.primary,
-              opacity: isHovered ? 1 : 0.5,
-              transition: "opacity 0.15s ease",
+              background: theme.colors.background.card,
+              color: theme.colors.status.warning,
+              border: `1px solid ${theme.colors.status.warning}30`,
+              fontSize: "9px",
+              padding: "3px 6px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
             }}
           >
-            <ArrowRight size={16} weight="regular" />
+            Popular
+          </Badge>
+        )}
+      </Flex>
+
+      <Flex direction="column" gap="3" style={{ position: "relative", zIndex: 1 }}>
+        {/* Header with Category */}
+        <Flex align="center" gap="2">
+          <Box
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: `${metadata.category.color}15`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "transform 0.3s ease",
+              transform: isHovered ? "rotate(10deg) scale(1.1)" : "rotate(0) scale(1)",
+            }}
+          >
+            <CategoryIcon size={18} color={metadata.category.color} weight="duotone" />
+          </Box>
+          <Flex direction="column">
+            <Text
+              size="1"
+              style={{
+                color: metadata.category.color,
+                fontSize: "11px",
+                fontWeight: 500,
+                letterSpacing: "0.05em",
+              }}
+            >
+              {metadata.category.name}
+            </Text>
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.tertiary,
+                fontSize: "10px",
+              }}
+            >
+              Task #{task.id.toString().padStart(4, "0")}
+            </Text>
           </Flex>
         </Flex>
 
@@ -66,15 +203,116 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
         <Text
           style={{
             color: theme.colors.text.primary,
-            fontSize: "16px",
-            lineHeight: 1.5,
-            fontWeight: 500,
-            letterSpacing: "-0.005em",
+            fontSize: isMobile ? "16px" : "18px",
+            lineHeight: 1.4,
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            marginBottom: "4px",
           }}
         >
           {task.name}
         </Text>
+
+        {/* Task Metadata Row */}
+        <Flex gap="3" wrap="wrap" align="center">
+          {/* Difficulty Badge */}
+          <Flex
+            align="center"
+            gap="1"
+            style={{
+              padding: "4px 10px",
+              borderRadius: "6px",
+              background: metadata.difficultyColor.bg,
+            }}
+          >
+            <DifficultyIcon size={12} color={metadata.difficultyColor.text} weight="bold" />
+            <Text
+              size="1"
+              style={{
+                color: metadata.difficultyColor.text,
+                fontSize: "11px",
+                fontWeight: 600,
+              }}
+            >
+              {metadata.difficulty}
+            </Text>
+          </Flex>
+
+          {/* Reward */}
+          <Flex align="center" gap="1">
+            <Coins size={14} color={theme.colors.status.warning} weight="duotone" />
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.primary,
+                fontWeight: 600,
+                fontSize: "13px",
+              }}
+            >
+              {metadata.reward}
+            </Text>
+          </Flex>
+
+          {/* Time Estimate */}
+          <Flex align="center" gap="1">
+            <Timer size={14} color={theme.colors.text.secondary} weight="duotone" />
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.secondary,
+                fontSize: "12px",
+              }}
+            >
+              {metadata.estimatedTime}
+            </Text>
+          </Flex>
+
+          {/* Completions */}
+          <Flex align="center" gap="1">
+            <TrendUp size={14} color={theme.colors.text.tertiary} weight="duotone" />
+            <Text
+              size="1"
+              style={{
+                color: theme.colors.text.tertiary,
+                fontSize: "12px",
+              }}
+            >
+              {metadata.completions} completed
+            </Text>
+          </Flex>
+        </Flex>
+
+        {/* Hover Indicator */}
+        <ArrowRight
+          size={16}
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            right: "20px",
+            color: theme.colors.text.tertiary,
+            opacity: isHovered ? 1 : 0.4,
+            transform: isHovered ? "translateX(2px)" : "translateX(0)",
+            transition: "all 0.2s ease",
+          }}
+          weight="regular"
+        />
       </Flex>
+
+      <style>
+        {`
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+        `}
+      </style>
     </Box>
   );
 }

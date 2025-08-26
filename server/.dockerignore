@@ -1,0 +1,86 @@
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Build artifacts and cache
+target/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test and development data
+app/scripts/annotations_test/
+app/scripts/images_test/
+app/scripts/images_coco/
+app/scripts/annotations_coco/
+scripts/images_high/
+scripts/annotations_high/
+app/scripts/images/
+app/scripts/annotations_first_person_old/
+
+# Git files
+.git/
+.gitignore
+
+# Documentation and development files
+README.md
+CLAUDE.md
+docs/
+*.md
+Makefile
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Docker files
+docker-compose*.yml
+
+# Environment files (security)
+.env
+.env.*

@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.database import Base
 from app.config import settings
 
+
 # Import all models to register with Base.metadata
 from app.models.user import User
 from app.models.dataset import Dataset
@@ -50,7 +51,14 @@ def get_url():
     """
     Get database URL from settings.
     """
-    return str(settings.database_url).replace("postgresql+asyncpg", "postgresql")
+    # Override with environment variables if they don't match
+    host = os.environ.get("DATABASE_HOST", settings.database_host)
+    port = os.environ.get("DATABASE_PORT", settings.database_port)
+    user = os.environ.get("DATABASE_USER", settings.database_user)
+    password = os.environ.get("DATABASE_PASSWORD", settings.database_password)
+    db_name = os.environ.get("DATABASE_NAME", settings.database_name)
+    
+    return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 
 
 def run_migrations_offline() -> None:

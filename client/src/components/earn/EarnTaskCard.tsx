@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, Button, Badge, Flex } from "@/shared/ui/design-system/components";
+import { Box, Text, Badge, Flex } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useNavigate } from "react-router-dom";
 import { useMobile } from "@/shared/hooks";
@@ -64,6 +64,19 @@ export function EarnTaskCard({ task, index, isLoaded }: EarnTaskCardProps) {
   const difficultyStyle = getDifficultyColor(task.difficulty);
   const isDisabled = task.featured === false;
 
+  const handleCardClick = () => {
+    if (isDisabled) return;
+    if (task.id === "trajectory-drawing") {
+      navigate(`/datasets/${task.datasetId}/trajectory?imageId=1017`);
+    } else if (task.id === "segmentation-mask") {
+      navigate(`/datasets/${task.datasetId}/annotate?imageId=1013`);
+    } else if (task.id === "picture-upload") {
+      navigate(`/datasets/${task.datasetId}/task-selection`);
+    } else {
+      navigate(`/datasets/${task.datasetId}/annotate`);
+    }
+  };
+
   return (
     <Box
       className={isLoaded ? "visible" : ""}
@@ -93,6 +106,7 @@ export function EarnTaskCard({ task, index, isLoaded }: EarnTaskCardProps) {
           opacity: isDisabled ? 0.6 : 1,
         }}
         className={isDisabled ? "task-card-disabled" : "task-card"}
+        onClick={handleCardClick}
       >
         {/* Featured Badge */}
         {task.featured && (
@@ -385,22 +399,9 @@ export function EarnTaskCard({ task, index, isLoaded }: EarnTaskCardProps) {
               </Text>
             </Flex>
 
-            {/* Action Button */}
-            <Button
+            {/* Action Button - Visual Only */}
+            <Box
               className="task-button"
-              disabled={isDisabled}
-              onClick={() => {
-                if (isDisabled) return;
-                if (task.id === "trajectory-drawing") {
-                  navigate(`/datasets/${task.datasetId}/trajectory?imageId=1017`);
-                } else if (task.id === "segmentation-mask") {
-                  navigate(`/datasets/${task.datasetId}/annotate?imageId=1013`);
-                } else if (task.id === "picture-upload") {
-                  navigate(`/datasets/${task.datasetId}/task-selection`);
-                } else {
-                  navigate(`/datasets/${task.datasetId}/annotate`);
-                }
-              }}
               style={{
                 width: "100%",
                 background: isDisabled
@@ -412,7 +413,7 @@ export function EarnTaskCard({ task, index, isLoaded }: EarnTaskCardProps) {
                 padding: isMobile ? "10px" : "12px",
                 fontSize: isMobile ? "12px" : "13px",
                 fontWeight: 700,
-                cursor: isDisabled ? "not-allowed" : "pointer",
+                cursor: "inherit",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -422,12 +423,22 @@ export function EarnTaskCard({ task, index, isLoaded }: EarnTaskCardProps) {
                 boxShadow: isDisabled ? "none" : theme.shadows.semantic.interactive.default,
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
-                pointerEvents: isDisabled ? "none" : "auto",
+                pointerEvents: "none", // Prevent button from intercepting clicks
               }}
             >
-              {isDisabled ? "Coming Soon" : "Start"}
+              <Text
+                style={{
+                  color: "inherit",
+                  fontSize: "inherit",
+                  fontWeight: "inherit",
+                  textTransform: "inherit",
+                  letterSpacing: "inherit",
+                }}
+              >
+                {isDisabled ? "Coming Soon" : "Start"}
+              </Text>
               {!isDisabled && <ArrowRight size={isMobile ? 10 : 12} weight="bold" />}
-            </Button>
+            </Box>
           </Flex>
         </Flex>
       </Box>

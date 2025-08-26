@@ -11,6 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models import Task
 from app.config import settings
+from app.database import get_database_url
 
 # Robot tasks data - simple task names for robot execution
 ROBOT_TASKS = [
@@ -42,8 +43,8 @@ ROBOT_TASKS = [
 
 def populate_tasks():
     """Populate tasks table with robot tasks"""
-    # Create database engine - convert asyncpg to psycopg2 for sync operations
-    db_url = str(settings.database_url).replace("+asyncpg", "")
+    # Create database engine - use get_database_url() that reads env vars directly
+    db_url = get_database_url().replace("+asyncpg", "")
     engine = create_engine(db_url)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     

@@ -54,7 +54,7 @@ export class ZkLoginService {
   private ephemeralKeyPair: Ed25519Keypair | null = null;
   private maxEpoch: number = 0;
   private randomness: string = "";
-  private serverUrl: string = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  private serverUrl: string = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8000";
 
   /**
    * Initialize or retrieve ephemeral key pair from session storage
