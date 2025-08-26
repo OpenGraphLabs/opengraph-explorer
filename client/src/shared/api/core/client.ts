@@ -3,7 +3,7 @@ import axios, { AxiosResponse, AxiosHeaders, AxiosRequestConfig } from "axios";
 type RequestMethod = "get" | "put" | "post" | "delete";
 
 // Environment configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8000";
 
 // Types for request configuration
 interface BaseRequestConfig {

@@ -59,11 +59,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: ${DATABASE_HOST}
+      DATABASE_HOST: ${DATABASE_HOST}
       DATABASE_PORT: ${DATABASE_PORT}
       DATABASE_NAME: ${DATABASE_NAME}
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      CLIENT_URL: ${CLIENT_URL}
+      SERVER_URL: ${SERVER_URL}
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
@@ -71,8 +73,6 @@ services:
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       APP_NAME: ${APP_NAME}
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
       GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT}
@@ -152,7 +152,7 @@ services:
       context: .
       dockerfile: docker/client/Dockerfile
       args:
-        VITE_SERVER_BASE_URL: ${CLIENT_VITE_SERVER_BASE_URL}
+        VITE_SERVER_BASE_URL: ${VITE_SERVER_BASE_URL}
     container_name: opengraph-client
     ports:
       - "80:80"
@@ -163,7 +163,7 @@ services:
     depends_on:
       - fastapi
     environment:
-      - VITE_SERVER_BASE_URL=${CLIENT_VITE_SERVER_BASE_URL}
+      - VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL}
     networks:
       - opengraph-network
     deploy:

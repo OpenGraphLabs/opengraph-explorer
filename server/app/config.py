@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = True
     
+    # URLs Configuration
+    client_url: str = "http://localhost:5173"  # Frontend URL
+    server_url: str = "http://localhost:8000"  # Backend API URL
+    
     # Database
     database_url: Optional[str] = None
     database_host: str = "localhost"
@@ -47,16 +51,34 @@ class Settings(BaseSettings):
     # Google OAuth
     google_client_id: str = ""
     google_client_secret: str = ""
-    google_redirect_uri: str = "http://localhost:5173/auth/callback"
+    google_redirect_uri: Optional[str] = None  # Will be set based on server_url
     
     # zkLogin
     zklogin_prover_url: str = "https://prover-dev.mystenlabs.com/v1"
     zklogin_salt_service: str = "https://salt.api.mystenlabs.com/get_salt"
     
     # CORS
-    allowed_origins: List[str] = [
-        "http://localhost:5173",
-    ]
+    allowed_origins: Optional[List[str]] = None  # Will be set based on client_url
+    
+    @validator("google_redirect_uri", pre=True, always=True)
+    def assemble_google_redirect_uri(cls, v: Optional[str], values: dict) -> str:
+        """Google OAuth 리디렉트 URI 자동 생성"""
+        if isinstance(v, str) and v:
+            return v
+        server_url = values.get("server_url", "http://localhost:8000")
+        return f"{server_url}/api/v1/auth/google/callback"
+    
+    @validator("allowed_origins", pre=True, always=True)
+    def assemble_allowed_origins(cls, v: Optional[List[str]], values: dict) -> List[str]:
+        """CORS 허용 오리진 자동 설정"""
+        if v:
+            return v
+        client_url = values.get("client_url", "http://localhost:5173")
+        # 기본적으로 client_url을 허용하고, localhost 개발 환경도 추가
+        origins = [client_url]
+        if client_url != "http://localhost:5173":
+            origins.append("http://localhost:5173")  # 개발 환경 항상 허용
+        return origins
     
     # Google Cloud Storage
     google_application_credentials: Optional[str] = None
