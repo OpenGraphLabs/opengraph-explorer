@@ -59,6 +59,9 @@ COPY --chown=appuser:appuser ../../server/app ./app
 COPY --chown=appuser:appuser ../../server/alembic ./alembic
 COPY --chown=appuser:appuser ../../server/alembic.ini ./alembic.ini
 
+# Copy script files if they need to be run manually
+COPY --chown=appuser:appuser ../../server/scripts/populate_tasks.py ./scripts/populate_tasks.py
+
 # Copy secrets directory if it exists
 COPY --chown=appuser:appuser ../../server/secrets ./secrets
 
