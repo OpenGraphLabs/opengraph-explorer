@@ -3,7 +3,6 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 ARG VITE_SERVER_BASE_URL
-ARG VITE_CONVERTER_BASE_URL
 
 # 패키지 의존성 복사 및 설치
 COPY client/package.json client/yarn.lock ./

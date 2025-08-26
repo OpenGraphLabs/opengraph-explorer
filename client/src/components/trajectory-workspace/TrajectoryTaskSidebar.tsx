@@ -30,9 +30,6 @@ export function TrajectoryTaskSidebar() {
     setTrajectoryPath([]);
   };
 
-  console.log("TrajectoryTaskSidebar - Available tasks:", availableTasks.length);
-  console.log("TrajectoryTaskSidebar - Approved annotations:", approvedAnnotations.length);
-
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":

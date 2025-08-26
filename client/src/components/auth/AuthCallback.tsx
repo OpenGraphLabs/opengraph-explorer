@@ -17,10 +17,8 @@ export function AuthCallback() {
         if (errorMessage) {
           throw new Error(decodeURIComponent(errorMessage));
         }
-
         // If no error, show loading while server processes OAuth
         // Server will redirect to /auth/success or /auth/error
-        console.log("Waiting for server OAuth processing...");
       } catch (error) {
         console.error("Auth callback error:", error);
         setError(error instanceof Error ? error.message : "Authentication failed");

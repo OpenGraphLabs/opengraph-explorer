@@ -668,10 +668,6 @@ export function TrajectoryCanvas() {
                     {(() => {
                       // Check for polygon data exactly like ImageDetailSidebar
                       if (!annotation.polygon || !(annotation.polygon as any).has_segmentation) {
-                        console.log(
-                          `No segmentation data for annotation ${annotation.id}, using bbox fallback`
-                        );
-
                         return (
                           <rect
                             x={bboxScreenCoords.x}
@@ -692,21 +688,11 @@ export function TrajectoryCanvas() {
                         );
                       }
 
-                      console.log(
-                        `Rendering segmentation polygons for annotation ${annotation.id}`
-                      );
-                      console.log("Polygon data:", annotation.polygon);
-
                       // Render polygons exactly like ImageDetailSidebar
                       return (annotation.polygon as any).polygons.map(
                         (polygon: number[][], polygonIndex: number) => {
                           const pathData = polygonToPath(polygon);
                           if (!pathData) return null;
-
-                          console.log(
-                            `Polygon ${polygonIndex} path:`,
-                            pathData.substring(0, 100) + "..."
-                          );
 
                           return (
                             <path

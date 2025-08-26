@@ -237,26 +237,19 @@ export function useCreateAnnotationSelectionsBatch() {
 
     // Save the original user ID to restore it later
     const originalUserId = localStorage.getItem("opengraph-user-id");
-    console.log("🚀 Starting annotation batch save with test logic");
-    console.log("Original user ID:", originalUserId);
 
     try {
       // Transform camelCase input to snake_case for server
       const transformedData = parseAnnotationSelectionBatchCreateInput(input);
-
-      console.log("Batch data to send:", transformedData);
 
       // TEST LOGIC: Make 5 sequential requests with different user IDs
       const testUserIds = ["1", "4", "5", "6", "7"];
       const responses: AnnotationSelectionBatchResponse[] = [];
 
       for (const userId of testUserIds) {
-        console.log(`\n--- Request ${userId}/5 ---`);
-        console.log("JWT before request:", !!sessionStorage.getItem("zklogin-jwt"));
 
         // Temporarily set the user ID in localStorage (interceptor will use this)
         localStorage.setItem("opengraph-user-id", userId);
-        console.log(`Set user ID to: ${userId}`);
 
         try {
           // Direct postData call - server returns AnnotationSelectionBatchResponse directly
@@ -271,19 +264,11 @@ export function useCreateAnnotationSelectionsBatch() {
           });
 
           responses.push(response);
-          console.log(`✅ Request ${userId} completed successfully`);
-          console.log("Response:", {
-            total_created: response.total_created,
-            auto_approved_count: response.auto_approved_count,
-          });
         } catch (err: any) {
           console.error(`❌ Request ${userId} failed:`, err);
           throw err; // Re-throw to stop the loop
         }
       }
-
-      console.log("\n🎉 All 5 test requests completed successfully");
-      console.log("Total responses:", responses.length);
 
       // Return the first response (for compatibility)
       onSuccess?.(responses[0]);
@@ -302,14 +287,10 @@ export function useCreateAnnotationSelectionsBatch() {
       setError(errorMessage);
       onFailure?.(errorMessage);
     } finally {
-      // Always restore the original user ID, even if there's an error
-      console.log("\n🔄 Restoring original user ID...");
       if (originalUserId) {
         localStorage.setItem("opengraph-user-id", originalUserId);
-        console.log("Restored user ID to:", originalUserId);
       } else {
         localStorage.removeItem("opengraph-user-id");
-        console.log("Removed user ID (was null/undefined)");
       }
 
       setIsPosting(false);

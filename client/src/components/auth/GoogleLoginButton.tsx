@@ -29,8 +29,6 @@ export function GoogleLoginButton({ onError }: GoogleLoginButtonProps) {
         throw new Error("Failed to generate OAuth URL");
       }
 
-      console.log("Generated OAuth URL with nonce");
-
       setLoadingStep("Redirecting to Google...");
       // Small delay before redirect for user to see the message
       await new Promise(resolve => setTimeout(resolve, 500));

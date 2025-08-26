@@ -25,10 +25,6 @@ export function AuthSuccess() {
         const googleJwt = urlParams.get("jwt");
         const zkLoginSalt = urlParams.get("zklogin_salt");
 
-        console.log("token", accessToken);
-        console.log("jwt", googleJwt);
-        console.log("zklogin_salt", zkLoginSalt);
-
         if (!accessToken || !googleJwt) {
           throw new Error("Missing authentication tokens");
         }
@@ -50,8 +46,6 @@ export function AuthSuccess() {
 
             // Complete zkLogin flow on client side
             const zkResult = await zkLoginService.completeZkLoginFlow(googleJwt, zkLoginSalt);
-
-            console.log("zk result", zkResult);
 
             setStep("ZK proof and Sui address generated successfully!");
             setSuiAddress(zkResult.sui_address);

@@ -125,13 +125,8 @@ export class ZkLoginService {
     }
 
     const publicKey = this.ephemeralKeyPair.getPublicKey();
-    console.log("Generating nonce with:");
-    console.log("- PublicKey:", publicKey.toBase64());
-    console.log("- MaxEpoch:", this.maxEpoch);
-    console.log("- Randomness:", this.randomness);
 
     const nonce = generateNonce(publicKey, this.maxEpoch, this.randomness);
-    console.log("Generated nonce:", nonce);
 
     return nonce;
   }
@@ -174,8 +169,6 @@ export class ZkLoginService {
       const systemState = await client.getLatestSuiSystemState();
       // Set max epoch to current epoch + 2 for sufficient validity period
       this.maxEpoch = Number(systemState.epoch) + 2;
-
-      console.log("Current epoch:", systemState.epoch, "Max epoch set to:", this.maxEpoch);
     } catch (error) {
       console.error("Failed to fetch max epoch:", error);
       // Use a reasonable fallback based on current testnet epoch
@@ -215,9 +208,6 @@ export class ZkLoginService {
    */
   generateSuiAddress(jwtToken: string, salt: string): string {
     try {
-      console.log("Salt string (Base64):", salt);
-      console.log("JWT token:", jwtToken);
-
       // Convert base64 salt to BigInt for jwtToAddress
       const saltBytes = atob(salt);
       let saltBigInt = 0n;
@@ -225,16 +215,11 @@ export class ZkLoginService {
         saltBigInt = (saltBigInt << 8n) + BigInt(saltBytes.charCodeAt(i));
       }
 
-      console.log("Salt BigInt:", saltBigInt.toString());
-
       // Use official Sui SDK function for address generation
       const zkLoginUserAddress = jwtToAddress(jwtToken, saltBigInt);
 
-      console.log("Generated Sui address:", zkLoginUserAddress);
-
       return zkLoginUserAddress;
     } catch (error) {
-      console.error("Failed to generate Sui address:", error);
       throw new Error("Failed to generate Sui address");
     }
   }
@@ -253,11 +238,6 @@ export class ZkLoginService {
         this.ephemeralKeyPair.getPublicKey()
       );
 
-      console.log("Extended ephemeral public key (Base64):", extendedEphemeralPublicKey);
-      console.log("Salt (Base64, from server):", salt, "length:", salt.length);
-      console.log("JWT Randomness (BigInt):", this.randomness);
-      console.log("Max epoch:", this.maxEpoch);
-
       // Call Mysten Labs proving service
       const proverUrl = "https://prover-dev.mystenlabs.com/v1";
 
@@ -270,8 +250,6 @@ export class ZkLoginService {
         keyClaimName: "sub",
       };
 
-      console.log("Calling prover service with payload:", payload);
-
       const response = await axios.post(proverUrl, payload, {
         headers: {
           "Content-Type": "application/json",
@@ -279,13 +257,8 @@ export class ZkLoginService {
         timeout: 30000, // 30 second timeout
       });
 
-      console.log("ZK proof generated successfully:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Failed to generate ZK proof:", error);
-      if (axios.isAxiosError(error)) {
-        console.error("Prover service error:", error.response?.data);
-      }
       throw new Error("Failed to generate ZK proof");
     }
   }
@@ -323,7 +296,6 @@ export class ZkLoginService {
    */
   async completeZkLoginFlow(jwtToken: string, salt: string): Promise<ZkLoginResult> {
     try {
-      console.log("Starting client-side zkLogin flow...");
 
       // Try to restore ephemeral key pair from session storage first
       if (!this.ephemeralKeyPair) {
@@ -344,21 +316,16 @@ export class ZkLoginService {
             const storedMaxEpoch = sessionStorage.getItem("zklogin-max-epoch");
             if (storedMaxEpoch) {
               this.maxEpoch = parseInt(storedMaxEpoch, 10);
-              console.log("Restored maxEpoch from session:", this.maxEpoch);
             } else {
               // Only fetch if not stored
               await this.fetchMaxEpoch();
               sessionStorage.setItem("zklogin-max-epoch", this.maxEpoch.toString());
             }
 
-            console.log("Ephemeral key pair restored from session storage");
           } else {
             throw new Error("No ephemeral key available in session storage or parameter");
           }
         } catch (error) {
-          console.error("Failed to restore ephemeral key pair:", error);
-          // Generate new ephemeral key pair as last resort
-          console.log("Generating new ephemeral key pair as fallback");
           await this.initializeEphemeralKeyPair();
         }
       }
@@ -371,9 +338,6 @@ export class ZkLoginService {
 
       // 3. Update Sui address on server
       await this.updateSuiAddressOnServer(suiAddress);
-
-      console.log("zkLogin flow completed successfully");
-      console.log("Sui address:", suiAddress);
 
       return {
         sui_address: suiAddress,

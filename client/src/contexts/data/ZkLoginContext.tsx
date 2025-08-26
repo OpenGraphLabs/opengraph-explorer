@@ -78,12 +78,9 @@ export function ZkLoginProvider({ children }: { children: ReactNode }) {
         try {
           nonce = zkLoginService.generateNonce();
         } catch (error) {
-          console.log("Failed to generate nonce, initializing ephemeral key pair...");
           await zkLoginService.initializeEphemeralKeyPair();
           nonce = zkLoginService.generateNonce();
         }
-
-        console.log("Generated nonce for OAuth:", nonce);
 
         // Update state with the nonce for reference
         setState(prev => ({
@@ -93,7 +90,6 @@ export function ZkLoginProvider({ children }: { children: ReactNode }) {
           ephemeralPublicKey: zkLoginService.getEphemeralKeyPair().getPublicKey().toBase64(),
         }));
       } catch (nonceError) {
-        console.error("Failed to generate nonce:", nonceError);
         throw new Error("Failed to generate nonce. Please try again.");
       }
 
@@ -122,7 +118,6 @@ export function ZkLoginProvider({ children }: { children: ReactNode }) {
         zkProofCompleted: true,
       }));
 
-      console.log("ZK proof generated successfully:", result.sui_address);
       return true;
     } catch (error) {
       console.error("Failed to generate ZK proof:", error);

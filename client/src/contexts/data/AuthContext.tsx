@@ -91,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const serverUser = await response.json();
-      console.log("serverUser: ", serverUser);
 
       const user: User = {
         id: decoded.sub,
@@ -107,8 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         jwt,
       }));
-
-      console.log("Authentication successful:", user);
     } catch (error) {
       console.error("Failed to handle callback:", error);
       // Clear JWT on error

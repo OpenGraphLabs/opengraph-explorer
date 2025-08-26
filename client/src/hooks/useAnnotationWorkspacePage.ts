@@ -157,7 +157,6 @@ export function useAnnotationWorkspacePage(options: UseAnnotationWorkspacePageOp
     createBatch(
       batchData,
       result => {
-        console.log("Save successful:", result);
         setSaveSuccess(true);
 
         // Auto-hide success message and move to next image after 1.5 seconds
