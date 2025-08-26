@@ -1,5 +1,5 @@
 # OpenGraph Docker Essential Commands
-.PHONY: help run dev stop stop-dev restart restart-dev rebuild logs logs-server logs-client clean size populate-tasks populate-tasks-dev
+.PHONY: help run dev stop stop-dev restart restart-dev logs logs-server logs-client clean size populate-tasks populate-tasks-dev
 
 # Default variables
 DOCKER_COMPOSE = docker-compose
@@ -14,7 +14,6 @@ help:
 	@echo "  make stop-dev     - Stop development containers"
 	@echo "  make restart      - Rebuild and restart production environment"
 	@echo "  make restart-dev  - Rebuild and restart development environment"
-	@echo "  make rebuild      - Force rebuild without cache (for env changes)"
 	@echo "  make logs         - View all logs"
 	@echo "  make logs-server  - View server logs"
 	@echo "  make logs-client  - View client logs"
@@ -49,13 +48,6 @@ stop-dev:
 restart: stop
 	@echo "[Prod] Restarting..."
 	$(DOCKER_COMPOSE) --env-file .env.production up --build -d
-
-# Force rebuild without cache (for production environment changes)
-rebuild:
-	@echo "[Prod] Force rebuilding without cache..."
-	$(DOCKER_COMPOSE) --env-file .env.production down
-	$(DOCKER_COMPOSE) --env-file .env.production build --no-cache
-	$(DOCKER_COMPOSE) --env-file .env.production up -d
 
 # Restart with rebuilding for development environment
 restart-dev: stop-dev
