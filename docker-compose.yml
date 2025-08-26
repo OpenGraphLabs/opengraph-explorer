@@ -158,8 +158,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/letsencrypt/live/explorer.opengraphlabs.xyz:/etc/letsencrypt/live/explorer.opengraphlabs.xyz
-      - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/letsencrypt/archive/explorer.opengraphlabs.xyz
+      - /etc/letsencrypt/live/app.opengraphlabs.xyz:/etc/letsencrypt/live/app.opengraphlabs.xyz
+      - /etc/letsencrypt/archive/app.opengraphlabs.xyz:/etc/letsencrypt/archive/app.opengraphlabs.xyz
     depends_on:
       - server
     environment:
