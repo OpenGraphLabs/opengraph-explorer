@@ -51,11 +51,11 @@ services:
           memory: 512M
 
   # Python FastAPI Backend Server
-  fastapi:
+  server:
     build:
       context: .
       dockerfile: docker/server/Dockerfile
-    container_name: opengraph-fastapi
+    container_name: opengraph-server
     ports:
       - "8000:8000"
     environment:
@@ -112,7 +112,7 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     depends_on:
-      - fastapi
+      - server
     networks:
       - opengraph-network
     deploy:
@@ -161,7 +161,7 @@ services:
       - /etc/letsencrypt/live/explorer.opengraphlabs.xyz:/etc/letsencrypt/live/explorer.opengraphlabs.xyz
       - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/letsencrypt/archive/explorer.opengraphlabs.xyz
     depends_on:
-      - fastapi
+      - server
     environment:
       - VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL}
     networks:

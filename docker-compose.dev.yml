@@ -43,11 +43,11 @@ services:
     restart: "no"
 
   # Python FastAPI Backend Server for Development
-  fastapi:
+  server:
     build:
       context: .
       dockerfile: docker/server/Dockerfile
-    container_name: opengraph-fastapi-dev
+    container_name: opengraph-server-dev
     ports:
       - "8000:8000"
     environment:
@@ -104,7 +104,7 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     depends_on:
-      - fastapi
+      - server
     networks:
       - opengraph-network
 
@@ -137,12 +137,12 @@ services:
         VITE_SERVER_BASE_URL: ${VITE_SERVER_BASE_URL}
     container_name: opengraph-client-dev
     ports:
-      - "3001:80"
+      - "80:80"
     volumes:
       - ./client:/app
       - /app/node_modules
     depends_on:
-      - fastapi
+      - server
     environment:
       - VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL}
     networks:

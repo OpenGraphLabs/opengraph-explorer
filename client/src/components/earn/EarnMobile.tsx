@@ -3,6 +3,9 @@ import { Box, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { EarnTaskCard } from "./EarnTaskCard";
 import actionDemoVideo from "@/assets/thumbnail/earn_thumbnail_action_demonstration.mov";
+import firstPersonThumbnail from "@/assets/thumbnail/earn_thumbnail_first_person_view.jpg";
+import maskThumbnail from "@/assets/thumbnail/earn_thumbnail_mask.jpg";
+import trajectoryThumbnail from "@/assets/thumbnail/earn_thumbnail_trajectory.jpg";
 import { MaskHappy, Path, Camera, PlayCircle } from "phosphor-react";
 
 interface TaskType {
@@ -33,7 +36,7 @@ const TASK_TYPES: TaskType[] = [
     category: "Data Collection",
     featured: true,
     requirements: ["Camera or smartphone", "Good lighting conditions"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_first_person_view.jpg",
+    thumbnailUrl: firstPersonThumbnail,
     datasetId: 3,
   },
   {
@@ -47,7 +50,7 @@ const TASK_TYPES: TaskType[] = [
     category: "Computer Vision",
     featured: false,
     requirements: ["Basic image editing skills", "Understanding of object boundaries"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_mask.jpg",
+    thumbnailUrl: maskThumbnail,
     datasetId: 3,
   },
   {
@@ -61,7 +64,7 @@ const TASK_TYPES: TaskType[] = [
     category: "Robotics AI",
     featured: false,
     requirements: ["Spatial reasoning skills", "Understanding of robot kinematics"],
-    thumbnailUrl: "/src/assets/thumbnail/earn_thumbnail_trajectory.jpg",
+    thumbnailUrl: trajectoryThumbnail,
     datasetId: 3,
   },
   {

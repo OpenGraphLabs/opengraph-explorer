@@ -48,8 +48,8 @@ app/scripts/annotations_test/
 app/scripts/images_test/
 app/scripts/images_coco/
 app/scripts/annotations_coco/
-app/scripts/images_high/
-app/scripts/annotations_high/
+scripts/images_high/
+scripts/annotations_high/
 app/scripts/images/
 app/scripts/annotations_first_person_old/
 
