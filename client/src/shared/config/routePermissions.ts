@@ -7,7 +7,10 @@ export interface RouteConfig {
 }
 
 export const ROUTE_PERMISSIONS: RouteConfig[] = [
-  // All routes now require authentication (wallet or demo login)
+  // Public routes
+  { path: "/leaderboard", permission: "public" },
+  
+  // All other routes require authentication (wallet or demo login)
   { path: "/", permission: "auth-required" },
   { path: "/earn", permission: "auth-required" },
   { path: "/tasks", permission: "auth-required" },

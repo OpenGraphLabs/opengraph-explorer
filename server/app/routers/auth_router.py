@@ -19,6 +19,7 @@ from ..models.user import User
 from ..services.user_service import UserService
 from ..services.google_auth_service import GoogleAuthService
 from ..services.zklogin_service import ZkLoginService
+from ..schemas.user import ProfileCompleteRequest, ProfileCompleteResponse
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -77,6 +78,11 @@ class CurrentUserResponse(BaseModel):
     sui_address: str | None = None
     google_id: str | None = None
     zklogin_salt: str | None = None
+    nickname: str | None = None
+    gender: str | None = None
+    age: int | None = None
+    country: str | None = None
+    is_profile_complete: bool = False
     created_at: str
 
 
@@ -293,6 +299,11 @@ async def get_me(
         sui_address=current_user.sui_address,
         google_id=current_user.google_id,
         zklogin_salt=current_user.zklogin_salt,
+        nickname=current_user.nickname,
+        gender=current_user.gender,
+        age=current_user.age,
+        country=current_user.country,
+        is_profile_complete=current_user.is_profile_complete,
         created_at=current_user.created_at.isoformat()
     )
 
@@ -340,4 +351,75 @@ async def update_sui_address(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to update Sui address: {str(e)}"
+        )
+
+
+@router.post("/profile/complete", response_model=ProfileCompleteResponse)
+async def complete_profile(
+    request: ProfileCompleteRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> ProfileCompleteResponse:
+    """
+    사용자 프로필 완성
+    
+    Args:
+        request: 프로필 완성 요청 데이터 (nickname, gender, age, country)
+        current_user: 현재 인증된 사용자
+        db: 데이터베이스 세션
+        
+    Returns:
+        ProfileCompleteResponse: 프로필 완성 결과
+    """
+    try:
+        # Check if profile is already complete
+        if current_user.is_profile_complete:
+            raise HTTPException(
+                status_code=400,
+                detail="Profile is already complete"
+            )
+        
+        # Validate and update profile fields
+        current_user.nickname = request.nickname
+        current_user.gender = request.gender
+        current_user.age = request.age
+        current_user.country = request.country.upper()  # Ensure uppercase for country code
+        current_user.is_profile_complete = True
+        
+        await db.commit()
+        await db.refresh(current_user)
+        
+        print(f"Profile completed for user {current_user.email}: {request.nickname}, {request.gender}, {request.age}, {request.country}")
+        
+        # Return updated user data
+        from ..schemas.user import UserRead
+        user_data = UserRead(
+            id=current_user.id,
+            email=current_user.email,
+            google_id=current_user.google_id,
+            display_name=current_user.display_name,
+            profile_image_url=current_user.profile_image_url,
+            sui_address=current_user.sui_address,
+            total_points=current_user.total_points,
+            nickname=current_user.nickname,
+            gender=current_user.gender,
+            age=current_user.age,
+            country=current_user.country,
+            is_profile_complete=current_user.is_profile_complete,
+            created_at=current_user.created_at
+        )
+        
+        return ProfileCompleteResponse(
+            success=True,
+            message="Profile completed successfully",
+            user=user_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error completing profile: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to complete profile: {str(e)}"
         )
