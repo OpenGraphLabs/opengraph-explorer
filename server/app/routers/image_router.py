@@ -71,7 +71,7 @@ async def add_first_person_image(
     image_service = ImageService(db)
     
     try:
-        return await image_service.create_first_person_image(image_data)
+        return await image_service.create_first_person_image(image_data, current_user.id)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

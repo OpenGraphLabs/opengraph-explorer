@@ -5,8 +5,8 @@ SQLAlchemy model for first-person capture tasks
 """
 
 from datetime import datetime
-from typing import List
-from sqlalchemy import BigInteger, String, DateTime, func
+from typing import List, Optional
+from sqlalchemy import BigInteger, String, DateTime, func, Integer, Text
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from ..database import Base
@@ -20,6 +20,11 @@ class Task(Base):
     # Basic fields
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # 보상 관련 필드
+    reward_points: Mapped[int] = mapped_column(Integer, nullable=False, default=10, server_default="10")
+    difficulty_level: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")  # 1-5 scale
     
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(

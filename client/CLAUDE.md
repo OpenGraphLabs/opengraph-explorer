@@ -832,3 +832,6 @@ When adding mobile support to existing pages:
 ---
 
 **🎯 This mobile-responsive architecture ensures optimal user experiences across all devices while maintaining clean, maintainable code separation.**
+
+### Additional Information
+- use as='p' attribute when you use <Text> component

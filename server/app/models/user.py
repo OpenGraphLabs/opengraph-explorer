@@ -6,7 +6,7 @@
 
 from datetime import datetime
 from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import Column, BigInteger, String, DateTime, func
+from sqlalchemy import Column, BigInteger, String, DateTime, func, Integer
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from ..database import Base
@@ -32,6 +32,9 @@ class User(Base):
     zklogin_salt: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     google_sub: Mapped[Optional[str]] = mapped_column(String, unique=True, nullable=True, index=True)
     
+    # 보상 시스템 필드
+    total_points: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    
     # 타임스탬프
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 
@@ -55,6 +58,16 @@ class User(Base):
     annotation_selections: Mapped[List["UserAnnotationSelection"]] = relationship(
         "UserAnnotationSelection",
         back_populates="user"
+    )
+    
+    submitted_images: Mapped[List["Image"]] = relationship(
+        "Image",
+        foreign_keys="Image.submitted_by"
+    )
+    
+    rewards: Mapped[List["UserReward"]] = relationship(
+        "UserReward",
+        foreign_keys="UserReward.user_id"
     )
     
     def __repr__(self) -> str:

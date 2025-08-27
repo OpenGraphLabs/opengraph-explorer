@@ -105,6 +105,13 @@ export function Header() {
               >
                 Dataset
               </NavLink>
+              <NavLink
+                to="/leaderboard"
+                current={location.pathname === "/leaderboard"}
+                disabled={!isAuthenticated && requiresAuth("/leaderboard")}
+              >
+                Leaderboard
+              </NavLink>
             </Flex>
           )}
         </Flex>
@@ -328,6 +335,14 @@ export function Header() {
               disabled={!isAuthenticated && requiresAuth("/datasets")}
             >
               Dataset
+            </MobileNavLink>
+            <MobileNavLink
+              to="/leaderboard"
+              current={location.pathname === "/leaderboard"}
+              onClick={() => setIsMobileMenuOpen(false)}
+              disabled={!isAuthenticated && requiresAuth("/leaderboard")}
+            >
+              Leaderboard
             </MobileNavLink>
           </Flex>
         </Box>

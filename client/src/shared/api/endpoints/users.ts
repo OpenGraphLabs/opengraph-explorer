@@ -14,8 +14,14 @@ export interface User {
 }
 
 export interface UserProfile extends User {
+  totalPoints: number;
   datasetCount: number;
   annotationCount: number;
+  imagesSubmitted: number;
+  imagesApproved: number;
+  imagesRejected: number;
+  imagesPending: number;
+  approvalRate: number;
 }
 
 export interface UserCreateInput {
@@ -43,8 +49,14 @@ interface UserResponse {
 }
 
 interface UserProfileResponse extends UserResponse {
+  total_points: number;
   dataset_count: number;
   annotation_count: number;
+  images_submitted: number;
+  images_approved: number;
+  images_rejected: number;
+  images_pending: number;
+  approval_rate: number;
 }
 
 // Parsing functions to convert API responses to client types
@@ -66,8 +78,14 @@ const parseUserProfile = (resp: UserProfileResponse): UserProfile => ({
   suiAddress: resp.sui_address || undefined,
   googleId: resp.google_id || undefined,
   createdAt: resp.created_at,
+  totalPoints: resp.total_points,
   datasetCount: resp.dataset_count,
   annotationCount: resp.annotation_count,
+  imagesSubmitted: resp.images_submitted,
+  imagesApproved: resp.images_approved,
+  imagesRejected: resp.images_rejected,
+  imagesPending: resp.images_pending,
+  approvalRate: resp.approval_rate,
 });
 
 // API Hooks

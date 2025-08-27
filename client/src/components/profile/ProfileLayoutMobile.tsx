@@ -11,6 +11,8 @@ import {
   StarFilledIcon,
   TokensIcon,
 } from "@radix-ui/react-icons";
+import { ProfileActivityStats } from "./ProfileActivityStats";
+import { ProfileApprovedImages } from "./ProfileApprovedImages";
 import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
 import openLogoUrl from "@/assets/logo/logo.png";
 import usdcLogoUrl from "@/assets/logo/usdc_logo.png";
@@ -24,7 +26,8 @@ export function ProfileLayoutMobile() {
   const { user } = useAuth();
   const { suiAddress } = useZkLogin();
   const { userProfile: profile } = useProfilePageContext();
-  const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
+  const [targetToken, setTargetToken] = useState<"SUI" | "USDC">("SUI");
+  const [exchangeAmount, setExchangeAmount] = useState("");
 
   const joinDate = profile ? new Date(profile.createdAt).toLocaleDateString() : "";
   const displayName = profile?.displayName || user?.name || user?.email?.split("@")[0] || "User";
@@ -33,38 +36,52 @@ export function ProfileLayoutMobile() {
 
   // Mock data for demo purposes
   const mockData = {
-    totalAnnotations: profile?.annotationCount || 0,
-    datasetsCreated: profile?.datasetCount || 0,
-    weeklyAnnotations: 0,
-    accuracy: 94.2,
+    accuracy: profile?.approvalRate || 0,
     contributionStreak: 14,
-    rank: "Advanced Contributor",
+    rank: "Data Contributor",
+    openBalance: profile?.totalPoints || 0,
+    exchangeRates: {
+      SUI: 0.00035, // 1 OPEN = 0.00035 SUI
+      USDC: 0.0001, // 1 OPEN = 0.0001 USDC
+    },
     tokens: {
-      OPEN: {
-        balance: 2847.5,
-        pending: 156.25,
-        symbol: "OPEN",
-        name: "OpenGraph Token",
-        logo: openLogoUrl,
-        primary: true,
-      },
       SUI: {
-        balance: 12.47,
-        pending: 3.25,
         symbol: "SUI",
         name: "Sui Token",
         logo: suiLogoUrl,
-        primary: false,
+        usdValue: 1.2,
       },
       USDC: {
-        balance: 28.9,
-        pending: 4.5,
         symbol: "USDC",
         name: "USD Coin",
         logo: usdcLogoUrl,
-        primary: false,
+        usdValue: 1.0,
       },
     },
+  };
+
+  const handleExchange = () => {
+    if (!exchangeAmount || parseFloat(exchangeAmount) <= 0) return;
+    if (parseFloat(exchangeAmount) > mockData.openBalance) {
+      alert("Insufficient OPEN balance");
+      return;
+    }
+
+    const outputAmount = parseFloat(exchangeAmount) * mockData.exchangeRates[targetToken];
+    console.log(`Exchange ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
+    alert(`Exchanging ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
+  };
+
+  const calculateOutputAmount = () => {
+    if (!exchangeAmount || isNaN(parseFloat(exchangeAmount))) return "0.0000";
+    const outputAmount = parseFloat(exchangeAmount) * mockData.exchangeRates[targetToken];
+    return outputAmount.toFixed(4);
+  };
+
+  const isValidAmount = () => {
+    if (!exchangeAmount) return false;
+    const amount = parseFloat(exchangeAmount);
+    return amount > 0 && amount <= mockData.openBalance;
   };
 
   return (
@@ -220,170 +237,12 @@ export function ProfileLayoutMobile() {
 
       {/* Mobile Statistics - Single Column */}
       <Flex direction="column" gap="3">
-        {/* Annotation Statistics - Mobile */}
-        <Box
-          style={{
-            background: theme.colors.background.card,
-            borderRadius: theme.borders.radius.md,
-            padding: theme.spacing.semantic.layout.md,
-            border: `1px solid ${theme.colors.border.primary}`,
-            boxShadow: theme.shadows.semantic.card.low,
-          }}
-        >
-          <Flex
-            align="center"
-            gap="3"
-            style={{ marginBottom: theme.spacing.semantic.component.md }}
-          >
-            <Box
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                background: `${theme.colors.status.info}15`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: `1px solid ${theme.colors.status.info}30`,
-              }}
-            >
-              <BarChartIcon
-                style={{
-                  width: "18px",
-                  height: "18px",
-                  color: theme.colors.status.info,
-                }}
-              />
-            </Box>
-            <Box>
-              <Heading size="3" style={{ color: theme.colors.text.primary }}>
-                Annotation Activity
-              </Heading>
-              <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                Your contribution to the platform
-              </Text>
-            </Box>
-          </Flex>
+        {/* OpenGraph Points & Contribution Stats */}
+        <ProfileActivityStats />
+        {/* Approved Images Gallery */}
+        <ProfileApprovedImages />
 
-          <Flex direction="column" gap="3">
-            {/* Total Annotations - Mobile */}
-            <Flex justify="between" align="center">
-              <Flex align="center" gap="2">
-                <CheckCircledIcon
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    color: theme.colors.status.success,
-                  }}
-                />
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Total Annotations
-                </Text>
-              </Flex>
-              <Text
-                size="4"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: "700",
-                }}
-              >
-                {mockData.totalAnnotations.toLocaleString()}
-              </Text>
-            </Flex>
-
-            {/* Weekly Annotations - Mobile */}
-            <Flex justify="between" align="center">
-              <Flex align="center" gap="2">
-                <Box
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    borderRadius: "50%",
-                    background: theme.colors.status.info,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ fontSize: "8px", color: "white", fontWeight: "bold" }}>7</Text>
-                </Box>
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  This Week
-                </Text>
-              </Flex>
-              <Text
-                size="3"
-                style={{
-                  color: theme.colors.status.info,
-                  fontWeight: "700",
-                }}
-              >
-                +{mockData.weeklyAnnotations}
-              </Text>
-            </Flex>
-
-            {/* Datasets Created - Mobile */}
-            <Flex justify="between" align="center">
-              <Flex align="center" gap="2">
-                <StarFilledIcon
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    color: theme.colors.status.warning,
-                  }}
-                />
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Datasets Created
-                </Text>
-              </Flex>
-              <Text
-                size="3"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: "600",
-                }}
-              >
-                {mockData.datasetsCreated}
-              </Text>
-            </Flex>
-
-            {/* Progress Bar - Mobile */}
-            <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
-              <Flex justify="between" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
-                <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                  Next Level Progress
-                </Text>
-                <Text
-                  size="1"
-                  style={{ color: theme.colors.interactive.primary, fontWeight: "600" }}
-                >
-                  {Math.round((mockData.totalAnnotations % 500) / 5)}% to Expert
-                </Text>
-              </Flex>
-              <Box
-                style={{
-                  width: "100%",
-                  height: "6px",
-                  background: theme.colors.background.secondary,
-                  borderRadius: "3px",
-                  overflow: "hidden",
-                }}
-              >
-                <Box
-                  style={{
-                    width: `${Math.round((mockData.totalAnnotations % 500) / 5)}%`,
-                    height: "100%",
-                    background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-                    transition: "width 0.3s ease",
-                    borderRadius: "3px",
-                  }}
-                />
-              </Box>
-            </Box>
-          </Flex>
-        </Box>
-
-        {/* Multi-Token Wallet - Mobile */}
+        {/* OPEN Wallet & Withdrawal - Mobile */}
         <Box
           style={{
             background: theme.colors.background.card,
@@ -397,24 +256,24 @@ export function ProfileLayoutMobile() {
           <Flex
             align="center"
             gap="3"
-            style={{ marginBottom: theme.spacing.semantic.component.md }}
+            style={{ marginBottom: theme.spacing.semantic.component.lg }}
           >
             <Box
               style={{
-                width: "36px",
-                height: "36px",
+                width: "40px",
+                height: "40px",
                 borderRadius: "50%",
                 background: `${theme.colors.interactive.primary}15`,
                 border: `1px solid ${theme.colors.interactive.primary}30`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "4px",
+                padding: "6px",
               }}
             >
               <img
-                src={mockData.tokens[selectedToken].logo}
-                alt={mockData.tokens[selectedToken].name}
+                src={openLogoUrl}
+                alt="OPEN"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -425,221 +284,305 @@ export function ProfileLayoutMobile() {
             </Box>
             <Box>
               <Heading size="3" style={{ color: theme.colors.text.primary }}>
-                OpenGraph Wallet
+                OPEN Wallet
               </Heading>
               <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                Multi-token rewards & earnings
+                Withdraw your earned points
               </Text>
             </Box>
           </Flex>
 
-          {/* Mobile Token Selector - Stack vertically on very small screens */}
-          <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
+          {/* OPEN Balance Display - Mobile */}
+          <Box
+            style={{
+              padding: theme.spacing.semantic.component.lg,
+              background: `linear-gradient(135deg, ${theme.colors.interactive.primary}08, ${theme.colors.interactive.accent}06)`,
+              borderRadius: theme.borders.radius.md,
+              border: `1px solid ${theme.colors.interactive.primary}20`,
+              marginBottom: theme.spacing.semantic.component.lg,
+            }}
+          >
+            <Flex align="center" justify="between" style={{ marginBottom: "8px" }}>
+              <Text
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  fontWeight: 500,
+                }}
+              >
+                OpenGraph Points
+              </Text>
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.tertiary,
+                }}
+              >
+                Available for withdrawal
+              </Text>
+            </Flex>
+            <Flex align="center" justify="between">
+              <Text
+                size="6"
+                style={{
+                  fontWeight: 800,
+                  color: theme.colors.interactive.primary,
+                }}
+              >
+                {mockData.openBalance.toLocaleString()}
+              </Text>
+            </Flex>
+          </Box>
+
+          {/* Withdrawal Form - Mobile */}
+          <Box>
             <Text
               size="2"
               style={{
                 color: theme.colors.text.secondary,
                 marginBottom: theme.spacing.semantic.component.sm,
+                fontWeight: 500,
               }}
             >
-              Select Token
+              Withdraw Amount
             </Text>
-            <Flex gap="2" direction="column">
-              {(Object.keys(mockData.tokens) as Array<keyof typeof mockData.tokens>).map(
-                tokenKey => {
-                  const token = mockData.tokens[tokenKey];
-                  const isSelected = selectedToken === tokenKey;
 
-                  return (
-                    <button
-                      key={tokenKey}
-                      onClick={() => setSelectedToken(tokenKey)}
-                      style={{
-                        width: "100%",
-                        minHeight: "44px", // Touch-friendly
-                        padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                        background: isSelected
-                          ? theme.colors.interactive.primary
-                          : theme.colors.background.secondary,
-                        border: `1px solid ${
-                          isSelected
-                            ? theme.colors.interactive.primary
-                            : theme.colors.border.secondary
-                        }`,
-                        borderRadius: theme.borders.radius.sm,
-                        cursor: "pointer",
-                        transition: "all 150ms ease",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: theme.spacing.base[2],
-                        touchAction: "manipulation",
-                      }}
-                    >
-                      <img
-                        src={token.logo}
-                        alt={token.symbol}
-                        style={{
-                          width: "20px",
-                          height: "20px",
-                          objectFit: "contain",
-                        }}
-                      />
-                      <Text
-                        size="2"
-                        style={{
-                          color: isSelected ? "white" : theme.colors.text.primary,
-                          fontWeight: isSelected ? "600" : "500",
-                        }}
-                      >
-                        {token.name}
-                      </Text>
-                    </button>
-                  );
-                }
-              )}
+            <input
+              type="number"
+              placeholder={`Enter OPEN amount (Max: ${mockData.openBalance})`}
+              value={exchangeAmount}
+              onChange={e => setExchangeAmount(e.target.value)}
+              max={mockData.openBalance}
+              style={{
+                width: "100%",
+                minHeight: "44px", // Touch-friendly
+                padding: theme.spacing.semantic.component.md,
+                border: `1px solid ${
+                  exchangeAmount && parseFloat(exchangeAmount) > mockData.openBalance
+                    ? theme.colors.status.error
+                    : theme.colors.border.primary
+                }`,
+                borderRadius: theme.borders.radius.sm,
+                fontSize: "16px",
+                background: theme.colors.background.primary,
+                color: theme.colors.text.primary,
+                marginBottom: theme.spacing.semantic.component.md,
+                touchAction: "manipulation",
+              }}
+            />
+
+            {/* Quick Amount Buttons - Mobile */}
+            <Flex gap="2" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+              {[25, 50, 75, 100].map(percentage => {
+                const amount = Math.floor((mockData.openBalance * percentage) / 100);
+                return (
+                  <button
+                    key={percentage}
+                    onClick={() => setExchangeAmount(amount.toString())}
+                    style={{
+                      flex: 1,
+                      minHeight: "36px",
+                      padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                      background: theme.colors.background.secondary,
+                      border: `1px solid ${theme.colors.border.secondary}`,
+                      borderRadius: theme.borders.radius.sm,
+                      color: theme.colors.text.secondary,
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      touchAction: "manipulation",
+                    }}
+                  >
+                    {percentage}%
+                  </button>
+                );
+              })}
             </Flex>
-          </Box>
 
-          {/* Mobile Wallet Connection Status */}
-          {userSuiAddress ? (
-            <Box style={{ marginBottom: theme.spacing.semantic.component.md }}>
+            {/* Target Token Selection - Mobile */}
+            <Text
+              size="2"
+              style={{
+                color: theme.colors.text.secondary,
+                marginBottom: theme.spacing.semantic.component.sm,
+                fontWeight: 500,
+              }}
+            >
+              Convert to
+            </Text>
+
+            <Flex gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+              {Object.entries(mockData.tokens).map(([tokenKey, token]) => (
+                <button
+                  key={tokenKey}
+                  onClick={() => setTargetToken(tokenKey as "SUI" | "USDC")}
+                  style={{
+                    flex: 1,
+                    minHeight: "48px",
+                    padding: theme.spacing.semantic.component.md,
+                    background:
+                      targetToken === tokenKey
+                        ? theme.colors.interactive.primary
+                        : theme.colors.background.secondary,
+                    border: `1px solid ${
+                      targetToken === tokenKey
+                        ? theme.colors.interactive.primary
+                        : theme.colors.border.secondary
+                    }`,
+                    borderRadius: theme.borders.radius.sm,
+                    color: targetToken === tokenKey ? "white" : theme.colors.text.primary,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    gap: "4px",
+                    touchAction: "manipulation",
+                    transition: "all 150ms ease",
+                  }}
+                >
+                  <img
+                    src={token.logo}
+                    alt={token.symbol}
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      objectFit: "contain",
+                      objectPosition: "center",
+                    }}
+                  />
+                  <Text
+                    size="1"
+                    style={{
+                      color: targetToken === tokenKey ? "white" : theme.colors.text.primary,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {token.symbol}
+                  </Text>
+                </button>
+              ))}
+            </Flex>
+
+            {/* Output Display - Mobile */}
+            <Box
+              style={{
+                padding: theme.spacing.semantic.component.lg,
+                background: `linear-gradient(135deg, ${theme.colors.status.success}08, ${theme.colors.interactive.accent}06)`,
+                borderRadius: theme.borders.radius.sm,
+                border: `1px solid ${theme.colors.status.success}20`,
+                marginBottom: theme.spacing.semantic.component.md,
+              }}
+            >
               <Text
                 size="2"
                 style={{
                   color: theme.colors.text.secondary,
-                  marginBottom: theme.spacing.semantic.component.sm,
+                  marginBottom: "8px",
                 }}
               >
-                Connected Wallet
+                You will receive
               </Text>
-              <Box
-                style={{
-                  background: theme.colors.background.secondary,
-                  borderRadius: theme.borders.radius.sm,
-                  padding: theme.spacing.semantic.component.sm,
-                  border: `1px solid ${theme.colors.border.secondary}`,
-                }}
-              >
-                <Text
-                  size="1"
-                  style={{
-                    fontFamily: "monospace",
-                    color: theme.colors.text.primary,
-                    wordBreak: "break-all",
-                    lineHeight: 1.3,
-                    fontSize: "11px",
-                  }}
-                >
-                  {userSuiAddress}
-                </Text>
-              </Box>
-            </Box>
-          ) : (
-            <Box
-              style={{
-                textAlign: "center",
-                padding: theme.spacing.semantic.component.md,
-                background: `${theme.colors.status.info}08`,
-                borderRadius: theme.borders.radius.sm,
-                border: `1px dashed ${theme.colors.status.info}40`,
-                marginBottom: theme.spacing.semantic.component.md,
-              }}
-            >
-              <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                Connect wallet to claim rewards
-              </Text>
-            </Box>
-          )}
-
-          {/* Mobile Token Balance Display */}
-          <Flex direction="column" gap="3">
-            {/* Current Balance - Mobile */}
-            <Flex justify="between" align="center">
-              <Flex align="center" gap="2">
-                <TokensIcon
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    color: theme.colors.status.success,
-                  }}
-                />
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Available Balance
-                </Text>
-              </Flex>
-              <Flex align="center" gap="1">
+              <Flex align="center" justify="between">
                 <Text
                   size="4"
                   style={{
-                    color: theme.colors.text.primary,
-                    fontWeight: "700",
+                    fontWeight: 700,
+                    color: theme.colors.status.success,
                   }}
                 >
-                  {mockData.tokens[selectedToken].balance.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {calculateOutputAmount()} {targetToken}
                 </Text>
-                <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-                  {mockData.tokens[selectedToken].symbol}
-                </Text>
-              </Flex>
-            </Flex>
-
-            {/* Pending Rewards - Mobile */}
-            <Flex justify="between" align="center">
-              <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                Pending Rewards
-              </Text>
-              <Flex align="center" gap="1">
                 <Text
-                  size="3"
+                  size="2"
                   style={{
-                    color: theme.colors.status.warning,
-                    fontWeight: "700",
+                    color: theme.colors.text.tertiary,
                   }}
                 >
-                  +{mockData.tokens[selectedToken].pending.toFixed(2)}
-                </Text>
-                <Text size="1" style={{ color: theme.colors.text.tertiary }}>
-                  {mockData.tokens[selectedToken].symbol}
+                  $
+                  {(
+                    parseFloat(calculateOutputAmount()) * mockData.tokens[targetToken].usdValue
+                  ).toFixed(2)}
                 </Text>
               </Flex>
-            </Flex>
+            </Box>
 
-            {/* Mobile Claim Button - Touch-friendly */}
+            {/* Insufficient Balance Warning - Mobile */}
+            {exchangeAmount && parseFloat(exchangeAmount) > mockData.openBalance && (
+              <Box
+                style={{
+                  padding: theme.spacing.semantic.component.sm,
+                  background: `${theme.colors.status.error}08`,
+                  borderRadius: theme.borders.radius.sm,
+                  border: `1px solid ${theme.colors.status.error}20`,
+                  marginBottom: theme.spacing.semantic.component.md,
+                }}
+              >
+                <Text
+                  size="2"
+                  style={{
+                    color: theme.colors.status.error,
+                    textAlign: "center",
+                  }}
+                >
+                  Insufficient OPEN balance. Max: {mockData.openBalance.toLocaleString()}
+                </Text>
+              </Box>
+            )}
+
+            {/* Withdraw Button - Mobile */}
             <button
-              disabled={mockData.tokens[selectedToken].pending === 0}
+              onClick={handleExchange}
+              disabled={!isValidAmount()}
               style={{
                 width: "100%",
-                minHeight: "44px",
+                minHeight: "48px", // Touch-friendly
                 padding: theme.spacing.semantic.component.md,
-                background:
-                  mockData.tokens[selectedToken].pending > 0
-                    ? theme.colors.interactive.primary
-                    : theme.colors.background.secondary,
+                background: !isValidAmount()
+                  ? theme.colors.background.secondary
+                  : theme.colors.interactive.primary,
                 border: `1px solid ${
-                  mockData.tokens[selectedToken].pending > 0
-                    ? theme.colors.interactive.primary
-                    : theme.colors.border.secondary
+                  !isValidAmount()
+                    ? theme.colors.border.secondary
+                    : theme.colors.interactive.primary
                 }`,
                 borderRadius: theme.borders.radius.sm,
-                color:
-                  mockData.tokens[selectedToken].pending > 0 ? "white" : theme.colors.text.tertiary,
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: mockData.tokens[selectedToken].pending > 0 ? "pointer" : "not-allowed",
-                marginTop: theme.spacing.semantic.component.sm,
-                transition: "all 150ms ease",
+                color: !isValidAmount() ? theme.colors.text.tertiary : "white",
+                fontSize: "16px",
+                fontWeight: 600,
+                cursor: !isValidAmount() ? "not-allowed" : "pointer",
                 touchAction: "manipulation",
+                transition: "all 150ms ease",
               }}
             >
-              {mockData.tokens[selectedToken].pending > 0
-                ? `Claim ${mockData.tokens[selectedToken].pending.toFixed(2)} ${mockData.tokens[selectedToken].symbol}`
-                : "No rewards to claim"}
+              Withdraw {targetToken}
             </button>
-          </Flex>
+
+            {/* Exchange Rate Info - Mobile */}
+            <Box
+              style={{
+                marginTop: theme.spacing.semantic.component.md,
+                padding: theme.spacing.semantic.component.sm,
+                background: `${theme.colors.interactive.primary}08`,
+                borderRadius: theme.borders.radius.sm,
+                border: `1px solid ${theme.colors.interactive.primary}20`,
+              }}
+            >
+              <Text
+                size="1"
+                style={{
+                  color: theme.colors.text.secondary,
+                  textAlign: "center",
+                  lineHeight: 1.4,
+                }}
+              >
+                Rate: 1 OPEN = {mockData.exchangeRates[targetToken]} {targetToken}
+                <br />
+                Network fees may apply
+              </Text>
+            </Box>
+          </Box>
         </Box>
       </Flex>
 

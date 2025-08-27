@@ -402,7 +402,6 @@ export function FirstPersonImageGallery() {
                   </Flex>
                 </Box>
               </Box>
-
             </Box>
           );
         })}
