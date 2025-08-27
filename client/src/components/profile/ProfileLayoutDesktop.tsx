@@ -20,7 +20,7 @@ export function ProfileLayoutDesktop() {
   const { user } = useAuth();
   const { suiAddress } = useZkLogin();
   const { userProfile: profile } = useProfilePageContext();
-  const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
+  const [targetToken, setTargetToken] = useState<"SUI" | "USDC">("SUI");
   const [exchangeAmount, setExchangeAmount] = useState("");
 
   const joinDate = profile ? new Date(profile.createdAt).toLocaleDateString() : "";
@@ -35,29 +35,22 @@ export function ProfileLayoutDesktop() {
     rank: "Data Contributor",
     level: 8,
     nextLevelProgress: 65,
+    openBalance: profile?.totalPoints || 0,
+    exchangeRates: {
+      SUI: 0.00035, // 1 OPEN = 0.00035 SUI
+      USDC: 0.0001, // 1 OPEN = 0.0001 USDC
+    },
     tokens: {
-      OPEN: {
-        balance: profile?.totalPoints || 0,
-        symbol: "OPEN",
-        name: "OpenGraph Points",
-        logo: openLogoUrl,
-        exchangeRate: 1, // 1 OPEN = 1 OPEN
-        usdValue: 0.1,
-      },
       SUI: {
-        balance: 12.47,
         symbol: "SUI",
         name: "Sui Token",
         logo: suiLogoUrl,
-        exchangeRate: 0.15, // 1 OPEN = 0.15 SUI
         usdValue: 1.2,
       },
       USDC: {
-        balance: 28.9,
         symbol: "USDC",
         name: "USD Coin",
         logo: usdcLogoUrl,
-        exchangeRate: 0.1, // 1 OPEN = 0.1 USDC
         usdValue: 1.0,
       },
     },
@@ -65,30 +58,33 @@ export function ProfileLayoutDesktop() {
 
   const handleExchange = () => {
     if (!exchangeAmount || parseFloat(exchangeAmount) <= 0) return;
-    // Exchange logic would go here
-    const targetToken = selectedToken === "OPEN" ? "SUI/USDC" : "OPEN";
-    console.log(`Exchange ${exchangeAmount} ${selectedToken} to ${targetToken}`);
+    if (parseFloat(exchangeAmount) > mockData.openBalance) {
+      alert("Insufficient OPEN balance");
+      return;
+    }
+    
+    // Exchange logic: Convert OPEN to target token
+    const outputAmount = parseFloat(exchangeAmount) * mockData.exchangeRates[targetToken];
+    console.log(`Exchange ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
+    
+    // Here would be the actual withdrawal/exchange logic
+    alert(`Exchanging ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
   };
 
-  const getTargetToken = () => {
-    if (selectedToken === "OPEN") return "SUI/USDC";
-    return "OPEN";
+  const calculateOutputAmount = () => {
+    if (!exchangeAmount || isNaN(parseFloat(exchangeAmount))) return "0.0000";
+    const outputAmount = parseFloat(exchangeAmount) * mockData.exchangeRates[targetToken];
+    return outputAmount.toFixed(4);
   };
 
   const getExchangeRate = () => {
-    return mockData.tokens[selectedToken].exchangeRate;
+    return mockData.exchangeRates[targetToken];
   };
 
-  const calculateExchangeAmount = () => {
-    if (!exchangeAmount || isNaN(parseFloat(exchangeAmount))) return "0.0000";
-    
-    if (selectedToken === "OPEN") {
-      // Default to SUI for display
-      return (parseFloat(exchangeAmount) * mockData.tokens.SUI.exchangeRate).toFixed(4);
-    } else {
-      // Convert back to OPEN
-      return (parseFloat(exchangeAmount) / mockData.tokens[selectedToken].exchangeRate).toFixed(4);
-    }
+  const isValidAmount = () => {
+    if (!exchangeAmount) return false;
+    const amount = parseFloat(exchangeAmount);
+    return amount > 0 && amount <= mockData.openBalance;
   };
 
   return (
@@ -277,73 +273,121 @@ export function ProfileLayoutDesktop() {
                 </Heading>
               </Flex>
 
-              {/* Token Balances */}
-              <Flex direction="column" gap="4">
+              {/* OPEN Balance - Primary Display */}
+              <Box
+                style={{
+                  padding: theme.spacing.semantic.component.lg,
+                  background: `linear-gradient(135deg, ${theme.colors.interactive.primary}08, ${theme.colors.interactive.accent}06)`,
+                  borderRadius: theme.borders.radius.md,
+                  border: `1px solid ${theme.colors.interactive.primary}20`,
+                  marginBottom: theme.spacing.semantic.component.md,
+                }}
+              >
+                <Flex align="center" justify="between">
+                  <Flex align="center" gap="4">
+                    <img
+                      src={openLogoUrl}
+                      alt="OPEN"
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                      }}
+                    />
+                    <Box>
+                      <Text
+                        as="p"
+                        size="4"
+                        style={{
+                          fontWeight: 700,
+                          color: theme.colors.text.primary,
+                          marginBottom: "2px",
+                        }}
+                      >
+                        OpenGraph Points
+                      </Text>
+                      <Text
+                        as="p"
+                        size="2"
+                        style={{
+                          color: theme.colors.text.secondary,
+                        }}
+                      >
+                        Available for exchange
+                      </Text>
+                    </Box>
+                  </Flex>
+                  <Box style={{ textAlign: "right" }}>
+                    <Text
+                      as="p"
+                      size="6"
+                      style={{
+                        fontWeight: 800,
+                        color: theme.colors.interactive.primary,
+                        marginBottom: "2px",
+                      }}
+                    >
+                      {mockData.openBalance.toLocaleString()}
+                    </Text>
+                  </Box>
+                </Flex>
+              </Box>
+
+              {/* Exchange Options */}
+              <Text
+                as="p"
+                size="2"
+                style={{
+                  color: theme.colors.text.secondary,
+                  marginBottom: theme.spacing.semantic.component.sm,
+                }}
+              >
+                Exchange to:
+              </Text>
+              <Flex gap="3">
                 {Object.entries(mockData.tokens).map(([tokenKey, token]) => (
                   <Box
                     key={tokenKey}
                     style={{
-                      padding: theme.spacing.semantic.component.md,
+                      flex: 1,
+                      padding: theme.spacing.semantic.component.sm,
                       background: theme.colors.background.secondary,
                       borderRadius: theme.borders.radius.md,
                       border: `1px solid ${theme.colors.border.subtle}`,
                     }}
                   >
-                    <Flex align="center" justify="between">
-                      <Flex align="center" gap="3">
-                        <img
-                          src={token.logo}
-                          alt={token.symbol}
-                          style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                          }}
-                        />
-                        <Box>
-                          <Text
-                            as="p"
-                            size="3"
-                            style={{
-                              fontWeight: 600,
-                              color: theme.colors.text.primary,
-                            }}
-                          >
-                            {token.symbol}
-                          </Text>
-                          <Text
-                            as="p"
-                            size="1"
-                            style={{
-                              color: theme.colors.text.tertiary,
-                            }}
-                          >
-                            {token.name}
-                          </Text>
-                        </Box>
-                      </Flex>
-                      <Box style={{ textAlign: "right" }}>
+                    <Flex align="center" gap="2">
+                      <img
+                        src={token.logo}
+                        alt={token.symbol}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          borderRadius: "50%",
+                          objectFit: "contain",
+                          objectPosition: "center",
+                        }}
+                      />
+                      <Box>
                         <Text
                           as="p"
-                          size="4"
+                          size="2"
                           style={{
-                            fontWeight: 700,
+                            fontWeight: 600,
                             color: theme.colors.text.primary,
                           }}
                         >
-                          {token.balance.toLocaleString(undefined, {
-                            maximumFractionDigits: 2,
-                          })}
+                          {token.symbol}
                         </Text>
-                        <Text
-                          as="p"
-                          size="1"
-                          style={{
-                            color: theme.colors.text.tertiary,
-                          }}
-                        >
-                          ${(token.balance * token.usdValue).toFixed(2)} USD
-                        </Text>
+                        {/*<Text*/}
+                        {/*  as="p"*/}
+                        {/*  size="1"*/}
+                        {/*  style={{*/}
+                        {/*    color: theme.colors.text.tertiary,*/}
+                        {/*  }}*/}
+                        {/*>*/}
+                        {/*  1:{mockData.exchangeRates[tokenKey as keyof typeof mockData.exchangeRates]}*/}
+                        {/*</Text>*/}
                       </Box>
                     </Flex>
                   </Box>
@@ -351,7 +395,7 @@ export function ProfileLayoutDesktop() {
               </Flex>
             </Box>
 
-            {/* Currency Exchange */}
+            {/* Token Withdrawal Exchange */}
             <Box
               style={{
                 background: theme.colors.background.card,
@@ -361,7 +405,7 @@ export function ProfileLayoutDesktop() {
               }}
             >
               <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
-                <ArrowsHorizontal size={20} color={theme.colors.text.primary} />
+                <Coins size={20} color={theme.colors.text.primary} />
                 <Heading
                   size="4"
                   style={{
@@ -369,12 +413,13 @@ export function ProfileLayoutDesktop() {
                     fontWeight: 600,
                   }}
                 >
-                  Token Exchange
+                  Withdraw OPEN
                 </Heading>
               </Flex>
 
               {/* Exchange Form */}
               <Box>
+                {/* From Section - Fixed to OPEN */}
                 <Text
                   as="p"
                   size="2"
@@ -383,126 +428,31 @@ export function ProfileLayoutDesktop() {
                     marginBottom: theme.spacing.semantic.component.sm,
                   }}
                 >
-                  From
+                  From (OpenGraph Points)
                 </Text>
-                <Flex gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
-                  <button
-                    onClick={() => setSelectedToken("OPEN")}
-                    style={{
-                      flex: 1,
-                      padding: theme.spacing.semantic.component.sm,
-                      background: selectedToken === "OPEN" 
-                        ? theme.colors.interactive.primary 
-                        : theme.colors.background.secondary,
-                      border: `1px solid ${
-                        selectedToken === "OPEN"
-                          ? theme.colors.interactive.primary
-                          : theme.colors.border.secondary
-                      }`,
-                      borderRadius: theme.borders.radius.sm,
-                      color: selectedToken === "OPEN" ? "white" : theme.colors.text.primary,
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: theme.spacing.base[1],
-                    }}
-                  >
-                    <img src={openLogoUrl} alt="OPEN" style={{ width: "16px", height: "16px" }} />
-                    OPEN
-                  </button>
-                  <button
-                    onClick={() => setSelectedToken("SUI")}
-                    style={{
-                      flex: 1,
-                      padding: theme.spacing.semantic.component.sm,
-                      background: selectedToken === "SUI" 
-                        ? theme.colors.interactive.primary 
-                        : theme.colors.background.secondary,
-                      border: `1px solid ${
-                        selectedToken === "SUI"
-                          ? theme.colors.interactive.primary
-                          : theme.colors.border.secondary
-                      }`,
-                      borderRadius: theme.borders.radius.sm,
-                      color: selectedToken === "SUI" ? "white" : theme.colors.text.primary,
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: theme.spacing.base[1],
-                    }}
-                  >
-                    <img src={suiLogoUrl} alt="SUI" style={{ width: "16px", height: "16px" }} />
-                    SUI
-                  </button>
-                  <button
-                    onClick={() => setSelectedToken("USDC")}
-                    style={{
-                      flex: 1,
-                      padding: theme.spacing.semantic.component.sm,
-                      background: selectedToken === "USDC" 
-                        ? theme.colors.interactive.primary 
-                        : theme.colors.background.secondary,
-                      border: `1px solid ${
-                        selectedToken === "USDC"
-                          ? theme.colors.interactive.primary
-                          : theme.colors.border.secondary
-                      }`,
-                      borderRadius: theme.borders.radius.sm,
-                      color: selectedToken === "USDC" ? "white" : theme.colors.text.primary,
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: theme.spacing.base[1],
-                    }}
-                  >
-                    <img src={usdcLogoUrl} alt="USDC" style={{ width: "16px", height: "16px" }} />
-                    USDC
-                  </button>
-                </Flex>
-
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={exchangeAmount}
-                  onChange={(e) => setExchangeAmount(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: theme.spacing.semantic.component.md,
-                    border: `1px solid ${theme.colors.border.primary}`,
-                    borderRadius: theme.borders.radius.sm,
-                    fontSize: "16px",
-                    background: theme.colors.background.secondary,
-                    color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.semantic.component.md,
-                  }}
-                />
-
-                <Text
-                  as="p"
-                  size="2"
-                  style={{
-                    color: theme.colors.text.secondary,
-                    marginBottom: theme.spacing.semantic.component.sm,
-                  }}
-                >
-                  You will receive approximately
-                </Text>
-
+                
                 <Box
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
                     padding: theme.spacing.semantic.component.md,
                     background: theme.colors.background.secondary,
                     borderRadius: theme.borders.radius.sm,
-                    border: `1px solid ${theme.colors.border.subtle}`,
+                    border: `1px solid ${theme.colors.border.primary}`,
                     marginBottom: theme.spacing.semantic.component.md,
                   }}
                 >
+                  <img 
+                    src={openLogoUrl} 
+                    alt="OPEN" 
+                    style={{ 
+                      width: "20px", 
+                      height: "20px",
+                      objectFit: "contain",
+                      objectPosition: "center",
+                    }} 
+                  />
                   <Text
                     as="p"
                     size="3"
@@ -511,37 +461,214 @@ export function ProfileLayoutDesktop() {
                       color: theme.colors.text.primary,
                     }}
                   >
-                    {calculateExchangeAmount()}{" "}
-                    {getTargetToken()}
+                    OPEN
+                  </Text>
+                  <Text
+                    as="p"
+                    size="2"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      marginLeft: "auto",
+                    }}
+                  >
+                    Balance: {mockData.openBalance.toLocaleString()}
                   </Text>
                 </Box>
 
-                <button
-                  onClick={handleExchange}
-                  disabled={!exchangeAmount || parseFloat(exchangeAmount) <= 0}
+                <input
+                  type="number"
+                  placeholder={`Enter OPEN amount (Max: ${mockData.openBalance})`}
+                  value={exchangeAmount}
+                  onChange={(e) => setExchangeAmount(e.target.value)}
+                  max={mockData.openBalance}
                   style={{
                     width: "100%",
                     padding: theme.spacing.semantic.component.md,
-                    background: (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                    border: `1px solid ${
+                      exchangeAmount && parseFloat(exchangeAmount) > mockData.openBalance
+                        ? theme.colors.status.error
+                        : theme.colors.border.primary
+                    }`,
+                    borderRadius: theme.borders.radius.sm,
+                    fontSize: "16px",
+                    background: theme.colors.background.primary,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.semantic.component.md,
+                  }}
+                />
+
+                {/* Quick Amount Buttons */}
+                <Flex gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                  {[25, 50, 75, 100].map((percentage) => {
+                    const amount = Math.floor((mockData.openBalance * percentage) / 100);
+                    return (
+                      <button
+                        key={percentage}
+                        onClick={() => setExchangeAmount(amount.toString())}
+                        style={{
+                          flex: 1,
+                          padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                          background: theme.colors.background.secondary,
+                          border: `1px solid ${theme.colors.border.secondary}`,
+                          borderRadius: theme.borders.radius.sm,
+                          color: theme.colors.text.secondary,
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {percentage}%
+                      </button>
+                    );
+                  })}
+                </Flex>
+
+                {/* To Section - Target Token Selection */}
+                <Text
+                  as="p"
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    marginBottom: theme.spacing.semantic.component.sm,
+                  }}
+                >
+                  Convert to
+                </Text>
+                
+                <Flex gap="3" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                  {Object.entries(mockData.tokens).map(([tokenKey, token]) => (
+                    <button
+                      key={tokenKey}
+                      onClick={() => setTargetToken(tokenKey as "SUI" | "USDC")}
+                      style={{
+                        flex: 1,
+                        padding: theme.spacing.semantic.component.md,
+                        background: targetToken === tokenKey 
+                          ? theme.colors.interactive.primary 
+                          : theme.colors.background.secondary,
+                        border: `1px solid ${
+                          targetToken === tokenKey
+                            ? theme.colors.interactive.primary
+                            : theme.colors.border.secondary
+                        }`,
+                        borderRadius: theme.borders.radius.sm,
+                        color: targetToken === tokenKey ? "white" : theme.colors.text.primary,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: theme.spacing.base[2],
+                      }}
+                    >
+                      <img 
+                        src={token.logo} 
+                        alt={token.symbol} 
+                        style={{ 
+                          width: "18px", 
+                          height: "18px",
+                          objectFit: "contain",
+                          objectPosition: "center",
+                        }} 
+                      />
+                      {token.symbol}
+                    </button>
+                  ))}
+                </Flex>
+
+                {/* Output Display */}
+                <Box
+                  style={{
+                    padding: theme.spacing.semantic.component.lg,
+                    background: `linear-gradient(135deg, ${theme.colors.status.success}08, ${theme.colors.interactive.accent}06)`,
+                    borderRadius: theme.borders.radius.sm,
+                    border: `1px solid ${theme.colors.status.success}20`,
+                    marginBottom: theme.spacing.semantic.component.md,
+                  }}
+                >
+                  <Text
+                    as="p"
+                    size="2"
+                    style={{
+                      color: theme.colors.text.secondary,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    You will receive
+                  </Text>
+                  <Flex align="center" justify="between">
+                    <Text
+                      as="p"
+                      size="5"
+                      style={{
+                        fontWeight: 700,
+                        color: theme.colors.status.success,
+                      }}
+                    >
+                      {calculateOutputAmount()} {targetToken}
+                    </Text>
+                    <Text
+                      as="p"
+                      size="2"
+                      style={{
+                        color: theme.colors.text.tertiary,
+                      }}
+                    >
+                      ≈ ${(parseFloat(calculateOutputAmount()) * mockData.tokens[targetToken].usdValue).toFixed(2)} USD
+                    </Text>
+                  </Flex>
+                </Box>
+
+                {/* Insufficient Balance Warning */}
+                {exchangeAmount && parseFloat(exchangeAmount) > mockData.openBalance && (
+                  <Box
+                    style={{
+                      padding: theme.spacing.semantic.component.sm,
+                      background: `${theme.colors.status.error}08`,
+                      borderRadius: theme.borders.radius.sm,
+                      border: `1px solid ${theme.colors.status.error}20`,
+                      marginBottom: theme.spacing.semantic.component.md,
+                    }}
+                  >
+                    <Text
+                      as="p"
+                      size="2"
+                      style={{
+                        color: theme.colors.status.error,
+                        textAlign: "center",
+                      }}
+                    >
+                      Insufficient OPEN balance. Maximum: {mockData.openBalance.toLocaleString()}
+                    </Text>
+                  </Box>
+                )}
+
+                <button
+                  onClick={handleExchange}
+                  disabled={!isValidAmount()}
+                  style={{
+                    width: "100%",
+                    padding: theme.spacing.semantic.component.md,
+                    background: !isValidAmount()
                       ? theme.colors.background.secondary
                       : theme.colors.interactive.primary,
                     border: `1px solid ${
-                      (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                      !isValidAmount()
                         ? theme.colors.border.secondary
                         : theme.colors.interactive.primary
                     }`,
                     borderRadius: theme.borders.radius.sm,
-                    color: (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                    color: !isValidAmount()
                       ? theme.colors.text.tertiary
                       : "white",
                     fontSize: "14px",
                     fontWeight: 600,
-                    cursor: (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                    cursor: !isValidAmount()
                       ? "not-allowed"
                       : "pointer",
                   }}
                 >
-                  Exchange Tokens
+                  Withdraw {targetToken}
                 </button>
               </Box>
 
@@ -550,9 +677,9 @@ export function ProfileLayoutDesktop() {
                 style={{
                   marginTop: theme.spacing.semantic.component.md,
                   padding: theme.spacing.semantic.component.sm,
-                  background: `${theme.colors.status.info}08`,
+                  background: `${theme.colors.interactive.primary}08`,
                   borderRadius: theme.borders.radius.sm,
-                  border: `1px solid ${theme.colors.status.info}20`,
+                  border: `1px solid ${theme.colors.interactive.primary}20`,
                 }}
               >
                 <Text
@@ -563,7 +690,7 @@ export function ProfileLayoutDesktop() {
                     textAlign: "center",
                   }}
                 >
-                  Exchange Rate: 1 {selectedToken} = {selectedToken === "OPEN" ? `${mockData.tokens.SUI.exchangeRate} SUI / ${mockData.tokens.USDC.exchangeRate} USDC` : `${(1 / getExchangeRate()).toFixed(2)} OPEN`}
+                  Exchange Rate: 1 OPEN = {getExchangeRate()} {targetToken} • Network fees may apply
                 </Text>
               </Box>
             </Box>
