@@ -53,7 +53,7 @@ export function ProfileApprovedImages() {
                 gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
               }}
             >
-              {approvedImages.map((image) => (
+              {approvedImages.map(image => (
                 <Card
                   key={image.id}
                   style={{
@@ -96,7 +96,10 @@ export function ProfileApprovedImages() {
                     border: `1px solid ${theme.colors.border.primary}`,
                     borderRadius: theme.borders.radius.sm,
                     background: theme.colors.background.card,
-                    color: currentImagesPage <= 1 ? theme.colors.text.tertiary : theme.colors.text.primary,
+                    color:
+                      currentImagesPage <= 1
+                        ? theme.colors.text.tertiary
+                        : theme.colors.text.primary,
                     cursor: currentImagesPage <= 1 ? "not-allowed" : "pointer",
                     fontSize: "14px",
                     fontWeight: 500,
@@ -127,8 +130,12 @@ export function ProfileApprovedImages() {
                     border: `1px solid ${theme.colors.border.primary}`,
                     borderRadius: theme.borders.radius.sm,
                     background: theme.colors.background.card,
-                    color: currentImagesPage >= totalApprovedImagesPages ? theme.colors.text.tertiary : theme.colors.text.primary,
-                    cursor: currentImagesPage >= totalApprovedImagesPages ? "not-allowed" : "pointer",
+                    color:
+                      currentImagesPage >= totalApprovedImagesPages
+                        ? theme.colors.text.tertiary
+                        : theme.colors.text.primary,
+                    cursor:
+                      currentImagesPage >= totalApprovedImagesPages ? "not-allowed" : "pointer",
                     fontSize: "14px",
                     fontWeight: 500,
                   }}

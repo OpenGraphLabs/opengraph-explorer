@@ -6,14 +6,8 @@ import { useLeaderboardPageContext } from "@/shared/providers/LeaderboardPagePro
 
 export function LeaderboardLayoutMobile() {
   const { theme } = useTheme();
-  const {
-    leaderboardData,
-    currentPage,
-    totalPages,
-    handlePageChange,
-    isLoading,
-    error,
-  } = useLeaderboardPageContext();
+  const { leaderboardData, currentPage, totalPages, handlePageChange, isLoading, error } =
+    useLeaderboardPageContext();
 
   if (error) {
     return (
@@ -174,7 +168,7 @@ export function LeaderboardLayoutMobile() {
                   Contributors
                 </Text>
               </Box>
-              
+
               <Box
                 style={{
                   width: "1px",
@@ -182,7 +176,7 @@ export function LeaderboardLayoutMobile() {
                   background: theme.colors.border.subtle,
                 }}
               />
-              
+
               <Box style={{ textAlign: "center" }}>
                 <Text
                   as="p"
@@ -193,7 +187,9 @@ export function LeaderboardLayoutMobile() {
                     marginBottom: "2px",
                   }}
                 >
-                  {leaderboardData.entries.reduce((sum, entry) => sum + entry.total_points, 0).toLocaleString()}
+                  {leaderboardData.entries
+                    .reduce((sum, entry) => sum + entry.total_points, 0)
+                    .toLocaleString()}
                 </Text>
                 <Text
                   as="p"
@@ -221,7 +217,11 @@ export function LeaderboardLayoutMobile() {
       >
         {/* Top 3 Highlight */}
         <Box style={{ marginBottom: theme.spacing.semantic.layout.md }}>
-          <Flex align="center" gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+          <Flex
+            align="center"
+            gap="2"
+            style={{ marginBottom: theme.spacing.semantic.component.md }}
+          >
             <TrendUp size={16} color={theme.colors.interactive.primary} />
             <Heading
               size="3"
@@ -235,7 +235,7 @@ export function LeaderboardLayoutMobile() {
           </Flex>
 
           <Flex direction="column" gap="3">
-            {leaderboardData.entries.slice(0, 3).map((entry) => {
+            {leaderboardData.entries.slice(0, 3).map(entry => {
               const rankStyle = getRankStyle(entry.rank);
               return (
                 <Box
@@ -356,9 +356,10 @@ export function LeaderboardLayoutMobile() {
                   style={{
                     ...rankStyle,
                     padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
-                    borderBottom: index < leaderboardData.entries.length - 1 
-                      ? `1px solid ${theme.colors.border.subtle}` 
-                      : "none",
+                    borderBottom:
+                      index < leaderboardData.entries.length - 1
+                        ? `1px solid ${theme.colors.border.subtle}`
+                        : "none",
                   }}
                 >
                   <Flex align="center" gap="3">
@@ -446,7 +447,8 @@ export function LeaderboardLayoutMobile() {
                     border: `1px solid ${theme.colors.border.primary}`,
                     borderRadius: theme.borders.radius.sm,
                     background: theme.colors.background.card,
-                    color: currentPage <= 1 ? theme.colors.text.tertiary : theme.colors.text.primary,
+                    color:
+                      currentPage <= 1 ? theme.colors.text.tertiary : theme.colors.text.primary,
                     cursor: currentPage <= 1 ? "not-allowed" : "pointer",
                     fontSize: "14px",
                     fontWeight: 500,
@@ -484,7 +486,10 @@ export function LeaderboardLayoutMobile() {
                     border: `1px solid ${theme.colors.border.primary}`,
                     borderRadius: theme.borders.radius.sm,
                     background: theme.colors.background.card,
-                    color: currentPage >= totalPages ? theme.colors.text.tertiary : theme.colors.text.primary,
+                    color:
+                      currentPage >= totalPages
+                        ? theme.colors.text.tertiary
+                        : theme.colors.text.primary,
                     cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
                     fontSize: "14px",
                     fontWeight: 500,

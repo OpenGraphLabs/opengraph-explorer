@@ -190,7 +190,10 @@ export function useCreateFirstPersonImage() {
 /**
  * Get user's submitted images (approved only for profile gallery)
  */
-export function useUserApprovedImages(userId: number, options: { page?: number; limit?: number } = {}) {
+export function useUserApprovedImages(
+  userId: number,
+  options: { page?: number; limit?: number } = {}
+) {
   return useImages({
     ...options,
     submittedBy: userId,
@@ -201,7 +204,9 @@ export function useUserApprovedImages(userId: number, options: { page?: number; 
 /**
  * Get current user's submitted images with all statuses for profile stats
  */
-export function useMySubmittedImages(options: { page?: number; limit?: number; status?: ImageStatus } = {}) {
+export function useMySubmittedImages(
+  options: { page?: number; limit?: number; status?: ImageStatus } = {}
+) {
   return useImages({
     ...options,
     // Backend will filter by current user automatically for authenticated requests

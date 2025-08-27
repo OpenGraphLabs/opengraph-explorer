@@ -66,7 +66,7 @@ export function ProfileLayoutMobile() {
       alert("Insufficient OPEN balance");
       return;
     }
-    
+
     const outputAmount = parseFloat(exchangeAmount) * mockData.exchangeRates[targetToken];
     console.log(`Exchange ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
     alert(`Exchanging ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
@@ -346,12 +346,12 @@ export function ProfileLayoutMobile() {
             >
               Withdraw Amount
             </Text>
-            
+
             <input
               type="number"
               placeholder={`Enter OPEN amount (Max: ${mockData.openBalance})`}
               value={exchangeAmount}
-              onChange={(e) => setExchangeAmount(e.target.value)}
+              onChange={e => setExchangeAmount(e.target.value)}
               max={mockData.openBalance}
               style={{
                 width: "100%",
@@ -373,7 +373,7 @@ export function ProfileLayoutMobile() {
 
             {/* Quick Amount Buttons - Mobile */}
             <Flex gap="2" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
-              {[25, 50, 75, 100].map((percentage) => {
+              {[25, 50, 75, 100].map(percentage => {
                 const amount = Math.floor((mockData.openBalance * percentage) / 100);
                 return (
                   <button
@@ -410,7 +410,7 @@ export function ProfileLayoutMobile() {
             >
               Convert to
             </Text>
-            
+
             <Flex gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
               {Object.entries(mockData.tokens).map(([tokenKey, token]) => (
                 <button
@@ -420,9 +420,10 @@ export function ProfileLayoutMobile() {
                     flex: 1,
                     minHeight: "48px",
                     padding: theme.spacing.semantic.component.md,
-                    background: targetToken === tokenKey 
-                      ? theme.colors.interactive.primary 
-                      : theme.colors.background.secondary,
+                    background:
+                      targetToken === tokenKey
+                        ? theme.colors.interactive.primary
+                        : theme.colors.background.secondary,
                     border: `1px solid ${
                       targetToken === tokenKey
                         ? theme.colors.interactive.primary
@@ -441,20 +442,23 @@ export function ProfileLayoutMobile() {
                     transition: "all 150ms ease",
                   }}
                 >
-                  <img 
-                    src={token.logo} 
-                    alt={token.symbol} 
-                    style={{ 
-                      width: "18px", 
+                  <img
+                    src={token.logo}
+                    alt={token.symbol}
+                    style={{
+                      width: "18px",
                       height: "18px",
                       objectFit: "contain",
                       objectPosition: "center",
-                    }} 
+                    }}
                   />
-                  <Text size="1" style={{ 
-                    color: targetToken === tokenKey ? "white" : theme.colors.text.primary,
-                    fontWeight: 600,
-                  }}>
+                  <Text
+                    size="1"
+                    style={{
+                      color: targetToken === tokenKey ? "white" : theme.colors.text.primary,
+                      fontWeight: 600,
+                    }}
+                  >
                     {token.symbol}
                   </Text>
                 </button>
@@ -496,7 +500,10 @@ export function ProfileLayoutMobile() {
                     color: theme.colors.text.tertiary,
                   }}
                 >
-                  ${(parseFloat(calculateOutputAmount()) * mockData.tokens[targetToken].usdValue).toFixed(2)}
+                  $
+                  {(
+                    parseFloat(calculateOutputAmount()) * mockData.tokens[targetToken].usdValue
+                  ).toFixed(2)}
                 </Text>
               </Flex>
             </Box>
@@ -541,14 +548,10 @@ export function ProfileLayoutMobile() {
                     : theme.colors.interactive.primary
                 }`,
                 borderRadius: theme.borders.radius.sm,
-                color: !isValidAmount()
-                  ? theme.colors.text.tertiary
-                  : "white",
+                color: !isValidAmount() ? theme.colors.text.tertiary : "white",
                 fontSize: "16px",
                 fontWeight: 600,
-                cursor: !isValidAmount()
-                  ? "not-allowed"
-                  : "pointer",
+                cursor: !isValidAmount() ? "not-allowed" : "pointer",
                 touchAction: "manipulation",
                 transition: "all 150ms ease",
               }}

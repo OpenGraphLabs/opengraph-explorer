@@ -39,7 +39,7 @@ export function useLeaderboardPage(options: UseLeaderboardPageOptions = {}) {
       {
         user_id: 3,
         display_name: "Vision Specialist",
-        email: "vision@example.com", 
+        email: "vision@example.com",
         total_points: 8750,
         total_contributions: 163,
         rank: 3,

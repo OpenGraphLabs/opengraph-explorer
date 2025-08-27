@@ -23,7 +23,7 @@ export function ProfileActivityStats() {
       color: "#f59e0b",
       bgColor: "#f59e0b15",
       borderColor: "#f59e0b30",
-      description: "OpenGraph rewards earned"
+      description: "OpenGraph rewards earned",
     },
     {
       title: "Images Submitted",
@@ -32,7 +32,7 @@ export function ProfileActivityStats() {
       color: theme.colors.interactive.primary,
       bgColor: `${theme.colors.interactive.primary}15`,
       borderColor: `${theme.colors.interactive.primary}30`,
-      description: "Total contributions made"
+      description: "Total contributions made",
     },
     {
       title: "Approved Images",
@@ -41,7 +41,7 @@ export function ProfileActivityStats() {
       color: "#10b981",
       bgColor: "#10b98115",
       borderColor: "#10b98130",
-      description: "Successfully verified"
+      description: "Successfully verified",
     },
     {
       title: "Approval Rate",
@@ -49,8 +49,9 @@ export function ProfileActivityStats() {
       icon: TrendUp,
       color: approvalRate >= 80 ? "#10b981" : approvalRate >= 60 ? "#f59e0b" : "#ef4444",
       bgColor: approvalRate >= 80 ? "#10b98115" : approvalRate >= 60 ? "#f59e0b15" : "#ef444415",
-      borderColor: approvalRate >= 80 ? "#10b98130" : approvalRate >= 60 ? "#f59e0b30" : "#ef444430",
-      description: "Quality success rate"
+      borderColor:
+        approvalRate >= 80 ? "#10b98130" : approvalRate >= 60 ? "#f59e0b30" : "#ef444430",
+      description: "Quality success rate",
     },
     {
       title: "Pending Review",
@@ -59,7 +60,7 @@ export function ProfileActivityStats() {
       color: theme.colors.interactive.accent,
       bgColor: `${theme.colors.interactive.accent}15`,
       borderColor: `${theme.colors.interactive.accent}30`,
-      description: "Awaiting verification"
+      description: "Awaiting verification",
     },
     {
       title: "Rejected Images",
@@ -68,8 +69,8 @@ export function ProfileActivityStats() {
       color: "#ef4444",
       bgColor: "#ef444415",
       borderColor: "#ef444430",
-      description: "Needs improvement"
-    }
+      description: "Needs improvement",
+    },
   ];
 
   return (
@@ -83,7 +84,7 @@ export function ProfileActivityStats() {
           marginBottom: theme.spacing.semantic.layout.md,
         }}
       >
-        {statCards.map((stat) => {
+        {statCards.map(stat => {
           const IconComponent = stat.icon;
           return (
             <Card
@@ -110,7 +111,7 @@ export function ProfileActivityStats() {
                   zIndex: 0,
                 }}
               />
-              
+
               <Flex direction="column" style={{ position: "relative", zIndex: 1 }}>
                 <Flex align="center" justify="between" style={{ marginBottom: "12px" }}>
                   <Box
@@ -127,12 +128,12 @@ export function ProfileActivityStats() {
                   >
                     <IconComponent size={22} color="white" weight="bold" />
                   </Box>
-                  
+
                   {stat.title === "Approval Rate" && approvalRate >= 80 && (
                     <Star size={20} color={stat.color} weight="fill" />
                   )}
                 </Flex>
-                
+
                 <Text
                   as="p"
                   size="1"
@@ -147,7 +148,7 @@ export function ProfileActivityStats() {
                 >
                   {stat.title}
                 </Text>
-                
+
                 <Text
                   as="p"
                   size="6"
@@ -160,7 +161,7 @@ export function ProfileActivityStats() {
                 >
                   {stat.value}
                 </Text>
-                
+
                 <Text
                   as="p"
                   size="2"

@@ -23,7 +23,7 @@ export function LeaderboardPageProvider({ children, options = {} }: LeaderboardP
 export function useLeaderboardPageContext() {
   const context = useContext(LeaderboardPageContext);
   if (!context) {
-    throw new Error('useLeaderboardPageContext must be used within LeaderboardPageProvider');
+    throw new Error("useLeaderboardPageContext must be used within LeaderboardPageProvider");
   }
   return context;
 }

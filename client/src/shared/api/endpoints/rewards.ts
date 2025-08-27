@@ -54,7 +54,7 @@ interface RewardFilterParams extends PaginationParams {
 // Hook for getting user's rewards
 export function useUserRewards(userId: number, options: RewardFilterParams = {}) {
   const { page = 1, limit = 25, reward_type } = options;
-  
+
   return usePaginatedGet<UserReward, ApiListResponse<UserReward>, UserReward>({
     url: `/api/v1/rewards/user/${userId}`,
     page,
@@ -62,14 +62,14 @@ export function useUserRewards(userId: number, options: RewardFilterParams = {})
     reward_type,
     enabled: !!userId,
     authenticated: true,
-    parseData: (reward) => reward,
+    parseData: reward => reward,
   });
 }
 
 // Hook for getting current user's rewards
 export function useMyRewards(options: RewardFilterParams = {}) {
   const { page = 1, limit = 25, reward_type } = options;
-  
+
   return usePaginatedGet<UserReward, ApiListResponse<UserReward>, UserReward>({
     url: "/api/v1/rewards/my-rewards",
     page,
@@ -77,7 +77,7 @@ export function useMyRewards(options: RewardFilterParams = {}) {
     reward_type,
     enabled: true,
     authenticated: true,
-    parseData: (reward) => reward,
+    parseData: reward => reward,
   });
 }
 
@@ -87,17 +87,17 @@ export function useUserContributionStats(userId: number) {
     url: `/api/v1/rewards/user/${userId}/stats`,
     enabled: !!userId,
     authenticated: true,
-    parseData: (data) => data,
+    parseData: data => data,
   });
 }
 
-// Hook for getting current user's contribution statistics  
+// Hook for getting current user's contribution statistics
 export function useMyContributionStats() {
   return useSingleGet<UserContributionStats, UserContributionStats>({
     url: "/api/v1/rewards/my-stats",
     enabled: true,
     authenticated: true,
-    parseData: (data) => data,
+    parseData: data => data,
   });
 }
 
@@ -108,6 +108,6 @@ export function useLeaderboard(page: number = 1, limit: number = 25) {
     queryParams: { page, limit },
     enabled: true,
     authenticated: false, // Public endpoint
-    parseData: (data) => data,
+    parseData: data => data,
   });
 }

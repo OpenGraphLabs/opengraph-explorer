@@ -4,7 +4,16 @@ import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
 import { useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
-import { Trophy, User, CalendarBlank, Star, Wallet, ChartBar, ArrowsHorizontal, Coins } from "phosphor-react";
+import {
+  Trophy,
+  User,
+  CalendarBlank,
+  Star,
+  Wallet,
+  ChartBar,
+  ArrowsHorizontal,
+  Coins,
+} from "phosphor-react";
 import { ProfileActivityStats } from "./ProfileActivityStats";
 import { ProfileApprovedImages } from "./ProfileApprovedImages";
 import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
@@ -62,11 +71,11 @@ export function ProfileLayoutDesktop() {
       alert("Insufficient OPEN balance");
       return;
     }
-    
+
     // Exchange logic: Convert OPEN to target token
     const outputAmount = parseFloat(exchangeAmount) * mockData.exchangeRates[targetToken];
     console.log(`Exchange ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
-    
+
     // Here would be the actual withdrawal/exchange logic
     alert(`Exchanging ${exchangeAmount} OPEN to ${outputAmount.toFixed(4)} ${targetToken}`);
   };
@@ -147,7 +156,7 @@ export function ProfileLayoutDesktop() {
                   </Box>
                 )}
               </Box>
-              
+
               <Box>
                 <Heading
                   size="6"
@@ -229,7 +238,11 @@ export function ProfileLayoutDesktop() {
           <Box style={{ flex: "2" }}>
             {/* Statistics Cards */}
             <Box style={{ marginBottom: theme.spacing.semantic.layout.md }}>
-              <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+              <Flex
+                align="center"
+                gap="3"
+                style={{ marginBottom: theme.spacing.semantic.component.md }}
+              >
                 <ChartBar size={20} color={theme.colors.text.primary} />
                 <Heading
                   size="4"
@@ -260,7 +273,11 @@ export function ProfileLayoutDesktop() {
                 marginBottom: theme.spacing.semantic.component.lg,
               }}
             >
-              <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+              <Flex
+                align="center"
+                gap="3"
+                style={{ marginBottom: theme.spacing.semantic.component.lg }}
+              >
                 <Wallet size={20} color={theme.colors.text.primary} />
                 <Heading
                   size="4"
@@ -404,7 +421,11 @@ export function ProfileLayoutDesktop() {
                 border: `1px solid ${theme.colors.border.primary}`,
               }}
             >
-              <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+              <Flex
+                align="center"
+                gap="3"
+                style={{ marginBottom: theme.spacing.semantic.component.lg }}
+              >
                 <Coins size={20} color={theme.colors.text.primary} />
                 <Heading
                   size="4"
@@ -430,7 +451,7 @@ export function ProfileLayoutDesktop() {
                 >
                   From (OpenGraph Points)
                 </Text>
-                
+
                 <Box
                   style={{
                     display: "flex",
@@ -443,15 +464,15 @@ export function ProfileLayoutDesktop() {
                     marginBottom: theme.spacing.semantic.component.md,
                   }}
                 >
-                  <img 
-                    src={openLogoUrl} 
-                    alt="OPEN" 
-                    style={{ 
-                      width: "20px", 
+                  <img
+                    src={openLogoUrl}
+                    alt="OPEN"
+                    style={{
+                      width: "20px",
                       height: "20px",
                       objectFit: "contain",
                       objectPosition: "center",
-                    }} 
+                    }}
                   />
                   <Text
                     as="p"
@@ -479,7 +500,7 @@ export function ProfileLayoutDesktop() {
                   type="number"
                   placeholder={`Enter OPEN amount (Max: ${mockData.openBalance})`}
                   value={exchangeAmount}
-                  onChange={(e) => setExchangeAmount(e.target.value)}
+                  onChange={e => setExchangeAmount(e.target.value)}
                   max={mockData.openBalance}
                   style={{
                     width: "100%",
@@ -499,7 +520,7 @@ export function ProfileLayoutDesktop() {
 
                 {/* Quick Amount Buttons */}
                 <Flex gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
-                  {[25, 50, 75, 100].map((percentage) => {
+                  {[25, 50, 75, 100].map(percentage => {
                     const amount = Math.floor((mockData.openBalance * percentage) / 100);
                     return (
                       <button
@@ -534,7 +555,7 @@ export function ProfileLayoutDesktop() {
                 >
                   Convert to
                 </Text>
-                
+
                 <Flex gap="3" style={{ marginBottom: theme.spacing.semantic.component.md }}>
                   {Object.entries(mockData.tokens).map(([tokenKey, token]) => (
                     <button
@@ -543,9 +564,10 @@ export function ProfileLayoutDesktop() {
                       style={{
                         flex: 1,
                         padding: theme.spacing.semantic.component.md,
-                        background: targetToken === tokenKey 
-                          ? theme.colors.interactive.primary 
-                          : theme.colors.background.secondary,
+                        background:
+                          targetToken === tokenKey
+                            ? theme.colors.interactive.primary
+                            : theme.colors.background.secondary,
                         border: `1px solid ${
                           targetToken === tokenKey
                             ? theme.colors.interactive.primary
@@ -561,15 +583,15 @@ export function ProfileLayoutDesktop() {
                         gap: theme.spacing.base[2],
                       }}
                     >
-                      <img 
-                        src={token.logo} 
-                        alt={token.symbol} 
-                        style={{ 
-                          width: "18px", 
+                      <img
+                        src={token.logo}
+                        alt={token.symbol}
+                        style={{
+                          width: "18px",
                           height: "18px",
                           objectFit: "contain",
                           objectPosition: "center",
-                        }} 
+                        }}
                       />
                       {token.symbol}
                     </button>
@@ -614,7 +636,11 @@ export function ProfileLayoutDesktop() {
                         color: theme.colors.text.tertiary,
                       }}
                     >
-                      ≈ ${(parseFloat(calculateOutputAmount()) * mockData.tokens[targetToken].usdValue).toFixed(2)} USD
+                      ≈ $
+                      {(
+                        parseFloat(calculateOutputAmount()) * mockData.tokens[targetToken].usdValue
+                      ).toFixed(2)}{" "}
+                      USD
                     </Text>
                   </Flex>
                 </Box>
@@ -658,14 +684,10 @@ export function ProfileLayoutDesktop() {
                         : theme.colors.interactive.primary
                     }`,
                     borderRadius: theme.borders.radius.sm,
-                    color: !isValidAmount()
-                      ? theme.colors.text.tertiary
-                      : "white",
+                    color: !isValidAmount() ? theme.colors.text.tertiary : "white",
                     fontSize: "14px",
                     fontWeight: 600,
-                    cursor: !isValidAmount()
-                      ? "not-allowed"
-                      : "pointer",
+                    cursor: !isValidAmount() ? "not-allowed" : "pointer",
                   }}
                 >
                   Withdraw {targetToken}
