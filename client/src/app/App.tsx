@@ -99,7 +99,7 @@ export default function App() {
           }
         />
         <Route
-          path="/datasets/:id/task-selection"
+          path="/tasks"
           element={
             <ProtectedRoute>
               <TaskSelection />

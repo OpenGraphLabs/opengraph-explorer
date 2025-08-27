@@ -7,12 +7,16 @@ export interface Task {
   id: number;
   name: string;
   createdAt: string;
+  rewardPoints?: number;
+  difficultyLevel?: string;
 }
 
 interface TaskResponse {
   id: number;
   name: string;
   created_at: string;
+  reward_points?: number;
+  difficulty_level?: string;
 }
 
 interface TaskListResponse extends ApiListResponse<TaskResponse> {}
@@ -22,6 +26,8 @@ const parseTask = (resp: TaskResponse): Task => ({
   id: resp.id,
   name: resp.name,
   createdAt: resp.created_at,
+  rewardPoints: resp.reward_points,
+  difficultyLevel: resp.difficulty_level,
 });
 
 // API Hooks

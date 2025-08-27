@@ -30,7 +30,7 @@ const TASK_TYPES: TaskType[] = [
     title: "First-person View Image",
     description: "Contribute first-person perspective images for embodied AI training.",
     icon: <Camera size={22} weight="duotone" />,
-    reward: "2-8 $OPEN",
+    reward: "2-10 $OPEN",
     difficulty: "Beginner",
     estimatedTime: "~5 min",
     category: "Data Collection",

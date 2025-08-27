@@ -83,14 +83,6 @@ export function Header() {
           {/* Desktop Navigation - Show only on non-mobile devices */}
           {!isMobile && (
             <Flex gap="1">
-              {/* Reduced gap */}
-              {/* <NavLink
-              to="/models"
-              current={location.pathname === "/models"}
-              disabled={!isConnected && requiresWallet("/models")}
-            >
-              Models
-            </NavLink> */}
               <NavLink
                 to="/earn"
                 current={location.pathname === "/earn"}
@@ -98,12 +90,19 @@ export function Header() {
               >
                 Earn
               </NavLink>
+              {/*<NavLink*/}
+              {/*  to="/datasets"*/}
+              {/*  current={location.pathname === "/datasets"}*/}
+              {/*  disabled={!isAuthenticated && requiresAuth("/datasets")}*/}
+              {/*>*/}
+              {/*  Dataset*/}
+              {/*</NavLink>*/}
               <NavLink
-                to="/datasets"
-                current={location.pathname === "/datasets"}
-                disabled={!isAuthenticated && requiresAuth("/datasets")}
+                to="/tasks"
+                current={location.pathname === "/tasks"}
+                disabled={!isAuthenticated && requiresAuth("/tasks")}
               >
-                Dataset
+                Task
               </NavLink>
               <NavLink
                 to="/leaderboard"
@@ -328,13 +327,21 @@ export function Header() {
             >
               Earn
             </MobileNavLink>
+            {/*<MobileNavLink*/}
+            {/*  to="/datasets"*/}
+            {/*  current={location.pathname === "/datasets"}*/}
+            {/*  onClick={() => setIsMobileMenuOpen(false)}*/}
+            {/*  disabled={!isAuthenticated && requiresAuth("/datasets")}*/}
+            {/*>*/}
+            {/*  Dataset*/}
+            {/*</MobileNavLink>*/}
             <MobileNavLink
-              to="/datasets"
-              current={location.pathname === "/datasets"}
+              to="/tasks"
+              current={location.pathname === "/tasks"}
               onClick={() => setIsMobileMenuOpen(false)}
-              disabled={!isAuthenticated && requiresAuth("/datasets")}
+              disabled={!isAuthenticated && requiresAuth("/tasks")}
             >
-              Dataset
+              Task
             </MobileNavLink>
             <MobileNavLink
               to="/leaderboard"

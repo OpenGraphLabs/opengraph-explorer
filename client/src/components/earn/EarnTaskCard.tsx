@@ -71,7 +71,7 @@ export function EarnTaskCard({ task, index, isLoaded }: EarnTaskCardProps) {
     } else if (task.id === "segmentation-mask") {
       navigate(`/datasets/${task.datasetId}/annotate?imageId=1013`);
     } else if (task.id === "picture-upload") {
-      navigate(`/datasets/${task.datasetId}/task-selection`);
+      navigate(`/tasks`);
     } else {
       navigate(`/datasets/${task.datasetId}/annotate`);
     }

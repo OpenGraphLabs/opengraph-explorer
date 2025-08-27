@@ -22,17 +22,25 @@ interface TaskCardProps {
   index?: number;
 }
 
-// Mock data for demonstration - in real app, this would come from API
+// Get task metadata - some from API, some computed
 const getTaskMetadata = (task: Task) => {
   const hash = task.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-  const difficulties = ["Beginner", "Intermediate", "Advanced"];
-  const difficulty = difficulties[hash % 3];
+  // Use actual difficulty from API with proper type checking and fallback
+  const difficulty =
+    task.difficultyLevel && typeof task.difficultyLevel === "string"
+      ? task.difficultyLevel
+      : "Beginner";
 
   const difficultyColors = {
     Beginner: { bg: "#10b98108", text: "#059669", icon: Lightning },
     Intermediate: { bg: "#f5970008", text: "#d97706", icon: Target },
     Advanced: { bg: "#ef444408", text: "#dc2626", icon: Fire },
+    // Add support for other possible difficulty values
+    Easy: { bg: "#10b98108", text: "#059669", icon: Lightning },
+    Medium: { bg: "#f5970008", text: "#d97706", icon: Target },
+    Hard: { bg: "#ef444408", text: "#dc2626", icon: Fire },
+    Expert: { bg: "#7c2d1208", text: "#991b1b", icon: Fire },
   };
 
   const categories = [
@@ -42,21 +50,44 @@ const getTaskMetadata = (task: Task) => {
   ];
 
   const category = categories[hash % categories.length];
-  const reward =
-    difficulty === "Beginner"
-      ? "2-5 $OPEN"
-      : difficulty === "Intermediate"
-        ? "5-12 $OPEN"
-        : "10-25 $OPEN";
-  const estimatedTime =
-    difficulty === "Beginner" ? "~5 min" : difficulty === "Intermediate" ? "~15 min" : "~25 min";
+  const reward = `${task.rewardPoints || 0} $OPEN`;
+
+  // Calculate estimated time based on actual difficulty level
+  const getEstimatedTime = (difficultyLevel: string) => {
+    // Additional safety check
+    if (!difficultyLevel || typeof difficultyLevel !== "string") {
+      return "~10 min";
+    }
+
+    const normalizedDifficulty = difficultyLevel.toLowerCase();
+    if (normalizedDifficulty.includes("beginner") || normalizedDifficulty.includes("easy")) {
+      return "~5 min";
+    } else if (
+      normalizedDifficulty.includes("intermediate") ||
+      normalizedDifficulty.includes("medium")
+    ) {
+      return "~15 min";
+    } else if (normalizedDifficulty.includes("advanced") || normalizedDifficulty.includes("hard")) {
+      return "~25 min";
+    } else if (normalizedDifficulty.includes("expert")) {
+      return "~35 min";
+    } else {
+      return "~10 min"; // Default fallback
+    }
+  };
+
+  const estimatedTime = getEstimatedTime(difficulty);
   const completions = Math.floor(Math.random() * 500) + 50;
   const isPopular = completions > 300;
   const isFeatured = hash % 7 === 0;
 
+  // Get difficulty color with fallback to Beginner if difficulty not found
+  const difficultyColor =
+    difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.Beginner;
+
   return {
     difficulty,
-    difficultyColor: difficultyColors[difficulty as keyof typeof difficultyColors],
+    difficultyColor,
     category,
     reward,
     estimatedTime,
