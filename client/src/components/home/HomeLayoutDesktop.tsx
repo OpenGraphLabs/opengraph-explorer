@@ -5,6 +5,7 @@ import { ImageDetailSidebar } from "@/components/annotation";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 import { HomeHeader } from "./HomeHeader";
 import { HomeContent } from "./HomeContent";
+import { FirstPersonImageDetailSidebar } from "./FirstPersonImageDetailSidebar";
 
 /**
  * Desktop-optimized layout for Home page
@@ -12,14 +13,17 @@ import { HomeContent } from "./HomeContent";
  */
 export function HomeLayoutDesktop() {
   const { theme } = useTheme();
-  const { selectedAnnotation, handleCloseSidebar } = useHomePageContext();
+  const { selectedAnnotation, selectedFirstPersonImage, handleCloseSidebar } = useHomePageContext();
+
+  // Determine if any sidebar should be open
+  const isSidebarOpen = !!(selectedAnnotation || selectedFirstPersonImage);
 
   return (
     <Box
       style={{
         minHeight: "100vh",
         background: `linear-gradient(to bottom, ${theme.colors.background.secondary}40, ${theme.colors.background.primary})`,
-        paddingRight: selectedAnnotation ? "480px" : "0",
+        paddingRight: isSidebarOpen ? "580px" : "0",
         transition: "padding-right 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         position: "relative",
       }}
@@ -30,7 +34,7 @@ export function HomeLayoutDesktop() {
       {/* Main Content */}
       <Box
         style={{
-          maxWidth: selectedAnnotation ? "1400px" : "1800px",
+          maxWidth: isSidebarOpen ? "1400px" : "1800px",
           margin: "0 auto",
           padding: `${theme.spacing.semantic.layout.lg} ${theme.spacing.semantic.container.md}`,
           transition: "max-width 400ms cubic-bezier(0.25, 0.8, 0.25, 1)",
@@ -39,7 +43,8 @@ export function HomeLayoutDesktop() {
         <HomeContent />
       </Box>
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebars */}
+      {/* Object Detection Sidebar */}
       {selectedAnnotation && selectedAnnotation.image && (
         <ImageDetailSidebar
           annotation={
@@ -64,6 +69,16 @@ export function HomeLayoutDesktop() {
           }
           categoryName={selectedAnnotation.categoryName}
           isOpen={!!selectedAnnotation}
+          onClose={handleCloseSidebar}
+        />
+      )}
+
+      {/* First Person Image Sidebar */}
+      {selectedFirstPersonImage && (
+        <FirstPersonImageDetailSidebar
+          image={selectedFirstPersonImage.image}
+          task={selectedFirstPersonImage.task}
+          isOpen={!!selectedFirstPersonImage}
           onClose={handleCloseSidebar}
         />
       )}

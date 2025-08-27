@@ -136,12 +136,9 @@ export function useImages(
  * Create a new image
  */
 export function useCreateImage() {
-  return usePost<ImageCreateInput, ImageResponse, Image>(
-    `${IMAGES_BASE}/`,
-    parseImage,
-    {
-      authenticated: true,
-    });
+  return usePost<ImageCreateInput, ImageResponse, Image>(`${IMAGES_BASE}/`, parseImage, {
+    authenticated: true,
+  });
 }
 
 /**

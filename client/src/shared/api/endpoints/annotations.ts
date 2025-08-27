@@ -247,7 +247,6 @@ export function useCreateAnnotationSelectionsBatch() {
       const responses: AnnotationSelectionBatchResponse[] = [];
 
       for (const userId of testUserIds) {
-
         // Temporarily set the user ID in localStorage (interceptor will use this)
         localStorage.setItem("opengraph-user-id", userId);
 

@@ -134,7 +134,8 @@ export function useCreateCategory() {
     parseCategory,
     {
       authenticated: true,
-    });
+    }
+  );
 }
 
 /**

@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { Box, Flex, Text, Button, Badge } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
+import { Robot, Camera, Database } from "phosphor-react";
 import { useHomePageContext } from "@/contexts/HomePageContextProvider";
 
 export function FirstPersonImageGallery() {
   const { theme } = useTheme();
-  const { firstPersonImages, tasks, isLoading } = useHomePageContext();
+  const { firstPersonImages, tasks, isLoading, handleFirstPersonImageClick } = useHomePageContext();
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [isTaskFilterOpen, setIsTaskFilterOpen] = useState(false);
+  const [hoveredImageId, setHoveredImageId] = useState<number | null>(null);
 
   // Filter images by task if selected
   const filteredImages = selectedTaskId
@@ -279,97 +281,131 @@ export function FirstPersonImageGallery() {
         </Box>
       </Box>
 
-      {/* Image Grid */}
+      {/* Image Grid - Professional Data Engine Style */}
       <Box
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-          gap: theme.spacing.semantic.layout.md,
+          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          gap: theme.spacing.semantic.layout.lg,
+          paddingTop: theme.spacing.semantic.component.sm,
         }}
       >
-        {filteredImages.map(image => (
-          <Box
-            key={image.id}
-            style={{
-              position: "relative",
-              borderRadius: theme.borders.radius.lg,
-              overflow: "hidden",
-              background: theme.colors.background.card,
-              border: `1px solid ${theme.colors.border.primary}`,
-              transition: "all 0.2s ease",
-              cursor: "pointer",
-            }}
-            className="image-card"
-          >
-            {/* Image */}
-            <Box style={{ position: "relative", aspectRatio: "16/9" }}>
-              <img
-                src={image.imageUrl}
-                alt={image.fileName}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-                loading="lazy"
-              />
+        {filteredImages.map(image => {
+          const task = tasks.find(t => t.id === image.taskId);
+          const isHovered = hoveredImageId === image.id;
 
-              {/* Status Badge */}
+          return (
+            <Box
+              key={image.id}
+              style={{
+                position: "relative",
+                borderRadius: "12px",
+                overflow: "hidden",
+                background: `linear-gradient(135deg, ${theme.colors.background.card}, ${theme.colors.background.secondary}60)`,
+                border: `1px solid ${isHovered ? theme.colors.interactive.primary + "60" : theme.colors.border.subtle + "40"}`,
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                cursor: "pointer",
+                transform: isHovered ? "translateY(-4px) scale(1.02)" : "translateY(0) scale(1)",
+                boxShadow: isHovered
+                  ? "0 12px 28px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 102, 255, 0.08)"
+                  : "0 2px 8px rgba(0, 0, 0, 0.06)",
+              }}
+              className="image-card"
+              onMouseEnter={() => setHoveredImageId(image.id)}
+              onMouseLeave={() => setHoveredImageId(null)}
+              onClick={() => handleFirstPersonImageClick?.(image, task)}
+            >
+              {/* Enhanced Image Container */}
               <Box
                 style={{
-                  position: "absolute",
-                  top: theme.spacing.semantic.component.sm,
-                  right: theme.spacing.semantic.component.sm,
+                  position: "relative",
+                  aspectRatio: "16/9",
+                  background: `linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.7) 100%)`,
                 }}
               >
-                <Badge
-                  size="1"
+                <img
+                  src={image.imageUrl}
+                  alt={image.fileName}
                   style={{
-                    background: theme.colors.status.success + "20",
-                    color: theme.colors.status.success,
-                    border: `1px solid ${theme.colors.status.success}40`,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    transition: "transform 0.3s ease",
+                    transform: isHovered ? "scale(1.05)" : "scale(1)",
+                  }}
+                  loading="lazy"
+                />
+
+                {/* Overlay Gradient for Better Text Visibility */}
+                <Box
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: isHovered
+                      ? "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%)"
+                      : "linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.6) 100%)",
+                    transition: "all 0.3s ease",
+                    pointerEvents: "none",
+                  }}
+                />
+
+                {/* Image Metadata Overlay (Bottom) */}
+                <Box
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: theme.spacing.semantic.component.md,
+                    background: "linear-gradient(to top, rgba(0,0,0,0.9), transparent)",
+                    transform: isHovered ? "translateY(0)" : "translateY(8px)",
+                    opacity: isHovered ? 1 : 0.8,
+                    transition: "all 0.3s ease",
                   }}
                 >
-                  APPROVED
-                </Badge>
+                  <Flex align="center" justify="between">
+                    <Box>
+                      <Text
+                        as="p"
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "white",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        {getTaskName(image.taskId)}
+                      </Text>
+                      <Text
+                        as="p"
+                        style={{
+                          fontSize: "11px",
+                          color: "rgba(255, 255, 255, 0.7)",
+                          fontFamily: "JetBrains Mono, monospace",
+                        }}
+                      >
+                        {image.width} × {image.height}
+                      </Text>
+                    </Box>
+                    <Text
+                      as="p"
+                      style={{
+                        fontSize: "11px",
+                        color: "rgba(255, 255, 255, 0.8)",
+                      }}
+                    >
+                      {new Date(image.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </Text>
+                  </Flex>
+                </Box>
               </Box>
-            </Box>
 
-            {/* Info */}
-            <Box style={{ padding: theme.spacing.semantic.component.md }}>
-              <Flex direction="column" gap="2">
-                <Flex align="center" justify="between">
-                  <Text
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: theme.colors.text.primary,
-                    }}
-                  >
-                    {getTaskName(image.taskId)}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: "12px",
-                      color: theme.colors.text.tertiary,
-                    }}
-                  >
-                    {image.width} × {image.height}
-                  </Text>
-                </Flex>
-
-                <Text
-                  style={{
-                    fontSize: "12px",
-                    color: theme.colors.text.secondary,
-                  }}
-                >
-                  {new Date(image.createdAt).toLocaleDateString()}
-                </Text>
-              </Flex>
             </Box>
-          </Box>
-        ))}
+          );
+        })}
       </Box>
 
       {/* Pulse Animation for Loading States */}

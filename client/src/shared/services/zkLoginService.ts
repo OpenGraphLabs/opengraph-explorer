@@ -296,7 +296,6 @@ export class ZkLoginService {
    */
   async completeZkLoginFlow(jwtToken: string, salt: string): Promise<ZkLoginResult> {
     try {
-
       // Try to restore ephemeral key pair from session storage first
       if (!this.ephemeralKeyPair) {
         try {
@@ -321,7 +320,6 @@ export class ZkLoginService {
               await this.fetchMaxEpoch();
               sessionStorage.setItem("zklogin-max-epoch", this.maxEpoch.toString());
             }
-
           } else {
             throw new Error("No ephemeral key available in session storage or parameter");
           }

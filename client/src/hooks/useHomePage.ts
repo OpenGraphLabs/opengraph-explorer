@@ -13,6 +13,11 @@ export interface ApprovedAnnotationWithImage extends Annotation {
   categoryName?: string;
 }
 
+export interface FirstPersonImageWithTask {
+  image: Image;
+  task?: Task;
+}
+
 export type DataType = "first-person" | "object-detection" | "action-video";
 export type VideoTask = "all" | "wipe_spill" | "fold_clothes";
 
@@ -29,6 +34,8 @@ export function useHomePage(options: UseHomePageOptions = {}) {
   const [selectedAnnotation, setSelectedAnnotation] = useState<ApprovedAnnotationWithImage | null>(
     null
   );
+  const [selectedFirstPersonImage, setSelectedFirstPersonImage] =
+    useState<FirstPersonImageWithTask | null>(null);
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   const [dataType, setDataType] = useState<DataType>("first-person");
   const [selectedVideoTask, setSelectedVideoTask] = useState<VideoTask>("all");
@@ -167,10 +174,17 @@ export function useHomePage(options: UseHomePageOptions = {}) {
 
   const handleAnnotationClick = (annotation: ApprovedAnnotationWithImage) => {
     setSelectedAnnotation(annotation);
+    setSelectedFirstPersonImage(null); // Clear first-person selection
+  };
+
+  const handleFirstPersonImageClick = (image: Image, task?: Task) => {
+    setSelectedFirstPersonImage({ image, task });
+    setSelectedAnnotation(null); // Clear annotation selection
   };
 
   const handleCloseSidebar = () => {
     setSelectedAnnotation(null);
+    setSelectedFirstPersonImage(null);
   };
 
   const handleCategorySelect = (category: { id: number; name: string } | null) => {
@@ -199,6 +213,8 @@ export function useHomePage(options: UseHomePageOptions = {}) {
     setShowGlobalMasks,
     selectedAnnotation,
     setSelectedAnnotation,
+    selectedFirstPersonImage,
+    setSelectedFirstPersonImage,
 
     // Data type selection
     dataType,
@@ -229,6 +245,7 @@ export function useHomePage(options: UseHomePageOptions = {}) {
     setCurrentPage,
     handlePageChange,
     handleAnnotationClick,
+    handleFirstPersonImageClick,
     handleCloseSidebar,
   };
 }
