@@ -143,8 +143,6 @@ services:
       - /app/node_modules
     depends_on:
       - server
-    environment:
-      - VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL}
     networks:
       - opengraph-network
 

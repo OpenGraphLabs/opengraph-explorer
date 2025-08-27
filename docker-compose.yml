@@ -162,8 +162,6 @@ services:
       - /etc/letsencrypt/archive/explorer.opengraphlabs.xyz:/etc/letsencrypt/archive/explorer.opengraphlabs.xyz
     depends_on:
       - server
-    environment:
-      - VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL}
     networks:
       - opengraph-network
     deploy:
