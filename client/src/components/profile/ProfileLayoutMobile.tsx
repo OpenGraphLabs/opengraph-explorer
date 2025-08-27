@@ -11,6 +11,8 @@ import {
   StarFilledIcon,
   TokensIcon,
 } from "@radix-ui/react-icons";
+import { ProfileActivityStats } from "./ProfileActivityStats";
+import { ProfileApprovedImages } from "./ProfileApprovedImages";
 import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
 import openLogoUrl from "@/assets/logo/logo.png";
 import usdcLogoUrl from "@/assets/logo/usdc_logo.png";
@@ -33,18 +35,15 @@ export function ProfileLayoutMobile() {
 
   // Mock data for demo purposes
   const mockData = {
-    totalAnnotations: profile?.annotationCount || 0,
-    datasetsCreated: profile?.datasetCount || 0,
-    weeklyAnnotations: 0,
-    accuracy: 94.2,
+    accuracy: profile?.approvalRate || 0,
     contributionStreak: 14,
-    rank: "Advanced Contributor",
+    rank: "Data Contributor",
     tokens: {
       OPEN: {
-        balance: 2847.5,
-        pending: 156.25,
-        symbol: "OPEN",
-        name: "OpenGraph Token",
+        balance: profile?.totalPoints || 0,
+        pending: 0,
+        symbol: "POINTS",
+        name: "OpenGraph Points",
         logo: openLogoUrl,
         primary: true,
       },
@@ -220,168 +219,10 @@ export function ProfileLayoutMobile() {
 
       {/* Mobile Statistics - Single Column */}
       <Flex direction="column" gap="3">
-        {/* Annotation Statistics - Mobile */}
-        <Box
-          style={{
-            background: theme.colors.background.card,
-            borderRadius: theme.borders.radius.md,
-            padding: theme.spacing.semantic.layout.md,
-            border: `1px solid ${theme.colors.border.primary}`,
-            boxShadow: theme.shadows.semantic.card.low,
-          }}
-        >
-          <Flex
-            align="center"
-            gap="3"
-            style={{ marginBottom: theme.spacing.semantic.component.md }}
-          >
-            <Box
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                background: `${theme.colors.status.info}15`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: `1px solid ${theme.colors.status.info}30`,
-              }}
-            >
-              <BarChartIcon
-                style={{
-                  width: "18px",
-                  height: "18px",
-                  color: theme.colors.status.info,
-                }}
-              />
-            </Box>
-            <Box>
-              <Heading size="3" style={{ color: theme.colors.text.primary }}>
-                Annotation Activity
-              </Heading>
-              <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                Your contribution to the platform
-              </Text>
-            </Box>
-          </Flex>
-
-          <Flex direction="column" gap="3">
-            {/* Total Annotations - Mobile */}
-            <Flex justify="between" align="center">
-              <Flex align="center" gap="2">
-                <CheckCircledIcon
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    color: theme.colors.status.success,
-                  }}
-                />
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Total Annotations
-                </Text>
-              </Flex>
-              <Text
-                size="4"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: "700",
-                }}
-              >
-                {mockData.totalAnnotations.toLocaleString()}
-              </Text>
-            </Flex>
-
-            {/* Weekly Annotations - Mobile */}
-            <Flex justify="between" align="center">
-              <Flex align="center" gap="2">
-                <Box
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    borderRadius: "50%",
-                    background: theme.colors.status.info,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ fontSize: "8px", color: "white", fontWeight: "bold" }}>7</Text>
-                </Box>
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  This Week
-                </Text>
-              </Flex>
-              <Text
-                size="3"
-                style={{
-                  color: theme.colors.status.info,
-                  fontWeight: "700",
-                }}
-              >
-                +{mockData.weeklyAnnotations}
-              </Text>
-            </Flex>
-
-            {/* Datasets Created - Mobile */}
-            <Flex justify="between" align="center">
-              <Flex align="center" gap="2">
-                <StarFilledIcon
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    color: theme.colors.status.warning,
-                  }}
-                />
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Datasets Created
-                </Text>
-              </Flex>
-              <Text
-                size="3"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: "600",
-                }}
-              >
-                {mockData.datasetsCreated}
-              </Text>
-            </Flex>
-
-            {/* Progress Bar - Mobile */}
-            <Box style={{ marginTop: theme.spacing.semantic.component.sm }}>
-              <Flex justify="between" style={{ marginBottom: theme.spacing.semantic.component.xs }}>
-                <Text size="1" style={{ color: theme.colors.text.secondary }}>
-                  Next Level Progress
-                </Text>
-                <Text
-                  size="1"
-                  style={{ color: theme.colors.interactive.primary, fontWeight: "600" }}
-                >
-                  {Math.round((mockData.totalAnnotations % 500) / 5)}% to Expert
-                </Text>
-              </Flex>
-              <Box
-                style={{
-                  width: "100%",
-                  height: "6px",
-                  background: theme.colors.background.secondary,
-                  borderRadius: "3px",
-                  overflow: "hidden",
-                }}
-              >
-                <Box
-                  style={{
-                    width: `${Math.round((mockData.totalAnnotations % 500) / 5)}%`,
-                    height: "100%",
-                    background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-                    transition: "width 0.3s ease",
-                    borderRadius: "3px",
-                  }}
-                />
-              </Box>
-            </Box>
-          </Flex>
-        </Box>
+        {/* OpenGraph Points & Contribution Stats */}
+        <ProfileActivityStats />
+        {/* Approved Images Gallery */}
+        <ProfileApprovedImages />
 
         {/* Multi-Token Wallet - Mobile */}
         <Box

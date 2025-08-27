@@ -11,6 +11,7 @@ from .dictionary_service import DictionaryService
 from .category_service import CategoryService
 from .dictionary_category_service import DictionaryCategoryService
 from .annotation_service import AnnotationService
+from .user_reward_service import UserRewardService
 
 __all__ = [
     "UserService",
@@ -19,5 +20,6 @@ __all__ = [
     "DictionaryService",
     "CategoryService",
     "DictionaryCategoryService",
-    "AnnotationService"
+    "AnnotationService",
+    "UserRewardService"
 ] 

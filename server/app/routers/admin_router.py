@@ -12,7 +12,7 @@ from ..dependencies.database import get_db
 from ..dependencies.admin import verify_admin
 from ..schemas.common import PaginationInput
 from ..schemas.image import ImageRead, ImageListResponse, ImageStatus
-from ..services import ImageService
+from ..services import ImageService, UserRewardService
 
 router = APIRouter(
     prefix="/admin",
@@ -77,6 +77,16 @@ async def approve_image(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Failed to update image"
             )
+        
+        # Award reward for image approval
+        reward_service = UserRewardService(db)
+        try:
+            reward = await reward_service.award_image_approval_reward(image_id)
+            if reward:
+                print(f"✅ Awarded {reward.points} points to user {reward.user_id} for image approval")
+        except Exception as reward_e:
+            # Log reward error but don't fail the image approval
+            print(f"⚠️ Failed to award reward for image {image_id}: {reward_e}")
         
         return updated_image
     except Exception as e:

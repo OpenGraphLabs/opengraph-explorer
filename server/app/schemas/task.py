@@ -5,12 +5,16 @@ API request/response schemas for task-related operations
 """
 
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
 class TaskBase(BaseModel):
     """Base task schema"""
     name: str = Field(..., description="Task name")
+    description: Optional[str] = Field(None, description="Task description")
+    reward_points: int = Field(10, description="Points awarded for completing this task")
+    difficulty_level: int = Field(1, description="Task difficulty level (1-5)")
 
 
 class TaskCreate(TaskBase):
@@ -20,7 +24,10 @@ class TaskCreate(TaskBase):
 
 class TaskUpdate(BaseModel):
     """Task update schema"""
-    name: str = Field(..., description="Task name")
+    name: Optional[str] = Field(None, description="Task name")
+    description: Optional[str] = Field(None, description="Task description")
+    reward_points: Optional[int] = Field(None, description="Points awarded for completing this task")
+    difficulty_level: Optional[int] = Field(None, description="Task difficulty level (1-5)")
 
 
 class TaskRead(TaskBase):

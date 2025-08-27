@@ -16,6 +16,7 @@ import { Earn } from "@/pages/Earn";
 import { TaskSelection } from "@/pages/TaskSelection.tsx";
 import { FirstPersonCapture } from "@/pages/FirstPersonCapture";
 import { AdminDashboard } from "@/pages/AdminDashboard";
+import { Leaderboard } from "@/pages/Leaderboard";
 
 export default function App() {
   return (
@@ -86,6 +87,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Earn />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
             </ProtectedRoute>
           }
         />

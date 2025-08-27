@@ -55,6 +55,14 @@ class Image(Base):
         index=True
     )
     
+    # 이미지 제출자 추적
+    submitted_by: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+    
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 
@@ -73,6 +81,11 @@ class Image(Base):
         "Task",
         back_populates="images",
         foreign_keys=[task_id]
+    )
+    
+    submitter: Mapped[Optional["User"]] = relationship(
+        "User",
+        foreign_keys=[submitted_by]
     )
     
     annotations: Mapped[List["Annotation"]] = relationship(

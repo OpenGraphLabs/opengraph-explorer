@@ -4,6 +4,7 @@ export { ProfileTopBar } from "./ProfileTopBar";
 export { useProfileSidebarConfig } from "./ProfileSidebar";
 export { ProfileAccountOverview } from "./ProfileAccountOverview";
 export { ProfileActivityStats } from "./ProfileActivityStats";
+export { ProfileApprovedImages } from "./ProfileApprovedImages";
 export { ProfileQuickActions } from "./ProfileQuickActions";
 export { ProfileErrorState } from "./ProfileErrorState";
 export { ProfilePlatformStatus } from "./ProfilePlatformStatus";

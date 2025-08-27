@@ -25,7 +25,8 @@ from .routers import (
     annotation_router,
     auth_router,
     task_router,
-    admin_router
+    admin_router,
+    user_reward_router
 )
 
 
@@ -202,6 +203,7 @@ app.include_router(dictionary_category_router, prefix="/api/v1")
 app.include_router(annotation_router, prefix="/api/v1")
 app.include_router(task_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
+app.include_router(user_reward_router, prefix="/api/v1")
 
 
 @app.get("/")

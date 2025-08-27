@@ -46,7 +46,7 @@ class ImageService:
         
         return ImageRead.model_validate(db_image)
     
-    async def create_first_person_image(self, image_data: FirstPersonImageCreate) -> ImageRead:
+    async def create_first_person_image(self, image_data: FirstPersonImageCreate, user_id: int) -> ImageRead:
         """
         Create a first-person image with GCS upload.
         
@@ -86,7 +86,8 @@ class ImageService:
             height=height,
             task_id=image_data.task_id,
             status=ImageStatus.PENDING,  # Default to PENDING
-            dataset_id=None  # No dataset for first-person images
+            dataset_id=None,  # No dataset for first-person images
+            submitted_by=user_id  # Set the submitter
         )
         
         self.db.add(db_image)

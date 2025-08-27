@@ -18,6 +18,7 @@ export interface Image {
   datasetId?: number;
   taskId?: number;
   status?: ImageStatus;
+  submittedBy?: number;
   createdAt: string;
 }
 
@@ -56,6 +57,7 @@ interface ImageResponse {
   dataset_id?: number;
   task_id?: number;
   status?: ImageStatus;
+  submitted_by?: number;
   created_at: string;
 }
 
@@ -71,6 +73,7 @@ const parseImage = (resp: ImageResponse): Image => ({
   datasetId: resp.dataset_id,
   taskId: resp.task_id,
   status: resp.status,
+  submittedBy: resp.submitted_by,
   createdAt: resp.created_at,
 });
 
@@ -98,6 +101,7 @@ export function useImages(
     datasetId?: number;
     taskId?: number;
     status?: ImageStatus;
+    submittedBy?: number;
     search?: string;
     sortBy?: string;
     enabled?: boolean;
@@ -110,6 +114,7 @@ export function useImages(
     datasetId,
     taskId,
     status,
+    submittedBy,
     search,
     sortBy,
     enabled = true,
@@ -129,6 +134,7 @@ export function useImages(
     ...(datasetId && { dataset_id: datasetId }),
     ...(taskId && { task_id: taskId }),
     ...(status && { status }),
+    ...(submittedBy && { submitted_by: submittedBy }),
   });
 }
 
@@ -179,4 +185,25 @@ export function useCreateFirstPersonImage() {
       }),
     }
   );
+}
+
+/**
+ * Get user's submitted images (approved only for profile gallery)
+ */
+export function useUserApprovedImages(userId: number, options: { page?: number; limit?: number } = {}) {
+  return useImages({
+    ...options,
+    submittedBy: userId,
+    status: ImageStatus.APPROVED,
+  });
+}
+
+/**
+ * Get current user's submitted images with all statuses for profile stats
+ */
+export function useMySubmittedImages(options: { page?: number; limit?: number; status?: ImageStatus } = {}) {
+  return useImages({
+    ...options,
+    // Backend will filter by current user automatically for authenticated requests
+  });
 }

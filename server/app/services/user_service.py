@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..models.user import User
+from ..models.image import Image, ImageStatus
 from ..schemas.user import UserCreate, UserUpdate, UserRead, UserProfile
 from pydantic import EmailStr
 from ..utils.common import hash_password, verify_password
@@ -193,9 +194,44 @@ class UserService:
         if not user:
             return None
         
-        # Calculate statistics
+        # Calculate basic statistics
         dataset_count = len(user.datasets)
         annotation_count = len(user.annotations)
+        
+        # Calculate image submission statistics
+        from sqlalchemy import case
+        images_query = select(
+            func.count(Image.id).label('total_submitted'),
+            func.sum(
+                case(
+                    (Image.status == ImageStatus.APPROVED, 1),
+                    else_=0
+                )
+            ).label('approved'),
+            func.sum(
+                case(
+                    (Image.status == ImageStatus.REJECTED, 1),
+                    else_=0
+                )
+            ).label('rejected'),
+            func.sum(
+                case(
+                    (Image.status == ImageStatus.PENDING, 1),
+                    else_=0
+                )
+            ).label('pending')
+        ).where(Image.submitted_by == user_id)
+        
+        stats_result = await self.db.execute(images_query)
+        stats = stats_result.first()
+        
+        images_submitted = stats.total_submitted or 0
+        images_approved = stats.approved or 0
+        images_rejected = stats.rejected or 0
+        images_pending = stats.pending or 0
+        
+        # Calculate approval rate
+        approval_rate = (images_approved / images_submitted * 100) if images_submitted > 0 else 0.0
         
         return UserProfile(
             id=user.id,
@@ -205,8 +241,14 @@ class UserService:
             profile_image_url=user.profile_image_url,
             sui_address=user.sui_address,
             created_at=user.created_at,
+            total_points=user.total_points,
             dataset_count=dataset_count,
-            annotation_count=annotation_count
+            annotation_count=annotation_count,
+            images_submitted=images_submitted,
+            images_approved=images_approved,
+            images_rejected=images_rejected,
+            images_pending=images_pending,
+            approval_rate=round(approval_rate, 2)
         )
     
     async def get_users_list(

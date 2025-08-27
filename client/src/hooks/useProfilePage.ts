@@ -2,16 +2,19 @@ import { useState, useMemo } from "react";
 import { useCurrentWallet } from "@mysten/dapp-kit";
 import { useCurrentUserProfile } from "@/shared/api/endpoints/users";
 import { useDatasets } from "@/shared/api/endpoints/datasets";
+import { useUserApprovedImages } from "@/shared/api/endpoints/images";
 import { useAuth } from "@/shared/hooks/useAuth";
 import type { UserProfile } from "@/shared/api/endpoints/users";
 import type { DatasetWithStats } from "@/shared/api/endpoints/datasets";
+import type { Image } from "@/shared/api/endpoints/images";
 
 export interface UseProfilePageOptions {
   datasetsLimit?: number;
+  approvedImagesLimit?: number;
 }
 
 export function useProfilePage(options: UseProfilePageOptions = {}) {
-  const { datasetsLimit = 20 } = options;
+  const { datasetsLimit = 20, approvedImagesLimit = 12 } = options;
 
   // Authentication and wallet state
   const { isConnected, currentWallet } = useCurrentWallet();
@@ -20,6 +23,7 @@ export function useProfilePage(options: UseProfilePageOptions = {}) {
 
   // Page-specific UI state
   const [currentDatasetsPage, setCurrentDatasetsPage] = useState(1);
+  const [currentImagesPage, setCurrentImagesPage] = useState(1);
 
   // API data fetching
   const {
@@ -42,17 +46,33 @@ export function useProfilePage(options: UseProfilePageOptions = {}) {
     enabled: true,
   });
 
+  // User's approved images for gallery
+  const {
+    data: approvedImages = [],
+    totalCount: totalApprovedImagesCount = 0,
+    isLoading: imagesLoading,
+    error: imagesError,
+  } = useUserApprovedImages(userProfile?.id || 0, {
+    page: currentImagesPage,
+    limit: approvedImagesLimit,
+  });
+
   // Loading and error states
-  const isLoading = userLoading || datasetsLoading;
-  const error = userError || datasetsError;
+  const isLoading = userLoading || datasetsLoading || imagesLoading;
+  const error = userError || datasetsError || imagesError;
 
   // Page control handlers
   const handleDatasetsPageChange = (page: number) => {
     setCurrentDatasetsPage(page);
   };
 
-  // Calculate total pages for datasets
+  const handleImagesPageChange = (page: number) => {
+    setCurrentImagesPage(page);
+  };
+
+  // Calculate total pages
   const totalDatasetsPages = Math.ceil(totalDatasetsCount / datasetsLimit);
+  const totalApprovedImagesPages = Math.ceil(totalApprovedImagesCount / approvedImagesLimit);
 
   // Computed values and utility functions
   const userAddress = userProfile?.suiAddress || currentWallet?.accounts[0]?.address || "";
@@ -95,12 +115,19 @@ export function useProfilePage(options: UseProfilePageOptions = {}) {
     totalDatasetsPages,
     currentDatasetsPage,
 
+    // Approved images data
+    approvedImages,
+    totalApprovedImagesCount,
+    totalApprovedImagesPages,
+    currentImagesPage,
+
     // Loading states
     isLoading,
     error,
 
     // Page control
     handleDatasetsPageChange,
+    handleImagesPageChange,
 
     // Utility functions
     formatAddress,

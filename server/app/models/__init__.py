@@ -13,6 +13,7 @@ from .category import Category
 from .dictionary_category import DictionaryCategory
 from .annotation import Annotation
 from .user_annotation_selection import UserAnnotationSelection
+from .user_reward import UserReward, RewardType
 
 __all__ = [
     "User",
@@ -24,5 +25,7 @@ __all__ = [
     "Category",
     "DictionaryCategory",
     "Annotation",
-    "UserAnnotationSelection"
+    "UserAnnotationSelection",
+    "UserReward",
+    "RewardType"
 ] 

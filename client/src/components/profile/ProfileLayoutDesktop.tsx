@@ -4,21 +4,16 @@ import { useTheme } from "@/shared/ui/design-system";
 import { useAuth } from "@/contexts/data/AuthContext";
 import { useZkLogin } from "@/contexts/data/ZkLoginContext";
 import { useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
-import {
-  BarChartIcon,
-  PersonIcon,
-  CalendarIcon,
-  CheckCircledIcon,
-  StarFilledIcon,
-  TokensIcon,
-} from "@radix-ui/react-icons";
+import { Trophy, User, CalendarBlank, Star, Wallet, ChartBar, ArrowsHorizontal, Coins } from "phosphor-react";
+import { ProfileActivityStats } from "./ProfileActivityStats";
+import { ProfileApprovedImages } from "./ProfileApprovedImages";
 import suiLogoUrl from "@/assets/logo/Sui_Symbol_Sea.png";
 import openLogoUrl from "@/assets/logo/logo.png";
 import usdcLogoUrl from "@/assets/logo/usdc_logo.png";
 
 /**
  * Desktop-optimized layout for Profile page
- * Features: Two-column layout, detailed wallet interface, desktop interactions
+ * Features: Professional dashboard layout, currency exchange, data analytics focus
  */
 export function ProfileLayoutDesktop() {
   const { theme } = useTheme();
@@ -26,6 +21,7 @@ export function ProfileLayoutDesktop() {
   const { suiAddress } = useZkLogin();
   const { userProfile: profile } = useProfilePageContext();
   const [selectedToken, setSelectedToken] = useState<"OPEN" | "SUI" | "USDC">("OPEN");
+  const [exchangeAmount, setExchangeAmount] = useState("");
 
   const joinDate = profile ? new Date(profile.createdAt).toLocaleDateString() : "";
   const displayName = profile?.displayName || user?.name || user?.email?.split("@")[0] || "User";
@@ -34,38 +30,65 @@ export function ProfileLayoutDesktop() {
 
   // Mock data for demo purposes
   const mockData = {
-    totalAnnotations: profile?.annotationCount || 0,
-    datasetsCreated: profile?.datasetCount || 0,
-    weeklyAnnotations: 0,
-    accuracy: 94.2,
+    accuracy: profile?.approvalRate || 0,
     contributionStreak: 14,
-    rank: "Advanced Contributor",
+    rank: "Data Contributor",
+    level: 8,
+    nextLevelProgress: 65,
     tokens: {
       OPEN: {
-        balance: 2847.5,
-        pending: 156.25,
+        balance: profile?.totalPoints || 0,
         symbol: "OPEN",
-        name: "OpenGraph Token",
+        name: "OpenGraph Points",
         logo: openLogoUrl,
-        primary: true,
+        exchangeRate: 1, // 1 OPEN = 1 OPEN
+        usdValue: 0.1,
       },
       SUI: {
         balance: 12.47,
-        pending: 3.25,
         symbol: "SUI",
         name: "Sui Token",
         logo: suiLogoUrl,
-        primary: false,
+        exchangeRate: 0.15, // 1 OPEN = 0.15 SUI
+        usdValue: 1.2,
       },
       USDC: {
         balance: 28.9,
-        pending: 4.5,
         symbol: "USDC",
         name: "USD Coin",
         logo: usdcLogoUrl,
-        primary: false,
+        exchangeRate: 0.1, // 1 OPEN = 0.1 USDC
+        usdValue: 1.0,
       },
     },
+  };
+
+  const handleExchange = () => {
+    if (!exchangeAmount || parseFloat(exchangeAmount) <= 0) return;
+    // Exchange logic would go here
+    const targetToken = selectedToken === "OPEN" ? "SUI/USDC" : "OPEN";
+    console.log(`Exchange ${exchangeAmount} ${selectedToken} to ${targetToken}`);
+  };
+
+  const getTargetToken = () => {
+    if (selectedToken === "OPEN") return "SUI/USDC";
+    return "OPEN";
+  };
+
+  const getExchangeRate = () => {
+    return mockData.tokens[selectedToken].exchangeRate;
+  };
+
+  const calculateExchangeAmount = () => {
+    if (!exchangeAmount || isNaN(parseFloat(exchangeAmount))) return "0.0000";
+    
+    if (selectedToken === "OPEN") {
+      // Default to SUI for display
+      return (parseFloat(exchangeAmount) * mockData.tokens.SUI.exchangeRate).toFixed(4);
+    } else {
+      // Convert back to OPEN
+      return (parseFloat(exchangeAmount) / mockData.tokens[selectedToken].exchangeRate).toFixed(4);
+    }
   };
 
   return (
@@ -73,38 +96,31 @@ export function ProfileLayoutDesktop() {
       style={{
         minHeight: "100vh",
         background: theme.colors.background.primary,
-        padding: theme.spacing.semantic.layout.lg,
       }}
     >
+      {/* Professional Header */}
       <Box
         style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
+          borderBottom: `1px solid ${theme.colors.border.primary}`,
+          backgroundColor: theme.colors.background.card,
         }}
       >
-        {/* Header Section */}
         <Box
           style={{
-            background: theme.colors.background.card,
-            borderRadius: theme.borders.radius.lg,
-            padding: theme.spacing.semantic.layout.lg,
-            marginBottom: theme.spacing.semantic.layout.md,
-            border: `1px solid ${theme.colors.border.primary}`,
-            boxShadow: theme.shadows.semantic.overlay.dropdown,
+            maxWidth: "1800px",
+            margin: "0 auto",
+            padding: `${theme.spacing.semantic.layout.md} ${theme.spacing.semantic.container.md}`,
           }}
         >
-          <Flex gap="6" align="start" direction={{ initial: "column", sm: "row" }}>
-            {/* Profile Avatar */}
-            <Flex direction="column" align="center" gap="3">
+          <Flex align="center" justify="between">
+            <Flex align="center" gap="4">
               <Box
                 style={{
-                  position: "relative",
-                  width: "120px",
-                  height: "120px",
+                  width: "64px",
+                  height: "64px",
                   borderRadius: "50%",
                   overflow: "hidden",
-                  border: `3px solid ${theme.colors.border.secondary}`,
-                  boxShadow: theme.shadows.semantic.overlay.dropdown,
+                  border: `2px solid ${theme.colors.border.secondary}`,
                 }}
               >
                 {profileImage ? (
@@ -115,7 +131,6 @@ export function ProfileLayoutDesktop() {
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      objectPosition: "center",
                     }}
                   />
                 ) : (
@@ -127,7 +142,7 @@ export function ProfileLayoutDesktop() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "32px",
+                      fontSize: "24px",
                       fontWeight: "700",
                       color: "white",
                     }}
@@ -136,528 +151,422 @@ export function ProfileLayoutDesktop() {
                   </Box>
                 )}
               </Box>
-
-              {/* Status Badge */}
-              <Box
-                style={{
-                  background: `${theme.colors.status.success}15`,
-                  color: theme.colors.status.success,
-                  padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
-                  borderRadius: theme.borders.radius.sm,
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  border: `1px solid ${theme.colors.status.success}30`,
-                }}
-              >
-                {mockData.rank}
-              </Box>
-            </Flex>
-
-            {/* Profile Info */}
-            <Flex direction="column" gap="4" style={{ flex: 1 }}>
+              
               <Box>
                 <Heading
-                  size="7"
+                  size="6"
                   style={{
                     color: theme.colors.text.primary,
-                    marginBottom: theme.spacing.semantic.component.sm,
-                    letterSpacing: "-0.02em",
+                    marginBottom: "4px",
+                    fontWeight: 600,
                   }}
                 >
                   {displayName}
                 </Heading>
                 <Text
+                  as="p"
                   size="3"
                   style={{
                     color: theme.colors.text.secondary,
-                    fontWeight: 500,
-                    marginBottom: theme.spacing.semantic.component.sm,
+                    marginBottom: "8px",
                   }}
                 >
                   {user?.email}
                 </Text>
-
-                {/* Quick Stats */}
-                <Flex
-                  gap="4"
-                  wrap="wrap"
-                  style={{ marginTop: theme.spacing.semantic.component.md }}
-                >
+                <Flex align="center" gap="4">
                   <Flex align="center" gap="2">
-                    <Box
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: theme.colors.status.success,
-                      }}
-                    />
-                    <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                      {mockData.contributionStreak} day streak
+                    <CalendarBlank size={14} style={{ color: theme.colors.text.tertiary }} />
+                    <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                      Joined {joinDate}
                     </Text>
                   </Flex>
                   <Flex align="center" gap="2">
                     <Box
                       style={{
-                        width: "8px",
-                        height: "8px",
+                        width: "6px",
+                        height: "6px",
                         borderRadius: "50%",
-                        background: theme.colors.status.info,
+                        background: "#10b981",
                       }}
                     />
-                    <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                      {mockData.accuracy}% accuracy
+                    <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                      Level {mockData.level} Contributor
                     </Text>
                   </Flex>
                 </Flex>
               </Box>
-
-              <Flex align="center" gap="2">
-                <CalendarIcon
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    color: theme.colors.text.tertiary,
-                  }}
-                />
-                <Text
-                  size="2"
-                  style={{
-                    color: theme.colors.text.secondary,
-                  }}
-                >
-                  Joined {joinDate}
-                </Text>
-              </Flex>
             </Flex>
+
+            <Box>
+              <Box
+                style={{
+                  background: `${theme.colors.status.success}08`,
+                  color: theme.colors.status.success,
+                  padding: `${theme.spacing.base[2]} ${theme.spacing.base[4]}`,
+                  borderRadius: theme.borders.radius.md,
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  border: `1px solid ${theme.colors.status.success}20`,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Star size={16} weight="fill" />
+                {mockData.rank}
+              </Box>
+            </Box>
           </Flex>
         </Box>
+      </Box>
 
-        {/* Statistics Grid - Desktop two-column layout */}
-        <Flex gap="4" direction="row">
-          {/* Annotation Statistics */}
-          <Box
-            style={{
-              flex: 1,
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.lg,
-              padding: theme.spacing.semantic.layout.lg,
-              border: `1px solid ${theme.colors.border.primary}`,
-              boxShadow: theme.shadows.semantic.overlay.dropdown,
-            }}
-          >
-            <Flex
-              align="center"
-              gap="3"
-              style={{ marginBottom: theme.spacing.semantic.component.lg }}
-            >
-              <Box
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  background: `${theme.colors.status.info}15`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: `1px solid ${theme.colors.status.info}30`,
-                }}
-              >
-                <BarChartIcon
+      {/* Main Dashboard Content */}
+      <Box
+        style={{
+          maxWidth: "1800px",
+          margin: "0 auto",
+          padding: `${theme.spacing.semantic.layout.lg} ${theme.spacing.semantic.container.md}`,
+        }}
+      >
+        <Flex gap="6" direction="row">
+          {/* Left Column - Statistics */}
+          <Box style={{ flex: "2" }}>
+            {/* Statistics Cards */}
+            <Box style={{ marginBottom: theme.spacing.semantic.layout.md }}>
+              <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                <ChartBar size={20} color={theme.colors.text.primary} />
+                <Heading
+                  size="4"
                   style={{
-                    width: "24px",
-                    height: "24px",
-                    color: theme.colors.status.info,
+                    color: theme.colors.text.primary,
+                    fontWeight: 600,
                   }}
-                />
-              </Box>
-              <Box>
-                <Heading size="4" style={{ color: theme.colors.text.primary }}>
-                  Annotation Activity
+                >
+                  Contribution Analytics
                 </Heading>
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Your contribution to the platform
-                </Text>
-              </Box>
-            </Flex>
-
-            <Flex direction="column" gap="4">
-              {/* Total Annotations */}
-              <Flex justify="between" align="center">
-                <Flex align="center" gap="2">
-                  <CheckCircledIcon
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      color: theme.colors.status.success,
-                    }}
-                  />
-                  <Text size="3" style={{ color: theme.colors.text.secondary }}>
-                    Total Annotations
-                  </Text>
-                </Flex>
-                <Text
-                  size="5"
-                  style={{
-                    color: theme.colors.text.primary,
-                    fontWeight: "700",
-                  }}
-                >
-                  {mockData.totalAnnotations.toLocaleString()}
-                </Text>
               </Flex>
+              <ProfileActivityStats />
+            </Box>
 
-              {/* Weekly Annotations */}
-              <Flex justify="between" align="center">
-                <Flex align="center" gap="2">
-                  <Box
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      borderRadius: "50%",
-                      background: theme.colors.status.info,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text style={{ fontSize: "10px", color: "white", fontWeight: "bold" }}>7</Text>
-                  </Box>
-                  <Text size="3" style={{ color: theme.colors.text.secondary }}>
-                    This Week
-                  </Text>
-                </Flex>
-                <Text
-                  size="4"
-                  style={{
-                    color: theme.colors.status.info,
-                    fontWeight: "700",
-                  }}
-                >
-                  +{mockData.weeklyAnnotations}
-                </Text>
-              </Flex>
-
-              {/* Datasets Created */}
-              <Flex justify="between" align="center">
-                <Flex align="center" gap="2">
-                  <StarFilledIcon
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      color: theme.colors.status.warning,
-                    }}
-                  />
-                  <Text size="3" style={{ color: theme.colors.text.secondary }}>
-                    Datasets Created
-                  </Text>
-                </Flex>
-                <Text
-                  size="4"
-                  style={{
-                    color: theme.colors.text.primary,
-                    fontWeight: "600",
-                  }}
-                >
-                  {mockData.datasetsCreated}
-                </Text>
-              </Flex>
-
-              {/* Progress Bar */}
-              <Box style={{ marginTop: theme.spacing.semantic.component.md }}>
-                <Flex
-                  justify="between"
-                  style={{ marginBottom: theme.spacing.semantic.component.sm }}
-                >
-                  <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                    Next Level Progress
-                  </Text>
-                  <Text
-                    size="2"
-                    style={{ color: theme.colors.interactive.primary, fontWeight: "600" }}
-                  >
-                    {Math.round((mockData.totalAnnotations % 500) / 5)}% to Expert
-                  </Text>
-                </Flex>
-                <Box
-                  style={{
-                    width: "100%",
-                    height: "8px",
-                    background: theme.colors.background.secondary,
-                    borderRadius: "4px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <Box
-                    style={{
-                      width: `${Math.round((mockData.totalAnnotations % 500) / 5)}%`,
-                      height: "100%",
-                      background: `linear-gradient(90deg, ${theme.colors.interactive.primary}, ${theme.colors.interactive.accent})`,
-                      transition: "width 0.3s ease",
-                      borderRadius: "4px",
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Flex>
+            {/* Approved Images Gallery */}
+            <ProfileApprovedImages />
           </Box>
 
-          {/* Multi-Token Wallet - Desktop version with detailed interface */}
-          <Box
-            style={{
-              flex: 1,
-              background: theme.colors.background.card,
-              borderRadius: theme.borders.radius.lg,
-              padding: theme.spacing.semantic.layout.lg,
-              border: `1px solid ${theme.colors.border.primary}`,
-              boxShadow: theme.shadows.semantic.overlay.dropdown,
-            }}
-          >
-            {/* Header */}
-            <Flex
-              align="center"
-              gap="3"
-              style={{ marginBottom: theme.spacing.semantic.component.lg }}
+          {/* Right Column - Wallet & Exchange */}
+          <Box style={{ flex: "1", minWidth: "360px" }}>
+            {/* Wallet Balance */}
+            <Box
+              style={{
+                background: theme.colors.background.card,
+                borderRadius: theme.borders.radius.lg,
+                padding: theme.spacing.semantic.component.xl,
+                border: `1px solid ${theme.colors.border.primary}`,
+                marginBottom: theme.spacing.semantic.component.lg,
+              }}
             >
-              <Box
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  background: `${theme.colors.interactive.primary}15`,
-                  border: `1px solid ${theme.colors.interactive.primary}30`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "6px",
-                }}
-              >
-                <img
-                  src={mockData.tokens[selectedToken].logo}
-                  alt={mockData.tokens[selectedToken].name}
+              <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+                <Wallet size={20} color={theme.colors.text.primary} />
+                <Heading
+                  size="4"
                   style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    objectPosition: "center",
+                    color: theme.colors.text.primary,
+                    fontWeight: 600,
                   }}
-                />
-              </Box>
-              <Box>
-                <Heading size="4" style={{ color: theme.colors.text.primary }}>
-                  OpenGraph Wallet
+                >
+                  Wallet Overview
                 </Heading>
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Multi-token rewards & earnings
-                </Text>
-              </Box>
-            </Flex>
+              </Flex>
 
-            {/* Token Selector */}
-            <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.text.secondary,
-                  marginBottom: theme.spacing.semantic.component.sm,
-                }}
-              >
-                Select Token
-              </Text>
-              <Flex gap="2">
-                {(Object.keys(mockData.tokens) as Array<keyof typeof mockData.tokens>).map(
-                  tokenKey => {
-                    const token = mockData.tokens[tokenKey];
-                    const isSelected = selectedToken === tokenKey;
-
-                    return (
-                      <button
-                        key={tokenKey}
-                        onClick={() => setSelectedToken(tokenKey)}
-                        style={{
-                          flex: 1,
-                          padding: theme.spacing.semantic.component.sm,
-                          background: isSelected
-                            ? theme.colors.interactive.primary
-                            : theme.colors.background.secondary,
-                          border: `1px solid ${
-                            isSelected
-                              ? theme.colors.interactive.primary
-                              : theme.colors.border.secondary
-                          }`,
-                          borderRadius: theme.borders.radius.sm,
-                          cursor: "pointer",
-                          transition: "all 150ms ease",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: theme.spacing.base[1],
-                        }}
-                      >
+              {/* Token Balances */}
+              <Flex direction="column" gap="4">
+                {Object.entries(mockData.tokens).map(([tokenKey, token]) => (
+                  <Box
+                    key={tokenKey}
+                    style={{
+                      padding: theme.spacing.semantic.component.md,
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.md,
+                      border: `1px solid ${theme.colors.border.subtle}`,
+                    }}
+                  >
+                    <Flex align="center" justify="between">
+                      <Flex align="center" gap="3">
                         <img
                           src={token.logo}
                           alt={token.symbol}
                           style={{
-                            width: "20px",
-                            height: "20px",
-                            objectFit: "contain",
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
                           }}
                         />
+                        <Box>
+                          <Text
+                            as="p"
+                            size="3"
+                            style={{
+                              fontWeight: 600,
+                              color: theme.colors.text.primary,
+                            }}
+                          >
+                            {token.symbol}
+                          </Text>
+                          <Text
+                            as="p"
+                            size="1"
+                            style={{
+                              color: theme.colors.text.tertiary,
+                            }}
+                          >
+                            {token.name}
+                          </Text>
+                        </Box>
+                      </Flex>
+                      <Box style={{ textAlign: "right" }}>
                         <Text
-                          size="2"
+                          as="p"
+                          size="4"
                           style={{
-                            color: isSelected ? "white" : theme.colors.text.primary,
-                            fontWeight: isSelected ? "600" : "500",
+                            fontWeight: 700,
+                            color: theme.colors.text.primary,
                           }}
                         >
-                          {token.symbol}
+                          {token.balance.toLocaleString(undefined, {
+                            maximumFractionDigits: 2,
+                          })}
                         </Text>
-                      </button>
-                    );
-                  }
-                )}
+                        <Text
+                          as="p"
+                          size="1"
+                          style={{
+                            color: theme.colors.text.tertiary,
+                          }}
+                        >
+                          ${(token.balance * token.usdValue).toFixed(2)} USD
+                        </Text>
+                      </Box>
+                    </Flex>
+                  </Box>
+                ))}
               </Flex>
             </Box>
 
-            {/* Wallet Connection Status */}
-            {userSuiAddress ? (
-              <Box style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+            {/* Currency Exchange */}
+            <Box
+              style={{
+                background: theme.colors.background.card,
+                borderRadius: theme.borders.radius.lg,
+                padding: theme.spacing.semantic.component.xl,
+                border: `1px solid ${theme.colors.border.primary}`,
+              }}
+            >
+              <Flex align="center" gap="3" style={{ marginBottom: theme.spacing.semantic.component.lg }}>
+                <ArrowsHorizontal size={20} color={theme.colors.text.primary} />
+                <Heading
+                  size="4"
+                  style={{
+                    color: theme.colors.text.primary,
+                    fontWeight: 600,
+                  }}
+                >
+                  Token Exchange
+                </Heading>
+              </Flex>
+
+              {/* Exchange Form */}
+              <Box>
                 <Text
+                  as="p"
                   size="2"
                   style={{
                     color: theme.colors.text.secondary,
                     marginBottom: theme.spacing.semantic.component.sm,
                   }}
                 >
-                  Connected Wallet
+                  From
                 </Text>
+                <Flex gap="2" style={{ marginBottom: theme.spacing.semantic.component.md }}>
+                  <button
+                    onClick={() => setSelectedToken("OPEN")}
+                    style={{
+                      flex: 1,
+                      padding: theme.spacing.semantic.component.sm,
+                      background: selectedToken === "OPEN" 
+                        ? theme.colors.interactive.primary 
+                        : theme.colors.background.secondary,
+                      border: `1px solid ${
+                        selectedToken === "OPEN"
+                          ? theme.colors.interactive.primary
+                          : theme.colors.border.secondary
+                      }`,
+                      borderRadius: theme.borders.radius.sm,
+                      color: selectedToken === "OPEN" ? "white" : theme.colors.text.primary,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: theme.spacing.base[1],
+                    }}
+                  >
+                    <img src={openLogoUrl} alt="OPEN" style={{ width: "16px", height: "16px" }} />
+                    OPEN
+                  </button>
+                  <button
+                    onClick={() => setSelectedToken("SUI")}
+                    style={{
+                      flex: 1,
+                      padding: theme.spacing.semantic.component.sm,
+                      background: selectedToken === "SUI" 
+                        ? theme.colors.interactive.primary 
+                        : theme.colors.background.secondary,
+                      border: `1px solid ${
+                        selectedToken === "SUI"
+                          ? theme.colors.interactive.primary
+                          : theme.colors.border.secondary
+                      }`,
+                      borderRadius: theme.borders.radius.sm,
+                      color: selectedToken === "SUI" ? "white" : theme.colors.text.primary,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: theme.spacing.base[1],
+                    }}
+                  >
+                    <img src={suiLogoUrl} alt="SUI" style={{ width: "16px", height: "16px" }} />
+                    SUI
+                  </button>
+                  <button
+                    onClick={() => setSelectedToken("USDC")}
+                    style={{
+                      flex: 1,
+                      padding: theme.spacing.semantic.component.sm,
+                      background: selectedToken === "USDC" 
+                        ? theme.colors.interactive.primary 
+                        : theme.colors.background.secondary,
+                      border: `1px solid ${
+                        selectedToken === "USDC"
+                          ? theme.colors.interactive.primary
+                          : theme.colors.border.secondary
+                      }`,
+                      borderRadius: theme.borders.radius.sm,
+                      color: selectedToken === "USDC" ? "white" : theme.colors.text.primary,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: theme.spacing.base[1],
+                    }}
+                  >
+                    <img src={usdcLogoUrl} alt="USDC" style={{ width: "16px", height: "16px" }} />
+                    USDC
+                  </button>
+                </Flex>
+
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  value={exchangeAmount}
+                  onChange={(e) => setExchangeAmount(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: theme.spacing.semantic.component.md,
+                    border: `1px solid ${theme.colors.border.primary}`,
+                    borderRadius: theme.borders.radius.sm,
+                    fontSize: "16px",
+                    background: theme.colors.background.secondary,
+                    color: theme.colors.text.primary,
+                    marginBottom: theme.spacing.semantic.component.md,
+                  }}
+                />
+
+                <Text
+                  as="p"
+                  size="2"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    marginBottom: theme.spacing.semantic.component.sm,
+                  }}
+                >
+                  You will receive approximately
+                </Text>
+
                 <Box
                   style={{
+                    padding: theme.spacing.semantic.component.md,
                     background: theme.colors.background.secondary,
                     borderRadius: theme.borders.radius.sm,
-                    padding: theme.spacing.semantic.component.md,
-                    border: `1px solid ${theme.colors.border.secondary}`,
+                    border: `1px solid ${theme.colors.border.subtle}`,
+                    marginBottom: theme.spacing.semantic.component.md,
                   }}
                 >
                   <Text
-                    size="2"
+                    as="p"
+                    size="3"
                     style={{
-                      fontFamily: "monospace",
+                      fontWeight: 600,
                       color: theme.colors.text.primary,
-                      wordBreak: "break-all",
-                      lineHeight: 1.4,
-                      fontSize: "12px",
                     }}
                   >
-                    {userSuiAddress}
+                    {calculateExchangeAmount()}{" "}
+                    {getTargetToken()}
                   </Text>
                 </Box>
+
+                <button
+                  onClick={handleExchange}
+                  disabled={!exchangeAmount || parseFloat(exchangeAmount) <= 0}
+                  style={{
+                    width: "100%",
+                    padding: theme.spacing.semantic.component.md,
+                    background: (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                      ? theme.colors.background.secondary
+                      : theme.colors.interactive.primary,
+                    border: `1px solid ${
+                      (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                        ? theme.colors.border.secondary
+                        : theme.colors.interactive.primary
+                    }`,
+                    borderRadius: theme.borders.radius.sm,
+                    color: (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                      ? theme.colors.text.tertiary
+                      : "white",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: (!exchangeAmount || parseFloat(exchangeAmount) <= 0)
+                      ? "not-allowed"
+                      : "pointer",
+                  }}
+                >
+                  Exchange Tokens
+                </button>
               </Box>
-            ) : (
+
+              {/* Exchange Rate Info */}
               <Box
                 style={{
-                  textAlign: "center",
-                  padding: theme.spacing.semantic.component.lg,
+                  marginTop: theme.spacing.semantic.component.md,
+                  padding: theme.spacing.semantic.component.sm,
                   background: `${theme.colors.status.info}08`,
                   borderRadius: theme.borders.radius.sm,
-                  border: `1px dashed ${theme.colors.status.info}40`,
-                  marginBottom: theme.spacing.semantic.component.lg,
+                  border: `1px solid ${theme.colors.status.info}20`,
                 }}
               >
-                <Text size="2" style={{ color: theme.colors.text.secondary }}>
-                  Connect wallet to claim rewards
+                <Text
+                  as="p"
+                  size="1"
+                  style={{
+                    color: theme.colors.text.secondary,
+                    textAlign: "center",
+                  }}
+                >
+                  Exchange Rate: 1 {selectedToken} = {selectedToken === "OPEN" ? `${mockData.tokens.SUI.exchangeRate} SUI / ${mockData.tokens.USDC.exchangeRate} USDC` : `${(1 / getExchangeRate()).toFixed(2)} OPEN`}
                 </Text>
               </Box>
-            )}
-
-            {/* Token Balance Display */}
-            <Flex direction="column" gap="4">
-              {/* Current Balance */}
-              <Flex justify="between" align="center">
-                <Flex align="center" gap="2">
-                  <TokensIcon
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      color: theme.colors.status.success,
-                    }}
-                  />
-                  <Text size="3" style={{ color: theme.colors.text.secondary }}>
-                    Available Balance
-                  </Text>
-                </Flex>
-                <Flex align="center" gap="2">
-                  <Text
-                    size="5"
-                    style={{
-                      color: theme.colors.text.primary,
-                      fontWeight: "700",
-                    }}
-                  >
-                    {mockData.tokens[selectedToken].balance.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </Text>
-                  <Text size="2" style={{ color: theme.colors.text.tertiary }}>
-                    {mockData.tokens[selectedToken].symbol}
-                  </Text>
-                </Flex>
-              </Flex>
-
-              {/* Pending Rewards */}
-              <Flex justify="between" align="center">
-                <Text size="3" style={{ color: theme.colors.text.secondary }}>
-                  Pending Rewards
-                </Text>
-                <Flex align="center" gap="2">
-                  <Text
-                    size="4"
-                    style={{
-                      color: theme.colors.status.warning,
-                      fontWeight: "700",
-                    }}
-                  >
-                    +{mockData.tokens[selectedToken].pending.toFixed(2)}
-                  </Text>
-                  <Text size="2" style={{ color: theme.colors.text.tertiary }}>
-                    {mockData.tokens[selectedToken].symbol}
-                  </Text>
-                </Flex>
-              </Flex>
-
-              {/* Claim Button */}
-              <button
-                disabled={mockData.tokens[selectedToken].pending === 0}
-                style={{
-                  width: "100%",
-                  padding: theme.spacing.semantic.component.md,
-                  background:
-                    mockData.tokens[selectedToken].pending > 0
-                      ? theme.colors.interactive.primary
-                      : theme.colors.background.secondary,
-                  border: `1px solid ${
-                    mockData.tokens[selectedToken].pending > 0
-                      ? theme.colors.interactive.primary
-                      : theme.colors.border.secondary
-                  }`,
-                  borderRadius: theme.borders.radius.sm,
-                  color:
-                    mockData.tokens[selectedToken].pending > 0
-                      ? "white"
-                      : theme.colors.text.tertiary,
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  cursor: mockData.tokens[selectedToken].pending > 0 ? "pointer" : "not-allowed",
-                  marginTop: theme.spacing.semantic.component.sm,
-                  transition: "all 150ms ease",
-                }}
-              >
-                {mockData.tokens[selectedToken].pending > 0
-                  ? `Claim ${mockData.tokens[selectedToken].pending.toFixed(2)} ${mockData.tokens[selectedToken].symbol}`
-                  : "No rewards to claim"}
-              </button>
-            </Flex>
+            </Box>
           </Box>
         </Flex>
       </Box>
