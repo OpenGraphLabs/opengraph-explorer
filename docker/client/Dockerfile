@@ -3,6 +3,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 ARG VITE_SERVER_BASE_URL
+ENV VITE_SERVER_BASE_URL=$VITE_SERVER_BASE_URL
 
 # 패키지 의존성 복사 및 설치
 COPY client/package.json client/yarn.lock ./
@@ -12,7 +13,7 @@ RUN yarn install --frozen-lockfile
 COPY client/ ./
 
 # ENV 설정 및 빌드를 한 번에 처리
-RUN VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL} yarn build
+RUN yarn build
 
 # 프로덕션 환경을 위한 nginx 설정
 FROM nginx:stable-alpine

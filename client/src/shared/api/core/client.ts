@@ -4,6 +4,7 @@ type RequestMethod = "get" | "put" | "post" | "delete";
 
 // Environment configuration
 const API_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:8000";
+console.log("VITE_SERVER_BASE_URL: ", import.meta.env.VITE_SERVER_BASE_URL);
 
 // Types for request configuration
 interface BaseRequestConfig {
