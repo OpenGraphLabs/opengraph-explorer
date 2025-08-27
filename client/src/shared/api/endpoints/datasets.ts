@@ -101,7 +101,7 @@ export function useDatasets(
   const { page = 1, limit = 25, search, sortBy, enabled = true, setTotalPages } = options;
 
   return usePaginatedGet<DatasetResponse, DatasetListResponse, Dataset>({
-    url: DATASETS_BASE,
+    url: `${DATASETS_BASE}/`,
     page,
     limit,
     search,

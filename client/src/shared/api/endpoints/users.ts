@@ -101,7 +101,7 @@ export function useUser(userId: number, options: { enabled?: boolean } = {}) {
  */
 export function useCreateUser() {
   return usePost<UserCreateInput, UserResponse, User>(
-    USERS_BASE,
+    `${USERS_BASE}/`,
     parseUser,
     { authenticated: false } // Usually registration doesn't require auth
   );

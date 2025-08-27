@@ -54,7 +54,7 @@ export function useTasks(
   const { page = 1, limit = 20, search, sortBy, enabled = true, setTotalPages } = options;
 
   return usePaginatedGet<TaskResponse, TaskListResponse, Task>({
-    url: TASKS_BASE,
+    url: `${TASKS_BASE}/`,
     page,
     limit,
     search,

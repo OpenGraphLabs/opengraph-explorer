@@ -117,7 +117,7 @@ export function useImages(
   } = options;
 
   return usePaginatedGet<ImageResponse, ImageListResponse, Image>({
-    url: IMAGES_BASE,
+    url: `${IMAGES_BASE}/`,
     page,
     limit,
     search,
@@ -136,9 +136,12 @@ export function useImages(
  * Create a new image
  */
 export function useCreateImage() {
-  return usePost<ImageCreateInput, ImageResponse, Image>(IMAGES_BASE, parseImage, {
-    authenticated: true,
-  });
+  return usePost<ImageCreateInput, ImageResponse, Image>(
+    `${IMAGES_BASE}/`,
+    parseImage,
+    {
+      authenticated: true,
+    });
 }
 
 /**

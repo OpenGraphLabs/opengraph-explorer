@@ -128,7 +128,7 @@ export function useAnnotations(
   } = options;
 
   return usePaginatedGet<AnnotationResponse, AnnotationListResponse, Annotation>({
-    url: ANNOTATIONS_BASE,
+    url: `${ANNOTATIONS_BASE}/`,
     page,
     limit,
     sortBy,
@@ -148,7 +148,7 @@ export function useAnnotations(
  */
 export function useCreateAnnotation() {
   return usePost<AnnotationCreateInput, AnnotationResponse, Annotation>(
-    ANNOTATIONS_BASE,
+    `${ANNOTATIONS_BASE}/`,
     parseAnnotation,
     { authenticated: true }
   );

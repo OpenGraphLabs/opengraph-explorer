@@ -76,7 +76,7 @@ export function useCategories(
   const { page = 1, limit = 25, search, sortBy, enabled = true, setTotalPages } = options;
 
   return usePaginatedGet<CategoryResponse, CategoryListResponse, Category>({
-    url: CATEGORIES_BASE,
+    url: `${CATEGORIES_BASE}/`,
     page,
     limit,
     search,
@@ -129,9 +129,12 @@ export function useDictionaryCategories(
  * Create a new category
  */
 export function useCreateCategory() {
-  return usePost<CategoryCreateInput, CategoryResponse, Category>(CATEGORIES_BASE, parseCategory, {
-    authenticated: true,
-  });
+  return usePost<CategoryCreateInput, CategoryResponse, Category>(
+    `${CATEGORIES_BASE}/`,
+    parseCategory,
+    {
+      authenticated: true,
+    });
 }
 
 /**
