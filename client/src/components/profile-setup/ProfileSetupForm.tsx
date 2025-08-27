@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { Button } from "@/shared/ui/design-system/components/Button/Button";
 import { useTheme } from "@/shared/ui/design-system";
 import { useProfileSetupPageContext } from "@/shared/providers/ProfileSetupPageProvider";
 import { useMobile } from "@/shared/hooks";
-import { User, Globe, Calendar, Users } from "phosphor-react";
+import { User, Globe, Calendar, Users, CaretDown, Check, Plus } from "phosphor-react";
 
 export function ProfileSetupForm() {
   const { theme } = useTheme();
@@ -18,6 +18,153 @@ export function ProfileSetupForm() {
     countries,
     genderOptions,
   } = useProfileSetupPageContext();
+
+  // Country autocomplete state
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [filteredCountries, setFilteredCountries] = useState(countries);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
+  const [customCountryName, setCustomCountryName] = useState("");
+  const countryInputRef = useRef<HTMLInputElement>(null);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get selected country name for display
+  const selectedCountry = countries.find(c => c.code === formData.country);
+  const displayCountryName = isOtherSelected && customCountryName 
+    ? customCountryName 
+    : selectedCountry ? selectedCountry.name : "";
+
+  // Check if Other is selected
+  useEffect(() => {
+    setIsOtherSelected(formData.country === "OTHER");
+  }, [formData.country]);
+
+  // Update filtered countries when search changes
+  useEffect(() => {
+    if (countrySearch.trim() === "") {
+      setFilteredCountries(countries);
+    } else {
+      const filtered = countries.filter(country =>
+        country.name.toLowerCase().includes(countrySearch.toLowerCase())
+      );
+      setFilteredCountries(filtered);
+    }
+    setHighlightedIndex(-1); // Reset highlight when search changes
+  }, [countrySearch, countries]);
+
+  // Handle outside clicks to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(event.target as Node) &&
+        countryInputRef.current &&
+        !countryInputRef.current.contains(event.target as Node)
+      ) {
+        setShowCountryDropdown(false);
+        setCountrySearch("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleCountryInputFocus = () => {
+    if (!isOtherSelected) {
+      setShowCountryDropdown(true);
+      setCountrySearch("");
+    }
+  };
+
+  const handleCountrySelect = (countryCode: string, customName?: string) => {
+    updateFormData("country", countryCode);
+    setShowCountryDropdown(false);
+    setCountrySearch("");
+    setHighlightedIndex(-1);
+    
+    if (countryCode === "OTHER") {
+      setIsOtherSelected(true);
+      setCustomCountryName(customName || "");
+      // Keep focus for direct input if no custom name provided
+      if (!customName) {
+        setTimeout(() => countryInputRef.current?.focus(), 0);
+      } else {
+        countryInputRef.current?.blur();
+      }
+    } else {
+      setIsOtherSelected(false);
+      setCustomCountryName("");
+      countryInputRef.current?.blur();
+    }
+  };
+
+  const handleUseCustomInput = () => {
+    const searchTerm = countrySearch.trim();
+    handleCountrySelect("OTHER", searchTerm);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showCountryDropdown) {
+      if (e.key === "ArrowDown" || e.key === "Enter") {
+        if (!isOtherSelected) {
+          setShowCountryDropdown(true);
+          setCountrySearch("");
+        }
+      }
+      return;
+    }
+
+    const hasCustomOption = filteredCountries.length === 0 && countrySearch.trim().length > 0;
+    const totalOptions = filteredCountries.length + (hasCustomOption ? 1 : 0);
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev < totalOptions - 1 ? prev + 1 : 0
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev > 0 ? prev - 1 : totalOptions - 1
+        );
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (hasCustomOption && highlightedIndex === filteredCountries.length) {
+          // Select the custom input option
+          handleUseCustomInput();
+        } else if (highlightedIndex >= 0 && highlightedIndex < filteredCountries.length) {
+          handleCountrySelect(filteredCountries[highlightedIndex].code);
+        }
+        break;
+      case "Escape":
+        setShowCountryDropdown(false);
+        setCountrySearch("");
+        setHighlightedIndex(-1);
+        break;
+    }
+  };
+
+  const handleCustomCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomCountryName(e.target.value);
+  };
+
+  const handleCustomCountryBlur = () => {
+    // Only close if not clicking on dropdown
+    if (!showCountryDropdown) {
+      // Validate custom input or revert
+      if (!customCountryName.trim()) {
+        updateFormData("country", "US"); // Reset to default
+        setIsOtherSelected(false);
+      }
+    }
+  };
 
   // Base input styling
   const inputStyle: React.CSSProperties = {
@@ -260,37 +407,189 @@ export function ProfileSetupForm() {
           </Box>
         </Box>
 
-        {/* Row 3: Country (full width) */}
+        {/* Row 3: Country (full width with autocomplete) */}
         <Box style={fieldStyle}>
           <Box style={fieldLabelStyle}>
             <Globe size={16} color={theme.colors.interactive.primary} weight="duotone" />
             <Text weight="medium">Country</Text>
             <Text size="1" style={{ color: theme.colors.status.error }}>*</Text>
           </Box>
-          <select
-            name="country"
-            value={formData.country}
-            onChange={(e) => updateFormData("country", e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, focusedInputStyle)}
-            onBlur={(e) => {
-              const hasError = errors.country;
-              Object.assign(e.target.style, hasError ? errorInputStyle : { 
-                borderColor: theme.colors.border.primary, 
-                boxShadow: "none" 
-              });
-            }}
-            style={{
-              ...inputStyle,
-              ...(errors.country ? errorInputStyle : {}),
-            }}
-            disabled={isLoading}
-          >
-            {countries.map((country) => (
-              <option key={country.code} value={country.code}>
-                {country.name}
-              </option>
-            ))}
-          </select>
+          
+          <Box style={{ position: "relative" }}>
+            <input
+              ref={countryInputRef}
+              type="text"
+              name="country-search"
+              value={
+                isOtherSelected 
+                  ? customCountryName
+                  : showCountryDropdown 
+                    ? countrySearch 
+                    : displayCountryName
+              }
+              onChange={isOtherSelected ? handleCustomCountryChange : (e) => setCountrySearch(e.target.value)}
+              onFocus={handleCountryInputFocus}
+              onKeyDown={handleKeyDown}
+              onBlur={isOtherSelected ? handleCustomCountryBlur : undefined}
+              placeholder={isOtherSelected ? "Enter your country..." : "Search countries..."}
+              style={{
+                ...inputStyle,
+                paddingRight: "40px",
+                cursor: isOtherSelected ? "text" : "text",
+                ...(errors.country ? errorInputStyle : {}),
+              }}
+              disabled={isLoading}
+              autoComplete="off"
+            />
+            
+            {/* Dropdown Arrow */}
+            <Box
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "none",
+                color: theme.colors.text.tertiary,
+                transition: "transform 0.2s ease-in-out",
+              }}
+            >
+              <CaretDown 
+                size={16} 
+                style={{
+                  transform: showCountryDropdown ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease-in-out",
+                }}
+              />
+            </Box>
+
+            {/* Dropdown */}
+            {showCountryDropdown && !isOtherSelected && (
+              <Box
+                ref={countryDropdownRef}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  zIndex: 1000,
+                  background: theme.colors.background.card,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                  borderRadius: theme.borders.radius.lg,
+                  boxShadow: theme.shadows.semantic.card.medium,
+                  maxHeight: "200px",
+                  overflowY: "auto",
+                  marginTop: "4px",
+                }}
+              >
+                {filteredCountries.map((country, index) => (
+                  <Box
+                    key={country.code}
+                    onClick={() => handleCountrySelect(country.code)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    style={{
+                      padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                      cursor: "pointer",
+                      borderBottom: `1px solid ${theme.colors.border.secondary}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      transition: "all 0.2s ease-in-out",
+                      background: 
+                        highlightedIndex === index
+                          ? `${theme.colors.interactive.primary}15`
+                          : formData.country === country.code 
+                            ? `${theme.colors.interactive.primary}08` 
+                            : "transparent",
+                    }}
+                  >
+                    <Text 
+                      size="2" 
+                      style={{ 
+                        color: theme.colors.text.primary,
+                        fontWeight: 
+                          highlightedIndex === index || formData.country === country.code 
+                            ? 600 
+                            : 400,
+                      }}
+                    >
+                      {country.name}
+                    </Text>
+                    {formData.country === country.code && (
+                      <Check 
+                        size={16} 
+                        color={theme.colors.interactive.primary} 
+                        weight="bold" 
+                      />
+                    )}
+                  </Box>
+                ))}
+                
+                {/* Show custom input option when no results found but user has typed something */}
+                {filteredCountries.length === 0 && countrySearch.trim().length > 0 && (
+                  <Box
+                    onClick={handleUseCustomInput}
+                    onMouseEnter={() => setHighlightedIndex(filteredCountries.length)}
+                    style={{
+                      padding: `${theme.spacing.semantic.component.sm} ${theme.spacing.semantic.component.md}`,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: theme.spacing.semantic.component.sm,
+                      transition: "all 0.2s ease-in-out",
+                      background: highlightedIndex === filteredCountries.length
+                        ? `${theme.colors.interactive.primary}15`
+                        : "transparent",
+                      borderTop: `1px solid ${theme.colors.border.secondary}`,
+                    }}
+                  >
+                    <Plus 
+                      size={16} 
+                      color={theme.colors.interactive.primary} 
+                      weight="bold" 
+                    />
+                    <Box style={{ flex: 1 }}>
+                      <Text 
+                        size="2" 
+                        style={{ 
+                          color: theme.colors.interactive.primary,
+                          fontWeight: highlightedIndex === filteredCountries.length ? 600 : 500,
+                        }}
+                      >
+                        Use "{countrySearch.trim()}"
+                      </Text>
+                      <Text 
+                        size="1" 
+                        style={{ 
+                          color: theme.colors.text.tertiary,
+                          fontSize: "11px",
+                          marginTop: "2px",
+                        }}
+                        as="p"
+                      >
+                        Enter your country manually
+                      </Text>
+                    </Box>
+                  </Box>
+                )}
+                
+                {/* Show message when no input and no results */}
+                {filteredCountries.length === 0 && countrySearch.trim().length === 0 && (
+                  <Box
+                    style={{
+                      padding: theme.spacing.semantic.component.md,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Text size="2" style={{ color: theme.colors.text.tertiary }}>
+                      Type to search countries
+                    </Text>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Box>
+          
           {errors.country && (
             <Text style={errorTextStyle} as="p">
               {errors.country}

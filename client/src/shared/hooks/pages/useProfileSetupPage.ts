@@ -54,6 +54,7 @@ export const COUNTRIES = [
   { code: "AR", name: "Argentina" },
   { code: "CL", name: "Chile" },
   { code: "ZA", name: "South Africa" },
+  { code: "OTHER", name: "Other (Not Listed)" },
 ];
 
 export const GENDER_OPTIONS = [
