@@ -8,7 +8,7 @@ export function TaskSelection() {
   const { isMobile } = useMobile();
   const navigate = useNavigate();
   const { id: datasetId } = useParams();
-  const { data: tasks, isLoading, error } = useTasks({ size: 50 });
+  const { data: tasks, isLoading, error } = useTasks({ limit: 50 });
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleTaskSelect = (task: Task) => {

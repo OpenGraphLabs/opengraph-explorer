@@ -1,6 +1,5 @@
-import { useSingleGet } from "@/shared/api/core";
-import { useQuery } from "@tanstack/react-query";
-import { fetchData } from "@/shared/api/core/client";
+import { useSingleGet, usePaginatedGet } from "@/shared/api/core";
+import type { ApiListResponse } from "@/shared/api/core";
 
 const TASKS_BASE = "/api/v1/tasks";
 
@@ -15,6 +14,8 @@ interface TaskResponse {
   name: string;
   created_at: string;
 }
+
+interface TaskListResponse extends ApiListResponse<TaskResponse> {}
 
 // Parsing functions to convert API responses to client types
 const parseTask = (resp: TaskResponse): Task => ({
@@ -43,38 +44,24 @@ export function useTask(taskId: number, options: { enabled?: boolean } = {}) {
 export function useTasks(
   options: {
     page?: number;
-    size?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
     enabled?: boolean;
+    setTotalPages?: (total: number) => void;
   } = {}
-): {
-  data: Task[] | null;
-  isLoading: boolean;
-  error: Error | null;
-  refetch: () => void;
-} {
-  const { page = 1, size = 20, enabled = true } = options;
+) {
+  const { page = 1, limit = 20, search, sortBy, enabled = true, setTotalPages } = options;
 
-  const queryParams = { page, size };
-  const queryKey = [TASKS_BASE, queryParams] as const;
-
-  const { data, isLoading, error, refetch } = useQuery<{ items: TaskResponse[] }, Error, Task[]>({
-    queryKey,
-    queryFn: async () =>
-      fetchData<typeof queryParams, { items: TaskResponse[] }>({
-        url: TASKS_BASE,
-        method: "get",
-        params: queryParams,
-        authenticated: false, // Tasks are public
-      }),
-    select: resp => resp.items.map(parseTask),
+  return usePaginatedGet<TaskResponse, TaskListResponse, Task>({
+    url: TASKS_BASE,
+    page,
+    limit,
+    search,
+    sortBy,
     enabled,
-    retry: false,
+    authenticated: false, // Tasks are public
+    parseData: parseTask,
+    setTotalPages,
   });
-
-  return {
-    data: data ?? null,
-    isLoading,
-    error,
-    refetch,
-  };
 }
