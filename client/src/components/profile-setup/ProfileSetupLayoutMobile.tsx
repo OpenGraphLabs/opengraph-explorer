@@ -37,10 +37,14 @@ export function ProfileSetupLayoutMobile() {
           }}
         >
           <CheckCircle size={14} weight="duotone" color={theme.colors.interactive.primary} />
-          <Text size="1" weight="medium" style={{ 
-            color: theme.colors.interactive.primary,
-            fontSize: "11px",
-          }}>
+          <Text
+            size="1"
+            weight="medium"
+            style={{
+              color: theme.colors.interactive.primary,
+              fontSize: "11px",
+            }}
+          >
             Welcome to OpenGraph
           </Text>
         </Box>
@@ -56,7 +60,7 @@ export function ProfileSetupLayoutMobile() {
         >
           Complete Your Profile
         </Text>
-        
+
         <Text
           as="p"
           size="1"
@@ -120,7 +124,7 @@ export function ProfileSetupLayoutMobile() {
               >
                 <User size={14} weight="duotone" color="white" />
               </Box>
-              
+
               <Text
                 size="2"
                 weight="bold"

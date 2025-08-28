@@ -33,9 +33,13 @@ export function ProfileLayoutDesktop() {
   const [exchangeAmount, setExchangeAmount] = useState("");
 
   const joinDate = profile ? new Date(profile.createdAt).toLocaleDateString() : "";
-  const displayName = profile?.displayName || user?.name || user?.email?.split("@")[0] || "User";
+  const displayName =
+    profile?.nickname || profile?.displayName || user?.name || user?.email?.split("@")[0] || "User";
   const profileImage = profile?.profileImageUrl || user?.picture;
   const userSuiAddress = profile?.suiAddress || suiAddress;
+  const userGender = profile?.gender || "";
+  const userAge = profile?.age || null;
+  const userCountry = profile?.country || "";
 
   // Mock data for demo purposes
   const mockData = {
@@ -178,26 +182,95 @@ export function ProfileLayoutDesktop() {
                 >
                   {user?.email}
                 </Text>
-                <Flex align="center" gap="4">
-                  <Flex align="center" gap="2">
-                    <CalendarBlank size={14} style={{ color: theme.colors.text.tertiary }} />
-                    <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
-                      Joined {joinDate}
-                    </Text>
+                <Flex direction="column" gap="3">
+                  <Flex align="center" gap="4">
+                    <Flex align="center" gap="2">
+                      <CalendarBlank size={14} style={{ color: theme.colors.text.tertiary }} />
+                      <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                        Joined {joinDate}
+                      </Text>
+                    </Flex>
+                    <Flex align="center" gap="2">
+                      <Box
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background: theme.colors.status.success,
+                        }}
+                      />
+                      <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                        Level {mockData.level} Contributor
+                      </Text>
+                    </Flex>
                   </Flex>
-                  <Flex align="center" gap="2">
-                    <Box
-                      style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background: "#10b981",
-                      }}
-                    />
-                    <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
-                      Level {mockData.level} Contributor
-                    </Text>
-                  </Flex>
+                  {(userGender || userAge || userCountry) && (
+                    <Flex align="center" gap="4">
+                      {userGender && (
+                        <Box
+                          style={{
+                            padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`,
+                            background: theme.colors.background.secondary,
+                            borderRadius: theme.borders.radius.sm,
+                            border: `1px solid ${theme.colors.border.subtle}`,
+                          }}
+                        >
+                          <Flex align="center" gap="2">
+                            <User size={14} style={{ color: theme.colors.text.secondary }} />
+                            <Text
+                              as="p"
+                              size="2"
+                              style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
+                            >
+                              {userGender.charAt(0).toUpperCase() +
+                                userGender.slice(1).toLowerCase()}
+                            </Text>
+                          </Flex>
+                        </Box>
+                      )}
+                      {userAge && (
+                        <Box
+                          style={{
+                            padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`,
+                            background: theme.colors.background.secondary,
+                            borderRadius: theme.borders.radius.sm,
+                            border: `1px solid ${theme.colors.border.subtle}`,
+                          }}
+                        >
+                          <Text
+                            as="p"
+                            size="2"
+                            style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
+                          >
+                            {userAge} years old
+                          </Text>
+                        </Box>
+                      )}
+                      {userCountry && (
+                        <Box
+                          style={{
+                            padding: `${theme.spacing.base[1]} ${theme.spacing.base[3]}`,
+                            background: theme.colors.background.secondary,
+                            borderRadius: theme.borders.radius.sm,
+                            border: `1px solid ${theme.colors.border.subtle}`,
+                          }}
+                        >
+                          <Flex align="center" gap="2">
+                            <Text as="p" size="2" style={{ fontSize: "14px" }}>
+                              🌍
+                            </Text>
+                            <Text
+                              as="p"
+                              size="2"
+                              style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
+                            >
+                              {userCountry}
+                            </Text>
+                          </Flex>
+                        </Box>
+                      )}
+                    </Flex>
+                  )}
                 </Flex>
               </Box>
             </Flex>

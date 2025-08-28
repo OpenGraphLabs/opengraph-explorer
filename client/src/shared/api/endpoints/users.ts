@@ -22,6 +22,11 @@ export interface UserProfile extends User {
   imagesRejected: number;
   imagesPending: number;
   approvalRate: number;
+  nickname?: string;
+  gender?: string;
+  age?: number;
+  country?: string;
+  isProfileComplete?: boolean;
 }
 
 export interface UserCreateInput {
@@ -57,6 +62,11 @@ interface UserProfileResponse extends UserResponse {
   images_rejected: number;
   images_pending: number;
   approval_rate: number;
+  nickname?: string | null;
+  gender?: string | null;
+  age?: number | null;
+  country?: string | null;
+  is_profile_complete?: boolean;
 }
 
 // Parsing functions to convert API responses to client types
@@ -86,6 +96,11 @@ const parseUserProfile = (resp: UserProfileResponse): UserProfile => ({
   imagesRejected: resp.images_rejected,
   imagesPending: resp.images_pending,
   approvalRate: resp.approval_rate,
+  nickname: resp.nickname || undefined,
+  gender: resp.gender || undefined,
+  age: resp.age || undefined,
+  country: resp.country || undefined,
+  isProfileComplete: resp.is_profile_complete || false,
 });
 
 // API Hooks

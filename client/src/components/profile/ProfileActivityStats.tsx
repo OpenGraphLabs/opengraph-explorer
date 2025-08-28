@@ -1,12 +1,14 @@
-import { Box, Flex, Text, Heading, Grid } from "@/shared/ui/design-system/components";
+import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { Card } from "@/shared/ui/design-system/components/Card";
 import { useTheme } from "@/shared/ui/design-system";
 import { Trophy, Image, CheckCircle, Clock, XCircle, TrendUp, Target, Star } from "phosphor-react";
 import { useProfilePageContext } from "@/contexts/ProfilePageContextProvider";
+import { useMobile } from "@/shared/hooks";
 
 export function ProfileActivityStats() {
   const { theme } = useTheme();
   const { userProfile } = useProfilePageContext();
+  const { isMobile, isTablet } = useMobile();
 
   const approvalRate = userProfile?.approvalRate || 0;
   const totalSubmitted = userProfile?.imagesSubmitted || 0;
@@ -20,163 +22,149 @@ export function ProfileActivityStats() {
       title: "Total Points",
       value: totalPoints.toLocaleString(),
       icon: Trophy,
-      color: "#f59e0b",
-      bgColor: "#f59e0b15",
-      borderColor: "#f59e0b30",
-      description: "OpenGraph rewards earned",
-    },
-    {
-      title: "Images Submitted",
-      value: totalSubmitted.toString(),
-      icon: Image,
-      color: theme.colors.interactive.primary,
-      bgColor: `${theme.colors.interactive.primary}15`,
-      borderColor: `${theme.colors.interactive.primary}30`,
-      description: "Total contributions made",
-    },
-    {
-      title: "Approved Images",
-      value: totalApproved.toString(),
-      icon: CheckCircle,
-      color: "#10b981",
-      bgColor: "#10b98115",
-      borderColor: "#10b98130",
-      description: "Successfully verified",
+      description: "Rewards earned",
+      color: "#4f46e5",
+      bgColor: "#4f46e506",
     },
     {
       title: "Approval Rate",
       value: `${approvalRate.toFixed(1)}%`,
       icon: TrendUp,
-      color: approvalRate >= 80 ? "#10b981" : approvalRate >= 60 ? "#f59e0b" : "#ef4444",
-      bgColor: approvalRate >= 80 ? "#10b98115" : approvalRate >= 60 ? "#f59e0b15" : "#ef444415",
-      borderColor:
-        approvalRate >= 80 ? "#10b98130" : approvalRate >= 60 ? "#f59e0b30" : "#ef444430",
-      description: "Quality success rate",
+      description: "Success rate",
+      color: approvalRate >= 80 ? "#059669" : approvalRate >= 60 ? "#d97706" : "#dc2626",
+      bgColor: approvalRate >= 80 ? "#05966906" : approvalRate >= 60 ? "#d9770606" : "#dc262606",
     },
     {
-      title: "Pending Review",
+      title: "Submitted",
+      value: totalSubmitted.toString(),
+      icon: Image,
+      description: "Contributions",
+      color: "#6366f1",
+      bgColor: "#6366f106",
+    },
+    {
+      title: "Approved",
+      value: totalApproved.toString(),
+      icon: CheckCircle,
+      description: "Verified",
+      color: "#059669",
+      bgColor: "#05966906",
+    },
+    {
+      title: "Pending",
       value: totalPending.toString(),
       icon: Clock,
-      color: theme.colors.interactive.accent,
-      bgColor: `${theme.colors.interactive.accent}15`,
-      borderColor: `${theme.colors.interactive.accent}30`,
-      description: "Awaiting verification",
+      description: "In review",
+      color: "#d97706",
+      bgColor: "#d9770606",
     },
     {
-      title: "Rejected Images",
+      title: "Rejected",
       value: totalRejected.toString(),
       icon: XCircle,
-      color: "#ef4444",
-      bgColor: "#ef444415",
-      borderColor: "#ef444430",
-      description: "Needs improvement",
+      description: "To improve",
+      color: "#dc2626",
+      bgColor: "#dc262606",
     },
   ];
 
   return (
     <Box>
-      {/* Main Stats Grid */}
-      <Grid
-        columns="3"
-        gap="4"
+      {/* Main Stats Grid - Responsive */}
+      <Box
         style={{
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          display: "grid",
+          gridTemplateColumns: isMobile
+            ? "repeat(2, 1fr)"
+            : isTablet
+              ? "repeat(2, 1fr)"
+              : "repeat(3, 1fr)",
+          gap: isMobile ? theme.spacing.semantic.component.xs : theme.spacing.semantic.component.sm,
           marginBottom: theme.spacing.semantic.layout.md,
+          width: "100%",
         }}
       >
         {statCards.map(stat => {
           const IconComponent = stat.icon;
+
           return (
             <Card
               key={stat.title}
               style={{
-                padding: theme.spacing.semantic.component.lg,
+                padding: isMobile
+                  ? theme.spacing.semantic.component.sm
+                  : theme.spacing.semantic.component.md,
                 background: stat.bgColor,
+                border: `1px solid ${stat.color}15`,
                 position: "relative",
                 overflow: "hidden",
                 transition: "all 0.2s ease",
               }}
-              className="hover:scale-[1.02] hover:shadow-lg"
+              className="hover:shadow-sm"
             >
-              {/* Background Pattern */}
-              <Box
-                style={{
-                  position: "absolute",
-                  top: "-20px",
-                  right: "-20px",
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "50%",
-                  background: `${stat.color}10`,
-                  zIndex: 0,
-                }}
-              />
-
-              <Flex direction="column" style={{ position: "relative", zIndex: 1 }}>
-                <Flex align="center" justify="between" style={{ marginBottom: "12px" }}>
-                  <Box
+              <Flex align="start" justify="between" gap={isMobile ? "2" : "3"}>
+                <Box style={{ flex: 1, minWidth: 0 }}>
+                  <Text
+                    as="p"
+                    size="1"
                     style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "12px",
-                      background: `linear-gradient(135deg, ${stat.color}, ${stat.color}dd)`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: `0 4px 12px ${stat.color}40`,
+                      color: theme.colors.text.tertiary,
+                      fontSize: isMobile ? "9px" : "10px",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      marginBottom: "4px",
                     }}
                   >
-                    <IconComponent size={22} color="white" weight="bold" />
-                  </Box>
+                    {stat.title}
+                  </Text>
 
-                  {stat.title === "Approval Rate" && approvalRate >= 80 && (
-                    <Star size={20} color={stat.color} weight="fill" />
-                  )}
-                </Flex>
+                  <Text
+                    as="p"
+                    size={isMobile ? "4" : "5"}
+                    style={{
+                      fontWeight: 700,
+                      color: stat.color,
+                      marginBottom: "2px",
+                      fontSize: isMobile ? "18px" : "22px",
+                      lineHeight: "1.2",
+                    }}
+                  >
+                    {stat.value}
+                  </Text>
 
-                <Text
-                  as="p"
-                  size="1"
+                  <Text
+                    as="p"
+                    size="1"
+                    style={{
+                      color: theme.colors.text.secondary,
+                      fontWeight: 400,
+                      fontSize: isMobile ? "10px" : "11px",
+                    }}
+                  >
+                    {stat.description}
+                  </Text>
+                </Box>
+
+                <Box
                   style={{
-                    color: theme.colors.text.tertiary,
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    marginBottom: "4px",
+                    width: isMobile ? "28px" : "32px",
+                    height: isMobile ? "28px" : "32px",
+                    borderRadius: theme.borders.radius.sm,
+                    background: `${stat.color}12`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
                   }}
                 >
-                  {stat.title}
-                </Text>
-
-                <Text
-                  as="p"
-                  size="6"
-                  style={{
-                    fontWeight: 800,
-                    color: theme.colors.text.primary,
-                    marginBottom: "4px",
-                    fontSize: "28px",
-                  }}
-                >
-                  {stat.value}
-                </Text>
-
-                <Text
-                  as="p"
-                  size="2"
-                  style={{
-                    color: theme.colors.text.secondary,
-                    fontWeight: 500,
-                  }}
-                >
-                  {stat.description}
-                </Text>
+                  <IconComponent size={isMobile ? 14 : 16} color={stat.color} weight="bold" />
+                </Box>
               </Flex>
             </Card>
           );
         })}
-      </Grid>
+      </Box>
     </Box>
   );
 }

@@ -100,7 +100,9 @@ const parseCurrentUser = (resp: CurrentUserResponse): CurrentUser => ({
   createdAt: resp.created_at,
 });
 
-const parseProfileCompleteResponse = (resp: ProfileCompleteApiResponse): ProfileCompleteResponse => ({
+const parseProfileCompleteResponse = (
+  resp: ProfileCompleteApiResponse
+): ProfileCompleteResponse => ({
   success: resp.success,
   message: resp.message,
   user: {

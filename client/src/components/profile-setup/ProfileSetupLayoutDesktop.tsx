@@ -37,7 +37,7 @@ export function ProfileSetupLayoutDesktop() {
         >
           Complete Your Profile
         </Text>
-        
+
         <Text
           as="p"
           size="2"
@@ -93,7 +93,7 @@ export function ProfileSetupLayoutDesktop() {
             >
               <User size={20} weight="duotone" color="white" />
             </Box>
-            
+
             <Box>
               <Text
                 size="4"
@@ -117,15 +117,33 @@ export function ProfileSetupLayoutDesktop() {
             </Box>
           </Box>
 
-          <Box style={{ display: "flex", flexDirection: "column", gap: theme.spacing.semantic.component.sm }}>
-            <Box style={{ display: "flex", alignItems: "center", gap: theme.spacing.semantic.component.sm }}>
+          <Box
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: theme.spacing.semantic.component.sm,
+            }}
+          >
+            <Box
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.semantic.component.sm,
+              }}
+            >
               <CheckCircle size={16} color={theme.colors.status.success} weight="fill" />
               <Text size="2" style={{ color: theme.colors.text.primary }}>
                 Start earning $OPEN tokens
               </Text>
             </Box>
-            
-            <Box style={{ display: "flex", alignItems: "center", gap: theme.spacing.semantic.component.sm }}>
+
+            <Box
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.semantic.component.sm,
+              }}
+            >
               <CheckCircle size={16} color={theme.colors.status.success} weight="fill" />
               <Text size="2" style={{ color: theme.colors.text.primary }}>
                 Join our global AI community
@@ -133,8 +151,8 @@ export function ProfileSetupLayoutDesktop() {
             </Box>
           </Box>
 
-          <Box 
-            style={{ 
+          <Box
+            style={{
               padding: theme.spacing.semantic.component.sm,
               background: `${theme.colors.status.info}08`,
               border: `1px solid ${theme.colors.status.info}20`,

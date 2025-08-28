@@ -10,9 +10,9 @@ interface ProfileSetupPageProviderProps {
   options?: UseProfileSetupPageOptions;
 }
 
-export function ProfileSetupPageProvider({ 
-  children, 
-  options = {} 
+export function ProfileSetupPageProvider({
+  children,
+  options = {},
 }: ProfileSetupPageProviderProps) {
   const profileSetupPageData = useProfileSetupPage(options);
 
@@ -26,7 +26,7 @@ export function ProfileSetupPageProvider({
 export function useProfileSetupPageContext() {
   const context = useContext(ProfileSetupPageContext);
   if (!context) {
-    throw new Error('useProfileSetupPageContext must be used within ProfileSetupPageProvider');
+    throw new Error("useProfileSetupPageContext must be used within ProfileSetupPageProvider");
   }
   return context;
 }

@@ -75,11 +75,15 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // API hook for profile completion
-  const { mutateAsync: completeProfile, isPosting: isApiLoading, error: apiError } = useCompleteProfile();
+  const {
+    mutateAsync: completeProfile,
+    isPosting: isApiLoading,
+    error: apiError,
+  } = useCompleteProfile();
 
   const validateForm = useCallback((): boolean => {
     const newErrors: ProfileFormErrors = {};
-    
+
     // Nickname validation
     if (!formData.nickname.trim()) {
       newErrors.nickname = "Please enter a nickname.";
@@ -113,20 +117,23 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
-  const updateFormData = useCallback((field: keyof ProfileFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-    
-    // Clear error for this field when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
+  const updateFormData = useCallback(
+    (field: keyof ProfileFormData, value: string) => {
+      setFormData(prev => ({
         ...prev,
-        [field]: undefined,
+        [field]: value,
       }));
-    }
-  }, [errors]);
+
+      // Clear error for this field when user starts typing
+      if (errors[field]) {
+        setErrors(prev => ({
+          ...prev,
+          [field]: undefined,
+        }));
+      }
+    },
+    [errors]
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
@@ -145,15 +152,16 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
       };
 
       await completeProfile(requestData);
-      
+
       options.onSuccess?.();
     } catch (error: any) {
       console.error("Profile completion error:", error);
-      
-      const errorMessage = error?.response?.data?.detail || 
-                          error?.message || 
-                          "An error occurred while completing your profile.";
-      
+
+      const errorMessage =
+        error?.response?.data?.detail ||
+        error?.message ||
+        "An error occurred while completing your profile.";
+
       setErrors({ general: errorMessage });
       options.onError?.(errorMessage);
     } finally {
@@ -167,20 +175,20 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
     // Form data
     formData,
     errors,
-    
+
     // Form actions
     updateFormData,
     handleSubmit,
     validateForm,
-    
+
     // States
     isLoading,
     isSubmitting,
     apiError,
-    
+
     // User data
     user,
-    
+
     // Options data
     countries: COUNTRIES,
     genderOptions: GENDER_OPTIONS,

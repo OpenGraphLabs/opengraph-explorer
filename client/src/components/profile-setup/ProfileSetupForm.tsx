@@ -9,15 +9,8 @@ import { User, Globe, Calendar, Users, CaretDown, Check, Plus } from "phosphor-r
 export function ProfileSetupForm() {
   const { theme } = useTheme();
   const { isMobile } = useMobile();
-  const {
-    formData,
-    errors,
-    updateFormData,
-    handleSubmit,
-    isLoading,
-    countries,
-    genderOptions,
-  } = useProfileSetupPageContext();
+  const { formData, errors, updateFormData, handleSubmit, isLoading, countries, genderOptions } =
+    useProfileSetupPageContext();
 
   // Country autocomplete state
   const [countrySearch, setCountrySearch] = useState("");
@@ -31,9 +24,12 @@ export function ProfileSetupForm() {
 
   // Get selected country name for display
   const selectedCountry = countries.find(c => c.code === formData.country);
-  const displayCountryName = isOtherSelected && customCountryName 
-    ? customCountryName 
-    : selectedCountry ? selectedCountry.name : "";
+  const displayCountryName =
+    isOtherSelected && customCountryName
+      ? customCountryName
+      : selectedCountry
+        ? selectedCountry.name
+        : "";
 
   // Check if Other is selected
   useEffect(() => {
@@ -85,7 +81,7 @@ export function ProfileSetupForm() {
     setShowCountryDropdown(false);
     setCountrySearch("");
     setHighlightedIndex(-1);
-    
+
     if (countryCode === "OTHER") {
       setIsOtherSelected(true);
       setCustomCountryName(customName || "");
@@ -124,15 +120,11 @@ export function ProfileSetupForm() {
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev < totalOptions - 1 ? prev + 1 : 0
-        );
+        setHighlightedIndex(prev => (prev < totalOptions - 1 ? prev + 1 : 0));
         break;
       case "ArrowUp":
         e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : totalOptions - 1
-        );
+        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : totalOptions - 1));
         break;
       case "Enter":
         e.preventDefault();
@@ -192,8 +184,8 @@ export function ProfileSetupForm() {
 
   // Field wrapper styling
   const fieldStyle: React.CSSProperties = {
-    marginBottom: isMobile 
-      ? theme.spacing.semantic.component.lg 
+    marginBottom: isMobile
+      ? theme.spacing.semantic.component.lg
       : theme.spacing.semantic.component.xl,
   };
 
@@ -226,7 +218,7 @@ export function ProfileSetupForm() {
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={e => {
         e.preventDefault();
         handleSubmit();
       }}
@@ -238,20 +230,27 @@ export function ProfileSetupForm() {
           <Box style={fieldLabelStyle}>
             <User size={16} color={theme.colors.interactive.primary} weight="duotone" />
             <Text weight="medium">Nickname</Text>
-            <Text size="1" style={{ color: theme.colors.status.error }}>*</Text>
+            <Text size="1" style={{ color: theme.colors.status.error }}>
+              *
+            </Text>
           </Box>
           <input
             type="text"
             name="nickname"
             value={formData.nickname}
-            onChange={(e) => updateFormData("nickname", e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, focusedInputStyle)}
-            onBlur={(e) => {
+            onChange={e => updateFormData("nickname", e.target.value)}
+            onFocus={e => Object.assign(e.target.style, focusedInputStyle)}
+            onBlur={e => {
               const hasError = errors.nickname;
-              Object.assign(e.target.style, hasError ? errorInputStyle : { 
-                borderColor: theme.colors.border.primary, 
-                boxShadow: "none" 
-              });
+              Object.assign(
+                e.target.style,
+                hasError
+                  ? errorInputStyle
+                  : {
+                      borderColor: theme.colors.border.primary,
+                      boxShadow: "none",
+                    }
+              );
             }}
             placeholder="e.g. DataScientist42, AIEnthusiast"
             style={{
@@ -269,7 +268,7 @@ export function ProfileSetupForm() {
         </Box>
 
         {/* Row 2: Gender + Age (side by side on desktop) */}
-        <Box 
+        <Box
           style={{
             display: isMobile ? "flex" : "grid",
             flexDirection: isMobile ? "column" : undefined,
@@ -282,10 +281,12 @@ export function ProfileSetupForm() {
             <Box style={fieldLabelStyle}>
               <Users size={16} color={theme.colors.interactive.primary} weight="duotone" />
               <Text weight="medium">Gender</Text>
-              <Text size="1" style={{ color: theme.colors.status.error }}>*</Text>
+              <Text size="1" style={{ color: theme.colors.status.error }}>
+                *
+              </Text>
             </Box>
             <Flex gap="3" style={{ marginTop: theme.spacing.semantic.component.xs }}>
-              {genderOptions.map((option) => (
+              {genderOptions.map(option => (
                 <Box
                   key={option.value}
                   style={{
@@ -302,7 +303,7 @@ export function ProfileSetupForm() {
                     name="gender"
                     value={option.value}
                     checked={formData.gender === option.value}
-                    onChange={(e) => updateFormData("gender", e.target.value)}
+                    onChange={e => updateFormData("gender", e.target.value)}
                     disabled={isLoading}
                     style={{
                       position: "absolute",
@@ -320,19 +321,21 @@ export function ProfileSetupForm() {
                         formData.gender === option.value
                           ? theme.colors.interactive.primary
                           : errors.gender
-                          ? theme.colors.status.error
-                          : theme.colors.border.primary
+                            ? theme.colors.status.error
+                            : theme.colors.border.primary
                       }`,
                       borderRadius: theme.borders.radius.lg,
-                      background: formData.gender === option.value 
-                        ? `${theme.colors.interactive.primary}08` 
-                        : theme.colors.background.primary,
+                      background:
+                        formData.gender === option.value
+                          ? `${theme.colors.interactive.primary}08`
+                          : theme.colors.background.primary,
                       textAlign: "center",
                       fontSize: isMobile ? "14px" : "13px",
                       fontWeight: formData.gender === option.value ? 600 : 500,
-                      color: formData.gender === option.value 
-                        ? theme.colors.interactive.primary 
-                        : theme.colors.text.primary,
+                      color:
+                        formData.gender === option.value
+                          ? theme.colors.interactive.primary
+                          : theme.colors.text.primary,
                       cursor: isLoading ? "not-allowed" : "pointer",
                       transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                       userSelect: "none",
@@ -355,21 +358,28 @@ export function ProfileSetupForm() {
             <Box style={fieldLabelStyle}>
               <Calendar size={16} color={theme.colors.interactive.primary} weight="duotone" />
               <Text weight="medium">Age</Text>
-              <Text size="1" style={{ color: theme.colors.status.error }}>*</Text>
+              <Text size="1" style={{ color: theme.colors.status.error }}>
+                *
+              </Text>
             </Box>
             <Box style={{ position: "relative", maxWidth: isMobile ? "100%" : "100%" }}>
               <input
                 type="number"
                 name="age"
                 value={formData.age}
-                onChange={(e) => updateFormData("age", e.target.value)}
-                onFocus={(e) => Object.assign(e.target.style, focusedInputStyle)}
-                onBlur={(e) => {
+                onChange={e => updateFormData("age", e.target.value)}
+                onFocus={e => Object.assign(e.target.style, focusedInputStyle)}
+                onBlur={e => {
                   const hasError = errors.age;
-                  Object.assign(e.target.style, hasError ? errorInputStyle : { 
-                    borderColor: theme.colors.border.primary, 
-                    boxShadow: "none" 
-                  });
+                  Object.assign(
+                    e.target.style,
+                    hasError
+                      ? errorInputStyle
+                      : {
+                          borderColor: theme.colors.border.primary,
+                          boxShadow: "none",
+                        }
+                  );
                 }}
                 placeholder="25"
                 style={{
@@ -383,8 +393,8 @@ export function ProfileSetupForm() {
                 max="100"
                 disabled={isLoading}
               />
-              <Text 
-                size="1" 
+              <Text
+                size="1"
                 style={{
                   position: "absolute",
                   right: "16px",
@@ -412,22 +422,26 @@ export function ProfileSetupForm() {
           <Box style={fieldLabelStyle}>
             <Globe size={16} color={theme.colors.interactive.primary} weight="duotone" />
             <Text weight="medium">Country</Text>
-            <Text size="1" style={{ color: theme.colors.status.error }}>*</Text>
+            <Text size="1" style={{ color: theme.colors.status.error }}>
+              *
+            </Text>
           </Box>
-          
+
           <Box style={{ position: "relative" }}>
             <input
               ref={countryInputRef}
               type="text"
               name="country-search"
               value={
-                isOtherSelected 
+                isOtherSelected
                   ? customCountryName
-                  : showCountryDropdown 
-                    ? countrySearch 
+                  : showCountryDropdown
+                    ? countrySearch
                     : displayCountryName
               }
-              onChange={isOtherSelected ? handleCustomCountryChange : (e) => setCountrySearch(e.target.value)}
+              onChange={
+                isOtherSelected ? handleCustomCountryChange : e => setCountrySearch(e.target.value)
+              }
               onFocus={handleCountryInputFocus}
               onKeyDown={handleKeyDown}
               onBlur={isOtherSelected ? handleCustomCountryBlur : undefined}
@@ -441,7 +455,7 @@ export function ProfileSetupForm() {
               disabled={isLoading}
               autoComplete="off"
             />
-            
+
             {/* Dropdown Arrow */}
             <Box
               style={{
@@ -454,8 +468,8 @@ export function ProfileSetupForm() {
                 transition: "transform 0.2s ease-in-out",
               }}
             >
-              <CaretDown 
-                size={16} 
+              <CaretDown
+                size={16}
                 style={{
                   transform: showCountryDropdown ? "rotate(180deg)" : "rotate(0deg)",
                   transition: "transform 0.2s ease-in-out",
@@ -495,36 +509,32 @@ export function ProfileSetupForm() {
                       alignItems: "center",
                       justifyContent: "space-between",
                       transition: "all 0.2s ease-in-out",
-                      background: 
+                      background:
                         highlightedIndex === index
                           ? `${theme.colors.interactive.primary}15`
-                          : formData.country === country.code 
-                            ? `${theme.colors.interactive.primary}08` 
+                          : formData.country === country.code
+                            ? `${theme.colors.interactive.primary}08`
                             : "transparent",
                     }}
                   >
-                    <Text 
-                      size="2" 
-                      style={{ 
+                    <Text
+                      size="2"
+                      style={{
                         color: theme.colors.text.primary,
-                        fontWeight: 
-                          highlightedIndex === index || formData.country === country.code 
-                            ? 600 
+                        fontWeight:
+                          highlightedIndex === index || formData.country === country.code
+                            ? 600
                             : 400,
                       }}
                     >
                       {country.name}
                     </Text>
                     {formData.country === country.code && (
-                      <Check 
-                        size={16} 
-                        color={theme.colors.interactive.primary} 
-                        weight="bold" 
-                      />
+                      <Check size={16} color={theme.colors.interactive.primary} weight="bold" />
                     )}
                   </Box>
                 ))}
-                
+
                 {/* Show custom input option when no results found but user has typed something */}
                 {filteredCountries.length === 0 && countrySearch.trim().length > 0 && (
                   <Box
@@ -537,30 +547,27 @@ export function ProfileSetupForm() {
                       alignItems: "center",
                       gap: theme.spacing.semantic.component.sm,
                       transition: "all 0.2s ease-in-out",
-                      background: highlightedIndex === filteredCountries.length
-                        ? `${theme.colors.interactive.primary}15`
-                        : "transparent",
+                      background:
+                        highlightedIndex === filteredCountries.length
+                          ? `${theme.colors.interactive.primary}15`
+                          : "transparent",
                       borderTop: `1px solid ${theme.colors.border.secondary}`,
                     }}
                   >
-                    <Plus 
-                      size={16} 
-                      color={theme.colors.interactive.primary} 
-                      weight="bold" 
-                    />
+                    <Plus size={16} color={theme.colors.interactive.primary} weight="bold" />
                     <Box style={{ flex: 1 }}>
-                      <Text 
-                        size="2" 
-                        style={{ 
+                      <Text
+                        size="2"
+                        style={{
                           color: theme.colors.interactive.primary,
                           fontWeight: highlightedIndex === filteredCountries.length ? 600 : 500,
                         }}
                       >
                         Use "{countrySearch.trim()}"
                       </Text>
-                      <Text 
-                        size="1" 
-                        style={{ 
+                      <Text
+                        size="1"
+                        style={{
                           color: theme.colors.text.tertiary,
                           fontSize: "11px",
                           marginTop: "2px",
@@ -572,7 +579,7 @@ export function ProfileSetupForm() {
                     </Box>
                   </Box>
                 )}
-                
+
                 {/* Show message when no input and no results */}
                 {filteredCountries.length === 0 && countrySearch.trim().length === 0 && (
                   <Box
@@ -589,7 +596,7 @@ export function ProfileSetupForm() {
               </Box>
             )}
           </Box>
-          
+
           {errors.country && (
             <Text style={errorTextStyle} as="p">
               {errors.country}
@@ -598,11 +605,13 @@ export function ProfileSetupForm() {
         </Box>
 
         {/* Submit Button */}
-        <Box style={{ 
-          paddingTop: theme.spacing.semantic.component.lg,
-          borderTop: `1px solid ${theme.colors.border.secondary}`,
-          marginTop: theme.spacing.semantic.component.md,
-        }}>
+        <Box
+          style={{
+            paddingTop: theme.spacing.semantic.component.lg,
+            borderTop: `1px solid ${theme.colors.border.secondary}`,
+            marginTop: theme.spacing.semantic.component.md,
+          }}
+        >
           <Button
             type="submit"
             variant="primary"

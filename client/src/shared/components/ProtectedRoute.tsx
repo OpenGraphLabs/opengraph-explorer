@@ -17,11 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // If authenticated, check profile completion status
   if (!needsAuth || hasPermission) {
-    return (
-      <ProfileCompleteGuard>
-        {children}
-      </ProfileCompleteGuard>
-    );
+    return <ProfileCompleteGuard>{children}</ProfileCompleteGuard>;
   }
 
   // Fallback to login

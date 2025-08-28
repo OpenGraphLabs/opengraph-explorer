@@ -2,7 +2,10 @@ import React from "react";
 import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useMobile } from "@/shared/hooks";
-import { ProfileSetupPageProvider, useProfileSetupPageContext } from "@/shared/providers/ProfileSetupPageProvider";
+import {
+  ProfileSetupPageProvider,
+  useProfileSetupPageContext,
+} from "@/shared/providers/ProfileSetupPageProvider";
 import { ProfileSetupLayoutDesktop } from "@/components/profile-setup/ProfileSetupLayoutDesktop";
 import { ProfileSetupLayoutMobile } from "@/components/profile-setup/ProfileSetupLayoutMobile";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +19,7 @@ function ProfileSetupContent() {
   const { theme } = useTheme();
   const { errors, isLoading } = useProfileSetupPageContext();
   const { isMobile } = useMobile();
-  
+
   // Show general error if exists
   if (errors.general) {
     return (
@@ -78,7 +81,7 @@ function ProfileSetupContent() {
   if (isMobile) {
     return <ProfileSetupLayoutMobile />;
   }
-  
+
   return <ProfileSetupLayoutDesktop />;
 }
 
@@ -88,7 +91,7 @@ function ProfileSetupContent() {
 export function ProfileSetup() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   // Show loading state while checking authentication
   if (isLoading) {
     const { theme } = useTheme();
@@ -120,24 +123,24 @@ export function ProfileSetup() {
       </Box>
     );
   }
-  
+
   // If not authenticated, show login page
   if (!isAuthenticated) {
     return <Login />;
   }
-  
+
   const handleSuccess = () => {
     // Navigate to home page on successful profile completion
     navigate("/");
   };
-  
+
   const handleError = (error: string) => {
     console.error("Profile setup error:", error);
     // Error is handled by the context and displayed in UI
   };
 
   return (
-    <ProfileSetupPageProvider 
+    <ProfileSetupPageProvider
       options={{
         onSuccess: handleSuccess,
         onError: handleError,

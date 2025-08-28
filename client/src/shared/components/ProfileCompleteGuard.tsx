@@ -12,15 +12,15 @@ interface ProfileCompleteGuardProps {
 export const ProfileCompleteGuard: React.FC<ProfileCompleteGuardProps> = ({ children }) => {
   const { theme } = useTheme();
   const location = useLocation();
-  
+
   // Check if current route requires authentication
   const needsAuth = requiresAuth(location.pathname);
-  
+
   // If route doesn't need auth, just render children
   if (!needsAuth) {
     return <>{children}</>;
   }
-  
+
   const { data: user, isLoading, error } = useAuthCurrentUser({ enabled: true });
 
   // Show loading state while checking user profile
@@ -86,7 +86,7 @@ export const ProfileCompleteGuard: React.FC<ProfileCompleteGuardProps> = ({ chil
     if (location.pathname === "/profile/setup") {
       return <>{children}</>;
     }
-    
+
     return <Navigate to="/profile/setup" replace />;
   }
 
