@@ -72,6 +72,13 @@ class UserProfile(BaseModel):
     dataset_count: int = Field(0, description="Number of created datasets")
     annotation_count: int = Field(0, description="Number of created annotations")
     
+    # 프로필 완성 관련 필드
+    nickname: Optional[str] = Field(None, description="User nickname")
+    gender: Optional[Literal["MALE", "FEMALE", "OTHER"]] = Field(None, description="User gender")
+    age: Optional[int] = Field(None, description="User age")
+    country: Optional[str] = Field(None, description="Country code (ISO 3166-1 alpha-2)")
+    is_profile_complete: bool = Field(False, description="Whether profile is complete")
+    
     # 기여도 관련 통계
     images_submitted: int = Field(0, description="Number of images submitted")
     images_approved: int = Field(0, description="Number of approved images") 

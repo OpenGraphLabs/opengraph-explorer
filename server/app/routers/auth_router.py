@@ -379,6 +379,9 @@ async def complete_profile(
                 detail="Profile is already complete"
             )
         
+        # Merge the current_user object into the current session
+        current_user = await db.merge(current_user)
+        
         # Validate and update profile fields
         current_user.nickname = request.nickname
         current_user.gender = request.gender
