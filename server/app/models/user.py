@@ -6,7 +6,7 @@
 
 from datetime import datetime
 from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import Column, BigInteger, String, DateTime, func, Integer
+from sqlalchemy import Column, BigInteger, String, DateTime, func, Integer, Boolean
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from ..database import Base
@@ -34,6 +34,13 @@ class User(Base):
     
     # 보상 시스템 필드
     total_points: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    
+    # 프로필 완성 관련 필드
+    nickname: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    gender: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # MALE, FEMALE, OTHER
+    age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    country: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # ISO 3166-1 alpha-2 country code
+    is_profile_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
     
     # 타임스탬프
     created_at: Mapped[datetime] = mapped_column(

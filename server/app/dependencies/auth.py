@@ -156,3 +156,32 @@ async def get_current_active_user(
     # 현재는 모든 사용자가 활성으로 간주
     # 추후 User 모델에 is_active 필드 추가 시 검증 로직 구현
     return current_user
+
+
+async def get_current_user_with_complete_profile(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    프로필이 완성된 현재 사용자를 조회합니다.
+    
+    Args:
+        current_user: 현재 사용자
+        
+    Returns:
+        User: 프로필이 완성된 사용자
+        
+    Raises:
+        HTTPException: 프로필이 완성되지 않은 경우 (403 Forbidden with profile_incomplete)
+    """
+    if not current_user.is_profile_complete:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "profile_incomplete",
+                "message": "Profile must be completed to access this resource",
+                "user_id": current_user.id,
+                "redirect_to": "/profile/setup"
+            }
+        )
+    
+    return current_user

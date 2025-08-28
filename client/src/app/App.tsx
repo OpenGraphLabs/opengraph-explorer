@@ -12,6 +12,7 @@ import { AuthCallback } from "@/components/auth";
 import { AuthSuccess } from "@/pages/AuthSuccess";
 import { AuthError } from "@/pages/AuthError";
 import { Login } from "@/pages/Login";
+import { ProfileSetup } from "@/pages/ProfileSetup";
 import { Earn } from "@/pages/Earn";
 import { TaskSelection } from "@/pages/TaskSelection.tsx";
 import { FirstPersonCapture } from "@/pages/FirstPersonCapture";
@@ -23,16 +24,18 @@ export default function App() {
     <AppLayout>
       <ScrollToTop />
       <Routes>
-        {/* Public routes - no wallet required */}
+        {/* Public routes - no auth required */}
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/auth/error" element={<AuthError />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/profile/setup" element={<ProfileSetup />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
 
         {/* Admin dashboard - completely independent from main app */}
         <Route path="/admin" element={<AdminDashboard />} />
 
-        {/* Protected routes - wallet required */}
+        {/* Protected routes - auth required */}
         <Route
           path="/"
           element={
@@ -87,14 +90,6 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Earn />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/leaderboard"
-          element={
-            <ProtectedRoute>
-              <Leaderboard />
             </ProtectedRoute>
           }
         />

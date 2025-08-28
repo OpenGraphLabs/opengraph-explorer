@@ -30,9 +30,13 @@ export function ProfileLayoutMobile() {
   const [exchangeAmount, setExchangeAmount] = useState("");
 
   const joinDate = profile ? new Date(profile.createdAt).toLocaleDateString() : "";
-  const displayName = profile?.displayName || user?.name || user?.email?.split("@")[0] || "User";
+  const displayName =
+    profile?.nickname || profile?.displayName || user?.name || user?.email?.split("@")[0] || "User";
   const profileImage = profile?.profileImageUrl || user?.picture;
   const userSuiAddress = profile?.suiAddress || suiAddress;
+  const userGender = profile?.gender || "";
+  const userAge = profile?.age || null;
+  const userCountry = profile?.country || "";
 
   // Mock data for demo purposes
   const mockData = {
@@ -187,6 +191,71 @@ export function ProfileLayoutMobile() {
             >
               {mockData.rank}
             </Box>
+
+            {/* User Info - Gender, Age, Country */}
+            {(userGender || userAge || userCountry) && (
+              <Flex
+                justify="center"
+                gap="2"
+                wrap="wrap"
+                style={{ marginBottom: theme.spacing.semantic.component.sm }}
+              >
+                {userGender && (
+                  <Box
+                    style={{
+                      padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.sm,
+                      border: `1px solid ${theme.colors.border.subtle}`,
+                    }}
+                  >
+                    <Text
+                      as="p"
+                      size="1"
+                      style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
+                    >
+                      👤 {userGender.charAt(0).toUpperCase() + userGender.slice(1).toLowerCase()}
+                    </Text>
+                  </Box>
+                )}
+                {userAge && (
+                  <Box
+                    style={{
+                      padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.sm,
+                      border: `1px solid ${theme.colors.border.subtle}`,
+                    }}
+                  >
+                    <Text
+                      as="p"
+                      size="1"
+                      style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
+                    >
+                      🎂 {userAge} years
+                    </Text>
+                  </Box>
+                )}
+                {userCountry && (
+                  <Box
+                    style={{
+                      padding: `${theme.spacing.base[1]} ${theme.spacing.base[2]}`,
+                      background: theme.colors.background.secondary,
+                      borderRadius: theme.borders.radius.sm,
+                      border: `1px solid ${theme.colors.border.subtle}`,
+                    }}
+                  >
+                    <Text
+                      as="p"
+                      size="1"
+                      style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
+                    >
+                      🌍 {userCountry}
+                    </Text>
+                  </Box>
+                )}
+              </Flex>
+            )}
 
             {/* Mobile Quick Stats - Horizontal */}
             <Flex justify="center" gap="4" wrap="wrap">

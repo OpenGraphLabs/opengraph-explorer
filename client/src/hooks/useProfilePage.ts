@@ -84,7 +84,11 @@ export function useProfilePage(options: UseProfilePageOptions = {}) {
     []
   );
 
-  const displayName = userProfile?.displayName || userProfile?.email || formatAddress(userAddress);
+  const displayName =
+    userProfile?.nickname ||
+    userProfile?.displayName ||
+    userProfile?.email ||
+    formatAddress(userAddress);
 
   const formatDate = useMemo(
     () => (dateString: string) => {
