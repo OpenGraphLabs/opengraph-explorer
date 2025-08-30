@@ -170,9 +170,9 @@ export function TaskSelectionDesktop({
                     <Trophy size={20} color="#f59e0b" weight="fill" />
                     <Box>
                       <Text
-                        as="p"
                         size="1"
                         style={{
+                          display: "block",
                           color: theme.colors.text.tertiary,
                           fontSize: "10px",
                           fontWeight: 600,
@@ -183,7 +183,6 @@ export function TaskSelectionDesktop({
                         Your Rank
                       </Text>
                       <Text
-                        as="p"
                         size="2"
                         style={{
                           color: theme.colors.text.primary,
@@ -297,9 +296,9 @@ export function TaskSelectionDesktop({
               <Flex align="start" justify="between">
                 <Box>
                   <Text
-                    as="p"
                     size="1"
                     style={{
+                      display: "block",
                       color: theme.colors.text.tertiary,
                       fontSize: "11px",
                       fontWeight: 600,
@@ -311,7 +310,6 @@ export function TaskSelectionDesktop({
                     Completed
                   </Text>
                   <Text
-                    as="p"
                     size="6"
                     style={{
                       color: theme.colors.text.primary,
@@ -364,7 +362,6 @@ export function TaskSelectionDesktop({
                   </Text>
                   <Flex align="baseline" gap="1">
                     <Text
-                      as="p"
                       size="6"
                       style={{
                         color: theme.colors.text.primary,
@@ -375,7 +372,6 @@ export function TaskSelectionDesktop({
                       {userStats.currentStreak}
                     </Text>
                     <Text
-                      as="p"
                       size="2"
                       style={{
                         color: theme.colors.text.secondary,
@@ -414,7 +410,6 @@ export function TaskSelectionDesktop({
               <Box>
                 <Flex align="center" justify="between" style={{ marginBottom: "8px" }}>
                   <Text
-                    as="p"
                     size="1"
                     style={{
                       color: theme.colors.text.tertiary,
@@ -450,7 +445,6 @@ export function TaskSelectionDesktop({
                   </Box>
                 </Box>
                 <Text
-                  as="p"
                   size="1"
                   style={{
                     color: theme.colors.text.secondary,
@@ -466,7 +460,6 @@ export function TaskSelectionDesktop({
           {/* Available Tasks Count */}
           <Flex align="center" gap="2">
             <Text
-              as="p"
               size="2"
               style={{
                 color: theme.colors.text.secondary,
@@ -644,7 +637,6 @@ export function TaskSelectionDesktop({
               style={{ marginBottom: "16px", opacity: 0.5 }}
             />
             <Text
-              as="p"
               size="4"
               style={{
                 color: theme.colors.text.secondary,
@@ -655,7 +647,6 @@ export function TaskSelectionDesktop({
               No tasks found
             </Text>
             <Text
-              as="p"
               size="2"
               style={{
                 color: theme.colors.text.tertiary,

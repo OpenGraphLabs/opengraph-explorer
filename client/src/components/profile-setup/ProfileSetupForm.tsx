@@ -326,11 +326,7 @@ export function ProfileSetupForm() {
                 </Box>
               ))}
             </Flex>
-            {errors.gender && (
-              <Text style={errorTextStyle} as="p">
-                {errors.gender}
-              </Text>
-            )}
+            {errors.gender && <Text style={errorTextStyle}>{errors.gender}</Text>}
           </Box>
 
           {/* Age Field */}
@@ -389,11 +385,7 @@ export function ProfileSetupForm() {
                 years
               </Text>
             </Box>
-            {errors.age && (
-              <Text style={errorTextStyle} as="p">
-                {errors.age}
-              </Text>
-            )}
+            {errors.age && <Text style={errorTextStyle}>{errors.age}</Text>}
           </Box>
         </Box>
 
@@ -552,7 +544,6 @@ export function ProfileSetupForm() {
                           fontSize: "11px",
                           marginTop: "2px",
                         }}
-                        as="p"
                       >
                         Enter your country manually
                       </Text>
@@ -577,11 +568,7 @@ export function ProfileSetupForm() {
             )}
           </Box>
 
-          {errors.country && (
-            <Text style={errorTextStyle} as="p">
-              {errors.country}
-            </Text>
-          )}
+          {errors.country && <Text style={errorTextStyle}>{errors.country}</Text>}
         </Box>
 
         {/* Submit Button */}

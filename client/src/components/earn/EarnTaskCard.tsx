@@ -315,7 +315,6 @@ export function EarnTaskCard({ task, index, isLoaded }: EarnTaskCardProps) {
               </Text>
               {!isMobile && (
                 <Text
-                  as="p"
                   size="2"
                   style={{
                     color: theme.colors.text.secondary,

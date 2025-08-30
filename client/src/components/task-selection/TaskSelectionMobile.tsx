@@ -151,38 +151,40 @@ export function TaskSelectionMobile({
                   Complete tasks and earn rewards
                 </Text>
               </Box>
-              {/* User Level Badge */}
-              <Box
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "8px",
-                  background: `linear-gradient(135deg, #f59e0b15, #dc262615)`,
-                  border: `1px solid ${theme.colors.border.secondary}`,
-                }}
-              >
-                <Flex align="center" gap="1">
-                  <Trophy size={16} color="#f59e0b" weight="fill" />
-                  <Text
-                    size="1"
-                    style={{
-                      color: "#f59e0b",
-                      fontWeight: 600,
-                      fontSize: "12px",
-                    }}
-                  >
-                    {userStats.rank}
-                  </Text>
-                </Flex>
-              </Box>
             </Flex>
+
+            {/* User Level Badge */}
+            <Box
+              style={{
+                display: "inline-block",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                background: `linear-gradient(135deg, #f59e0b15, #dc262615)`,
+                border: `1px solid ${theme.colors.border.secondary}`,
+              }}
+            >
+              <Flex align="center" gap="1">
+                <Trophy size={16} color="#f59e0b" weight="fill" />
+                <Text
+                  size="1"
+                  style={{
+                    color: "#f59e0b",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                  }}
+                >
+                  {userStats.rank}
+                </Text>
+              </Flex>
+            </Box>
           </Box>
 
           {/* Quick Stats Row */}
           <Box
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "12px",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "16px",
               marginBottom: "20px",
             }}
           >
@@ -196,35 +198,34 @@ export function TaskSelectionMobile({
                 textAlign: "center",
               }}
             >
-              <Coins
-                size={16}
-                color={theme.colors.status.warning}
-                weight="fill"
-                style={{ marginBottom: "4px" }}
-              />
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: 700,
-                  display: "block",
-                  fontSize: "14px",
-                }}
-              >
-                {(userStats.totalEarned / 1000).toFixed(1)}K
-              </Text>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.tertiary,
-                  fontSize: "10px",
-                  textTransform: "uppercase",
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Points
-              </Text>
+              <Flex justify="center" align="center" gap="1rem">
+                <Coins size={16} color={theme.colors.status.warning} weight="fill" />
+                <Box>
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 700,
+                      display: "block",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {(userStats.totalEarned / 1000).toFixed(1)}K
+                  </Text>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      fontSize: "10px",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Points
+                  </Text>
+                </Box>
+              </Flex>
             </Box>
 
             {/* Tasks Completed */}
@@ -237,35 +238,39 @@ export function TaskSelectionMobile({
                 textAlign: "center",
               }}
             >
-              <Trophy
-                size={16}
-                color={theme.colors.status.success}
-                weight="fill"
-                style={{ marginBottom: "4px" }}
-              />
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: 700,
-                  display: "block",
-                  fontSize: "14px",
-                }}
-              >
-                {userStats.tasksCompleted}
-              </Text>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.tertiary,
-                  fontSize: "10px",
-                  textTransform: "uppercase",
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Done
-              </Text>
+              <Flex justify="center" align="center" gap="1rem">
+                <Trophy
+                  size={16}
+                  color={theme.colors.status.success}
+                  weight="fill"
+                  style={{ marginBottom: "4px" }}
+                />
+                <Box>
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 700,
+                      display: "block",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {userStats.tasksCompleted}
+                  </Text>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      fontSize: "10px",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Done
+                  </Text>
+                </Box>
+              </Flex>
             </Box>
 
             {/* Streak */}
@@ -278,30 +283,39 @@ export function TaskSelectionMobile({
                 textAlign: "center",
               }}
             >
-              <Lightning size={16} color="#8b5cf6" weight="fill" style={{ marginBottom: "4px" }} />
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: 700,
-                  display: "block",
-                  fontSize: "14px",
-                }}
-              >
-                {userStats.currentStreak}
-              </Text>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.tertiary,
-                  fontSize: "10px",
-                  textTransform: "uppercase",
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Streak
-              </Text>
+              <Flex justify="center" align="center" gap="1rem">
+                <Lightning
+                  size={16}
+                  color="#8b5cf6"
+                  weight="fill"
+                  style={{ marginBottom: "4px" }}
+                />
+                <Box>
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 700,
+                      display: "block",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {userStats.currentStreak}
+                  </Text>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      fontSize: "10px",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Streak
+                  </Text>
+                </Box>
+              </Flex>
             </Box>
 
             {/* Level */}
@@ -314,35 +328,39 @@ export function TaskSelectionMobile({
                 textAlign: "center",
               }}
             >
-              <Star
-                size={16}
-                color={theme.colors.interactive.primary}
-                weight="fill"
-                style={{ marginBottom: "4px" }}
-              />
-              <Text
-                size="2"
-                style={{
-                  color: theme.colors.text.primary,
-                  fontWeight: 700,
-                  display: "block",
-                  fontSize: "14px",
-                }}
-              >
-                {userStats.level}
-              </Text>
-              <Text
-                size="1"
-                style={{
-                  color: theme.colors.text.tertiary,
-                  fontSize: "10px",
-                  textTransform: "uppercase",
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Level
-              </Text>
+              <Flex justify="center" align="center" gap="1rem">
+                <Star
+                  size={16}
+                  color={theme.colors.interactive.primary}
+                  weight="fill"
+                  style={{ marginBottom: "4px" }}
+                />
+                <Box>
+                  <Text
+                    size="2"
+                    style={{
+                      color: theme.colors.text.primary,
+                      fontWeight: 700,
+                      display: "block",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {userStats.level}
+                  </Text>
+                  <Text
+                    size="1"
+                    style={{
+                      color: theme.colors.text.tertiary,
+                      fontSize: "10px",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Level
+                  </Text>
+                </Box>
+              </Flex>
             </Box>
           </Box>
 
@@ -631,7 +649,6 @@ export function TaskSelectionMobile({
               style={{ marginBottom: "12px", opacity: 0.5 }}
             />
             <Text
-              as="p"
               size="3"
               style={{
                 color: theme.colors.text.secondary,
@@ -642,7 +659,6 @@ export function TaskSelectionMobile({
               No tasks found
             </Text>
             <Text
-              as="p"
               size="2"
               style={{
                 color: theme.colors.text.tertiary,

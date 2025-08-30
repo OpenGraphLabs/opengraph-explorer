@@ -60,7 +60,6 @@ export function FirstPersonImageGallery() {
         }}
       >
         <Text
-          as="p"
           style={{
             fontSize: "18px",
             color: theme.colors.text.secondary,
@@ -70,7 +69,6 @@ export function FirstPersonImageGallery() {
           No first-person images available yet
         </Text>
         <Text
-          as="p"
           style={{
             fontSize: "14px",
             color: theme.colors.text.tertiary,
@@ -366,7 +364,6 @@ export function FirstPersonImageGallery() {
                   <Flex align="center" justify="between">
                     <Box>
                       <Text
-                        as="p"
                         style={{
                           fontSize: "13px",
                           fontWeight: 600,
@@ -377,7 +374,6 @@ export function FirstPersonImageGallery() {
                         {getTaskName(image.taskId)}
                       </Text>
                       <Text
-                        as="p"
                         style={{
                           fontSize: "11px",
                           color: "rgba(255, 255, 255, 0.7)",
@@ -388,7 +384,6 @@ export function FirstPersonImageGallery() {
                       </Text>
                     </Box>
                     <Text
-                      as="p"
                       style={{
                         fontSize: "11px",
                         color: "rgba(255, 255, 255, 0.8)",

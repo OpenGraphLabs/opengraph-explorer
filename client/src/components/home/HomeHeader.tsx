@@ -84,9 +84,12 @@ export function HomeHeader() {
                 <Heading
                   style={{
                     fontSize: "24px",
-                    fontWeight: "600",
                     color: theme.colors.text.primary,
                     letterSpacing: "-0.01em",
+                    lineHeight: "1",
+                    display: "flex",
+                    alignItems: "center",
+                    margin: 0,
                   }}
                 >
                   OpenGraph
@@ -98,6 +101,8 @@ export function HomeHeader() {
                   fontSize: "16px",
                   color: theme.colors.text.secondary,
                   fontWeight: "400",
+                  lineHeight: "1.2",
+                  margin: 0,
                 }}
               >
                 Robotics AI Data Engine

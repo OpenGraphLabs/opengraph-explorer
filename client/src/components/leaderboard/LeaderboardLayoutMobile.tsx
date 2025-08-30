@@ -22,7 +22,7 @@ export function LeaderboardLayoutMobile() {
         }}
       >
         <Card style={{ padding: theme.spacing.semantic.component.lg, textAlign: "center" }}>
-          <Text as="p" size="2" style={{ color: theme.colors.status.error }}>
+          <Text size="2" style={{ color: theme.colors.status.error }}>
             Failed to load leaderboard data
           </Text>
         </Card>
@@ -130,7 +130,6 @@ export function LeaderboardLayoutMobile() {
               Contributors Leaderboard
             </Heading>
             <Text
-              as="p"
               size="2"
               style={{
                 color: theme.colors.text.secondary,
@@ -145,9 +144,9 @@ export function LeaderboardLayoutMobile() {
             <Flex align="center" justify="center" gap="4">
               <Box style={{ textAlign: "center" }}>
                 <Text
-                  as="p"
                   size="4"
                   style={{
+                    display: "block",
                     fontWeight: 800,
                     color: theme.colors.interactive.primary,
                     marginBottom: "2px",
@@ -156,7 +155,6 @@ export function LeaderboardLayoutMobile() {
                   {leaderboardData?.total_users || 0}
                 </Text>
                 <Text
-                  as="p"
                   size="1"
                   style={{
                     color: theme.colors.text.secondary,
@@ -179,9 +177,9 @@ export function LeaderboardLayoutMobile() {
 
               <Box style={{ textAlign: "center" }}>
                 <Text
-                  as="p"
                   size="4"
                   style={{
+                    display: "block",
                     fontWeight: 800,
                     color: "#f59e0b",
                     marginBottom: "2px",
@@ -192,7 +190,6 @@ export function LeaderboardLayoutMobile() {
                     .toLocaleString()}
                 </Text>
                 <Text
-                  as="p"
                   size="1"
                   style={{
                     color: theme.colors.text.secondary,
@@ -252,7 +249,6 @@ export function LeaderboardLayoutMobile() {
                     <Flex align="center" gap="2">
                       {getRankIcon(entry.rank)}
                       <Text
-                        as="p"
                         size="1"
                         style={{
                           fontWeight: 700,
@@ -266,7 +262,6 @@ export function LeaderboardLayoutMobile() {
 
                     <Box style={{ flex: 1, minWidth: 0 }}>
                       <Text
-                        as="p"
                         size="3"
                         style={{
                           fontWeight: 600,
@@ -280,7 +275,6 @@ export function LeaderboardLayoutMobile() {
                         {entry.display_name || entry.email.split("@")[0]}
                       </Text>
                       <Text
-                        as="p"
                         size="1"
                         style={{
                           color: theme.colors.text.tertiary,
@@ -295,9 +289,9 @@ export function LeaderboardLayoutMobile() {
 
                     <Box style={{ textAlign: "right", flexShrink: 0 }}>
                       <Text
-                        as="p"
                         size="4"
                         style={{
+                          display: "block",
                           fontWeight: 800,
                           color: theme.colors.interactive.primary,
                         }}
@@ -305,7 +299,6 @@ export function LeaderboardLayoutMobile() {
                         {entry.total_points.toLocaleString()}
                       </Text>
                       <Text
-                        as="p"
                         size="1"
                         style={{
                           color: theme.colors.text.secondary,
@@ -338,6 +331,7 @@ export function LeaderboardLayoutMobile() {
               <Heading
                 size="3"
                 style={{
+                  marginBottom: 0,
                   color: theme.colors.text.primary,
                   fontWeight: 600,
                 }}
@@ -366,7 +360,6 @@ export function LeaderboardLayoutMobile() {
                     <Flex align="center" gap="2" style={{ minWidth: "50px" }}>
                       {getRankIcon(entry.rank)}
                       <Text
-                        as="p"
                         size="1"
                         style={{
                           fontWeight: 700,
@@ -378,45 +371,45 @@ export function LeaderboardLayoutMobile() {
                     </Flex>
 
                     <Box style={{ flex: 1, minWidth: 0 }}>
-                      <Text
-                        as="p"
-                        size="2"
-                        style={{
-                          fontWeight: 600,
-                          color: theme.colors.text.primary,
-                          marginBottom: "2px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {entry.display_name || entry.email.split("@")[0]}
-                      </Text>
-                      <Text
-                        as="p"
-                        size="1"
-                        style={{
-                          color: theme.colors.text.tertiary,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {entry.total_contributions} items
-                      </Text>
-                    </Box>
+                      <Box>
+                        <Text
+                          size="2"
+                          style={{
+                            display: "block",
+                            fontWeight: 600,
+                            color: theme.colors.text.primary,
+                            marginBottom: "2px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {entry.display_name || entry.email.split("@")[0]}
+                        </Text>
+                        <Text
+                          size="1"
+                          style={{
+                            color: theme.colors.text.tertiary,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {entry.total_contributions} items
+                        </Text>
+                      </Box>
 
-                    <Box style={{ textAlign: "right", flexShrink: 0, minWidth: "60px" }}>
-                      <Text
-                        as="p"
-                        size="2"
-                        style={{
-                          fontWeight: 700,
-                          color: theme.colors.interactive.primary,
-                        }}
-                      >
-                        {entry.total_points.toLocaleString()}
-                      </Text>
+                      <Box style={{ flexShrink: 0, minWidth: "60px" }}>
+                        <Text
+                          size="2"
+                          style={{
+                            fontWeight: 700,
+                            color: theme.colors.interactive.primary,
+                          }}
+                        >
+                          {entry.total_points.toLocaleString()}
+                        </Text>
+                      </Box>
                     </Box>
                   </Flex>
                 </Box>
@@ -461,7 +454,6 @@ export function LeaderboardLayoutMobile() {
                 </button>
 
                 <Text
-                  as="p"
                   size="2"
                   style={{
                     color: theme.colors.text.secondary,

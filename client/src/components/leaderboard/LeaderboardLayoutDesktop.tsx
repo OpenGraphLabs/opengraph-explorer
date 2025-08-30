@@ -22,7 +22,7 @@ export function LeaderboardLayoutDesktop() {
         }}
       >
         <Card style={{ padding: theme.spacing.semantic.component.xl, textAlign: "center" }}>
-          <Text as="p" size="3" style={{ color: theme.colors.status.error }}>
+          <Text size="3" style={{ color: theme.colors.status.error }}>
             Failed to load leaderboard data
           </Text>
         </Card>
@@ -152,7 +152,6 @@ export function LeaderboardLayoutDesktop() {
                     Contributors Leaderboard
                   </Heading>
                   <Text
-                    as="p"
                     size="3"
                     style={{
                       color: theme.colors.text.secondary,
@@ -175,7 +174,7 @@ export function LeaderboardLayoutDesktop() {
                       background: "#10b981",
                     }}
                   />
-                  <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                  <Text size="2" style={{ color: theme.colors.text.secondary }}>
                     {leaderboardData.entries
                       .reduce((sum, entry) => sum + entry.total_contributions, 0)
                       .toLocaleString()}{" "}
@@ -191,7 +190,7 @@ export function LeaderboardLayoutDesktop() {
                       background: "#f59e0b",
                     }}
                   />
-                  <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                  <Text size="2" style={{ color: theme.colors.text.secondary }}>
                     {leaderboardData.entries
                       .reduce((sum, entry) => sum + entry.total_points, 0)
                       .toLocaleString()}{" "}
@@ -214,9 +213,9 @@ export function LeaderboardLayoutDesktop() {
               }}
             >
               <Text
-                as="p"
                 size="5"
                 style={{
+                  display: "block",
                   fontWeight: 800,
                   color: theme.colors.interactive.primary,
                   marginBottom: "4px",
@@ -225,7 +224,6 @@ export function LeaderboardLayoutDesktop() {
                 {leaderboardData?.total_users || 0}
               </Text>
               <Text
-                as="p"
                 size="2"
                 style={{
                   color: theme.colors.text.secondary,
@@ -305,7 +303,6 @@ export function LeaderboardLayoutDesktop() {
                         <Flex align="center" gap="3">
                           {getRankIcon(entry.rank)}
                           <Text
-                            as="p"
                             size="2"
                             style={{
                               fontWeight: 700,
@@ -319,9 +316,9 @@ export function LeaderboardLayoutDesktop() {
 
                         <Box style={{ flex: 1 }}>
                           <Text
-                            as="p"
                             size="4"
                             style={{
+                              display: "block",
                               fontWeight: 600,
                               color: theme.colors.text.primary,
                               marginBottom: "4px",
@@ -330,7 +327,6 @@ export function LeaderboardLayoutDesktop() {
                             {entry.display_name || entry.email.split("@")[0]}
                           </Text>
                           <Text
-                            as="p"
                             size="2"
                             style={{
                               color: theme.colors.text.tertiary,
@@ -342,9 +338,9 @@ export function LeaderboardLayoutDesktop() {
 
                         <Box style={{ textAlign: "right" }}>
                           <Text
-                            as="p"
                             size="5"
                             style={{
+                              display: "block",
                               fontWeight: 800,
                               color: theme.colors.interactive.primary,
                             }}
@@ -352,7 +348,6 @@ export function LeaderboardLayoutDesktop() {
                             {entry.total_points.toLocaleString()}
                           </Text>
                           <Text
-                            as="p"
                             size="1"
                             style={{
                               color: theme.colors.text.secondary,
@@ -485,7 +480,6 @@ export function LeaderboardLayoutDesktop() {
                             <Flex align="center" gap="2">
                               {getRankIcon(entry.rank)}
                               <Text
-                                as="p"
                                 size="2"
                                 style={{
                                   fontWeight: 700,
@@ -503,9 +497,9 @@ export function LeaderboardLayoutDesktop() {
                           >
                             <Box>
                               <Text
-                                as="p"
                                 size="3"
                                 style={{
+                                  display: "block",
                                   fontWeight: 600,
                                   color: theme.colors.text.primary,
                                   marginBottom: "2px",
@@ -514,7 +508,6 @@ export function LeaderboardLayoutDesktop() {
                                 {entry.display_name || entry.email.split("@")[0]}
                               </Text>
                               <Text
-                                as="p"
                                 size="1"
                                 style={{
                                   color: theme.colors.text.tertiary,
@@ -531,7 +524,6 @@ export function LeaderboardLayoutDesktop() {
                             }}
                           >
                             <Text
-                              as="p"
                               size="3"
                               style={{
                                 fontWeight: 700,
@@ -548,7 +540,6 @@ export function LeaderboardLayoutDesktop() {
                             }}
                           >
                             <Text
-                              as="p"
                               size="2"
                               style={{
                                 fontWeight: 500,
@@ -598,7 +589,6 @@ export function LeaderboardLayoutDesktop() {
                     </button>
 
                     <Text
-                      as="p"
                       size="2"
                       style={{
                         color: theme.colors.text.secondary,

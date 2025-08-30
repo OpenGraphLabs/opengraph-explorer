@@ -1,14 +1,14 @@
-// Typography Design Tokens - Modern Futuristic Style
-// Updated to Geist font family - Vercel's latest design language
-// Focus: Modern, Futuristic, AI/Robotics Brand Identity
+// Typography Design Tokens - Distinctive & Memorable Style
+// Updated to Space Grotesk font family - Geometric, distinctive design language
+// Focus: Distinctive, Memorable, Space/Robotics Brand Identity
 
 export const fontFamilies = {
-  // Primary sans-serif stack (Modern and futuristic) - GEIST ACTIVE
+  // Primary sans-serif stack (Distinctive and memorable) - SPACE GROTESK ACTIVE
   sans: [
-    "Geist", // Primary choice - cutting-edge modern interface font
+    "Space Grotesk", // Primary choice - distinctive geometric interface font
     "-apple-system",
     "BlinkMacSystemFont",
-    "Segoe UI Variable", 
+    "Segoe UI Variable",
     "Segoe UI",
     "system-ui",
     "Inter", // Fallback
@@ -18,9 +18,9 @@ export const fontFamilies = {
     "sans-serif",
   ],
 
-  // Monospace stack (For code and technical content) - GEIST MONO ACTIVE
+  // Monospace stack (For code and technical content) - SPACE MONO ACTIVE
   mono: [
-    "Geist Mono", // Primary choice - matches Geist design language
+    "Space Mono", // Primary choice - matches Space Grotesk design language
     "SF Mono",
     "Monaco",
     "Inconsolata",
@@ -33,9 +33,9 @@ export const fontFamilies = {
     "monospace",
   ],
 
-  // Display font for marketing/hero content - Uses Geist
+  // Display font for marketing/hero content - Uses Space Grotesk
   display: [
-    "Geist", // Unified with main font for consistency
+    "Space Grotesk", // Unified with main font for consistency
     "-apple-system",
     "BlinkMacSystemFont",
     "system-ui",
@@ -61,11 +61,11 @@ export const fontSizes = {
 
 export const fontWeights = {
   thin: "100",
-  extralight: "200", 
+  extralight: "200",
   light: "300",
   normal: "400", // Default body text - ACTIVE in CSS
   medium: "500", // Emphasized text, labels, h5/h6 - ACTIVE in CSS
-  semibold: "600", // Section headings (h3, h4), metrics - ACTIVE in CSS  
+  semibold: "600", // Section headings (h3, h4), metrics - ACTIVE in CSS
   bold: "700", // Display headings (h1, h2) - ACTIVE in CSS (reduced from 800)
   extrabold: "800", // Reserved for special displays
   black: "900", // Heavy display text
@@ -73,23 +73,23 @@ export const fontWeights = {
 
 export const lineHeights = {
   none: "1", // For tight spaces
-  tight: "1.05", // Display headings (h1, h2) - ACTIVE in CSS (updated for Geist)
-  snug: "1.2", // Section headings (h3, h4) - ACTIVE in CSS (updated for Geist)
-  normal: "1.25", // Smaller headings (h5, h6) - ACTIVE in CSS
-  relaxed: "1.55", // Body text (p) - ACTIVE in CSS (updated for Geist)
+  tight: "1.1", // Display headings (h1, h2) - ACTIVE in CSS (updated for Space Grotesk)
+  snug: "1.25", // Section headings (h3, h4) - ACTIVE in CSS (updated for Space Grotesk)
+  normal: "1.3", // Smaller headings (h5, h6) - ACTIVE in CSS (updated for Space Grotesk)
+  relaxed: "1.6", // Body text (p) - ACTIVE in CSS (updated for Space Grotesk)
   loose: "2", // Very spaced content
   code: "1.6", // Optimal for code blocks - ACTIVE in CSS
 } as const;
 
 export const letterSpacings = {
   tighter: "-0.05em", // Unused
-  tight: "-0.03em", // Display headings (h1, h2) - ACTIVE in CSS (updated for Geist)
-  snug: "-0.02em", // Section headings (h3, h4) - ACTIVE in CSS (updated for Geist)
-  normal: "-0.005em", // Body text - ACTIVE in CSS (updated for Geist)
+  tight: "-0.02em", // Display headings (h1, h2) - ACTIVE in CSS (updated for Space Grotesk)
+  snug: "-0.015em", // Section headings (h3, h4) - ACTIVE in CSS (updated for Space Grotesk)
+  normal: "0", // Body text - ACTIVE in CSS (updated for Space Grotesk)
   wide: "0.025em", // Table headers - ACTIVE in CSS
-  wider: "0.05em", // Caption text - ACTIVE in CSS  
+  wider: "0.05em", // Caption text - ACTIVE in CSS
   widest: "0.1em", // All caps text
-  mono: "-0.015em", // Mono fonts (code) - ACTIVE in CSS (updated for Geist Mono)
+  mono: "0", // Mono fonts (code) - ACTIVE in CSS (updated for Space Mono)
 } as const;
 
 // SIMPLIFIED: Typography styles that match CSS auto-styling
@@ -97,7 +97,7 @@ export const letterSpacings = {
 
 // CSS now handles all typography automatically via HTML tags:
 // h1, h2 - Display headings (800 weight, tight spacing)
-// h3, h4 - Section headings (700 weight, -0.015em spacing)  
+// h3, h4 - Section headings (700 weight, -0.015em spacing)
 // h5, h6 - Small headings (600 weight, normal spacing)
 // p - Body text (400 weight, 1.6 line height)
 // code, pre - Mono font with programming features
@@ -112,7 +112,7 @@ export const letterSpacings = {
 export const textStyles = {
   // BACKWARDS COMPATIBILITY: Keep existing styles for components
   // NOTE: These styles are kept for existing components while CSS handles new ones automatically
-  
+
   // Display styles (Hero sections, marketing)
   displayLarge: {
     fontSize: fontSizes["6xl"], // 72px for hero sections

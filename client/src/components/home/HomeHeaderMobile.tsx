@@ -67,9 +67,12 @@ export function HomeHeaderMobile() {
               <Heading
                 style={{
                   fontSize: "20px",
-                  fontWeight: "600",
                   color: theme.colors.text.primary,
                   letterSpacing: "-0.01em",
+                  lineHeight: "1",
+                  display: "flex",
+                  alignItems: "center",
+                  margin: 0,
                 }}
               >
                 OpenGraph

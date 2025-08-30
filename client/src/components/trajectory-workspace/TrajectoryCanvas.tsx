@@ -448,11 +448,11 @@ export function TrajectoryCanvas() {
         }}
       >
         <Box>
-          <Text as="p" size="3" weight="bold" style={{ color: theme.colors.text.primary }}>
+          <Text size="3" weight="bold" style={{ color: theme.colors.text.primary }}>
             Robot Trajectory Drawing
           </Text>
           {selectedTask && (
-            <Text as="p" size="2" style={{ color: theme.colors.text.secondary, marginTop: "4px" }}>
+            <Text size="2" style={{ color: theme.colors.text.secondary, marginTop: "4px" }}>
               Task: {selectedTask.description}
             </Text>
           )}

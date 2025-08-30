@@ -101,7 +101,6 @@ export function EarnMobile({ isLoaded }: EarnMobileProps) {
         }}
       >
         <Text
-          as="p"
           size="5"
           weight="bold"
           style={{
@@ -113,7 +112,6 @@ export function EarnMobile({ isLoaded }: EarnMobileProps) {
           Contribute to Robotics AI
         </Text>
         <Text
-          as="p"
           size="2"
           style={{
             color: theme.colors.text.secondary,

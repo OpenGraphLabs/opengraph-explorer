@@ -95,7 +95,6 @@ export function LoginMobile({ error, onError }: LoginMobileProps) {
               </Box>
 
               <Text
-                as="p"
                 size="4"
                 style={{
                   color: theme.colors.text.primary,
@@ -108,7 +107,6 @@ export function LoginMobile({ error, onError }: LoginMobileProps) {
               </Text>
 
               <Text
-                as="p"
                 size="1"
                 style={{
                   color: theme.colors.text.secondary,
