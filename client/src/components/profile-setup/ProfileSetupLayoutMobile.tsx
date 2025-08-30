@@ -62,7 +62,6 @@ export function ProfileSetupLayoutMobile() {
         </Text>
 
         <Text
-          as="p"
           size="1"
           style={{
             color: theme.colors.text.secondary,

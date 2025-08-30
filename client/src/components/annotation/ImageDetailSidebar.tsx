@@ -307,7 +307,6 @@ A smaller <em>dog</em> is running from (108, 119) to (351, 285), carrying an ora
 
         {/* 현재 선택된 어노테이션 표시 */}
         <Text
-          as="p"
           style={{
             fontSize: "11px",
             color: theme.colors.text.secondary,

@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text } from "@/shared/ui/design-system/components";
+import { Box, Text, Heading } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { EarnTaskCard } from "./EarnTaskCard";
 import actionDemoVideo from "@/assets/thumbnail/earn_thumbnail_action_demonstration.mov";
@@ -100,19 +100,15 @@ export function EarnDesktop({ isLoaded }: EarnDesktopProps) {
           padding: `${theme.spacing.semantic.component.md} 0`,
         }}
       >
-        <Text
-          as="p"
-          size="6"
-          weight="bold"
+        <Heading
           style={{
             color: theme.colors.text.primary,
             marginBottom: theme.spacing.semantic.component.sm,
           }}
         >
           Contribute to Robotics AI
-        </Text>
+        </Heading>
         <Text
-          as="p"
           size="3"
           style={{
             color: theme.colors.text.secondary,

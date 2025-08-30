@@ -95,7 +95,6 @@ export function LoginDesktop({ error, onError }: LoginDesktopProps) {
               </Box>
 
               <Text
-                as="p"
                 size="5"
                 style={{
                   color: theme.colors.text.primary,
@@ -108,7 +107,6 @@ export function LoginDesktop({ error, onError }: LoginDesktopProps) {
               </Text>
 
               <Text
-                as="p"
                 size="2"
                 style={{
                   color: theme.colors.text.secondary,

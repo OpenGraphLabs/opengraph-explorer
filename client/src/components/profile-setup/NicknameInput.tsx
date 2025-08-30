@@ -229,16 +229,11 @@ export const NicknameInput = memo(function NicknameInput({
             alignItems: "center",
             gap: "4px",
           }}
-          as="p"
         >
           {status.message}
         </Text>
       )}
-      {error && !status.message && (
-        <Text style={errorTextStyle} as="p">
-          {error}
-        </Text>
-      )}
+      {error && !status.message && <Text style={errorTextStyle}>{error}</Text>}
     </Box>
   );
 });

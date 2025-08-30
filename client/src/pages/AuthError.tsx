@@ -64,7 +64,6 @@ export function AuthError() {
 
         {/* Error Title */}
         <Text
-          as="p"
           size="5"
           style={{
             color: theme.colors.text.primary,

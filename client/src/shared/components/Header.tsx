@@ -353,7 +353,6 @@ export function Header() {
                         display: "block",
                         marginBottom: "4px",
                       }}
-                      as="p"
                     >
                       {user.name || "User"}
                     </Text>
@@ -363,7 +362,6 @@ export function Header() {
                         color: theme.colors.text.secondary,
                         display: "block",
                       }}
-                      as="p"
                     >
                       {user.email}
                     </Text>
@@ -505,7 +503,6 @@ export function Header() {
                   letterSpacing: "0.5px",
                   marginBottom: "8px",
                 }}
-                as="p"
               >
                 Navigation
               </Text>

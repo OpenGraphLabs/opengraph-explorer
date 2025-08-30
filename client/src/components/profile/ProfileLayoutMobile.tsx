@@ -209,11 +209,7 @@ export function ProfileLayoutMobile() {
                       border: `1px solid ${theme.colors.border.subtle}`,
                     }}
                   >
-                    <Text
-                      as="p"
-                      size="1"
-                      style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
-                    >
+                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
                       👤 {userGender.charAt(0).toUpperCase() + userGender.slice(1).toLowerCase()}
                     </Text>
                   </Box>
@@ -227,11 +223,7 @@ export function ProfileLayoutMobile() {
                       border: `1px solid ${theme.colors.border.subtle}`,
                     }}
                   >
-                    <Text
-                      as="p"
-                      size="1"
-                      style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
-                    >
+                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
                       🎂 {userAge} years
                     </Text>
                   </Box>
@@ -245,11 +237,7 @@ export function ProfileLayoutMobile() {
                       border: `1px solid ${theme.colors.border.subtle}`,
                     }}
                   >
-                    <Text
-                      as="p"
-                      size="1"
-                      style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
-                    >
+                    <Text size="1" style={{ color: theme.colors.text.secondary, fontWeight: 500 }}>
                       🌍 {userCountry}
                     </Text>
                   </Box>

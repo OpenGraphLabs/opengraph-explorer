@@ -173,7 +173,6 @@ export function ProfileLayoutDesktop() {
                   {displayName}
                 </Heading>
                 <Text
-                  as="p"
                   size="3"
                   style={{
                     color: theme.colors.text.secondary,
@@ -186,7 +185,7 @@ export function ProfileLayoutDesktop() {
                   <Flex align="center" gap="4">
                     <Flex align="center" gap="2">
                       <CalendarBlank size={14} style={{ color: theme.colors.text.tertiary }} />
-                      <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                      <Text size="2" style={{ color: theme.colors.text.secondary }}>
                         Joined {joinDate}
                       </Text>
                     </Flex>
@@ -199,7 +198,7 @@ export function ProfileLayoutDesktop() {
                           background: theme.colors.status.success,
                         }}
                       />
-                      <Text as="p" size="2" style={{ color: theme.colors.text.secondary }}>
+                      <Text size="2" style={{ color: theme.colors.text.secondary }}>
                         Level {mockData.level} Contributor
                       </Text>
                     </Flex>
@@ -218,7 +217,6 @@ export function ProfileLayoutDesktop() {
                           <Flex align="center" gap="2">
                             <User size={14} style={{ color: theme.colors.text.secondary }} />
                             <Text
-                              as="p"
                               size="2"
                               style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
                             >
@@ -238,7 +236,6 @@ export function ProfileLayoutDesktop() {
                           }}
                         >
                           <Text
-                            as="p"
                             size="2"
                             style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
                           >
@@ -256,11 +253,10 @@ export function ProfileLayoutDesktop() {
                           }}
                         >
                           <Flex align="center" gap="2">
-                            <Text as="p" size="2" style={{ fontSize: "14px" }}>
+                            <Text size="2" style={{ fontSize: "14px" }}>
                               🌍
                             </Text>
                             <Text
-                              as="p"
                               size="2"
                               style={{ color: theme.colors.text.secondary, fontWeight: 500 }}
                             >
@@ -320,6 +316,7 @@ export function ProfileLayoutDesktop() {
                 <Heading
                   size="4"
                   style={{
+                    marginBottom: 0,
                     color: theme.colors.text.primary,
                     fontWeight: 600,
                   }}
@@ -386,7 +383,6 @@ export function ProfileLayoutDesktop() {
                     />
                     <Box>
                       <Text
-                        as="p"
                         size="4"
                         style={{
                           fontWeight: 700,
@@ -397,7 +393,6 @@ export function ProfileLayoutDesktop() {
                         OpenGraph Points
                       </Text>
                       <Text
-                        as="p"
                         size="2"
                         style={{
                           color: theme.colors.text.secondary,
@@ -409,7 +404,6 @@ export function ProfileLayoutDesktop() {
                   </Flex>
                   <Box style={{ textAlign: "right" }}>
                     <Text
-                      as="p"
                       size="6"
                       style={{
                         fontWeight: 800,
@@ -425,7 +419,6 @@ export function ProfileLayoutDesktop() {
 
               {/* Exchange Options */}
               <Text
-                as="p"
                 size="2"
                 style={{
                   color: theme.colors.text.secondary,
@@ -460,7 +453,6 @@ export function ProfileLayoutDesktop() {
                       />
                       <Box>
                         <Text
-                          as="p"
                           size="2"
                           style={{
                             fontWeight: 600,
@@ -470,7 +462,6 @@ export function ProfileLayoutDesktop() {
                           {token.symbol}
                         </Text>
                         {/*<Text*/}
-                        {/*  as="p"*/}
                         {/*  size="1"*/}
                         {/*  style={{*/}
                         {/*    color: theme.colors.text.tertiary,*/}
@@ -515,7 +506,6 @@ export function ProfileLayoutDesktop() {
               <Box>
                 {/* From Section - Fixed to OPEN */}
                 <Text
-                  as="p"
                   size="2"
                   style={{
                     color: theme.colors.text.secondary,
@@ -548,7 +538,6 @@ export function ProfileLayoutDesktop() {
                     }}
                   />
                   <Text
-                    as="p"
                     size="3"
                     style={{
                       fontWeight: 600,
@@ -558,7 +547,6 @@ export function ProfileLayoutDesktop() {
                     OPEN
                   </Text>
                   <Text
-                    as="p"
                     size="2"
                     style={{
                       color: theme.colors.text.tertiary,
@@ -619,7 +607,6 @@ export function ProfileLayoutDesktop() {
 
                 {/* To Section - Target Token Selection */}
                 <Text
-                  as="p"
                   size="2"
                   style={{
                     color: theme.colors.text.secondary,
@@ -682,7 +669,6 @@ export function ProfileLayoutDesktop() {
                   }}
                 >
                   <Text
-                    as="p"
                     size="2"
                     style={{
                       color: theme.colors.text.secondary,
@@ -693,7 +679,6 @@ export function ProfileLayoutDesktop() {
                   </Text>
                   <Flex align="center" justify="between">
                     <Text
-                      as="p"
                       size="5"
                       style={{
                         fontWeight: 700,
@@ -703,7 +688,6 @@ export function ProfileLayoutDesktop() {
                       {calculateOutputAmount()} {targetToken}
                     </Text>
                     <Text
-                      as="p"
                       size="2"
                       style={{
                         color: theme.colors.text.tertiary,
@@ -730,7 +714,6 @@ export function ProfileLayoutDesktop() {
                     }}
                   >
                     <Text
-                      as="p"
                       size="2"
                       style={{
                         color: theme.colors.status.error,
@@ -778,7 +761,6 @@ export function ProfileLayoutDesktop() {
                 }}
               >
                 <Text
-                  as="p"
                   size="1"
                   style={{
                     color: theme.colors.text.secondary,

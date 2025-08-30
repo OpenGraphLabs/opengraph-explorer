@@ -39,7 +39,6 @@ export function ProfileSetupLayoutDesktop() {
         </Text>
 
         <Text
-          as="p"
           size="2"
           style={{
             color: theme.colors.text.secondary,
@@ -110,7 +109,6 @@ export function ProfileSetupLayoutDesktop() {
                 style={{
                   color: theme.colors.text.secondary,
                 }}
-                as="p"
               >
                 Takes less than a minute
               </Text>
@@ -160,7 +158,7 @@ export function ProfileSetupLayoutDesktop() {
               marginTop: theme.spacing.semantic.component.lg,
             }}
           >
-            <Text size="1" style={{ color: theme.colors.text.tertiary, lineHeight: 1.4 }} as="p">
+            <Text size="1" style={{ color: theme.colors.text.tertiary, lineHeight: 1.4 }}>
               🔒 Secure & private. Update anytime in settings.
             </Text>
           </Box>

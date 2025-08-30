@@ -105,9 +105,9 @@ export function ProfileActivityStats() {
               <Flex align="start" justify="between" gap={isMobile ? "2" : "3"}>
                 <Box style={{ flex: 1, minWidth: 0 }}>
                   <Text
-                    as="p"
                     size="1"
                     style={{
+                      display: "block",
                       color: theme.colors.text.tertiary,
                       fontSize: isMobile ? "9px" : "10px",
                       fontWeight: 600,
@@ -120,9 +120,9 @@ export function ProfileActivityStats() {
                   </Text>
 
                   <Text
-                    as="p"
                     size={isMobile ? "4" : "5"}
                     style={{
+                      display: "block",
                       fontWeight: 700,
                       color: stat.color,
                       marginBottom: "2px",
@@ -134,7 +134,6 @@ export function ProfileActivityStats() {
                   </Text>
 
                   <Text
-                    as="p"
                     size="1"
                     style={{
                       color: theme.colors.text.secondary,
