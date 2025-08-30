@@ -4,13 +4,24 @@ import { Button } from "@/shared/ui/design-system/components/Button/Button";
 import { useTheme } from "@/shared/ui/design-system";
 import { useProfileSetupPageContext } from "@/shared/providers/ProfileSetupPageProvider";
 import { useMobile } from "@/shared/hooks";
-import { User, Globe, Calendar, Users, CaretDown, Check, Plus } from "phosphor-react";
+import { Globe, Calendar, Users, CaretDown, Check, Plus } from "phosphor-react";
+import { NicknameInput } from "./NicknameInput";
 
 export function ProfileSetupForm() {
   const { theme } = useTheme();
   const { isMobile } = useMobile();
-  const { formData, errors, updateFormData, handleSubmit, isLoading, countries, genderOptions } =
-    useProfileSetupPageContext();
+  const {
+    formData,
+    errors,
+    updateFormData,
+    handleSubmit,
+    handleCheckNickname,
+    isLoading,
+    isCheckingNickname,
+    nicknameStatus,
+    countries,
+    genderOptions,
+  } = useProfileSetupPageContext();
 
   // Country autocomplete state
   const [countrySearch, setCountrySearch] = useState("");
@@ -225,47 +236,16 @@ export function ProfileSetupForm() {
       style={{ width: "100%" }}
     >
       <Flex direction="column" gap="5">
-        {/* Row 1: Nickname (full width) */}
-        <Box style={fieldStyle}>
-          <Box style={fieldLabelStyle}>
-            <User size={16} color={theme.colors.interactive.primary} weight="duotone" />
-            <Text weight="medium">Nickname</Text>
-            <Text size="1" style={{ color: theme.colors.status.error }}>
-              *
-            </Text>
-          </Box>
-          <input
-            type="text"
-            name="nickname"
-            value={formData.nickname}
-            onChange={e => updateFormData("nickname", e.target.value)}
-            onFocus={e => Object.assign(e.target.style, focusedInputStyle)}
-            onBlur={e => {
-              const hasError = errors.nickname;
-              Object.assign(
-                e.target.style,
-                hasError
-                  ? errorInputStyle
-                  : {
-                      borderColor: theme.colors.border.primary,
-                      boxShadow: "none",
-                    }
-              );
-            }}
-            placeholder="e.g. DataScientist42, AIEnthusiast"
-            style={{
-              ...inputStyle,
-              ...(errors.nickname ? errorInputStyle : {}),
-            }}
-            maxLength={50}
-            disabled={isLoading}
-          />
-          {errors.nickname && (
-            <Text style={errorTextStyle} as="p">
-              {errors.nickname}
-            </Text>
-          )}
-        </Box>
+        {/* Row 1: Nickname with availability check */}
+        <NicknameInput
+          value={formData.nickname}
+          error={errors.nickname}
+          status={nicknameStatus}
+          isLoading={isLoading}
+          isMobile={isMobile}
+          onChange={value => updateFormData("nickname", value)}
+          onCheck={handleCheckNickname}
+        />
 
         {/* Row 2: Gender + Age (side by side on desktop) */}
         <Box

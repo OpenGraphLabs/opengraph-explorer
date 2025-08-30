@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthCurrentUser } from "@/shared/api/endpoints";
 import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { requiresAuth } from "@/shared/config/routePermissions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ProfileCompleteGuardProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface ProfileCompleteGuardProps {
 export const ProfileCompleteGuard: React.FC<ProfileCompleteGuardProps> = ({ children }) => {
   const { theme } = useTheme();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   // Check if current route requires authentication
   const needsAuth = requiresAuth(location.pathname);
@@ -21,7 +23,22 @@ export const ProfileCompleteGuard: React.FC<ProfileCompleteGuardProps> = ({ chil
     return <>{children}</>;
   }
 
-  const { data: user, isLoading, error } = useAuthCurrentUser({ enabled: true });
+  const { data: user, isLoading, error, refetch } = useAuthCurrentUser({ enabled: true });
+
+  // When navigating from profile setup, refetch user data to get latest state
+  useEffect(() => {
+    if (location.pathname !== "/profile/setup") {
+      // Check if we're coming from profile setup by looking at navigation state
+      const fromProfileSetup = location.state?.from === "/profile/setup";
+      if (fromProfileSetup) {
+        // Force refetch when coming from profile setup with a small delay
+        setTimeout(() => {
+          void queryClient.invalidateQueries({ queryKey: ["/api/v1/auth/me"] });
+          void refetch();
+        }, 50);
+      }
+    }
+  }, [location, queryClient, refetch]);
 
   // Show loading state while checking user profile
   if (isLoading) {
@@ -88,6 +105,11 @@ export const ProfileCompleteGuard: React.FC<ProfileCompleteGuardProps> = ({ chil
     }
 
     return <Navigate to="/profile/setup" replace />;
+  }
+
+  // If profile is complete and we're still on profile setup page, redirect to home
+  if (user && user.isProfileComplete && location.pathname === "/profile/setup") {
+    return <Navigate to="/" replace />;
   }
 
   // If profile is complete or no user data, allow access

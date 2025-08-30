@@ -1,5 +1,5 @@
-import React from "react";
-import { Box, Flex, Text, Heading } from "@/shared/ui/design-system/components";
+import React, { useEffect } from "react";
+import { Box, Flex, Text } from "@/shared/ui/design-system/components";
 import { useTheme } from "@/shared/ui/design-system";
 import { useMobile } from "@/shared/hooks";
 import {
@@ -10,6 +10,7 @@ import { ProfileSetupLayoutDesktop } from "@/components/profile-setup/ProfileSet
 import { ProfileSetupLayoutMobile } from "@/components/profile-setup/ProfileSetupLayoutMobile";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/data/AuthContext";
+import { useAuthCurrentUser } from "@/shared/api/endpoints";
 import { Login } from "./Login";
 
 /**
@@ -34,10 +35,18 @@ function ProfileSetupContent() {
         }}
       >
         <Flex direction="column" align="center" gap="4">
-          <Text size="4" style={{ color: theme.colors.status.error }}>
-            An error occurred
+          <Text size="4" style={{ color: theme.colors.status.error, fontWeight: 600 }}>
+            Error
           </Text>
-          <Text size="2" style={{ color: theme.colors.text.secondary }}>
+          <Text
+            size="2"
+            style={{
+              color: theme.colors.text.secondary,
+              textAlign: "center",
+              maxWidth: "400px",
+              lineHeight: 1.5,
+            }}
+          >
             {errors.general}
           </Text>
         </Flex>
@@ -91,6 +100,16 @@ function ProfileSetupContent() {
 export function ProfileSetup() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
+  const { data: currentUser, refetch: refetchCurrentUser } = useAuthCurrentUser({
+    enabled: isAuthenticated,
+  });
+
+  // Monitor profile completion status and redirect if complete
+  useEffect(() => {
+    if (currentUser?.isProfileComplete) {
+      navigate("/");
+    }
+  }, [currentUser?.isProfileComplete, navigate]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -129,14 +148,19 @@ export function ProfileSetup() {
     return <Login />;
   }
 
-  const handleSuccess = () => {
-    // Navigate to home page on successful profile completion
-    navigate("/");
+  const handleSuccess = async () => {
+    // Force refetch user data to ensure we have the latest state
+    await refetchCurrentUser();
+
+    // Small delay to ensure state is updated, then navigate
+    setTimeout(() => {
+      navigate("/", { state: { from: "/profile/setup" } });
+    }, 150);
   };
 
   const handleError = (error: string) => {
     console.error("Profile setup error:", error);
-    // Error is handled by the context and displayed in UI
+    // Errors are handled by the context and displayed in UI
   };
 
   return (

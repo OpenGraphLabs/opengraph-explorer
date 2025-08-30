@@ -69,6 +69,17 @@ class UpdateSuiAddressResponse(BaseModel):
     sui_address: str
 
 
+class CheckNicknameRequest(BaseModel):
+    """닉네임 중복 검사 요청"""
+    nickname: str
+
+
+class CheckNicknameResponse(BaseModel):
+    """닉네임 중복 검사 응답"""
+    available: bool
+    message: str
+
+
 class CurrentUserResponse(BaseModel):
     """현재 사용자 응답"""
     id: int
@@ -354,6 +365,74 @@ async def update_sui_address(
         )
 
 
+@router.post("/profile/check-nickname", response_model=CheckNicknameResponse)
+async def check_nickname(
+    request: CheckNicknameRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> CheckNicknameResponse:
+    """
+    닉네임 중복 검사
+    
+    Args:
+        request: 닉네임 검사 요청
+        current_user: 현재 인증된 사용자
+        db: 데이터베이스 세션
+        
+    Returns:
+        CheckNicknameResponse: 닉네임 사용 가능 여부
+    """
+    try:
+        from sqlalchemy import select
+        
+        # Validate nickname format
+        nickname = request.nickname.strip()
+        
+        if not nickname:
+            return CheckNicknameResponse(
+                available=False,
+                message="Nickname cannot be empty"
+            )
+        
+        if len(nickname) < 2:
+            return CheckNicknameResponse(
+                available=False,
+                message="Nickname must be at least 2 characters long"
+            )
+            
+        if len(nickname) > 50:
+            return CheckNicknameResponse(
+                available=False,
+                message="Nickname must be 50 characters or less"
+            )
+        
+        # Check if nickname is already taken by another user
+        stmt = select(User).where(
+            User.nickname == nickname,
+            User.id != current_user.id
+        )
+        result = await db.execute(stmt)
+        existing_user = result.scalar_one_or_none()
+        
+        if existing_user:
+            return CheckNicknameResponse(
+                available=False,
+                message=f"The nickname '{nickname}' is already taken. Please choose another one."
+            )
+        
+        return CheckNicknameResponse(
+            available=True,
+            message=f"The nickname '{nickname}' is available!"
+        )
+        
+    except Exception as e:
+        print(f"Error checking nickname: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to check nickname availability"
+        )
+
+
 @router.post("/profile/complete", response_model=ProfileCompleteResponse)
 async def complete_profile(
     request: ProfileCompleteRequest,
@@ -374,13 +453,49 @@ async def complete_profile(
     try:
         # Check if profile is already complete
         if current_user.is_profile_complete:
-            raise HTTPException(
-                status_code=400,
-                detail="Profile is already complete"
+            # Return success response indicating profile is already complete
+            # This avoids client-side error handling complexity
+            from ..schemas.user import UserRead
+            user_data = UserRead(
+                id=current_user.id,
+                email=current_user.email,
+                google_id=current_user.google_id,
+                display_name=current_user.display_name,
+                profile_image_url=current_user.profile_image_url,
+                sui_address=current_user.sui_address,
+                total_points=current_user.total_points,
+                nickname=current_user.nickname,
+                gender=current_user.gender,
+                age=current_user.age,
+                country=current_user.country,
+                is_profile_complete=current_user.is_profile_complete,
+                created_at=current_user.created_at
+            )
+            
+            return ProfileCompleteResponse(
+                success=True,
+                message="Profile is already complete",
+                user=user_data
             )
         
         # Merge the current_user object into the current session
         current_user = await db.merge(current_user)
+        
+        # Validate nickname uniqueness
+        from sqlalchemy import select
+        
+        stmt = select(User).where(
+            User.nickname == request.nickname.strip(),
+            User.id != current_user.id
+        )
+        result = await db.execute(stmt)
+        existing_user = result.scalar_one_or_none()
+        
+        if existing_user:
+            raise HTTPException(
+                status_code=400,
+                detail=f"The nickname '{request.nickname}' is already taken. Please choose another one."
+            )
         
         # Validate and update profile fields
         current_user.nickname = request.nickname
@@ -422,7 +537,8 @@ async def complete_profile(
         raise
     except Exception as e:
         print(f"Error completing profile: {str(e)}")
+        # Provide a user-friendly error message
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to complete profile: {str(e)}"
+            detail="An unexpected error occurred while completing your profile. Please try again or contact support if the issue persists."
         )

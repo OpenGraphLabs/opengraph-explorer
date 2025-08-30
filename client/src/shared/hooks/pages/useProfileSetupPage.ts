@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/data/AuthContext";
-import { useCompleteProfile } from "@/shared/api/endpoints/auth";
+import { useCompleteProfile, useCheckNickname } from "@/shared/api/endpoints/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface UseProfileSetupPageOptions {
   onSuccess?: () => void;
@@ -20,6 +21,13 @@ export interface ProfileFormErrors {
   age?: string;
   country?: string;
   general?: string;
+}
+
+export interface NicknameCheckStatus {
+  checked: boolean;
+  available: boolean;
+  message?: string;
+  checking?: boolean;
 }
 
 // Country list with code and name
@@ -65,6 +73,7 @@ export const GENDER_OPTIONS = [
 
 export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<ProfileFormData>({
     nickname: "",
     gender: "MALE",
@@ -73,13 +82,20 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
   });
   const [errors, setErrors] = useState<ProfileFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nicknameStatus, setNicknameStatus] = useState<NicknameCheckStatus>({
+    checked: false,
+    available: false,
+    checking: false,
+  });
 
-  // API hook for profile completion
+  // API hooks
   const {
     mutateAsync: completeProfile,
     isPosting: isApiLoading,
     error: apiError,
   } = useCompleteProfile();
+
+  const { mutateAsync: checkNickname, isPosting: isCheckingNickname } = useCheckNickname();
 
   const validateForm = useCallback((): boolean => {
     const newErrors: ProfileFormErrors = {};
@@ -131,11 +147,74 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
           [field]: undefined,
         }));
       }
+
+      // Reset nickname check status when nickname changes
+      if (field === "nickname") {
+        setNicknameStatus({
+          checked: false,
+          available: false,
+          checking: false,
+        });
+      }
     },
     [errors]
   );
 
+  const handleCheckNickname = useCallback(async () => {
+    const nickname = formData.nickname.trim();
+
+    // Basic validation
+    if (!nickname) {
+      setErrors(prev => ({ ...prev, nickname: "Please enter a nickname first" }));
+      return;
+    }
+
+    if (nickname.length < 2) {
+      setErrors(prev => ({ ...prev, nickname: "Nickname must be at least 2 characters" }));
+      return;
+    }
+
+    if (nickname.length > 50) {
+      setErrors(prev => ({ ...prev, nickname: "Nickname must be 50 characters or less" }));
+      return;
+    }
+
+    try {
+      // Set loading state immediately to provide instant feedback
+      setNicknameStatus(prev => ({ ...prev, checking: true }));
+
+      const result = await checkNickname({ nickname });
+
+      // Update only nickname status, not the entire form state
+      setNicknameStatus({
+        checked: true,
+        available: result.available,
+        message: result.message,
+        checking: false,
+      });
+
+      if (!result.available) {
+        setErrors(prev => ({ ...prev, nickname: result.message }));
+      } else {
+        setErrors(prev => ({ ...prev, nickname: undefined }));
+      }
+    } catch (error) {
+      console.error("Error checking nickname:", error);
+      setNicknameStatus(prev => ({ ...prev, checking: false }));
+      setErrors(prev => ({ ...prev, nickname: "Failed to check nickname availability" }));
+    }
+  }, [formData.nickname, checkNickname]);
+
   const handleSubmit = useCallback(async () => {
+    // Check if nickname was verified
+    if (!nicknameStatus.checked || !nicknameStatus.available) {
+      setErrors(prev => ({
+        ...prev,
+        nickname: "Please check nickname availability first",
+      }));
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -151,9 +230,21 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
         country: formData.country,
       };
 
-      await completeProfile(requestData);
+      const result = await completeProfile(requestData);
 
-      options.onSuccess?.();
+      // Success - update cache and call success callback
+      if (result?.success) {
+        // Force invalidate the user cache to refetch latest data
+        await queryClient.invalidateQueries({ queryKey: ["/api/v1/auth/me"] });
+
+        // Wait for cache to be updated
+        await queryClient.refetchQueries({ queryKey: ["/api/v1/auth/me"] });
+
+        // Small delay to ensure all updates are processed
+        setTimeout(() => {
+          options.onSuccess?.();
+        }, 100);
+      }
     } catch (error: any) {
       console.error("Profile completion error:", error);
 
@@ -167,7 +258,7 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, validateForm, completeProfile, options]);
+  }, [formData, validateForm, completeProfile, options, queryClient, nicknameStatus]);
 
   const isLoading = isApiLoading || isSubmitting;
 
@@ -180,11 +271,14 @@ export function useProfileSetupPage(options: UseProfileSetupPageOptions = {}) {
     updateFormData,
     handleSubmit,
     validateForm,
+    handleCheckNickname,
 
     // States
     isLoading,
     isSubmitting,
+    isCheckingNickname,
     apiError,
+    nicknameStatus,
 
     // User data
     user,

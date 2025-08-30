@@ -28,6 +28,7 @@ interface AuthContextValue extends AuthState {
   handleGoogleCallback: (jwt: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  refetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -137,11 +138,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, error: null }));
   }, []);
 
+  const refetchUser = useCallback(async () => {
+    const jwt = state.jwt || sessionStorage.getItem("zklogin-jwt");
+    if (!jwt) return;
+
+    try {
+      // Clear any existing cache first
+      const timestamp = Date.now();
+
+      // Fetch updated user info from server with cache busting
+      const response = await fetch(`/api/v1/auth/me?_t=${timestamp}`, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get user info from server");
+      }
+
+      const serverUser = await response.json();
+      const decoded = zkLoginService.decodeJwt(jwt);
+
+      const user: User = {
+        id: decoded.sub,
+        email: serverUser.email || (decoded as any).email,
+        name: serverUser.display_name || serverUser.nickname,
+        picture: serverUser.profile_image_url,
+      };
+
+      setState(prev => ({
+        ...prev,
+        user,
+      }));
+
+      console.log("User refetched successfully:", {
+        isProfileComplete: serverUser.is_profile_complete,
+        nickname: serverUser.nickname,
+      });
+    } catch (error) {
+      console.error("Failed to refetch user:", error);
+    }
+  }, [state.jwt]);
+
   const value: AuthContextValue = {
     ...state,
     handleGoogleCallback,
     logout,
     clearError,
+    refetchUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

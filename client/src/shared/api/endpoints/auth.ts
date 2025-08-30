@@ -46,6 +46,15 @@ export interface ProfileCompleteResponse {
   };
 }
 
+export interface CheckNicknameRequest {
+  nickname: string;
+}
+
+export interface CheckNicknameResponse {
+  available: boolean;
+  message: string;
+}
+
 // API response interfaces (snake_case from backend)
 interface CurrentUserResponse {
   id: number;
@@ -143,6 +152,17 @@ export function useCompleteProfile() {
   return usePost<ProfileCompleteRequest, ProfileCompleteApiResponse, ProfileCompleteResponse>(
     `${AUTH_BASE}/profile/complete`,
     parseProfileCompleteResponse,
+    { authenticated: true }
+  );
+}
+
+/**
+ * Check if nickname is available
+ */
+export function useCheckNickname() {
+  return usePost<CheckNicknameRequest, CheckNicknameResponse, CheckNicknameResponse>(
+    `${AUTH_BASE}/profile/check-nickname`,
+    data => data, // No transformation needed
     { authenticated: true }
   );
 }
