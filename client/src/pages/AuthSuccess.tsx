@@ -60,10 +60,7 @@ export function AuthSuccess() {
 
         setLoading(false);
 
-        // Redirect to home after brief delay
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
+        navigate("/");
       } catch (error) {
         console.error("Token processing error:", error);
         setError(error instanceof Error ? error.message : "Failed to process authentication");

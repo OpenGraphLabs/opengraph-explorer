@@ -107,12 +107,6 @@ export function HomeLayoutMobile() {
             }
           }
           
-          /* Touch target optimization */
-          button, a {
-            min-height: 44px; /* iOS recommended minimum */
-            min-width: 44px;
-          }
-          
           /* Prevent text selection on touch devices */
           .touch-action {
             -webkit-touch-callout: none;
