@@ -33,10 +33,12 @@ class GoogleAuthService:
         try:
             # Google의 공개 키를 사용하여 ID token 검증
             # audience는 우리의 Google Client ID여야 함
+            # clock_skew_in_seconds=30: 시계 동기화 오차 10초까지 허용
             id_info = id_token.verify_oauth2_token(
                 token, 
                 requests.Request(), 
-                settings.google_client_id
+                settings.google_client_id,
+                clock_skew_in_seconds=10
             )
             
             # issuer 검증

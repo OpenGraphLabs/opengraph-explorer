@@ -113,21 +113,21 @@ export function HomeHeaderMobile() {
               >
                 <MobileTabTrigger
                   value="first-person"
-                  icon={<CameraIcon width="16" height="16" />}
+                  icon={<CameraIcon width="16" height="16" style={{ marginRight: "5px" }} />}
                   label="First Person"
                   isActive={dataType === "first-person"}
                   theme={theme}
                 />
                 <MobileTabTrigger
                   value="object-detection"
-                  icon={<ImageIcon width="16" height="16" />}
+                  icon={<ImageIcon width="16" height="16" style={{ marginRight: "5px" }} />}
                   label="Object Detection"
                   isActive={dataType === "object-detection"}
                   theme={theme}
                 />
                 <MobileTabTrigger
                   value="action-video"
-                  icon={<VideoIcon width="16" height="16" />}
+                  icon={<VideoIcon width="16" height="16" style={{ marginRight: "5px" }} />}
                   label="Action Video"
                   isActive={dataType === "action-video"}
                   theme={theme}
