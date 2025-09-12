@@ -39,15 +39,14 @@ export function BuildingPage() {
       />
 
       <Container size="3" style={{ position: "relative", zIndex: 1 }}>
-        <Flex 
-          direction="column" 
-          align="center" 
-          style={{ 
+        <Flex
+          direction="column"
+          align="center"
+          style={{
             textAlign: "center",
-            transform: "translateY(-40px)" // 컨텐츠를 위로 이동
+            transform: "translateY(-40px)", // 컨텐츠를 위로 이동
           }}
         >
-          
           {/* Enhanced Logo with subtle glow effect */}
           <Box
             style={{
@@ -238,7 +237,6 @@ export function BuildingPage() {
               </Text>
             </Box>
           </Flex>
-
         </Flex>
       </Container>
 

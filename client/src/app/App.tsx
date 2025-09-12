@@ -39,79 +39,79 @@ export default function App() {
 
           {/* Protected routes - auth required */}
           <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/datasets"
-          element={
-            <ProtectedRoute>
-              <Datasets />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/datasets/:id"
-          element={
-            <ProtectedRoute>
-              <DatasetDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/datasets/:id/annotate"
-          element={
-            <ProtectedRoute>
-              <AnnotationWorkspace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/datasets/:id/trajectory"
-          element={
-            <ProtectedRoute>
-              <TrajectoryDrawingWorkspace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/earn"
-          element={
-            <ProtectedRoute>
-              <Earn />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tasks"
-          element={
-            <ProtectedRoute>
-              <TaskSelection />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/datasets/:id/first-person-capture"
-          element={
-            <ProtectedRoute>
-              <FirstPersonCapture />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          <Route
+            path="/datasets"
+            element={
+              <ProtectedRoute>
+                <Datasets />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/datasets/:id"
+            element={
+              <ProtectedRoute>
+                <DatasetDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/datasets/:id/annotate"
+            element={
+              <ProtectedRoute>
+                <AnnotationWorkspace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/datasets/:id/trajectory"
+            element={
+              <ProtectedRoute>
+                <TrajectoryDrawingWorkspace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/earn"
+            element={
+              <ProtectedRoute>
+                <Earn />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <TaskSelection />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/datasets/:id/first-person-capture"
+            element={
+              <ProtectedRoute>
+                <FirstPersonCapture />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </BuildingModeGuard>
     </AppLayout>
   );
