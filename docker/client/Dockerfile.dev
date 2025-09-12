@@ -5,6 +5,9 @@ WORKDIR /app
 ARG VITE_SERVER_BASE_URL
 ENV VITE_SERVER_BASE_URL=$VITE_SERVER_BASE_URL
 
+ARG VITE_APP_BUILDING_MODE
+ENV VITE_APP_BUILDING_MODE=$VITE_APP_BUILDING_MODE
+
 # 패키지 의존성 복사 및 설치
 COPY client/package.json client/yarn.lock ./
 RUN yarn install --frozen-lockfile

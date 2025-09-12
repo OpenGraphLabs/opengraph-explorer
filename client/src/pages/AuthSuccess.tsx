@@ -436,6 +436,7 @@ export function AuthSuccess() {
             <Text
               size="5"
               style={{
+                display: "block",
                 color: theme.colors.text.primary,
                 fontWeight: 700,
                 textAlign: "center",

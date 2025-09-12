@@ -135,6 +135,7 @@ services:
       dockerfile: docker/client/Dockerfile.dev
       args:
         VITE_SERVER_BASE_URL: ${VITE_SERVER_BASE_URL}
+        VITE_APP_BUILDING_MODE: ${VITE_APP_BUILDING_MODE}
     container_name: opengraph-client-dev
     ports:
       - "80:80"

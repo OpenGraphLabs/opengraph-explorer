@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/shared/components/AppLayout";
 import { ScrollToTop } from "@/shared/components/ScrollToTop";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
+import { BuildingModeGuard } from "@/shared/components/BuildingModeGuard";
 import { Home } from "@/pages/Home";
 import { Profile } from "@/pages/Profile";
 import { Datasets } from "@/pages/Datasets";
@@ -23,20 +24,21 @@ export default function App() {
   return (
     <AppLayout>
       <ScrollToTop />
-      <Routes>
-        {/* Public routes - no auth required */}
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/auth/success" element={<AuthSuccess />} />
-        <Route path="/auth/error" element={<AuthError />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/profile/setup" element={<ProfileSetup />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
+      <BuildingModeGuard>
+        <Routes>
+          {/* Public routes - no auth required */}
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/success" element={<AuthSuccess />} />
+          <Route path="/auth/error" element={<AuthError />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile/setup" element={<ProfileSetup />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
 
-        {/* Admin dashboard - completely independent from main app */}
-        <Route path="/admin" element={<AdminDashboard />} />
+          {/* Admin dashboard - completely independent from main app */}
+          <Route path="/admin" element={<AdminDashboard />} />
 
-        {/* Protected routes - auth required */}
-        <Route
+          {/* Protected routes - auth required */}
+          <Route
           path="/"
           element={
             <ProtectedRoute>
@@ -110,6 +112,7 @@ export default function App() {
           }
         />
       </Routes>
+      </BuildingModeGuard>
     </AppLayout>
   );
 }

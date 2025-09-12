@@ -97,6 +97,7 @@ export function LoginMobile({ error, onError }: LoginMobileProps) {
               <Text
                 size="4"
                 style={{
+                  display: "block",
                   color: theme.colors.text.primary,
                   fontWeight: 600,
                   marginBottom: theme.spacing.semantic.component.sm,
