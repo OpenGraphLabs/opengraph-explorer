@@ -97,6 +97,7 @@ export function LoginDesktop({ error, onError }: LoginDesktopProps) {
               <Text
                 size="5"
                 style={{
+                  display: "block",
                   color: theme.colors.text.primary,
                   fontWeight: 600,
                   marginBottom: theme.spacing.semantic.component.sm,
